@@ -12,12 +12,12 @@ COPY services services/
 COPY package*.json ./
 
 COPY deploy/pm2.json pm2.json
-COPY config/default.json config/production.json
+COPY config/*.json config/
 
 COPY zftapi.js app.js
 
 # Install app dependencies
 ENV NPM_CONFIG_LOGLEVEL warn
-RUN npm install --only-production
+RUN npm install --production
 
 CMD [ "pm2-docker", "start", "pm2.json" ]
