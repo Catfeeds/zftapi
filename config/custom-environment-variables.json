@@ -1,0 +1,9 @@
+{
+    "RDS": {
+        "host": "ZFT_RDS_HOST",
+        "port": "ZFT_RDS_PORT",
+        "username": "ZFT_RDS_USERNAME",
+        "password": "ZFT_RDS_PASSWORD",
+        "database": "ZFT_RDS_DATABASE"
+    }
+}
