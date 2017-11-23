@@ -1,0 +1,9 @@
+{
+    "apps": [{
+        "name": "zft-app",
+        "script": "app.js",
+        "env": {
+            "production": true
+        }
+    }]
+}

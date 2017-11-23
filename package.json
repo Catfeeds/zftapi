@@ -1,9 +1,11 @@
 {
   "name": "zftapi",
   "version": "1.0.0",
-  "description": "",
+  "description": "the backend of web-zft",
   "main": "zftapi",
   "scripts": {
+    "start": "node zftapi.js",
+    "dev": "./node_modules/nodemon/bin/nodemon.js --config nodemon.json --exec npm start",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -28,5 +30,8 @@
     "tracer": "^0.8.11",
     "underscore": "^1.8.3",
     "validator": "^9.1.1"
+  },
+  "devDependencies": {
+    "nodemon": "^1.12.1"
   }
 }
