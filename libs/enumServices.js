@@ -5,6 +5,32 @@ const path = require('path');
 
 exports = module.exports = function(){};
 
+function LoadMethod(file)
+{
+    let methodSet = {};
+    try {
+        let importFile = require(file);
+        _.map(importFile, (func, method)=>{
+            methodSet[method] = func;
+        });
+    }
+    catch(e){
+        log.error(file, 'load error', e);
+    }
+
+    return methodSet;
+}
+function MethodMapping(server, methodMapping, url, methodSet) {
+    _.map(methodSet, (func, method)=>{
+        method = methodMapping[method];
+        if(!method){
+            return;
+        }
+        log.debug(method, ' ==> ', url);
+        server[method](url, func);
+    });
+}
+
 function Load(server, apiPath) {
     //枚举api接口的所有url
 
@@ -12,7 +38,7 @@ function Load(server, apiPath) {
 
     let TraversePath = function(basePath)
     {
-        const avaliableExtname = ['.js'];
+        const avaliableExtName = ['.js'];
 
         let files;
         try{
@@ -27,14 +53,13 @@ function Load(server, apiPath) {
             return;
         }
 
-        _.each(files, function(basename){
-            //
+        files.map(basename=>{
             let newSubPath = path.join(basePath, basename);
             let extName = path.extname(basename);
 
             //判断文件是否可用于加载
             let fsStat = fs.lstatSync(newSubPath);
-            if(!fsStat.isDirectory() && !_.contains(avaliableExtname, extName)){
+            if(!fsStat.isDirectory() && !_.contains(avaliableExtName, extName)){
                 return;
             }
 
@@ -42,14 +67,9 @@ function Load(server, apiPath) {
                 //path
                 TraversePath(newSubPath);
             }
-            else if(extName == '.js'){
+            else if(extName === '.js'){
                 //file
                 let relativePath = path.relative(rootPath, basePath);
-                if(relativePath.indexOf('handlers') != -1){
-                    var i = 0;
-                }
-
-
                 relativePath = relativePath.replace('/handlers', '');
                 relativePath = path.join(relativePath, basename.replace('.js', ''));
 
@@ -62,43 +82,10 @@ function Load(server, apiPath) {
                     'put': 'put'
                 };
 
-                try {
-                    let importFile = require(file);
-                    _.map(importFile, (func, method)=>{
-                        // let url = path.join(apiPath, relativePath);
-                        if(!methodMapping[method]){
-                            return;
-                        }
-                        method = methodMapping[method];
-                        log.debug(method, ' ==> ', relativePath);
-
-
-                        // const version = relativePath.split('/')[0];
-                        // const validatorPath = path.join('/services',  version, 'validateSchema');
-                        //
-                        // const validatorSchema = Include(validatorPath);
-                        // const validatorHook = (req, res, next)=>{
-                        //     const handler = func;
-                        //     const body = req.body;
-                        //
-                        //     const key = relativePath.replace(version, '');
-                        //     const result = validatorSchema.Validate(key, body);
-                        //     if( result ){
-                        //         res.status().send(result);
-                        //     }
-                        //
-                        //     handler(req, res);
-                        //     next();
-                        // };
-                        // server[method](relativePath, validatorHook);
-                        server[method](relativePath, func);
-                    });
-                }
-                catch(e){
-                    log.error(file, 'load error', e);
-                }
+                const methods = LoadMethod(file);
+                MethodMapping(server, methodMapping, relativePath, methods);
             }
-        })
+        });
     };
 
     TraversePath(rootPath);

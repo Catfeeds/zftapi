@@ -1,17 +1,17 @@
 'use strict';
 /**
- * Operations on /paychannels
+ * Operations on /bills/{billid}
  */
 module.exports = {
     /**
-     * summary: get paychannels
-     * description: pass hid or query parameter to get houese list
+     * summary: update the bill
+     * description: update the bill info
 
-     * parameters: projectid
+     * parameters: billid
      * produces: application/json
      * responses: 200, 400
      */
-    get: function getPayChannels(req, res, next) {
+    put: function updateBills(req, res, next) {
         /**
          * Get the data for response 200
          * For response `default` status 200 is used.
