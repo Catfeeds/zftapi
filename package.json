@@ -1,0 +1,32 @@
+{
+  "name": "zftapi",
+  "version": "1.0.0",
+  "description": "",
+  "main": "zftapi",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cloudenergy/zftapi.git"
+  },
+  "author": "christozhou",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/cloudenergy/zftapi/issues"
+  },
+  "homepage": "https://github.com/cloudenergy/zftapi#readme",
+  "dependencies": {
+    "app-root-path": "^2.0.1",
+    "config": "^1.28.1",
+    "include-node": "^0.2.0",
+    "moment": "^2.19.2",
+    "mysql2": "^1.5.0",
+    "q": "^1.5.1",
+    "restify": "^6.3.2",
+    "sequelize": "^4.22.6",
+    "tracer": "^0.8.11",
+    "underscore": "^1.8.3",
+    "validator": "^9.1.1"
+  }
+}
