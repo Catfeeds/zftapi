@@ -16,6 +16,9 @@ module.exports = {
          * Get the data for response 200
          * For response `default` status 200 is used.
          */
+	        //TODO: implement this ASAP
+        const proxy = require('../../proxy/proxy');
+        proxy.delegate(req.route.path, res, next);
     },
     /**
      * summary: save house
