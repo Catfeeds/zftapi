@@ -1,12 +1,10 @@
 #! /bin/bash
 
-set -e
-
 IMAGE_VERSION=${1:-latest}
 docker pull registry.docker-cn.com/kpse/api-zft:$IMAGE_VERSION
 
 function start () {
-  docker ps -aq -f=name='api' | xargs docker rm -f
+  docker rm -f api
   docker run -e ZFT_RDS_HOST -e ZFT_RDS_PORT -e ZFT_RDS_USERNAME -e ZFT_RDS_PASSWORD -e ZFT_RDS_DATABASE \
   	-d -p 8000:8000 --name=api --net=zft  registry.docker-cn.com/kpse/api-zft:$IMAGE_VERSION
 
