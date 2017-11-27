@@ -12,8 +12,10 @@
         "restart": "osascript -e 'display notification \"App restarted due to:\n'$FILENAME'\" with title \"nodemon\"'"
     },
     "watch": [
-        "test/fixtures/",
-        "test/samples/"
+        "zftapi.js",
+        "libs/",
+        "services/",
+        "test/"
     ],
     "env": {
         "NODE_ENV": "development"

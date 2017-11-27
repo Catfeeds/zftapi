@@ -16,7 +16,7 @@ after_success:
   - if [[ $TRAVIS_PULL_REQUEST == "false" ]]; then deploy/script/publish.sh v$TRAVIS_BUILD_NUMBER ; fi
 before_install:
   - openssl aes-256-cbc -K $encrypted_6f4f3015cdcd_key -iv $encrypted_6f4f3015cdcd_iv
-    -in deploy_rsa.enc -out deploy_rsa -d
+    -in deploy/script/deploy_rsa.enc -out $KEY_PATH  -d
 
 before_deploy:
   - chmod 600 $KEY_PATH
