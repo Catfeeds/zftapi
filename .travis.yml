@@ -20,7 +20,7 @@ before_install:
 
 before_deploy:
   - chmod 600 $KEY_PATH
-  - scp -i $KEY_PATH deploy/script/deploy.sh $DEPLOY_USER@$HOST:/home/$DEPLOY_USER
+  - scp -i $KEY_PATH deploy/script/deploy.sh $DEPLOY_USER@$HOST:/home/$DEPLOY_USER/deploy_api.sh
 
 addons:
   ssh_known_hosts: testzft.cloudenergy.me
@@ -28,6 +28,6 @@ addons:
 deploy:
   provider: script
   skip_cleanup: true
-  script: chmod 600 $KEY_PATH && ssh -o StrictHostKeyChecking=no -i $KEY_PATH $DEPLOY_USER@$HOST "./deploy.sh v$TRAVIS_BUILD_NUMBER"
+  script: chmod 600 $KEY_PATH && ssh -o StrictHostKeyChecking=no -i $KEY_PATH $DEPLOY_USER@$HOST "./deploy_api.sh v$TRAVIS_BUILD_NUMBER"
   on:
     branch: develop

@@ -1,5 +1,7 @@
 #! /bin/bash
 
+set -e
+
 IMAGE_VERSION=${1:-latest}
 docker pull registry.docker-cn.com/kpse/api-zft:$IMAGE_VERSION
 
@@ -12,16 +14,20 @@ function start () {
 }
 function test_deploy() {
   docker rm -f test_api_deploy
-  docker run -d --name test_api_deploy -p 8090:8000 registry.docker-cn.com/kpse/api-zft:$IMAGE_VERSION
-  test_curl
+  docker run -e ZFT_RDS_HOST -e ZFT_RDS_PORT -e ZFT_RDS_USERNAME -e ZFT_RDS_PASSWORD -e ZFT_RDS_DATABASE -d --name test_api_deploy -p 8090:8000 registry.docker-cn.com/kpse/api-zft:$IMAGE_VERSION
 }
+
 function test_curl() {
   response=$(curl --write-out %{http_code} --silent --output /dev/null http://localhost:8090/v1.0/contracts)
   if [[ $response == "200" ]]; then
-    docker rm -f test_api_deploy;
+    echo successful test curl && docker rm -f test_api_deploy;
   else
-    exit 1;
+    echo failed test curl && exit 1;
   fi
 }
 
-test_deploy && start
+test_deploy
+
+sleep 5
+
+test_curl && start
