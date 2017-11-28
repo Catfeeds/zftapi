@@ -21,6 +21,7 @@ services:
             - 8000:8000
         volumes:
           - ".:/src"
+          - "./node_modules:/node_modules"
         environment:
           - ZFT_RDS_HOST=db
           - ZFT_RDS_PORT=3306
