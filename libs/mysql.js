@@ -600,69 +600,38 @@ function SequelizeDefine()
         freezeTableName: true
     });
 
-    exports.BillFlows = sequelizeInstance.define('billflows', {
-        flowid: {
-            type: Sequelize.BIGINT.UNSIGNED,    //
-            allowNull: false,
-            defaultValue: 0
+    exports.Divisions = sequelizeInstance.define('divisions', {
+        id: {
+            type: Sequelize.INTEGER,    //
+            primaryKey: true
         },
-        billid: {
-            type: Sequelize.BIGINT.UNSIGNED,    // 账单ID
-            allowNull: false,
-            defaultValue: 0
-        },
-        projectid: {
-            type: Sequelize.STRING(64),  //项目ID
+        title: {
+            type: Sequelize.STRING(16),    // 账单ID
             allowNull: false,
             defaultValue: ''
         },
-        category: {
-            type: Sequelize.BOOLEAN,    //
+        level: {
+            type: Sequelize.INTEGER(1),
+            allowNull: false,
+            defaultValue: 9
+        },
+        parent: {
+            type: Sequelize.INTEGER(6),
             allowNull: false,
             defaultValue: 0
         },
-        relevantid: {
-            type: Sequelize.STRING(64),  //根据来源相关的ID
+        latitude:{
+            type: Sequelize.DECIMAL(9, 5),
             allowNull: false,
-            defaultValue: ''
+            defaultValue: 0.0
         },
-        amount: {
-            type: Sequelize.BIGINT.UNSIGNED,    //金额 扩大100
+        longitude:{
+            type: Sequelize.DECIMAL(9, 5),
             allowNull: false,
-            defaultValue: 0
+            defaultValue: 0.0
         },
-        paychannel: {
-            type: Sequelize.BIGINT.UNSIGNED,    // 支付渠道
-            allowNull: false,
-            defaultValue: 0
-        },
-        operator: {
-            type: Sequelize.BIGINT.UNSIGNED,    // 经办人
-            allowNull: false,
-            defaultValue: 0
-        },
-        flowfrom: {
-            type: Sequelize.BIGINT.UNSIGNED,    // 流水起始
-            allowNull: false,
-            defaultValue: 0
-        },
-        flowto: {
-            type: Sequelize.BIGINT.UNSIGNED,    // 流水截止
-            allowNull: false,
-            defaultValue: 0
-        },
-        timecreate: {
-            type: Sequelize.BIGINT.UNSIGNED,    // 创建时间
-            allowNull: false,
-            defaultValue: 0
-        },
-        timedelete: {
-            type: Sequelize.BIGINT.UNSIGNED,    // 删除时间
-            allowNull: false,
-            defaultValue: 0
-        },
-        status: {
-            type: Sequelize.BOOLEAN,    //状态
+        enable: {
+            type: Sequelize.BOOLEAN,
             allowNull: false,
             defaultValue: 0
         }
