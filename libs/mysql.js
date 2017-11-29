@@ -436,21 +436,69 @@ function SequelizeDefine()
         freezeTableName: true
     });
 
+	exports.Users = sequelizeInstance.define('users', {
+		userId: {
+			type: Sequelize.BIGINT.UNSIGNED,
+			primaryKey: true,
+			autoIncrement: true
+		},
+		accountName: {
+			type: Sequelize.STRING(32),     //账号
+			allowNull: false,
+			unique: true
+		},
+        name: {
+			type: Sequelize.STRING(24),     //姓名
+			allowNull: false
+		},
+		mobile: {
+			type: Sequelize.STRING(13),     //手机
+			allowNull: false
+		},
+		documentId: {
+			type: Sequelize.TEXT,   //证件号
+			allowNull: true
+		},
+		documentType: {
+			type: Sequelize.INTEGER,   //证件类型
+			allowNull: true,
+			defaultValue: 1,
+			validate: {
+				max: 8,                  // 1 '身份证', 2 '护照', 3 '港澳通行证', 4 '台胞证', 5 '居住证', 6 '临时居住证', 7 '营业执照', 8 '其他证件'
+				min: 1
+			}
+		},
+		gender: {
+			type: Sequelize.STRING(1),   //性别
+			allowNull: false,
+			defaultValue: 'M'
+		},
+	},{
+		timestamps: false,
+		freezeTableName: true
+	});
+
     exports.Bills = sequelizeInstance.define('bills', {
         billid: {
-            type: Sequelize.BIGINT.UNSIGNED,    //
-            allowNull: false,
-            defaultValue: 0
+			type: Sequelize.BIGINT.UNSIGNED,
+			primaryKey: true,
+			autoIncrement: true
         },
         flow: { //资金流向(收入/支出)
-            type: Sequelize.BOOLEAN,
+            type: Sequelize.STRING(10),
             allowNull: false,
-            defaultValue: 0
+            defaultValue: 'receive',
+			validate: {
+				isIn: [['pay', 'receive']]
+			}
         },
         entity: { //实体类型(租客/业主/房源/其他)
-            type: Sequelize.BOOLEAN,
+            type: Sequelize.STRING(10),
             allowNull: false,
-            defaultValue: 0
+			defaultValue: 'tenant',
+			validate: {
+				isIn: [['tenant', 'landlord', 'house', 'other']]
+			}
         },
         relativeID: {   //类型关联ID(租客/业主=>UDI,房源=>contractid)
             type: Sequelize.BIGINT.UNSIGNED,
