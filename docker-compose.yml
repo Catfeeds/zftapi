@@ -1,0 +1,31 @@
+version: '3.4'
+
+services:
+    db:
+        image: mysql:5.7
+        restart: always
+        command: --init-file /db/init.sql
+        environment:
+            MYSQL_ROOT_PASSWORD: example
+        ports:
+          - "33061:3306"
+        volumes:
+          - "./db:/db"
+
+    api:
+        build:
+          context: .
+          dockerfile: Dockerfile-dev
+        command: npm run dev
+        ports:
+            - 8000:8000
+        volumes:
+          - ".:/src"
+        environment:
+          - ZFT_RDS_HOST=db
+          - ZFT_RDS_PORT=3306
+          - ZFT_RDS_USERNAME=root
+          - ZFT_RDS_PASSWORD=example
+          - ZFT_RDS_DATABASE=zft
+        depends_on:
+          - db

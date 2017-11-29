@@ -16,5 +16,10 @@ module.exports = {
          * Get the data for response 200
          * For response `default` status 200 is used.
          */
-    }
+    },
+    //TODO: pure testing purpose, remove if necessary
+	get: function getContracts(req, res, next) {
+		res.send([])
+		return next()
+	},
 };

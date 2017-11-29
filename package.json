@@ -1,10 +1,12 @@
 {
   "name": "zftapi",
   "version": "1.0.0",
-  "description": "",
+  "description": "the backend of web-zft",
   "main": "zftapi",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node zftapi.js",
+    "dev": "./node_modules/nodemon/bin/nodemon.js --config nodemon.json --exec npm start",
+    "test": "mocha"
   },
   "repository": {
     "type": "git",
@@ -18,6 +20,7 @@
   "homepage": "https://github.com/cloudenergy/zftapi#readme",
   "dependencies": {
     "app-root-path": "^2.0.1",
+    "axios": "^0.17.1",
     "config": "^1.28.1",
     "include-node": "^0.2.0",
     "lodash": "^4.17.4",
@@ -29,5 +32,11 @@
     "tracer": "^0.8.11",
     "underscore": "^1.8.3",
     "validator": "^9.1.1"
+  },
+  "devDependencies": {
+    "chai": "^4.1.2",
+    "chai-as-promised": "^7.1.1",
+    "mocha": "^4.0.1",
+    "nodemon": "^1.12.1"
   }
 }
