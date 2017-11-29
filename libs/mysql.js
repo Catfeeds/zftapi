@@ -365,17 +365,12 @@ function SequelizeDefine()
 
 
     exports.Contracts = sequelizeInstance.define('contracts', {
-        contractid: {
-            type: Sequelize.BIGINT.UNSIGNED,
-            primaryKey: true,
-            autoIncrement: true
-        },
-        hrid: {
+        hrId: {
             type: Sequelize.BIGINT.UNSIGNED,     //房源ID
             allowNull: false,
             defaultValue: 0
         },
-        uid: {
+        userId: {
             type: Sequelize.BIGINT.UNSIGNED,     //用户ID
             allowNull: false,
             defaultValue: 0
@@ -437,11 +432,6 @@ function SequelizeDefine()
     });
 
 	exports.Users = sequelizeInstance.define('users', {
-		userId: {
-			type: Sequelize.BIGINT.UNSIGNED,
-			primaryKey: true,
-			autoIncrement: true
-		},
 		accountName: {
 			type: Sequelize.STRING(32),     //账号
 			allowNull: false,
@@ -479,11 +469,6 @@ function SequelizeDefine()
 	});
 
     exports.Bills = sequelizeInstance.define('bills', {
-        billid: {
-			type: Sequelize.BIGINT.UNSIGNED,
-			primaryKey: true,
-			autoIncrement: true
-        },
         flow: { //资金流向(收入/支出)
             type: Sequelize.STRING(10),
             allowNull: false,
@@ -505,7 +490,7 @@ function SequelizeDefine()
             allowNull: false,
             defaultValue: 0
         },
-        projectid: {    //项目ID
+		projectId: {    //项目ID
             type: Sequelize.STRING(64),
             allowNull: false
         },
@@ -519,12 +504,12 @@ function SequelizeDefine()
             allowNull: false,
             defaultValue: 0
         },
-        billfrom: {
+        billFrom: {
             type: Sequelize.BIGINT.UNSIGNED,    //开始账期
             allowNull: false,
             defaultValue: 0
         },
-        billto: {
+        billTo: {
             type: Sequelize.BIGINT.UNSIGNED,    //结束账期
             allowNull: false,
             defaultValue: 0
@@ -547,7 +532,7 @@ function SequelizeDefine()
             allowNull: false,
             defaultValue: 0
         },
-        timecreate: {
+        timeCreate: {
             type: Sequelize.BIGINT.UNSIGNED,    //创建时间
             allowNull: false,
             defaultValue: 0

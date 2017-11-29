@@ -25,15 +25,15 @@ module.exports = {
 		sequelize.transaction((t) =>
 			Users.create({
 				name: 'Abraham',
-				accountName: 'Lincoln',
+				accountName: `Random${new Date().getTime()}`,
 				mobile: '12345678911',
 				documentId: '12345678911',
 				documentType: 1,
 				gender: 'M'
 			}, {transaction: t})
 				.then(user => Contracts.create({
-					hrid: 23,
-					uid: user.id,
+					hrId: 23,
+					userId: user.id,
 					from: 1000,
 					to: 2000,
 					strategy: 'strategy',
@@ -44,13 +44,14 @@ module.exports = {
 				.then(contract => Bills.create({
 					flow: 'receive',
 					entity: 'landlord',
-					projectid: 'projectid',
+					projectId: 'projectid',
+					relativeID: contract.id,
 					metadata: ''
 				}, {transaction: t}))
 		).then(function (result) {
 			// Transaction has been committed
 			// result is whatever the result of the promise chain returned to the transaction callback
-			res.send(201, ErrorCode.ack(ErrorCode.OK, {}));
+			res.send(201, ErrorCode.ack(ErrorCode.OK, result));
 			next();
 		}).catch(function (err) {
 			// Transaction has been rolled back

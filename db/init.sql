@@ -3,21 +3,21 @@ USE zft;
 
 create table if not exists contracts
 (
-	contractid bigint auto_increment,
+	`id` bigint auto_increment,
 	hrid bigint default '0' not null,
-	uid bigint default '0' not null,
+	userid bigint default '0' not null,
 	`from` bigint default '0' not null,
 	`to` bigint default '0' not null,
 	strategy text null,
 	expenses text null,
 	paytime varchar(3) not null,
 	signtime bigint default '0' not null,
-  primary key (`contractid`)
+  primary key (`id`)
 ) engine=innodb default charset=utf8;
 
 create table if not exists bills
 (
-	billid bigint auto_increment,
+	id bigint auto_increment,
 	flow varchar(10) default 'receive' not null,
 	entity varchar(10) default 'tenant' not null,
 	relativeID bigint default '0' not null,
@@ -33,12 +33,12 @@ create table if not exists bills
 	timecreate bigint default '0' not null,
 	remark varchar(255) default '' null,
 	metadata text null,
-	primary key (`billid`)
+	primary key (`id`)
 ) engine=innodb default charset=utf8;
 
 create table if not exists users
 (
-	userId bigint auto_increment,
+	id bigint auto_increment,
 	accountName varchar(32) not null,
 	`name` varchar(24) not null,
 	mobile varchar(13) not null,
@@ -47,5 +47,5 @@ create table if not exists users
 	gender varchar(1) default 'M' not null,
 	constraint users_accountName_unique
 		unique (accountName),
-		primary key (`userId`)
+		primary key (`id`)
 ) engine=innodb default charset=utf8;
