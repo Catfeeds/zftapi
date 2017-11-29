@@ -2,6 +2,7 @@
 /**
  * Operations on /contracts
  */
+
 module.exports = {
 	/**
 	 * summary: save contract
@@ -17,28 +18,48 @@ module.exports = {
 		 * For response `default` status 200 is used.
 		 */
 		const Contracts = MySQL.Contracts;
-		Contracts.sync().then(() => {
-			// Table created
-			Contracts.create({
-				hrid: 23,
-				uid: 223,
-				from: 1000,
-				to: 2000,
-				strategy: 'strategy',
-				expenses: 'expenses',
-				paytime: 'F03',
-				signtime: 3000
-			}).then(() => {
-				res.send(201, ErrorCode.ack(ErrorCode.OK, {}));
-				next();
-			}).catch((e) => {
-				console.log(e);
-				res.send(503, ErrorCode.ack(ErrorCode.DATABASEEXEC, e))
-				next();
-				}
-			);
+		const Users = MySQL.Users;
+		const Bills = MySQL.Bills;
+		const sequelize = MySQL.Sequelize;
+
+		sequelize.transaction((t) =>
+			Users.create({
+				name: 'Abraham',
+				accountName: 'Lincoln',
+				mobile: '12345678911',
+				documentId: '12345678911',
+				documentType: 1,
+				gender: 'M'
+			}, {transaction: t})
+				.then(user => Contracts.create({
+					hrid: 23,
+					uid: user.id,
+					from: 1000,
+					to: 2000,
+					strategy: 'strategy',
+					expenses: 'expenses',
+					paytime: 'F03',
+					signtime: 3000
+				}, {transaction: t}))
+				.then(contract => Bills.create({
+					flow: 'receive',
+					entity: 'landlord',
+					projectid: 'projectid',
+					metadata: ''
+				}, {transaction: t}))
+		).then(function (result) {
+			// Transaction has been committed
+			// result is whatever the result of the promise chain returned to the transaction callback
+			res.send(201, ErrorCode.ack(ErrorCode.OK, {}));
+			next();
+		}).catch(function (err) {
+			// Transaction has been rolled back
+			// err is whatever rejected the promise chain returned to the transaction callback
+			console.log(err);
+			res.send(503, ErrorCode.ack(ErrorCode.DATABASEEXEC, err))
+			next();
 		});
-		console.log('init..');
+
 	},
 	//TODO: pure testing purpose, remove if necessary
 	get: function getContracts(req, res, next) {

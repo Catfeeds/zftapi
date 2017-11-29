@@ -16,6 +16,12 @@ module.exports = {
          * Get the data for response 200
          * For response `default` status 200 is used.
          */
+		const Contracts = MySQL.Contracts;
+		Contracts.findOne().then(user => {
+			res.send(user);
+			next();
+		});
+
     },
     /**
      * summary: delete contract
