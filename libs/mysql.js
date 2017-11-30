@@ -461,7 +461,10 @@ function SequelizeDefine()
 		gender: {
 			type: Sequelize.STRING(1),   //性别
 			allowNull: false,
-			defaultValue: 'M'
+			defaultValue: 'M',
+			validate: {
+				isIn: [['M', 'F']]
+			}
 		},
 	},{
 		timestamps: false,

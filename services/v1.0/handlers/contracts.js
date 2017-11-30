@@ -14,7 +14,7 @@ const extractUser = req => ({
 });
 
 const extractContract = (req, user) => ({
-	hrId: 23,
+	homeId: 23,
 	userId: user.id,
 	from: 1000,
 	to: 2000,
@@ -41,7 +41,7 @@ module.exports = {
 	 * produces: application/json
 	 * responses: 200, 400, 401, 406
 	 */
-	post: function createContract(req, res, next) {
+	post: function createContract(req, res) {
 		/**
 		 * Get the data for response 200
 		 * For response `default` status 200 is used.
@@ -51,7 +51,7 @@ module.exports = {
 		const Bills = MySQL.Bills;
 		const sequelize = MySQL.Sequelize;
 
-		sequelize.transaction((t) =>
+		sequelize.transaction(t =>
 			Users.create(extractUser(req), {transaction: t})
 				.then(user => Contracts.create(extractContract(req, user), {transaction: t}))
 				.then(contract =>
