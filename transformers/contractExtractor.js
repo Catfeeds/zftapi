@@ -11,7 +11,6 @@ const extract = (req, user) => ({
 	signUpTime: 3000
 });
 
-
 module.exports = {
 	extract
 }

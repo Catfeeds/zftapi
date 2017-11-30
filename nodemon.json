@@ -15,6 +15,7 @@
         "zftapi.js",
         "libs/",
         "services/",
+        "transformers/",
         "test/"
     ],
     "env": {

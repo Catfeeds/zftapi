@@ -9,6 +9,7 @@ WORKDIR /app
 COPY config config/
 COPY libs libs/
 COPY services services/
+COPY transformers transformers/
 COPY package*.json ./
 
 COPY deploy/pm2.json pm2.json
