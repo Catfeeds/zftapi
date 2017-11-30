@@ -3,7 +3,7 @@
  * Operations on /contracts
  */
 const fp = require('lodash/fp');
-const Extractor = require('../../../transformers/contractRequestExtractor');
+const Extractor = require('../../../transformers/contractExtractor');
 const BillGenerator = require('../../../transformers/billGenerator');
 
 module.exports = {
