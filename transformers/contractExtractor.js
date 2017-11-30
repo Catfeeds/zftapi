@@ -13,4 +13,4 @@ const extract = (req, user) => ({
 
 module.exports = {
 	extract
-}
+};

@@ -4,15 +4,15 @@ const extract = require('../../transformers/userExtractor').extract;
 
 describe('extractUser', function () {
 	it('should extract user from request', function () {
-		let user = {id: 999, accountName: 'name'};
-		let req = {user};
-		extract(req).should.be.eql({
+		const user = {
 			name: 'Abraham',
-			accountName: user.accountName,
+			accountName: 'accountName',
 			mobile: '12345678911',
 			documentId: '12345678911',
 			documentType: 1,
 			gender: 'M'
-		});
+		};
+		const req = {body: {user}};
+		extract(req).should.be.eql(user);
 	});
 });
