@@ -1,13 +1,15 @@
 'use strict';
 /**
- * Operations on /contracts/{contractid}
+ * Operations on /contracts/:contractId
  */
+const fp = require('lodash/fp');
+
 module.exports = {
     /**
      * summary: get contract
      * description: pass contractid to get contract info
 
-     * parameters: contractid
+     * path variables: contractId
      * produces: application/json
      * responses: 200, 400
      */
@@ -16,12 +18,16 @@ module.exports = {
          * Get the data for response 200
          * For response `default` status 200 is used.
          */
-		const Contracts = MySQL.Contracts;
-		Contracts.findOne().then(user => {
-			res.send(user);
-			next();
-		});
 
+        const Contracts = MySQL.Contracts;
+	    Contracts.findById(req.params.contractId)
+		    .then(contract => {
+			    if (fp.isEmpty(contract)) {
+				    res.send(404);
+				    return;
+			    }
+			    res.send(contract);
+		    });
     },
     /**
      * summary: delete contract

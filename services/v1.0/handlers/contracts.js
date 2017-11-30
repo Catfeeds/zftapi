@@ -52,13 +52,11 @@ module.exports = {
 			// Transaction has been committed
 			// result is whatever the result of the promise chain returned to the transaction callback
 			res.send(201, ErrorCode.ack(ErrorCode.OK, result));
-			next();
 		}).catch(function (err) {
 			// Transaction has been rolled back
 			// err is whatever rejected the promise chain returned to the transaction callback
 			console.log(err);
-			res.send(503, ErrorCode.ack(ErrorCode.DATABASEEXEC, err))
-			next();
+			res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, err))
 		});
 
 	},
