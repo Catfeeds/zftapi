@@ -365,7 +365,7 @@ function SequelizeDefine()
 
 
     exports.Contracts = sequelizeInstance.define('contracts', {
-        hrId: {
+        roomId: {
             type: Sequelize.BIGINT.UNSIGNED,     //房源ID
             allowNull: false,
             defaultValue: 0
@@ -417,11 +417,11 @@ function SequelizeDefine()
                 this.setDataValue('expenses', JSON.stringify(value));
             }
         },
-        paytime: {
+        paymentPlan: {
             type: Sequelize.STRING(3),      //支付时间 (账单提前-02/账单固定+02/账单前一个月固定F03)
             allowNull: false
         },
-        signtime: {
+	    signUpTime: {
             type: Sequelize.BIGINT.UNSIGNED,    //签约时间
             allowNull: false,
             defaultValue: 0
@@ -514,7 +514,7 @@ function SequelizeDefine()
             allowNull: false,
             defaultValue: 0
         },
-        paytime: {
+        paidAt: {
             type: Sequelize.BIGINT.UNSIGNED,    //支付日期
             allowNull: false,
             defaultValue: 0

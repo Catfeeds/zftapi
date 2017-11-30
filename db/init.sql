@@ -4,14 +4,14 @@ USE zft;
 create table if not exists contracts
 (
 	`id` bigint auto_increment,
-	hrid bigint default '0' not null,
-	userid bigint default '0' not null,
+	roomId bigint default '0' not null,
+	userId bigint default '0' not null,
 	`from` bigint default '0' not null,
 	`to` bigint default '0' not null,
 	strategy text null,
 	expenses text null,
-	paytime varchar(3) not null,
-	signtime bigint default '0' not null,
+	paymentPlan varchar(3) not null,
+	signUpTime bigint default '0' not null,
   primary key (`id`)
 ) engine=innodb default charset=utf8;
 
@@ -21,16 +21,16 @@ create table if not exists bills
 	flow varchar(10) default 'receive' not null,
 	entity varchar(10) default 'tenant' not null,
 	relativeID bigint default '0' not null,
-	projectid varchar(64) not null,
+	projectId varchar(64) not null,
 	`source` tinyint(1) default '0' not null,
 	`type` tinyint(1) default '0' not null,
-	billfrom bigint default '0' not null,
-	billto bigint default '0' not null,
-	paytime bigint default '0' not null,
+	billFrom bigint default '0' not null,
+	billTo bigint default '0' not null,
+	paidAt bigint default '0' not null,
 	amount bigint null,
 	submitter bigint default '0' not null,
 	operator bigint default '0' not null,
-	timecreate bigint default '0' not null,
+	timeCreate bigint default '0' not null,
 	remark varchar(255) default '' null,
 	metadata text null,
 	primary key (`id`)
