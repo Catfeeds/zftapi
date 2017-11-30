@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node zftapi.js",
     "dev": "./node_modules/nodemon/bin/nodemon.js --config nodemon.json --exec npm start",
-    "test": "mocha"
+    "test": "mocha --opts ./mocha.opts"
   },
   "repository": {
     "type": "git",

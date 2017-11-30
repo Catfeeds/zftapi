@@ -3,34 +3,8 @@
  * Operations on /contracts
  */
 const fp = require('lodash/fp');
-
-const extractUser = req => ({
-	name: 'Abraham',
-	accountName: `Random${new Date().getTime()}`,
-	mobile: '12345678911',
-	documentId: '12345678911',
-	documentType: 1,
-	gender: 'M'
-});
-
-const extractContract = (req, user) => ({
-	homeId: 23,
-	userId: user.id,
-	from: 1000,
-	to: 2000,
-	strategy: 'strategy',
-	expenses: 'expenses',
-	paymentPlan: 'F03',
-	signUpTime: 3000
-});
-
-const generateBills = contract => [{
-	flow: 'receive',
-	entity: 'landlord',
-	projectId: 'projectid',
-	relativeID: contract.id,
-	metadata: {}
-}];
+const Extractor = require('../../../transformers/contractRequestExtractor');
+const BillGenerator = require('../../../transformers/billGenerator');
 
 module.exports = {
 	/**
@@ -51,13 +25,16 @@ module.exports = {
 		const Bills = MySQL.Bills;
 		const sequelize = MySQL.Sequelize;
 
+		const extractUser = Extractor.extractUser;
+		const extractContract = Extractor.extractContract;
+		const generateBills = BillGenerator.generate;
+
 		sequelize.transaction(t =>
 			Users.create(extractUser(req), {transaction: t})
 				.then(user => Contracts.create(extractContract(req, user), {transaction: t}))
 				.then(contract =>
 					fp.map(bill => Bills.create(bill, {transaction: t}))(generateBills(contract)))
 				.all()
-
 		).then((results) => res.send(201, ErrorCode.ack(ErrorCode.OK, {results: results})))
 			.catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, err)));
 

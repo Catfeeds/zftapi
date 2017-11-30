@@ -1,7 +1,4 @@
-const chai = require('chai');
-const should = chai.should();
-const chaiAsPromised = require('chai-as-promised');
-chai.use(chaiAsPromised);
+'use strict';
 
 describe('first test', function () {
 	it('should allow promise testing', function () {
