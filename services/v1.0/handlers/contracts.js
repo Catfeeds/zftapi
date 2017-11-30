@@ -3,8 +3,9 @@
  * Operations on /contracts
  */
 const fp = require('lodash/fp');
-const Extractor = require('../../../transformers/contractExtractor');
-const BillGenerator = require('../../../transformers/billGenerator');
+const extractContract = require('../../../transformers/contractExtractor').extract;
+const extractUser = require('../../../transformers/userExtractor').extract;
+const generateBills = require('../../../transformers/billGenerator').generate;
 
 module.exports = {
 	/**
@@ -24,10 +25,6 @@ module.exports = {
 		const Users = MySQL.Users;
 		const Bills = MySQL.Bills;
 		const sequelize = MySQL.Sequelize;
-
-		const extractUser = Extractor.extractUser;
-		const extractContract = Extractor.extractContract;
-		const generateBills = BillGenerator.generate;
 
 		sequelize.transaction(t =>
 			Users.create(extractUser(req), {transaction: t})

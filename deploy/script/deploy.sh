@@ -26,6 +26,6 @@ function test_curl() {
 
 test_deploy
 
-sleep 20 # wait for the service start up
+sleep 5 
 
 test_curl && start
