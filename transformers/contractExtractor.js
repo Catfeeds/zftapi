@@ -1,7 +1,7 @@
 'use strict';
 
 const extract = (req, user) => ({
-	homeId: 23,
+	roomId: 23,
 	userId: user.id,
 	from: 1000,
 	to: 2000,
