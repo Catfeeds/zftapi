@@ -13,6 +13,6 @@ describe('extractUser', () => {
 			gender: 'M'
 		};
 		const req = {body: {user}};
-		extract(req).should.be.eql(user);
+		return extract(req).should.eventually.eql(user);
 	});
 });

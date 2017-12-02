@@ -27,12 +27,14 @@ module.exports = {
 		const sequelize = MySQL.Sequelize;
 
 		sequelize.transaction(t =>
-			Users.create(extractUser(req), {transaction: t})
-				.then(user => Contracts.create(extractContract(req, user), {transaction: t}))
-				.then(contract =>
+			extractUser(req)
+				.then(user => Users.create(user, {transaction: t}))
+				.then(dbUser => extractContract(req, dbUser))
+				.then(contract => Contracts.create(contract, {transaction: t}))
+				.then(contract => Promise.all(
 					fp.map(bill => Bills.create(bill, {transaction: t}))(generateBills(contract)))
-				.all()
-		).then((results) => res.send(201, ErrorCode.ack(ErrorCode.OK, {results: results})))
+				)
+		).then(results => res.send(201, ErrorCode.ack(ErrorCode.OK, {debug: results})))
 			.catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, err)));
 
 	},

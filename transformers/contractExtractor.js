@@ -2,8 +2,6 @@
 
 const fp = require('lodash/fp');
 
-const extract = (req, user) => fp.defaults(req)({userId: user.id});
-
 module.exports = {
-	extract
+	extract: (req, user) => new Promise((resolve) => resolve(fp.defaults(req.body)({userId: user.id})))
 };
