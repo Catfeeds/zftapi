@@ -1,15 +1,8 @@
 'use strict';
 
-const extract = (req, user) => ({
-	roomId: 23,
-	userId: user.id,
-	from: 1000,
-	to: 2000,
-	strategy: 'strategy',
-	expenses: 'expenses',
-	paymentPlan: 'F03',
-	signUpTime: 3000
-});
+const fp = require('lodash/fp');
+
+const extract = (req, user) => fp.defaults(req)({userId: user.id});
 
 module.exports = {
 	extract

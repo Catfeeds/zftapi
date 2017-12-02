@@ -2,8 +2,8 @@
 
 const extract = require('../../transformers/userExtractor').extract;
 
-describe('extractUser', function () {
-	it('should extract user from request', function () {
+describe('extractUser', () => {
+	it('should extract user from request', () => {
 		const user = {
 			name: 'Abraham',
 			accountName: 'accountName',
