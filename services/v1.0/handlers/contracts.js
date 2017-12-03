@@ -34,13 +34,12 @@ module.exports = {
 				.then(contract => Promise.all(
 					fp.map(bill => Bills.create(bill, {transaction: t}))(generateBills(contract)))
 				)
-		).then(results => res.send(201, ErrorCode.ack(ErrorCode.OK, {debug: results})))
+		).then(results => res.send(201, ErrorCode.ack(ErrorCode.OK, {req: req.body, res: results})))
 			.catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, err)));
 
 	},
 	//TODO: pure testing purpose, remove if necessary
-	get: function getContracts(req, res, next) {
+	get: function getContracts(req, res) {
 		res.send([]);
-		return next();
 	}
 };
