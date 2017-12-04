@@ -469,8 +469,11 @@ function SequelizeDefine()
 	exports.GeoLocation = sequelizeInstance.define('geoLocation', {
 		divisionId: {
 			type: Sequelize.BIGINT.UNSIGNED,     //区划 ID
-			allowNull: false,
-			defaultValue: 0
+			allowNull: false
+		},
+		houseId: {
+			type: Sequelize.BIGINT.UNSIGNED,     //House ID
+			allowNull: false
 		},
         name: {
 			type: Sequelize.STRING,     //查询结果名称

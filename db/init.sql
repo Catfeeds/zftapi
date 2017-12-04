@@ -91,7 +91,8 @@ create table if not exists houses
 create table if not exists geoLocation
 (
 	id int auto_increment,
-	divisionId bigint default '0' not null,
+	houseId bigint not null,
+	divisionId bigint not null,
 	name varchar(255) not null,
 	address varchar(255) not null,
 	longitude double not null,

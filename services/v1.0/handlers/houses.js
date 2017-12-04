@@ -48,11 +48,14 @@ module.exports = {
 		const Houses = MySQL.Houses;
 		const HouseType = MySQL.HouseType;
 		const GeoLocation = MySQL.GeoLocation;
-
 		const sequelize = MySQL.Sequelize;
+
 		sequelize.transaction(t =>
-			GeoLocation.create(_.get(body, 'location'), {transaction: t})
-				.then(() => Houses.create(_.omit(body, ['location', 'houseType']), {transaction: t}))
+			Houses.create(_.omit(body, ['location', 'houseType']), {transaction: t})
+				.then(house => {
+					GeoLocation.create(_.assign({}, _.get(body, 'location'), {houseId: house.id}), {transaction: t});
+					return house;
+				})
 				.then(house => fp.map(type => _.assign({}, type, {houseId: house.id}))(_.get(body, 'houseType')))
 				.then(types => Promise.all(fp.map(type => HouseType.create(type, {transaction: t}))(types)))
 		).then(results => res.send(200, ErrorCode.ack(ErrorCode.OK, {req: req.body, res: results})))
