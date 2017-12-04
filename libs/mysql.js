@@ -142,40 +142,31 @@ exports.ExecT = function(sql, t)
 function SequelizeDefine()
 {
     exports.Houses = sequelizeInstance.define('houses', {
-        hid: {
-            type: Sequelize.BIGINT.UNSIGNED,
-            primaryKey: true
-        },
-        projectid: {
-            type: Sequelize.STRING(64),  //项目ID
-            allowNull: false,
-            defaultValue: ''
-        },
         code: {
             type: Sequelize.STRING(10),  //编号
             defaultValue: '',
             allowNull: false
         },
-        format: {
-            type: Sequelize.BOOLEAN // 房源类型
+        houseFormat: {
+            type: Sequelize.STRING(12) // 房源类型
             , allowNull: false
-            , defaultValue: 0
+			, defaultValue: 'individual'
         },
-        city: {
-            type: Sequelize.INTEGER // 城市
-            , allowNull: false
-            , defaultValue: 0
-        },
+		projectId: {
+			type: Sequelize.STRING(64),  //项目ID
+			allowNull: false,
+			defaultValue: ''
+		},
         community: {
-            type: Sequelize.STRING(20)  //小区名称
+            type: Sequelize.STRING  //小区名称
             , allowNull: false
             , defaultValue: ''
         },
-        address: {
-            type: Sequelize.STRING(128) // 地址
-            , allowNull: false
-            , defaultValue: ''
-        },
+		location: {
+			type: Sequelize.INTEGER // 地址
+			, allowNull: false
+			, defaultValue: 0
+		},
         group: {
             type: Sequelize.STRING(10)  //团组名称(一期/香桂苑)
             , allowNull: false
@@ -191,50 +182,48 @@ function SequelizeDefine()
             , allowNull: false
             , defaultValue: ''
         },
-        roomnumber: {
+        roomNumber: {
             type: Sequelize.STRING(10)  //房号
             , allowNull: false
             , defaultValue: ''
         },
-        desc: {
-            type: Sequelize.STRING(255) // 介绍
-            , allowNull: false
-            , defaultValue: ''
-        },
-        area: {
-            type: Sequelize.BOOLEAN // 面积
+        roomArea: {
+			type: Sequelize.INTEGER // 面积
             , allowNull: false
             , defaultValue: 0
         },
-        nfloor: {
-            type: Sequelize.BOOLEAN // 所在层
+        currentFloor: {
+			type: Sequelize.INTEGER // 所在层
             , allowNull: false
             , defaultValue: 0
         },
-        tfloor: {
-            type: Sequelize.BOOLEAN // 总层高
+        totalFloor: {
+			type: Sequelize.INTEGER // 总层高
             , allowNull: false
             , defaultValue: 0
         },
-        rifloor: {
-            type: Sequelize.BOOLEAN // 每层房间数
+		roomCountOnFloor: {
+			type: Sequelize.INTEGER // 每层房间数
             , allowNull: false
             , defaultValue: 0
         },
-        timecreate: {
+        createdAt: {
             type: Sequelize.BIGINT.UNSIGNED // 创建时间
             , allowNull: false
             , defaultValue: 0
         },
-        timedelete: {
+        deleteAt: {
             type: Sequelize.BIGINT.UNSIGNED // 删除时间
             , allowNull: false
             , defaultValue: 0
         },
+		desc: {
+			type: Sequelize.STRING,  //描述
+		},
         status: {
-            type: Sequelize.BOOLEAN  //房源状态
+			type: Sequelize.STRING(10)  //房源状态
             , allowNull: false
-            , defaultValue: 0
+            , defaultValue: 'open'
         }
     }, {
         timestamps: false,
@@ -283,12 +272,7 @@ function SequelizeDefine()
 
     //
     exports.HouseType = sequelizeInstance.define('housetype', {
-        htid:{
-            type: Sequelize.BIGINT.UNSIGNED,
-            primaryKey: true,
-            allowNull: false
-        },
-        hid: {
+        houseId: {
             type: Sequelize.BIGINT.UNSIGNED,
             allowNull: false
         },
@@ -297,28 +281,28 @@ function SequelizeDefine()
             allowNull: false,
             defaultValue: ''
         },
-        room: {
-            type: Sequelize.BOOLEAN,  // 室
+        bedroom: {
+            type: Sequelize.INTEGER,  // 室
             allowNull: false,
             defaultValue: 0
         },
-        hall: {
-            type: Sequelize.BOOLEAN,  // 厅
+        livingRoom: {
+            type: Sequelize.INTEGER,  // 厅
             allowNull: false,
             defaultValue: 0
         },
-        toilet: {
-            type: Sequelize.BOOLEAN,  // 卫
+        bathroom: {
+            type: Sequelize.INTEGER,  // 卫
             allowNull: false,
             defaultValue: 0
         },
         orientation: {
-            type: Sequelize.BOOLEAN,  // 朝向
+            type: Sequelize.STRING(2),  // 朝向
             allowNull: false,
-            defaultValue: 0
+            defaultValue: 'N'
         },
-        area: {
-            type: Sequelize.BOOLEAN,  // 面积
+        roomArea: {
+            type: Sequelize.INTEGER,  // 面积
             allowNull: false,
             defaultValue: 0
         },
@@ -333,12 +317,7 @@ function SequelizeDefine()
     });
 
     exports.Setting = sequelizeInstance.define('setting', {
-        cfgid: {
-            type: Sequelize.BIGINT.UNSIGNED,
-            primaryKey: true,
-            autoIncrement: true
-        },
-        projectid: {
+        projectId: {
             type: Sequelize.STRING(64),  //项目ID
             allowNull: false,
             defaultValue: '*'
@@ -466,6 +445,43 @@ function SequelizeDefine()
 				isIn: [['M', 'F']]
 			}
 		},
+	},{
+		timestamps: false,
+		freezeTableName: true
+	});
+
+	exports.GeoLocation = sequelizeInstance.define('geoLocation', {
+		divisionId: {
+			type: Sequelize.BIGINT.UNSIGNED,     //区划 ID
+			allowNull: false,
+			defaultValue: 0
+		},
+        name: {
+			type: Sequelize.STRING,     //查询结果名称
+			allowNull: false
+		},
+		address: {
+			type: Sequelize.STRING,     //查询结果地址
+			allowNull: false
+		},
+		longitude: {
+			type: Sequelize.DECIMAL,   //经纬度 seperate longitude latitude by ','
+			allowNull: false
+		},
+        latitude: {
+			type: Sequelize.DECIMAL,   //经纬度 seperate longitude latitude by ','
+			allowNull: false
+		}
+	},{
+		timestamps: false,
+		freezeTableName: true
+	});
+
+	exports.Division = sequelizeInstance.define('division', {
+        name: {
+			type: Sequelize.STRING,     //区划名称
+			allowNull: false
+		}
 	},{
 		timestamps: false,
 		freezeTableName: true

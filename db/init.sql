@@ -49,3 +49,61 @@ create table if not exists users
 		unique (accountName),
 		primary key (`id`)
 ) engine=innodb default charset=utf8;
+
+create table if not exists housetype
+(
+	id bigint auto_increment,
+	houseId bigint not null,
+	name varchar(10) default '' not null,
+	bedroom int default '0' not null,
+	livingRoom int default '0' not null,
+	bathroom int default '0' not null,
+	orientation varchar(2) default 'N' not null,
+	roomArea int default '0' not null,
+	remark varchar(255) default '' not null,
+  primary key (`id`)
+) engine=innodb default charset=utf8;
+
+create table if not exists houses
+(
+	id bigint auto_increment,
+	code varchar(10) default '' not null,
+	houseFormat varchar(12) default 'individual' not null,
+	projectId varchar(64) default '' not null,
+	community varchar(255) default '' not null,
+	location int default '0' not null,
+	`group` varchar(10) default '' not null,
+	building varchar(10) default '' not null,
+	unit varchar(10) default '' not null,
+	roomNumber varchar(10) default '' not null,
+	roomArea int default '0' not null,
+	currentFloor int default '0' not null,
+	totalFloor int default '0' not null,
+	roomCountOnFloor int default '0' not null,
+	createdAt bigint default '0' not null,
+	deleteAt bigint default '0' not null,
+	`desc` varchar(255) null,
+	status varchar(10) default 'open' not null,
+  primary key (`id`)
+) engine=innodb default charset=utf8;
+
+create table if not exists geoLocation
+(
+	id int auto_increment,
+	divisionId bigint default '0' not null,
+	name varchar(255) not null,
+	address varchar(255) not null,
+	longitude decimal not null,
+	latitude decimal not null,
+  primary key (`id`)
+) engine=innodb default charset=utf8;
+
+create table division
+(
+	id int auto_increment,
+	name varchar(255) not null,
+  primary key (`id`)
+) engine=innodb default charset=utf8;
+
+
+
