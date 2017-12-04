@@ -224,7 +224,23 @@ function SequelizeDefine()
 			type: Sequelize.STRING(10)  //房源状态
             , allowNull: false
             , defaultValue: 'open'
-        }
+        },
+		config: {
+			type: Sequelize.TEXT,   //付款方式
+			get: function(){
+				let config;
+				try{
+					config = JSON.parse(this.getDataValue('config'));
+				}
+				catch(e){
+					config = {};
+				}
+				return config;
+			},
+			set : function (value) {
+				this.setDataValue('config', JSON.stringify(value));
+			}
+		},
     }, {
         timestamps: false,
         freezeTableName: true

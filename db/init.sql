@@ -84,6 +84,7 @@ create table if not exists houses
 	deleteAt bigint default '0' not null,
 	`desc` varchar(255) null,
 	status varchar(10) default 'open' not null,
+	config text null,
   primary key (`id`)
 ) engine=innodb default charset=utf8;
 
