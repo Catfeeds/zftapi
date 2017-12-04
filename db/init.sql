@@ -93,12 +93,12 @@ create table if not exists geoLocation
 	divisionId bigint default '0' not null,
 	name varchar(255) not null,
 	address varchar(255) not null,
-	longitude decimal not null,
-	latitude decimal not null,
+	longitude double not null,
+	latitude double not null,
   primary key (`id`)
 ) engine=innodb default charset=utf8;
 
-create table division
+create table if not exists division
 (
 	id int auto_increment,
 	name varchar(255) not null,

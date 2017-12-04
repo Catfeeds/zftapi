@@ -465,11 +465,11 @@ function SequelizeDefine()
 			allowNull: false
 		},
 		longitude: {
-			type: Sequelize.DECIMAL,   //经纬度 seperate longitude latitude by ','
+			type: Sequelize.DOUBLE,   //经纬度 seperate longitude latitude by ','
 			allowNull: false
 		},
         latitude: {
-			type: Sequelize.DECIMAL,   //经纬度 seperate longitude latitude by ','
+			type: Sequelize.DOUBLE,   //经纬度 seperate longitude latitude by ','
 			allowNull: false
 		}
 	},{

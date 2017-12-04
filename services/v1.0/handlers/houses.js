@@ -52,10 +52,11 @@ module.exports = {
 		const sequelize = MySQL.Sequelize;
 		sequelize.transaction(t =>
 			GeoLocation.create(_.get(body, 'location'), {transaction: t})
-				.then(data => Houses.create(_.omit(body, ['location', 'houseType']), {transaction: t}))
+				.then(() => Houses.create(_.omit(body, ['location', 'houseType']), {transaction: t}))
 				.then(house => fp.map(type => _.assign({}, type, {houseId: house.id}))(_.get(body, 'houseType')))
-				.then((types) => Promise.all(fp.map(type => HouseType.create(type, {transaction: t}))(types)))
+				.then(types => Promise.all(fp.map(type => HouseType.create(type, {transaction: t}))(types)))
 		).then(results => res.send(200, ErrorCode.ack(ErrorCode.OK, {req: req.body, res: results})))
 			.catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, err)));
+
 	}
 };
