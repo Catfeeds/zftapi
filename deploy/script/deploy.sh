@@ -12,7 +12,7 @@ function start () {
 }
 function test_deploy() {
   docker rm -f test_api_deploy
-  docker run -e ZFT_RDS_HOST -e ZFT_RDS_PORT -e ZFT_RDS_USERNAME -e ZFT_RDS_PASSWORD -e ZFT_RDS_DATABASE -d --name test_api_deploy -p 8090:8000 registry.docker-cn.com/kpse/api-zft:$IMAGE_VERSION
+  docker run -e AMAPKEY -e ZFT_RDS_HOST -e ZFT_RDS_PORT -e ZFT_RDS_USERNAME -e ZFT_RDS_PASSWORD -e ZFT_RDS_DATABASE -d --name test_api_deploy -p 8090:8000 registry.docker-cn.com/kpse/api-zft:$IMAGE_VERSION
 }
 
 function test_curl() {

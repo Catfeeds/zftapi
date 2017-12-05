@@ -8,6 +8,8 @@ require(appRootPath.path + '/libs/log')("EMAPI");
     global.MySQL = Include('/libs/mysql');
     global.Util = Include('/libs/util');
     global.ErrorCode = Include('/libs/errorCode');
+    global.ENV = require('process').env;
+    global.Amap = Include('/libs/amap');
 }
 
 let Server = Restify.createServer();
