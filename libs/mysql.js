@@ -141,7 +141,7 @@ exports.ExecT = function(sql, t)
 
 function SequelizeDefine()
 {
-    exports.Houses = sequelizeInstance.define('houses', {
+    const Houses = sequelizeInstance.define('houses', {
         code: {
             type: Sequelize.STRING(10),  //编号
             defaultValue: '',
@@ -162,11 +162,6 @@ function SequelizeDefine()
             , allowNull: false
             , defaultValue: ''
         },
-		location: {
-			type: Sequelize.INTEGER // 地址
-			, allowNull: false
-			, defaultValue: 0
-		},
         group: {
             type: Sequelize.STRING(10)  //团组名称(一期/香桂苑)
             , allowNull: false
@@ -287,7 +282,7 @@ function SequelizeDefine()
     });
 
     //
-    exports.HouseType = sequelizeInstance.define('housetype', {
+    const HouseType = sequelizeInstance.define('housetype', {
         houseId: {
             type: Sequelize.BIGINT.UNSIGNED,
             allowNull: false
@@ -331,6 +326,11 @@ function SequelizeDefine()
         timestamps: false,
         freezeTableName: true
     });
+
+
+	HouseType.belongsTo(Houses);
+	Houses.hasMany(HouseType);
+
 
     exports.Setting = sequelizeInstance.define('setting', {
         projectId: {
@@ -466,7 +466,7 @@ function SequelizeDefine()
 		freezeTableName: true
 	});
 
-	exports.GeoLocation = sequelizeInstance.define('geoLocation', {
+	const GeoLocation = sequelizeInstance.define('location', {
 		divisionId: {
 			type: Sequelize.BIGINT.UNSIGNED,     //区划 ID
 			allowNull: false
@@ -495,6 +495,10 @@ function SequelizeDefine()
 		timestamps: false,
 		freezeTableName: true
 	});
+
+	Houses.hasOne(GeoLocation);
+
+	exports.GeoLocation = GeoLocation;
 
 	exports.Division = sequelizeInstance.define('division', {
         name: {
@@ -710,6 +714,8 @@ function SequelizeDefine()
         timestamps: false,
         freezeTableName: true
     });
+	exports.HouseType = HouseType;
+	exports.Houses = Houses;
 }
 
 

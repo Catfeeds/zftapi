@@ -71,7 +71,6 @@ create table if not exists houses
 	houseFormat varchar(12) default 'individual' not null,
 	projectId varchar(64) default '' not null,
 	community varchar(255) default '' not null,
-	location int default '0' not null,
 	`group` varchar(10) default '' not null,
 	building varchar(10) default '' not null,
 	unit varchar(10) default '' not null,
@@ -88,7 +87,7 @@ create table if not exists houses
   primary key (`id`)
 ) engine=innodb default charset=utf8;
 
-create table if not exists geoLocation
+create table if not exists location
 (
 	id int auto_increment,
 	houseId bigint not null,

@@ -5,10 +5,11 @@
 const fp = require('lodash/fp')
 const _ = require('lodash')
 
-const Houses = MySQL.Houses;
-const HouseType = MySQL.HouseType;
-const GeoLocation = MySQL.GeoLocation;
-
+const translate = (houses) => {
+	return fp.map(house => {
+		return house;
+	})(houses);
+}
 module.exports = {
 	/**
 	 * summary: search houses
@@ -24,8 +25,8 @@ module.exports = {
 		 * For response `default` status 200 is used.
 		 */
 		console.log(_.get(req, 'query["source"]'));
+		//TODO: use mock data if query `source` is not `truth`
 		if (_.get(req, 'query["source"]') != 'truth') {
-			//TODO: implement this ASAP
 			const proxy = require('../../proxy/proxy');
 			return proxy.delegate(req.route.path, res, next);
 		}
@@ -57,8 +58,15 @@ module.exports = {
 		// 		]
 		// 	}
 		// ]
-		const sequelize = MySQL.Sequelize;
-		res.send([])
+		const Houses = MySQL.Houses;
+		const HouseType = MySQL.HouseType;
+		const GeoLocation = MySQL.GeoLocation;
+
+		Houses.findAll({include: [HouseType, GeoLocation]})
+			.then(translate)
+			.then(houses => res.send(houses))
+			.catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, err)));
+
 	},
 	/**
 	 * summary: save house
@@ -81,10 +89,15 @@ module.exports = {
 		// if(!Typedef.isHouseFormat(body.hFmt)){
 		//     return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERERROR, {'hFmt': body.hFmt}));
 		// }
+		const Houses = MySQL.Houses;
+		const HouseType = MySQL.HouseType;
+		const GeoLocation = MySQL.GeoLocation;
 		const sequelize = MySQL.Sequelize;
+
 		sequelize.transaction(t =>
-			Houses.create(_.omit(body, ['location', 'houseType']), {transaction: t})
+			Houses.create(body, {transaction: t})
 				.then(house => {
+					console.log(house);
 					GeoLocation.create(_.assign({}, _.get(body, 'location'), {houseId: house.id}), {transaction: t});
 					return house;
 				})
