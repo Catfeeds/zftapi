@@ -16,6 +16,7 @@ services:
         build:
           context: .
           dockerfile: Dockerfile-dev
+        entrypoint: /wait-for-it.sh db:3306 -- 
         command: npm run dev
         ports:
             - 8000:8000
