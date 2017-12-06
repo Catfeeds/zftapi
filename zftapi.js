@@ -10,6 +10,7 @@ require(appRootPath.path + '/libs/log')("EMAPI");
     global.ErrorCode = Include('/libs/errorCode');
     global.ENV = require('process').env;
     global.Amap = Include('/libs/amap');
+    global.SnowFlake = Include('/libs/snowflake').Alloc(1, 1);
 }
 
 let Server = Restify.createServer();
