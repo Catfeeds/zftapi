@@ -28,3 +28,7 @@ exports.ParameterCheck = function(parameter, checklist)
 
     return true;
 };
+
+exports.ParentDivision = (divisionId)=>{
+    return divisionId.substr(0,4)+'00';
+};
