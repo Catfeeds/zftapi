@@ -359,7 +359,7 @@ function SequelizeDefine()
     });
 
 
-    exports.Contracts = sequelizeInstance.define('contracts', {
+    const Contracts = sequelizeInstance.define('contracts', {
         roomId: {
             type: Sequelize.BIGINT.UNSIGNED,     //房源ID
             allowNull: false,
@@ -426,7 +426,7 @@ function SequelizeDefine()
         freezeTableName: true
     });
 
-	exports.Users = sequelizeInstance.define('users', {
+	const Users = sequelizeInstance.define('users', {
 		accountName: {
 			type: Sequelize.STRING(32),     //账号
 			allowNull: false,
@@ -465,6 +465,9 @@ function SequelizeDefine()
 		timestamps: false,
 		freezeTableName: true
 	});
+	Contracts.belongsTo(Users);
+	exports.Contracts = Contracts;
+	exports.Users = Users;
 
 	const GeoLocation = sequelizeInstance.define('location', {
 		divisionId: {
