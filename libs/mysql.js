@@ -332,24 +332,23 @@ function SequelizeDefine()
 	Houses.hasMany(HouseType);
 
 
-    exports.Setting = sequelizeInstance.define('setting', {
+    exports.Settings = sequelizeInstance.define('settings', {
         projectId: {
-            type: Sequelize.STRING(64),  //项目ID
-            allowNull: false,
-            defaultValue: '*'
+			type: Sequelize.BIGINT.UNSIGNED,
+			allowNull: true // null 为 全局配置
         },
         group: {
-            type: Sequelize.STRING(10),  //分组名
+            type: Sequelize.STRING(128),  //分组名
             allowNull: false,
             defaultValue: ''
         },
         key: {
-            type: Sequelize.STRING(10),  //名称
+            type: Sequelize.STRING,  //名称
             allowNull: false,
             defaultValue: ''
         },
         value: {
-            type: Sequelize.STRING(10),  //值
+            type: Sequelize.STRING,  //值
             allowNull: false,
             defaultValue: ''
         },

@@ -106,5 +106,15 @@ create table if not exists division
   primary key (`id`)
 ) engine=innodb default charset=utf8;
 
+create table if not exists `settings`
+(
+	id int auto_increment,
+	projectId bigint null,
+	`group` varchar(128) default '' not null,
+	`key` varchar(255) default '' not null,
+	value varchar(255) default '' not null,
+  primary key (`id`)
+) engine=innodb default charset=utf8;
+
 
 
