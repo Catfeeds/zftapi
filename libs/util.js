@@ -29,6 +29,35 @@ exports.ParameterCheck = function(parameter, checklist)
     return true;
 };
 
+exports.ParentDivisionId = (divisionId)=>{
+    return exports.ParentDivision(divisionId)+'00';
+};
 exports.ParentDivision = (divisionId)=>{
-    return divisionId.substr(0,4)+'00';
+    return divisionId.substr(0,4);
+};
+exports.IsParentDivision = (divisionId)=>{
+    const parentDivisionId = exports.ParentDivisionId(divisionId);
+    return parentDivisionId === divisionId;
+};
+
+
+exports.PagingInfo = function(pageindex, pagesize, useDefault)
+{
+    if(!pageindex && !pagesize){
+        if(!useDefault){
+            return null;
+        }
+        pageindex = 1;
+        pagesize = 10;
+    }
+
+    if(!pageindex){
+        pageindex = 1;
+    }
+    if(!pagesize){
+        pagesize = 10;
+    }
+
+    var skip = (pageindex-1)*pagesize;
+    return {index: parseInt(pageindex), size: parseInt(pagesize), skip: parseInt(skip)};
 };

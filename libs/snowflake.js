@@ -13,7 +13,7 @@ class SnowFlake
     }
 
     next(){
-        return intformat(this.flakeIdGen.next(), 'dec')
+        return intformat(this.flakeIdGen.next(), 'dec');
     }
 }
 

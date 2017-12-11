@@ -1,18 +1,11 @@
 /*
 * 全局常量定义
 * */
-const config = require('config');
-const moment = require('moment');
-const _ = require('underscore');
+const _ = require('lodash');
 const validator = require('validator');
 
 module.exports = exports = function(){};
 
-const HouseStatus = {
-    CLOSED: 'CLOSED',
-    OPEN: 'OPEN',
-    DELETE: 'DELETE'
-};
 const HouseFormat = {
     SHARE: 'SHARE',
     SOLE: 'SOLE',
@@ -46,19 +39,25 @@ const RoomType = [
     '餐厅隔',
     '厨房隔',
 ];
-const RoomStatus = {
-    IDLE: 0,
-    INUSE: 1,
-    NEWFORCONF: 2,
-    SURRENDERCONF: 3,
-    CLOSED: 4
+const OperationStatus = {
+    IDLE: 'IDLE',
+    INUSE: 'INUSE',
+    NEWFORCONF: 'NEWFORCONF',
+    SURRENDERCONF: 'SURRENDERCONF',
+    CLOSED: 'CLOSED',
+    DELETED: 'DELETED'
 };
-const RoomStatusLiteral = {
-    [RoomStatus.IDLE]: '待租',
-    [RoomStatus.INUSE]: '已租',
-    [RoomStatus.NEWFORCONF]: '新收配置',
-    [RoomStatus.SURRENDERCONF]: '退租配置',
-    [RoomStatus.CLOSED]: '关闭',
+const OperationStatusLiteral = {
+    [OperationStatus.IDLE]: '待租',
+    [OperationStatus.INUSE]: '已租',
+    [OperationStatus.NEWFORCONF]: '新收配置',
+    [OperationStatus.SURRENDERCONF]: '退租配置',
+    [OperationStatus.CLOSED]: '关闭',
+};
+const OperationReverseMapping = (status)=>{
+    return _.find(OperationStatus, v=>{
+        return v === status
+    });
 };
 
 const Orientation = {
@@ -92,11 +91,10 @@ const IsOrientation = (ori)=>{
     return Orientation[ori];
 };
 
-exports.HouseStatus = HouseStatus;
 exports.HouseFormat = HouseFormat;
 exports.HouseFormatLiteral = HouseFormatLiteral;
-exports.RoomStatus = RoomStatus;
-exports.RoomStatusLiteral = RoomStatusLiteral;
+exports.OperationStatus = OperationStatus;
+exports.OperationStatusLiteral = OperationStatusLiteral;
 exports.Orientation = Orientation;
 exports.OrientationLiteral = OrientationLiteral;
 exports.RoomType = RoomType;

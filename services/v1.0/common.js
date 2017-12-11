@@ -1,3 +1,5 @@
+const _ = require('lodash');
+
 exports.UpsertGeoLocation = (location, t)=>{
     location.code = location.id;
     location = _.omit(location, 'id');
