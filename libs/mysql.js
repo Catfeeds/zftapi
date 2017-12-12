@@ -411,7 +411,12 @@ function SequelizeDefine()
                 this.setDataValue('expenses', JSON.stringify(value));
             }
         },
-        paymentPlan: {
+	    contractNumber: {
+            type: Sequelize.STRING(50),      //合同号
+            allowNull: false,
+		    defaultValue: ''
+        },
+	    paymentPlan: {
             type: Sequelize.STRING(3),      //支付时间 (账单提前-02/账单固定+02/账单前一个月固定F03)
             allowNull: false
         },

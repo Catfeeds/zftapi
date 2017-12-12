@@ -10,6 +10,7 @@ create table if not exists contracts
 	`to` bigint default '0' not null,
 	strategy text null,
 	expenses text null,
+	contractNumber varchar(50) default '' not null,
 	paymentPlan varchar(3) not null,
 	signUpTime bigint default '0' not null,
   primary key (`id`)
