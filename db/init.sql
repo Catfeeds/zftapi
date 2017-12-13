@@ -10,6 +10,7 @@ create table if not exists contracts
 	`to` bigint default '0' not null,
 	strategy text null,
 	expenses text null,
+	contractNumber varchar(50) default '' not null,
 	paymentPlan varchar(3) not null,
 	signUpTime bigint default '0' not null,
   primary key (`id`)
@@ -103,6 +104,16 @@ create table if not exists division
 (
 	id int auto_increment,
 	name varchar(255) not null,
+  primary key (`id`)
+) engine=innodb default charset=utf8;
+
+create table if not exists `settings`
+(
+	id int auto_increment,
+	projectId bigint null,
+	`group` varchar(128) default '' not null,
+	`key` varchar(255) default '' not null,
+	value varchar(255) default '' not null,
   primary key (`id`)
 ) engine=innodb default charset=utf8;
 

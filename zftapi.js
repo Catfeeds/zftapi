@@ -25,18 +25,6 @@ Include('/libs/enumServices').Load(
 
 MySQL.Load().then(
     resolve=>{
-        MySQL.Entire.sync({alter: true});
-        MySQL.Soles.sync({alter: true});
-        MySQL.Rooms.sync({alter: true});
-
-        MySQL.Layouts.sync({alter: true});
-        MySQL.Setting.sync({alter: true});
-        MySQL.Contracts.sync({alter: true});
-        MySQL.Users.sync({alter: true});
-        MySQL.GeoLocation.sync({alter: true});
-        MySQL.Bills.sync({alter: true});
-        MySQL.BillFlows.sync({alter: true});
-
         Server.listen(8000, function () {
             console.log('App running on %s:%d', Server.address().address, Server.address().port);
         });

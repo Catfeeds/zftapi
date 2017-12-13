@@ -2,33 +2,35 @@
 /**
  * Operations on /config/{projectid}
  */
+
+const fp = require('lodash/fp');
+const _ = require('lodash');
+
+const translate = (items) => {
+	return fp.map(_.identity)(items);
+};
+
 module.exports = {
-    /**
-     * summary: get project config list
-     * description: pass projetid to get the config
-
-     * parameters: projectid
-     * produces: application/json
-     * responses: 200, 400
-     */
-    get: function getConfig(req, res, next) {
-        /**
-         * Get the data for response 200
-         * For response `default` status 200 is used.
-         */
-    },
-    /**
-     * summary: update project config
-     * description: save project config
-
-     * parameters: projectid, body
-     * produces: application/json
-     * responses: 200, 400
-     */
-    post: function updateConfig(req, res, next) {
-        /**
-         * Get the data for response 200
-         * For response `default` status 200 is used.
-         */
-    }
+	get: function getConfig(req, res) {
+		const Settings = MySQL.Settings;
+		const Op = MySQL.Sequelize.Op;
+		Settings.findAll({
+			where: {
+				projectId: {
+					[Op.or]: [req.params.projectId, null]
+				}
+			}
+		})
+			.then(translate)
+			.then(items => res.send(items))
+			.catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, err)));
+	},
+	post: function updateConfig(req, res) {
+		const body = req.body;
+		const Settings = MySQL.Settings;
+		Settings.create(body)
+			.then(setting =>
+				res.send(200, ErrorCode.ack(ErrorCode.OK, {req: req.body, res: setting}))
+			).catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, err)));
+	}
 };

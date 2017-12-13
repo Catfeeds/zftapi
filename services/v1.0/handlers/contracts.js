@@ -7,6 +7,8 @@ const extractContract = require('../../../transformers/contractExtractor').extra
 const extractUser = require('../../../transformers/userExtractor').extract;
 const generateBills = require('../../../transformers/billGenerator').generate;
 
+const filterFields = fp.identity
+
 module.exports = {
 	/**
 	 * summary: save contract
@@ -38,8 +40,12 @@ module.exports = {
 			.catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, err)));
 
 	},
-	//TODO: pure testing purpose, remove if necessary
 	get: function getContracts(req, res) {
-		res.send([]);
+		const Contracts = MySQL.Contracts;
+		const Users = MySQL.Users;
+		Contracts.findAll({include: [Users]})
+			.then(filterFields)
+			.then(contracts => res.send(contracts))
+			.catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, err)));
 	}
 };
