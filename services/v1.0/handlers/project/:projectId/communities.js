@@ -65,6 +65,9 @@ module.exports = {
             }
 
             const locations = await MySQL.Exec(sql, replacements);
+            if(!locations || !locations.length){
+                return res.send(ErrorCode.ack(ErrorCode.OK));
+            }
             let geoLocationIds = [];
             locations.map(r=>{
                 geoLocationIds.push(r.geoLocation);
