@@ -52,6 +52,7 @@ exports.Load = function () {
     });
 };
 
+
 exports.Exec = function(sql, replacements)
 {
     //
@@ -147,7 +148,7 @@ exports.ExecT = function(sql, t)
 
 function SequelizeDefine()
 {
-    const Entires = {
+    const Entire = {
         id: {
             type: Sequelize.BIGINT.UNSIGNED,
             primaryKey: true
@@ -374,7 +375,7 @@ function SequelizeDefine()
         }
     };
 
-    exports.Entires = sequelizeInstance.define('entires', Entires, {
+    exports.Entire = sequelizeInstance.define('entires', Entire, {
         timestamps: false,
         freezeTableName: true
     });
@@ -549,7 +550,12 @@ function SequelizeDefine()
             type: Sequelize.STRING(255),
             allowNull: false,
             defaultValue: ''
-        }
+        },
+        deleteAt: {
+            type: Sequelize.BIGINT.UNSIGNED // 删除时间
+            , allowNull: false
+            , defaultValue: 0
+        },
     },{
         timestamps: false,
         freezeTableName: true

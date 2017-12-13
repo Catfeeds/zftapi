@@ -25,10 +25,11 @@ Include('/libs/enumServices').Load(
 
 MySQL.Load().then(
     resolve=>{
-        MySQL.Houses.sync({alter: true});
+        MySQL.Entire.sync({alter: true});
+        MySQL.Soles.sync({alter: true});
         MySQL.Rooms.sync({alter: true});
 
-        MySQL.HouseType.sync({alter: true});
+        MySQL.Layouts.sync({alter: true});
         MySQL.Setting.sync({alter: true});
         MySQL.Contracts.sync({alter: true});
         MySQL.Users.sync({alter: true});

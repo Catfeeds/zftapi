@@ -50,7 +50,7 @@ function SaveEntire(params, body) {
                 createdAt: now.unix(),
                 config: body.config
             };
-            return MySQL.Entires.create(entire, {transaction: t, individualHooks: true});
+            return MySQL.Entire.create(entire, {transaction: t, individualHooks: true});
         };
         const BuildEntireLayouts = (t, entireIns, layouts)=>{
             let bulkLayouts = [];
@@ -157,7 +157,7 @@ function SaveEntire(params, body) {
                     return Transaction(body.location);
                 }
 
-                MySQL.Entires.count({
+                MySQL.Entire.count({
                     where:{
                         geoLocation: geoLocation.id
                     }
@@ -185,8 +185,7 @@ function SaveEntire(params, body) {
 function GetEntire(params, query) {
 	return new Promise((resolve, reject)=>{
         const projectId = params.projectId;
-        const entireId = params.entireId;
-        const query = query;
+        const entireId = query.entireId;
 
         (async()=>{
             //query variable priority
@@ -512,7 +511,7 @@ function GetSole(params, query) {
                     });
 
                     Promise.all([
-                        MySQL.Layouts.findAll({
+                        MySQL.Layouts.findOne({
                             where:{
                                 instanceId: {$in: soleIds}
                             }
@@ -524,14 +523,12 @@ function GetSole(params, query) {
                         })
                     ]).then(
                         result=>{
-                            const layouts = result[0];
+                            const layout = result[0];
                             const locations = result[1];
 
-                            layouts.map(layout=>{
-                                if(soleMapping[layout.instanceId]){
-                                    soleMapping[layout.instanceId].layout = layout;
-                                }
-                            });
+                            if(soleMapping[layout.instanceId]){
+                                soleMapping[layout.instanceId].layout = layout;
+                            }
 
                             let locationMapping = {};
                             locations.map(location=>{
@@ -806,7 +803,7 @@ function GetShare(params, query) {
                     });
 
                     Promise.all([
-                        MySQL.Layouts.findAll({
+                        MySQL.Layouts.findOne({
                             where:{
                                 instanceId: {$in: soleIds}
                             }
@@ -823,15 +820,13 @@ function GetShare(params, query) {
                         })
                     ]).then(
                         result=>{
-                            const layouts = result[0];
+                            const layout = result[0];
                             const locations = result[1];
                             const rooms = result[2];
 
-                            layouts.map(layout=>{
-                                if(soleMapping[layout.instanceId]){
-                                    soleMapping[layout.instanceId].layout = layout;
-                                }
-                            });
+                            if(soleMapping[layout.instanceId]){
+                                soleMapping[layout.instanceId].layout = layout;
+                            }
 
                             let locationMapping = {};
                             locations.map(location=>{

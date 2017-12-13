@@ -50,8 +50,10 @@ var ErrorCodeList = {
     'STRATEGYUNSUPPORT':    20000029,   //策略不支持
     'IMPORTEMPTY':          20000030,   //导入内容为空
     'PARAMETEROVERFLOW':    20000031,   //参数溢出
-    'PARAMETERERROR':        20000032,   //参数错误
+    'PARAMETERERROR':       20000032,   //参数错误
     'FORMULAERROR':         20000030,   //公式错误
+
+    'CONTRACTWORKING':      21000001,   //合同生效中
 
     'ORDERTYPENOTALLOWED':  30000001,  //业务类型不允许
     'ORDERNOTEXISTS':       30000002,  //账单不存在
@@ -130,6 +132,8 @@ var ErrorMessageList = {
     'ORDERINVALID': '账单关闭或失效',
     'CHARGEINSTINVALID': '出账机构无效',
     'FORMULAERROR': '公式错误',
+
+    'CONTRACTWORKING': '合同生效中',
 
     'DEVICENOTEXISTS': '仪表未找到',
     'SERIALCONFNOTEXISTS': '仪表对应的串口参数未配置',
