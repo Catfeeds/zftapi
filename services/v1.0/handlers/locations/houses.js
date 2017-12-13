@@ -20,8 +20,17 @@ module.exports = {
          * For response `default` status 200 is used.
          */
         const param = req.query;
+        if(!Util.ParameterCheck(param,
+                ['city', 'q']
+            )){
+            return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED));
+        }
 
-        Amap.InputTips(param).then(
+        const query = {
+            keywords: param.q,
+            city: param.city
+        };
+        Amap.InputTips(query).then(
             data=>{
                 let returns = [];
                 data.map(d=>{
