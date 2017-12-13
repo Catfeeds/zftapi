@@ -146,7 +146,7 @@ exports.ExecT = function(sql, t)
 
 function SequelizeDefine()
 {
-    const Entires = {
+    const Entire = {
         id: {
             type: Sequelize.BIGINT.UNSIGNED,
             primaryKey: true
@@ -421,7 +421,7 @@ function SequelizeDefine()
         },
     };
 
-    exports.Entires = sequelizeInstance.define('entires', Entires, {
+    exports.Entire = sequelizeInstance.define('entire', Entire, {
         timestamps: false,
         freezeTableName: true
     });
@@ -627,30 +627,41 @@ function SequelizeDefine()
 	exports.Users = Users;
 
 	const GeoLocation = sequelizeInstance.define('location', {
-		divisionId: {
-			type: Sequelize.BIGINT.UNSIGNED,     //区划 ID
-			allowNull: false
-		},
-		houseId: {
-			type: Sequelize.BIGINT.UNSIGNED,     //House ID
-			allowNull: false
-		},
+        id:{
+            type: Sequelize.BIGINT.UNSIGNED,
+            primaryKey: true,
+            autoIncrement: true
+        },
+        code: {
+            type: Sequelize.STRING(12),
+            allowNull: false,
+            defaultValue: ''
+        },
+        divisionId: {
+            type: Sequelize.BIGINT.UNSIGNED,     //区划 ID
+            allowNull: false
+        },
+        district: {
+            type:Sequelize.STRING(16),
+            allowNull: false,
+            defaultValue: ''
+        },
         name: {
-			type: Sequelize.STRING,     //查询结果名称
-			allowNull: false
-		},
-		address: {
-			type: Sequelize.STRING,     //查询结果地址
-			allowNull: false
-		},
-		longitude: {
-			type: Sequelize.DOUBLE,   //经纬度 seperate longitude latitude by ','
-			allowNull: false
-		},
+            type: Sequelize.STRING(16),     //查询结果名称
+            allowNull: false
+        },
+        address: {
+            type: Sequelize.STRING(32),     //查询结果地址
+            allowNull: false
+        },
+        longitude: {
+            type: Sequelize.DECIMAL(9,5),   //经纬度 seperate longitude latitude by ','
+            allowNull: false
+        },
         latitude: {
-			type: Sequelize.DOUBLE,   //经纬度 seperate longitude latitude by ','
-			allowNull: false
-		}
+            type: Sequelize.DECIMAL(9,5),   //经纬度 seperate longitude latitude by ','
+            allowNull: false
+        }
 	},{
 		timestamps: false,
 		freezeTableName: true
