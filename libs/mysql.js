@@ -52,7 +52,7 @@ exports.Load = function () {
     });
 };
 
-exports.Exec = function(sql)
+exports.Exec = function(sql, replacements)
 {
     //
     if(!sql || !sql.length){
@@ -88,8 +88,13 @@ exports.Exec = function(sql)
     }
 
     var deferred = Q.defer();
+    let options = {};
+    if(replacements){
+        options.replacements = replacements;
+    }
+    options.type = queryTypes;
 
-    sequelizeInstance.query(sql, { type: queryTypes}).then(
+    sequelizeInstance.query(sql, options).then(
         function (result) {
             deferred.resolve(result);
         }, function (err) {
@@ -366,6 +371,54 @@ function SequelizeDefine()
                 this.setDataValue('config', JSON.stringify(value));
             }
         }
+    };
+
+    const House = {
+        id:{
+            type: Sequelize.BIGINT.UNSIGNED,
+            allowNull: false,
+            primaryKey: true
+        },
+        projectId: {
+            type: Sequelize.STRING(64),  //项目ID
+            allowNull: false,
+            defaultValue: ''
+        },
+        geoLocation: {
+            type: Sequelize.BIGINT.UNSIGNED  //小区名称
+            , allowNull: false
+        },
+        createdAt: {
+            type: Sequelize.BIGINT.UNSIGNED // 创建时间
+            , allowNull: false
+            , defaultValue: 0
+        },
+        deleteAt: {
+            type: Sequelize.BIGINT.UNSIGNED // 删除时间
+            , allowNull: false
+            , defaultValue: 0
+        },
+        status: {
+            type: Sequelize.STRING(10)  //房源状态
+            , allowNull: false
+            , defaultValue: 'open'
+        },
+        config: {
+            type: Sequelize.TEXT,   //房屋拥有配置
+            get: function(){
+                let config;
+                try{
+                    config = JSON.parse(this.getDataValue('config'));
+                }
+                catch(e){
+                    config = {};
+                }
+                return config;
+            },
+            set : function (value) {
+                this.setDataValue('config', JSON.stringify(value));
+            }
+        },
     };
 
     exports.Entires = sequelizeInstance.define('entires', Entires, {
