@@ -64,45 +64,51 @@ module.exports = {
                     break;
             }
 
-            const locations = await MySQL.Exec(sql, replacements);
-            if(!locations || !locations.length){
-                return res.send(ErrorCode.ack(ErrorCode.OK));
-            }
-            let geoLocationIds = [];
-            locations.map(r=>{
-                geoLocationIds.push(r.geoLocation);
-            });
-
-            const geoLocations = await MySQL.GeoLocation.findAll({
-                where:{
-                    id:{$in: geoLocationIds}
-                },
-                attributes: ['id', 'divisionId', 'name']
-            });
-            let divisionIds = [];
-            let inDivision = {};
-            geoLocations.map(loc=>{
-                const parentDivision = Util.ParentDivisionId(loc.divisionId.toString());
-                divisionIds.push(parentDivision);
-                divisionIds.push(loc.divisionId);
-                if(!inDivision[loc.divisionId]){
-                    inDivision[loc.divisionId] = [];
+            try {
+                const locations = await MySQL.Exec(sql, replacements);
+                if (!locations || !locations.length) {
+                    return res.send(ErrorCode.ack(ErrorCode.OK));
                 }
-                inDivision[loc.divisionId].push({
-                    geoLocationId: loc.id,
-                    name: loc.name
+                let geoLocationIds = [];
+                locations.map(r => {
+                    geoLocationIds.push(r.geoLocation);
                 });
-            });
-            divisionIds = _.uniq(divisionIds);
 
-            const divisions = await MySQL.Divisions.findAll({
-                where:{
-                    id:{$in: divisionIds}
-                },
-                attributes:['id','title']
-            });
+                const geoLocations = await MySQL.GeoLocation.findAll({
+                    where: {
+                        id: {$in: geoLocationIds}
+                    },
+                    attributes: ['id', 'divisionId', 'name']
+                });
+                let divisionIds = [];
+                let inDivision = {};
+                geoLocations.map(loc => {
+                    const parentDivision = Util.ParentDivisionId(loc.divisionId.toString());
+                    divisionIds.push(parentDivision);
+                    divisionIds.push(loc.divisionId);
+                    if (!inDivision[loc.divisionId]) {
+                        inDivision[loc.divisionId] = [];
+                    }
+                    inDivision[loc.divisionId].push({
+                        geoLocationId: loc.id,
+                        name: loc.name
+                    });
+                });
+                divisionIds = _.uniq(divisionIds);
 
-            res.send(ErrorCode.ack(ErrorCode.OK, BuildDivisionTree(divisions, inDivision)));
+                const divisions = await MySQL.Divisions.findAll({
+                    where: {
+                        id: {$in: divisionIds}
+                    },
+                    attributes: ['id', 'title']
+                });
+
+                res.send(ErrorCode.ack(ErrorCode.OK, BuildDivisionTree(divisions, inDivision)));
+            }
+            catch(e){
+                log.error(e, houseFormat, projectId);
+                res.send(500, ErrorCode.ack(ErrorCode.UNKNOWN));
+            }
 
         })();
     }

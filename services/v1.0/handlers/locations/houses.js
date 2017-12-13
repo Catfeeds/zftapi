@@ -46,6 +46,11 @@ module.exports = {
 
                 res.send(ErrorCode.ack(ErrorCode.OK, returns));
             }
-        );
+        ).catch(
+            err=>{
+                log.error(err, param, query);
+                res.send(500, ErrorCode.ack(ErrorCode.UNKNOWN));
+            }
+        );;
     }
 };

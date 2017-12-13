@@ -25,32 +25,38 @@ module.exports = {
             const projectId = req.params.projectId;
             const id = req.params.id;
 
-            const t = await MySQL.Sequelize.transaction();
+            try {
+                const t = await MySQL.Sequelize.transaction();
 
-            await MySQL.Rooms.update(
-                {deleteAt: moment().unix()},
-                {
-                    where:{
-                        id: id,
-                        projectId: projectId
-                    },
-                    transaction: t
-                }
-            );
+                await MySQL.Rooms.update(
+                    {deleteAt: moment().unix()},
+                    {
+                        where: {
+                            id: id,
+                            projectId: projectId
+                        },
+                        transaction: t
+                    }
+                );
 
-            await MySQL.Layouts.update(
-                {deleteAt: moment().unix()},
-                {
-                    where:{
-                        instanceId: id,
-                    },
-                    transaction: t
-                }
-            );
+                await MySQL.Layouts.update(
+                    {deleteAt: moment().unix()},
+                    {
+                        where: {
+                            instanceId: id,
+                        },
+                        transaction: t
+                    }
+                );
 
-            t.commit();
+                t.commit();
 
-            res.send(ErrorCode.ack(ErrorCode.OK));
+                res.send(ErrorCode.ack(ErrorCode.OK));
+            }
+            catch(e){
+                log.error(e, projectId, id);
+                res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC));
+            }
         })();
     },
     /**
