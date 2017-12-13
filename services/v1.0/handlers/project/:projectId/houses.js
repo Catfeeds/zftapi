@@ -92,7 +92,7 @@ function SaveEntire(params, body) {
                         roomNumber: roomNumber,
                         currentFloor: floor,
                         totalFloor: entireIns.totalFloor,
-                        createAt: now.unix(),
+                        createdAt: now.unix(),
                         status: Typedef.OperationStatus.IDLE,
                         config: entireIns.config,
                         houseKeeper: entireIns.houseKeeper
@@ -109,7 +109,7 @@ function SaveEntire(params, body) {
                     id: SnowFlake.next(),
                     projectId: projectId,
                     soleId: sole.id,
-                    createAt: now.unix(),
+                    createdAt: now.unix(),
                     status: Typedef.OperationStatus.IDLE,
                     config: sole.config
                 });
@@ -349,7 +349,7 @@ function SaveSole(params, body) {
                 roomNumber: body.roomNumber,
                 currentFloor: body.currentFloor,
                 totalFloor: body.totalFloor,
-                createAt: now.unix(),
+                createdAt: now.unix(),
                 status: Typedef.OperationStatus.IDLE,
                 config: body.config,
                 houseKeeper: body.houseKeeper
@@ -600,7 +600,7 @@ function SaveShare(params, body) {
                 roomNumber: body.roomNumber,
                 currentFloor: body.currentFloor,
                 totalFloor: body.totalFloor,
-                createAt: now.unix(),
+                createdAt: now.unix(),
                 status: Typedef.OperationStatus.IDLE,
                 config: body.config,
                 houseKeeper: body.houseKeeper
@@ -630,7 +630,7 @@ function SaveShare(params, body) {
                      projectId: projectId,
                      name: bedRoom.toString(),
                      soleId: soleIns.id,
-                     createAt: now.unix(),
+                     createdAt: now.unix(),
                      status: Typedef.OperationStatus.IDLE
                  };
                  rooms.push(room);
