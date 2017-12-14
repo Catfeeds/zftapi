@@ -322,7 +322,7 @@ function SequelizeDefine()
             type: Sequelize.BIGINT.UNSIGNED,
             primaryKey: true
         },
-        instanceId: {
+        houseId: {
             type: Sequelize.BIGINT.UNSIGNED,
             allowNull: false
         },

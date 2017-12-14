@@ -58,10 +58,10 @@ exports.CreateSole = (layoutId, houseId, group, building, unit, roomNumber, curr
     return sole;
 };
 
-exports.CreateLayout = (instanceId, roomArea, name, bedRoom, livingRoom, bathRoom, orientation, remark)=>{
+exports.CreateLayout = (houseId, roomArea, name, bedRoom, livingRoom, bathRoom, orientation, remark)=>{
     const layout = {
         id: SnowFlake.next(),
-        instanceId: instanceId,
+        houseId: houseId,
         name: name,
         bedRoom: bedRoom,
         livingRoom: livingRoom,
