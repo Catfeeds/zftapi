@@ -13,175 +13,168 @@ const translate = (houses) => {
 	})(houses);
 };
 
-function SaveEntire(params, body) {
-	return new Promise((resolve, reject)=>{
-        if(!Util.ParameterCheck(body,
-                ['location', 'enabledFloors', 'roomCountOnFloor', 'totalFloor']
-            )){
-        	return reject(ErrorCode.ack(ErrorCode.PARAMETERMISSED));
-        }
-
-        if(!Util.ParameterCheck(body.location, ['id', 'divisionId', 'name', 'district', 'address', 'latitude', 'longitude'])){
-            return reject(ErrorCode.ack(ErrorCode.PARAMETERMISSED));
-        }
-
-        const projectId = params.projectId;
-
-        if(body.layout){
-            const layoutLen = body.layout.length;
-            for(let i =0; i<layoutLen; i++){
-                const layout = body.layout[i];
-                if(!Typedef.IsOrientation(layout.orientation)){
-                    return reject(ErrorCode.ack(ErrorCode.PARAMETERERROR, {'orientation': layout}));
-                }
-            }
-        }
-
-        const now = moment();
-
-        const BuildEntire = (t, location)=>{
-            const entire = {
-                id: SnowFlake.next(),
-                projectId: projectId,
-                geoLocation: location.id,
-                totalFloor: body.totalFloor,
-                roomCountOnFloor: body.roomCountOnFloor,
-                enabledFloors: body.enabledFloors,
-                createdAt: now.unix(),
-                config: body.config
-            };
-            return MySQL.Entire.create(entire, {transaction: t, individualHooks: true});
-        };
-        const BuildEntireLayouts = (t, entireIns, layouts)=>{
-            let bulkLayouts = [];
-            layouts.map(layout=>{
-                layout.id = SnowFlake.next(),
-                    layout.instanceId = entireIns.id;
-                bulkLayouts.push(layout);
-            });
-            return MySQL.Layouts.bulkCreate(bulkLayouts, {transaction: t});
-        };
-
-        const BuildLayouts = (items)=>{
-            let layouts = [];
-            items.map(item=>{
-                layouts.push({
-                    id: SnowFlake.next(),
-                    instanceId: item.id,
-                });
-            });
-
-            return layouts;
-        };
-
-        const BuildSoles = (t, entireIns)=>{
-            let soles = [];
-            const enabledFloors = body.enabledFloors.split(',');
-            enabledFloors.map(floor=>{
-                for(let i=1;i<=body.roomCountOnFloor;i++){
-                    let roomNumber = '0' + i.toString();
-                    roomNumber = roomNumber.substr(roomNumber.length-2);
-                    roomNumber = floor + roomNumber;
-
-                    soles.push({
-                        id: SnowFlake.next(),
-                        projectId: projectId,
-                        houseFormat: Typedef.HouseFormat.ENTIRE,
-                        geoLocation: entireIns.geoLocation,
-                        entireId: entireIns.id,
-                        roomNumber: roomNumber,
-                        currentFloor: floor,
-                        totalFloor: entireIns.totalFloor,
-                        createdAt: now.unix(),
-                        status: Typedef.OperationStatus.IDLE,
-                        config: entireIns.config,
-                        houseKeeper: entireIns.houseKeeper
-                    });
-                }
-            });
-            return MySQL.Soles.bulkCreate(soles, {transaction: t, individualHooks: true});
-        };
-
-        const BuildRooms = (t, soles)=>{
-            let rooms = [];
-            soles.map(sole=>{
-                rooms.push({
-                    id: SnowFlake.next(),
-                    projectId: projectId,
-                    soleId: sole.id,
-                    createdAt: now.unix(),
-                    status: Typedef.OperationStatus.IDLE,
-                    config: sole.config
-                });
-            });
-
-            return MySQL.Rooms.bulkCreate(rooms, {transaction: t, individualHooks: true});
-        };
-
-        const Transaction = async(location)=>{
-            return MySQL.Sequelize.transaction(t=>{
-                return common.UpsertGeoLocation(body.location, t).then(
-                    location=> {
-                        return BuildEntire(t, location[0]).then(
-                            entireIns=>{
-                                return BuildEntireLayouts(t, entireIns, body.layout).then(
-                                    ()=>{
-                                        return BuildSoles(t, entireIns).then(
-                                            soles=>{
-                                                // return BuildRooms(t, soles).then(
-                                                //     rooms=>{
-                                                // const layouts = _.unionWith(BuildLayouts(soles), BuildLayouts(rooms));
-                                                const layouts = BuildLayouts(soles);
-                                                return MySQL.Layouts.bulkCreate(layouts);
-                                                //     }
-                                                // );
-                                            }
-                                        );
-                                    }
-                                );
-                            }
-                        );
-                    }
-                );
-            });
-        };
-
-        MySQL.GeoLocation.findOne({
-            where:{
-                code: body.location.id
-            },
-            attributes:['id']
-        }).then(
-            geoLocation=>{
-                if(!geoLocation){
-                    return Transaction(body.location);
-                }
-
-                MySQL.Entire.count({
-                    where:{
-                        geoLocation: geoLocation.id
-                    }
-                }).then(
-                    entireExists=>{
-                        if(entireExists){
-                            return reject(ErrorCode.ack(ErrorCode.DUPLICATEREQUEST));
-                        }
-
-                        Transaction(body.location).then(
-                            ()=>{
-                                resolve();
-                            },
-                            err=>{
-                                log.error(err);
-                                return reject(ErrorCode.ack(ErrorCode.DATABASEEXEC));
-                            }
-                        );
-                    }
-                );
-            }
+function EntireCheck(body) {
+    return Util.ParameterCheck(body,
+            ['location', 'enabledFloors', 'roomCountOnFloor', 'totalFloor']
         );
-	});
 }
+function SoleCheck(body) {
+    return Util.ParameterCheck(body,
+            ['location', 'roomNumber', 'totalFloor', 'currentFloor', 'totalFloor']
+        )
+    && _.isObject(body.layout);
+}
+function ShareCheck(body) {
+    return Util.ParameterCheck(body,
+        ['location', 'roomNumber', 'totalFloor', 'currentFloor', 'totalFloor']
+    )   ;
+}
+
+async function SaveEntire(t, params, body){
+    const projectId = params.projectId;
+
+    if(body.layout){
+        const layoutLen = body.layout.length;
+        for(let i =0; i<layoutLen; i++){
+            const layout = body.layout[i];
+            if(!Typedef.IsOrientation(layout.orientation)){
+                return ErrorCode.ack(ErrorCode.PARAMETERERROR, {'orientation': layout});
+            }
+        }
+    }
+
+    const BuildEntire = async(t, location)=>{
+
+        const house = common.CreateHouse(projectId, Typedef.HouseFormat.ENTIRE, 0, ''
+            , location.id, body.houseKeeper
+            , body.desc, Typedef.OperationStatus.IDLE
+            , body.config
+        );
+        const houseIns = await MySQL.Houses.create(house, {transaction: t, individualHooks: true});
+
+        const entire = {
+            // id: SnowFlake.next(),
+            // projectId: projectId,
+            // geoLocation: location.id,
+            totalFloor: body.totalFloor,
+            roomCountOnFloor: body.roomCountOnFloor,
+            enabledFloors: body.enabledFloors,
+            houseId: houseIns.id
+            // createdAt: now.unix(),
+            // config: body.config
+        };
+        await MySQL.Entire.create(entire, {transaction: t, individualHooks: true});
+        return houseIns;
+    };
+    const BuildEntireLayouts = async(t, entireIns, layouts)=>{
+        let bulkLayouts = [];
+        layouts.map(layout=>{
+            layout.id = SnowFlake.next();
+            layout.instanceId = entireIns.id;
+            bulkLayouts.push(layout);
+        });
+        await MySQL.Layouts.bulkCreate(bulkLayouts, {transaction: t});
+    };
+
+    const BuildSoles = async(t, entireIns)=>{
+        let soles = [];
+        let houses = [];
+        const enabledFloors = body.enabledFloors;
+        enabledFloors.map(floor=>{
+            for(let i=1;i<=body.roomCountOnFloor;i++){
+                let roomNumber = '0' + i.toString();
+                roomNumber = roomNumber.substr(roomNumber.length-2);
+                roomNumber = floor + roomNumber;
+
+                const house = common.CreateHouse(projectId, Typedef.HouseFormat.ENTIRE
+                    , entireIns.id, '', entireIns.geoLocation
+                    , body.houseKeeper, body.desc
+                    , Typedef.OperationStatus.IDLE, entireIns.config);
+                houses.push(house);
+                const sole = common.CreateSole(0, house.id, '', '', '', roomNumber, floor, body.totalFloor);
+                soles.push(sole);
+                // soles.push({
+                //     id: SnowFlake.next(),
+                //     projectId: projectId,
+                //     houseFormat: Typedef.HouseFormat.ENTIRE,
+                //     geoLocation: entireIns.geoLocation,
+                //     entireId: entireIns.id,
+                //     roomNumber: roomNumber,
+                //     currentFloor: floor,
+                //     totalFloor: entireIns.totalFloor,
+                //     createdAt: now.unix(),
+                //     status: Typedef.OperationStatus.IDLE,
+                //     config: entireIns.config,
+                //     houseKeeper: entireIns.houseKeeper
+                // });
+            }
+        });
+
+        await MySQL.Houses.bulkCreate(houses, {transaction: t, individualHooks: true});
+        await MySQL.Soles.bulkCreate(soles, {transaction: t, individualHooks: true});
+        return houses;
+    };
+    const BuildSolesLayouts = async(items)=>{
+        let layouts = [];
+        items.map(item=>{
+            layouts.push({
+                id: SnowFlake.next(),
+                instanceId: item.id,
+            });
+        });
+
+        await MySQL.Layouts.bulkCreate(layouts, {transaction: t});
+    };
+
+    try {
+        const houseIns = await BuildEntire(t, body.location);
+        houseIns.config;
+        await BuildEntireLayouts(t, houseIns, body.layout);
+        const soles = await BuildSoles(t, houseIns);
+        await BuildSolesLayouts(soles);
+
+
+        return true;
+    }
+    catch(e){
+        log.error(e, params, body);
+    }
+
+    // MySQL.GeoLocation.findOne({
+    //     where:{
+    //         code: body.location.id
+    //     },
+    //     attributes:['id']
+    // }).then(
+    //     geoLocation=>{
+    //         if(!geoLocation){
+    //             return Transaction(body.location);
+    //         }
+    //
+    //         MySQL.Entire.count({
+    //             where:{
+    //                 geoLocation: geoLocation.id
+    //             }
+    //         }).then(
+    //             entireExists=>{
+    //                 if(entireExists){
+    //                     return reject(ErrorCode.ack(ErrorCode.DUPLICATEREQUEST));
+    //                 }
+    //
+    //                 Transaction(body.location).then(
+    //                     ()=>{
+    //                         resolve();
+    //                     },
+    //                     err=>{
+    //                         log.error(err);
+    //                         return reject(ErrorCode.ack(ErrorCode.DATABASEEXEC));
+    //                     }
+    //                 );
+    //             }
+    //         );
+    //     }
+    // );
+};
 function GetEntire(params, query) {
 	return new Promise((resolve, reject)=>{
         const projectId = params.projectId;
@@ -314,111 +307,46 @@ function GetEntire(params, query) {
 	});
 }
 
-function SaveSole(params, body) {
-	return new Promise((resolve, reject)=>{
-        if(!Util.ParameterCheck(body,
-                ['location', 'roomNumber', 'totalFloor', 'currentFloor', 'totalFloor']
-            )){
-            return reject(ErrorCode.ack(ErrorCode.PARAMETERMISSED));
+async function SaveSole(t, params, body) {
+    const projectId = params.projectId;
+    const location = body.location;
+
+    if(body.layout){
+        if(!Typedef.IsOrientation(body.layout.orientation)){
+            return ErrorCode.ack(ErrorCode.PARAMETERERROR, {'orientation': body.layout});
         }
+    }
 
-        if(!Util.ParameterCheck(body.location, ['id', 'divisionId', 'name', 'district', 'address', 'latitude', 'longitude'])){
-            return reject(ErrorCode.ack(ErrorCode.PARAMETERMISSED));
-        }
+    const BuildSoles = async(t, location)=>{
 
-        const projectId = params.projectId;
 
-        if(body.layout){
-            if(!Typedef.IsOrientation(body.layout.orientation)){
-                return reject(ErrorCode.ack(ErrorCode.PARAMETERERROR, {'orientation': body.layout}));
-            }
-        }
-
-        const now = moment();
-
-        const BuildSoles = (t, location)=>{
-            let soleIns = {
-                id: SnowFlake.next(),
-                projectId: projectId,
-                houseFormat: Typedef.HouseFormat.SOLE,
-                code: body.code,
-                geoLocation: location.id,
-                group: body.group,
-                building: body.building,
-                unit: body.unit,
-                roomNumber: body.roomNumber,
-                currentFloor: body.currentFloor,
-                totalFloor: body.totalFloor,
-                createdAt: now.unix(),
-                status: Typedef.OperationStatus.IDLE,
-                config: body.config,
-                houseKeeper: body.houseKeeper
-            };
-            return MySQL.Soles.create(soleIns, {transaction: t, individualHooks: true});
-        };
-        const BuildSoleLayout = (t, soleIns)=>{
-            const layout = {
-                id: SnowFlake.next(),
-                instanceId: soleIns.id,
-                bedRoom: body.bedRoom,
-                livingRoom: body.livingRoom,
-                bathRoom: body.bathRoom,
-                orientation: body.orientation,
-                roomArea: body.roomArea
-            };
-
-            return MySQL.Layouts.create(layout, {transaction: t});
-        };
-
-        const Transaction = async(location)=>{
-            return MySQL.Sequelize.transaction(t=>{
-                return common.UpsertGeoLocation(location, t).then(
-                    location=> {
-                        return BuildSoles(t, location[0]).then(
-                            soleIns=>{
-                                return BuildSoleLayout(t, soleIns);
-                            }
-                        );
-                    }
-                );
-            });
-        };
-
-        MySQL.GeoLocation.findOne({
-            where:{
-                code: body.location.id
-            },
-            attributes:['id']
-        }).then(
-            geoLocation=>{
-                if(!geoLocation){
-                    return Transaction(body.location);
-                }
-
-                MySQL.Soles.count({
-                    where:{
-                        geoLocation: geoLocation.id
-                    }
-                }).then(
-                    soleExists=>{
-                        if(soleExists){
-                            return reject(ErrorCode.ack(ErrorCode.DUPLICATEREQUEST));
-                        }
-
-                        Transaction(body.location).then(
-                            ()=>{
-                            	resolve(ErrorCode.ack(ErrorCode.OK));
-                            },
-                            err=>{
-                                log.error(err);
-                                return reject(ErrorCode.ack(ErrorCode.DATABASEEXEC));
-                            }
-                        );
-                    }
-                );
-            }
+        const house = common.CreateHouse(projectId, body.houseFormat, 0, ''
+            , location.id, body.houseKeeper
+            , body.desc, Typedef.OperationStatus.IDLE
+            , body.config
         );
-	});
+        const houseIns = await MySQL.Houses.create(house, {transaction: t, individualHooks: true});
+
+        const sole = common.CreateSole(0, house.id, body.group, body.building, body.unit, body.roomNumber, body.currentFloor, body.totalFloor);
+        await MySQL.Soles.create(sole, {transaction: t, individualHooks: true});
+        return houseIns;
+    };
+    const BuildSolesLayouts = async(soleIns)=>{
+        const layout = common.CreateLayout(
+            soleIns.id,
+            body.roomArea,
+            body.name,
+            body.bedRoom,
+            body.livingRoom,
+            body.bathRoom,
+            body.orientation,
+            body.remark
+        );
+        await MySQL.Layouts.create(layout);
+    };
+
+    const soleIns = await BuildSoles(t, location);
+    await BuildSolesLayouts(soleIns);
 }
 function GetSole(params, query) {
 	return new Promise((resolve, reject)=>{
@@ -896,6 +824,8 @@ module.exports = {
             return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED));
         }
 
+
+
         let promise;
         switch(query.houseFormat){
             case Typedef.HouseFormat.ENTIRE:
@@ -930,43 +860,101 @@ module.exports = {
 	 * produces: application/json
 	 * responses: 200, 400
 	 */
-	post: function saveHouse(req, res) {
+	post: (req, res)=>{
 		/**
 		 * Get the data for response 200
 		 * For response `default` status 200 is used.
 		 */
-        const params = req.params;
-		const body = req.body;
-		if(!Util.ParameterCheck(body,
-				['houseFormat']
-			)){
-		    return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED));
-		}
+        (async()=>{
+            const params = req.params;
+            const body = req.body;
+            if(!Util.ParameterCheck(body,
+                    ['houseFormat']
+                )){
+                return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED));
+            }
 
-		let promise;
-		switch(body.houseFormat){
-			case Typedef.HouseFormat.ENTIRE:
-				promise = SaveEntire(params, body);
-				break;
-			case Typedef.HouseFormat.SOLE:
-				promise = SaveSole(params, body);
-				break;
-            case Typedef.HouseFormat.SHARE:
-                promise = SaveShare(params, body);
-                break;
-		}
+            if(!Util.ParameterCheck(body.location, ['id', 'divisionId', 'name', 'district', 'address', 'latitude', 'longitude'])){
+                return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED));
+            }
 
-		if(!promise){
-			return res.send(500, ErrorCode.ack(ErrorCode.REQUESTUNMATCH));
-		}
+            let formatPassed = false;
+            switch(body.houseFormat){
+                case Typedef.HouseFormat.ENTIRE:
+                    formatPassed = EntireCheck(body);
+                    break;
+                case Typedef.HouseFormat.SOLE:
+                    formatPassed = SoleCheck(body);
+                    break;
+                case Typedef.HouseFormat.SHARE:
+                    formatPassed = ShareCheck(body);
+                    break;
+            }
+            if(!formatPassed){
+                return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED));
+            }
 
-		promise.then(
-			resolve=>{
-				res.send(resolve);
-			},
-			err=>{
-				res.send(422, err)
-			}
-		);
+            try{
+                const location = await MySQL.GeoLocation.findOne({
+                    where:{
+                        code: body.location.code
+                    },
+                    attributes:['id']
+                });
+
+                const t = await MySQL.Sequelize.transaction();
+                if(!location){
+                    // await SaveHouses(params, body, location.id);
+                    const newLocation = await common.AsyncUpsertGeoLocation(body.location, t);
+                    body.location = MySQL.Plain( newLocation[0] );
+                }
+                else {
+
+                    const entireExists = await MySQL.Houses.count({
+                        where: {
+                            geoLocation: location.id
+                        }
+                    });
+
+                    if (entireExists) {
+                        return res.send(400, ErrorCode.ack(ErrorCode.DUPLICATEREQUEST));
+                    }
+                }
+
+                const houseFormat = body.houseFormat;
+                let ack;
+                switch(houseFormat){
+                    case Typedef.HouseFormat.ENTIRE:
+                        ack = await SaveEntire(t, params, body);
+                        break;
+                    case Typedef.HouseFormat.SOLE:
+                        ack = await SaveSole(t, params, body);
+                        break;
+                    case Typedef.HouseFormat.SHARE:
+                        ack = await SaveShare(t, param, body);
+                        break;
+                }
+
+                await t.commit();
+                res.send(ErrorCode.ack(ErrorCode.OK));
+            }
+            catch(e){
+                log.error(e);
+                res.send(422, ErrorCode.ack(ErrorCode.DATABASEEXEC));
+            }
+        })();
+
+		// if(!promise){
+		// 	return res.send(500, ErrorCode.ack(ErrorCode.REQUESTUNMATCH));
+		// }
+        //
+		// promise.then(
+		// 	resolve=>{
+		// 		res.send(resolve);
+		// 	},
+		// 	err=>{
+		// 		res.send(422, err)
+		// 	}
+		// );
     }
 };

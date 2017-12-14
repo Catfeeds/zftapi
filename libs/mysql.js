@@ -22,10 +22,10 @@ exports.Load = function () {
         sequelizeInstance = new Sequelize(null, null, null, {
             dialect: 'mysql',
             replication:{
-				read: [config.RDS],
-				write: config.RDS
+				read: config.RDS.read,
+				write: config.RDS.write
             },
-            logging: false,
+            logging: true,
             timezone: "+08:00",
             retry:{
                 max: 0
@@ -146,7 +146,7 @@ exports.ExecT = function(sql, t)
 
 function SequelizeDefine()
 {
-    const Entires = {
+    const Entire     = {
         id: {
             type: Sequelize.BIGINT.UNSIGNED,
             primaryKey: true,
@@ -228,22 +228,6 @@ function SequelizeDefine()
             , defaultValue: 0
         }
     };
-    const Rooms = {
-        id: {
-            type: Sequelize.BIGINT.UNSIGNED,
-            primaryKey: true,
-            autoIncrement: true
-        },
-        name: {
-            type: Sequelize.STRING(10),
-            allowNull: false,
-            defaultValue: ''
-        },
-        houseId: {
-            type: Sequelize.BIGINT.UNSIGNED,
-            allowNull: false
-        }
-    };
 
     const Houses = {
         id:{
@@ -253,6 +237,15 @@ function SequelizeDefine()
         },
         projectId: {
             type: Sequelize.STRING(64),  //项目ID
+            allowNull: false,
+            defaultValue: ''
+        },
+        parentId:{
+            type: Sequelize.BIGINT.UNSIGNED,
+            allowNull: false
+        },
+        name: {
+            type: Sequelize.STRING(10),
             allowNull: false,
             defaultValue: ''
         },
@@ -310,15 +303,11 @@ function SequelizeDefine()
         }
     };
 
-    exports.Entires = sequelizeInstance.define('entires', Entires, {
+    exports.Entire = sequelizeInstance.define('entires', Entire, {
         timestamps: false,
         freezeTableName: true
     });
     exports.Soles = sequelizeInstance.define('soles', Soles, {
-        timestamps: false,
-        freezeTableName: true
-    });
-    exports.Rooms = sequelizeInstance.define('rooms', Rooms, {
         timestamps: false,
         freezeTableName: true
     });
@@ -520,30 +509,41 @@ function SequelizeDefine()
 	exports.Users = Users;
 
 	const GeoLocation = sequelizeInstance.define('location', {
-		divisionId: {
-			type: Sequelize.BIGINT.UNSIGNED,     //区划 ID
-			allowNull: false
-		},
-		houseId: {
-			type: Sequelize.BIGINT.UNSIGNED,     //House ID
-			allowNull: false
-		},
+        id:{
+            type: Sequelize.BIGINT.UNSIGNED,
+            primaryKey: true,
+            autoIncrement: true
+        },
+        code: {
+            type: Sequelize.STRING(12),
+            allowNull: false,
+            defaultValue: ''
+        },
+        divisionId: {
+            type: Sequelize.BIGINT.UNSIGNED,     //区划 ID
+            allowNull: false
+        },
+        district: {
+            type:Sequelize.STRING(16),
+            allowNull: false,
+            defaultValue: ''
+        },
         name: {
-			type: Sequelize.STRING,     //查询结果名称
-			allowNull: false
-		},
-		address: {
-			type: Sequelize.STRING,     //查询结果地址
-			allowNull: false
-		},
-		longitude: {
-			type: Sequelize.DOUBLE,   //经纬度 seperate longitude latitude by ','
-			allowNull: false
-		},
+            type: Sequelize.STRING(16),     //查询结果名称
+            allowNull: false
+        },
+        address: {
+            type: Sequelize.STRING(32),     //查询结果地址
+            allowNull: false
+        },
+        longitude: {
+            type: Sequelize.DECIMAL(9,5),   //经纬度 seperate longitude latitude by ','
+            allowNull: false
+        },
         latitude: {
-			type: Sequelize.DOUBLE,   //经纬度 seperate longitude latitude by ','
-			allowNull: false
-		}
+            type: Sequelize.DECIMAL(9,5),   //经纬度 seperate longitude latitude by ','
+            allowNull: false
+        }
 	},{
 		timestamps: false,
 		freezeTableName: true

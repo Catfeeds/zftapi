@@ -25,6 +25,12 @@ Include('/libs/enumServices').Load(
 
 MySQL.Load().then(
     resolve=>{
+        MySQL.Entire.sync({force: true});
+        MySQL.Soles.sync({force: true});
+        MySQL.Houses.sync({force: true});
+        MySQL.Layouts.sync({force: true});
+        MySQL.GeoLocation.sync({force: true});
+
         Server.listen(8000, function () {
             console.log('App running on %s:%d', Server.address().address, Server.address().port);
         });
