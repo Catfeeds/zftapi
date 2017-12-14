@@ -5,8 +5,8 @@ const axios = require('axios');
 module.exports = {
 	//TODO: fix this
 	delegate(path, res, next) {
-		const mockUrl = 'http://mock.doctorwork.com/mock/5a0e40653dea15470360bc0b/zft';
-		axios.get(`${mockUrl}/${path}`)
+		const mockUrl = 'https://easy-mock.com/mock/5a0e5d49ec27b206e2af1c87/api';
+		axios.get(`${mockUrl}${path}`)
 			.then((response) => {
 				console.log(response.data);
 				res.send(response.data);

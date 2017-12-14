@@ -36,6 +36,13 @@ function BuildDivisionTree(divisions, inDivision)
 module.exports = {
 	get: function getCommunity(req, res, next) {
 
+		//TODO: implement this ASAP
+		if (_.get(req, 'query["source"]') !== 'truth') {
+			const proxy = require('../../../../proxy/proxy');
+			console.log(req.url);
+			return proxy.delegate(req.url, res, next);
+		}
+
         (async()=>{
             const param = req.params;
             const query = req.query;

@@ -28,7 +28,7 @@ module.exports = {
 		//TODO: use mock data if query `source` is not `truth`
 		if (_.get(req, 'query["source"]') !== 'truth') {
 			const proxy = require('../../proxy/proxy');
-			return proxy.delegate(req.route.path, res, next);
+			return proxy.delegate('/v1.0/projects/123/houses', res, next);
 		}
 
 		// [

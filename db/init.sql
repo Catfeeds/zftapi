@@ -158,19 +158,35 @@ create table if not exists location
 
 create table if not exists division
 (
-	id int auto_increment,
+	id bigint not null auto_increment,
 	name varchar(255) not null,
   primary key (`id`)
 ) engine=innodb default charset=utf8;
 
 create table if not exists `settings`
 (
-	id int auto_increment,
+	id bigint not null auto_increment,
 	projectId bigint null,
 	`group` varchar(128) default '' not null,
 	`key` varchar(255) default '' not null,
 	value varchar(255) default '' not null,
   primary key (`id`)
+) engine=innodb default charset=utf8;
+
+
+create table entires
+(
+	id bigint not null AUTO_INCREMENT,
+	projectId varchar(64) default '' not null,
+	geoLocation bigint not null,
+	totalFloor int default '0' not null,
+	roomCountOnFloor int default '0' not null,
+	enabledFloors text null,
+	createdAt bigint default '0' not null,
+	deleteAt bigint default '0' not null,
+	status varchar(10) default 'open' not null,
+	config text null,
+	primary key (`id`)
 ) engine=innodb default charset=utf8;
 
 
