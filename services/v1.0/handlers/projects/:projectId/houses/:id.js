@@ -6,115 +6,108 @@ const moment = require('moment');
  * Operations on /houses/{hid}
  */
 
-function GetEntire(projectId, id) {
-    return new Promise((resolve, reject)=>{
-        (async()=>{
-            try {
-                let entire = await MySQL.Entire.findOne({
-                    where: {
-                        id: id,
-                        projectId: projectId
-                    }
-                });
-                entire.config;
-                entire = MySQL.Plain(entire);
-                const layouts = await MySQL.Layouts.findAll({
-                    where: {
-                        houseId: id
-                    }
-                });
-                entire.layout = layouts;
-
-                const location = await MySQL.GeoLocation.findOne({
-                    where:{
-                        id: entire.geoLocation
-                    }
-                });
-                entire.location = MySQL.Plain(location);
-
-                resolve(ErrorCode.ack(ErrorCode.OK, entire));
+async function GetEntire(projectId, id) {
+    try {
+        let entireIns = await MySQL.Houses.findOne({
+            where: {
+                id: id,
+                projectId: projectId
             }
-            catch(e){
-                log.error(e, projectId, id);
-                reject(ErrorCode.ack(ErrorCode.DATABASEEXEC));
+        });
+        entireIns.config;
+        entireIns = MySQL.Plain(entireIns);
+        const layouts = await MySQL.Layouts.findAll({
+            where: {
+                houseId: id
             }
-        })();
-    });
+        });
+        entireIns.layout = layouts;
+
+        const location = await MySQL.GeoLocation.findOne({
+            where:{
+                id: entireIns.geoLocation
+            }
+        });
+        entireIns.location = MySQL.Plain(location);
+
+        const entire = await MySQL.Entire.findOne({
+            where:{
+                houseId: entireIns.id
+            },
+            attributes: ['totalFloor', 'roomCountOnFloor', 'enabledFloors']
+        });
+        entireIns = _.assignIn(entireIns, MySQL.Plain(entire) );
+
+        return entireIns;
+    }
+    catch(e){
+        log.error(e, projectId, id);
+    }
 }
-function GetSole(projectId, id) {
-    return new Promise((resolve, reject)=>{
-        (async()=>{
-            try {
-                let sole = await MySQL.Soles.findOne({
-                    where: {
-                        id: id,
-                        projectId: projectId,
-                        houseFormat: Typedef.HouseFormat.SOLE
-                    }
-                });
-                sole.config;
-                sole = MySQL.Plain(sole);
-                const layout = await MySQL.Layouts.findOne({
-                    where: {
-                        houseId: id
-                    }
-                });
-                sole.layout = layout;
-
-                const location = await MySQL.GeoLocation.findOne({
-                    where:{
-                        id: sole.geoLocation
-                    }
-                });
-                sole.location = MySQL.Plain(location);
-
-                resolve(ErrorCode.ack(ErrorCode.OK, sole));
+async function GetSole(projectId, id) {
+    try {
+        let house = await MySQL.Houses.findOne({
+            where: {
+                id: id,
+                projectId: projectId,
+                houseFormat: Typedef.HouseFormat.SOLE
             }
-            catch(e){
-                log.error(e, projectId, id);
-                reject(ErrorCode.ack(ErrorCode.DATABASEEXEC));
+        });
+        house.config;
+        house = MySQL.Plain(house);
+        const layout = await MySQL.Layouts.findOne({
+            where: {
+                houseId: id
             }
-        })();
-    });
+        });
+        house.layout = layout;
+
+        const location = await MySQL.GeoLocation.findOne({
+            where:{
+                id: house.geoLocation
+            }
+        });
+        house.location = MySQL.Plain(location);
+
+        return house
+    }
+    catch(e){
+        log.error(e, projectId, id);
+    }
 }
-function GetShare(projectId, id) {
-    return new Promise((resolve, reject)=>{
-        (async()=>{
-            try {
-                let share = await MySQL.Soles.findOne({
-                    where: {
-                        id: id,
-                        projectId: projectId,
-                        houseFormat: Typedef.HouseFormat.SHARE
-                    }
-                });
-                if(!share){
-                    return reject(ErrorCode.ack(ErrorCode.REQUESTUNMATCH));
-                }
-                share.config;
-                share = MySQL.Plain(share);
-                const layout = await MySQL.Layouts.findOne({
-                    where: {
-                        houseId: id
-                    }
-                });
-                share.layout = layout;
-
-                const location = await MySQL.GeoLocation.findOne({
-                    where:{
-                        id: share.geoLocation
-                    }
-                });
-                share.location = MySQL.Plain(location);
-
-                resolve(ErrorCode.ack(ErrorCode.OK, share));
+async function GetShare(projectId, id) {
+    try {
+        let share = await MySQL.Houses.findOne({
+            where: {
+                id: id,
+                projectId: projectId,
+                houseFormat: Typedef.HouseFormat.SHARE
             }
-            catch(e){
-                log.error(e, projectId, id);
-                reject(ErrorCode.ack(ErrorCode.DATABASEEXEC));
+        });
+        if(!share){
+            return ErrorCode.ack(ErrorCode.REQUESTUNMATCH);
+        }
+        share.config;
+        share = MySQL.Plain(share);
+        const layout = await MySQL.Layouts.findOne({
+            where: {
+                houseId: id
             }
-        })();
-    });
+        });
+        share.layout = layout;
+
+        const location = await MySQL.GeoLocation.findOne({
+            where:{
+                id: share.geoLocation
+            }
+        });
+        share.location = MySQL.Plain(location);
+
+        return share;
+    }
+    catch(e){
+        log.error(e, projectId, id);
+    }
 }
 
 function PutEntire(projectId, id, body) {
@@ -453,48 +446,43 @@ module.exports = {
      * produces: application/json
      * responses: 200, 400
      */
-    get: function getHouseByHID(req, res, next) {
+    get: (req, res, next)=>{
         /**
          * Get the data for response 200
          * For response `default` status 200 is used.
          */
-        const query = req.query;
-        const params = req.params;
+        (async()=>{
+            const query = req.query;
+            const params = req.params;
 
-        if(!Util.ParameterCheck(query,
-                ['houseFormat']
-            )){
-            return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED));
-        }
+            const id = params.id;
+            const projectId = params.projectId;
 
-        const id = params.id;
-        const projectId = params.projectId;
-
-        let promise;
-        switch(query.houseFormat){
-            case Typedef.HouseFormat.ENTIRE:
-                promise = GetEntire(projectId, id);
-                break;
-            case Typedef.HouseFormat.SOLE:
-                promise = GetSole(projectId, id);
-                break;
-            case Typedef.HouseFormat.SHARE:
-                promise = GetShare(projectId, id);
-                break;
-        }
-
-        if(!promise){
-            return res.send(500, ErrorCode.ack(ErrorCode.REQUESTUNMATCH));
-        }
-
-        promise.then(
-            resolve=>{
-                res.send(resolve);
-            },
-            err=>{
-                res.send(422, err)
+            if(!Util.ParameterCheck(query,
+                    ['houseFormat']
+                )){
+                return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED));
             }
-        );
+
+            let result;
+            try {
+                switch (query.houseFormat) {
+                    case Typedef.HouseFormat.ENTIRE:
+                        result = await GetEntire(projectId, id);
+                        break;
+                    case Typedef.HouseFormat.SOLE:
+                        result = await GetSole(projectId, id);
+                        break;
+                    case Typedef.HouseFormat.SHARE:
+                        result = await GetShare(projectId, id);
+                        break;
+                }
+                res.send(result);
+            }
+            catch(e){
+                res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC));
+            }
+        })();
     },
     /**
      * summary: delete house
