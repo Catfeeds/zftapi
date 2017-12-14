@@ -17,7 +17,7 @@ function test_deploy() {
 }
 
 function test_curl() {
-  response=$(curl --write-out %{http_code} --silent --output /dev/null http://localhost:8090/v1.0/contracts)
+  response=$(curl --write-out %{http_code} --silent --output /dev/null http://localhost:8090/v1.0/healthCheck)
   if [[ $response == "200" ]]; then
     echo successful test curl && docker rm -f test_api_deploy;
   else
