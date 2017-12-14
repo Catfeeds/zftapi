@@ -3,11 +3,11 @@
  * Operations on /contracts
  */
 const fp = require('lodash/fp');
-const extractContract = require('../../../transformers/contractExtractor').extract;
-const extractUser = require('../../../transformers/userExtractor').extract;
-const generateBills = require('../../../transformers/billGenerator').generate;
+const extractContract = require('../../../../../transformers/contractExtractor').extract;
+const extractUser = require('../../../../../transformers/userExtractor').extract;
+const generateBills = require('../../../../../transformers/billGenerator').generate;
 
-const filterFields = fp.identity
+const filterFields = fp.identity;
 
 module.exports = {
 	/**
