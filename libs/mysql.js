@@ -236,9 +236,8 @@ function SequelizeDefine()
             primaryKey: true
         },
         projectId: {
-            type: Sequelize.STRING(64),  //项目ID
-            allowNull: false,
-            defaultValue: ''
+            type: Sequelize.BIGINT.UNSIGNED,  //项目ID
+            allowNull: false
         },
         parentId:{
             type: Sequelize.BIGINT.UNSIGNED,
@@ -316,6 +315,12 @@ function SequelizeDefine()
         freezeTableName: true
     });
 
+    exports.Soles.belongsTo(exports.Houses);
+    exports.Houses.hasOne(exports.Soles);
+
+    exports.Entire.belongsTo(exports.Houses);
+    exports.Houses.hasOne(exports.Entire);
+
     //
     const Layouts = sequelizeInstance.define('layouts', {
         id: {
@@ -355,6 +360,16 @@ function SequelizeDefine()
             type: Sequelize.INTEGER,  // 面积
             allowNull: false,
             defaultValue: 0
+        },
+        createdAt: {
+            type: Sequelize.BIGINT.UNSIGNED // 创建时间
+            , allowNull: false
+            , defaultValue: 0
+        },
+        deleteAt: {
+            type: Sequelize.BIGINT.UNSIGNED // 删除时间
+            , allowNull: false
+            , defaultValue: 0
         },
         remark:{
             type: Sequelize.STRING(255),
