@@ -1,20 +1,25 @@
 'use strict';
 /**
- * Operations on /contracts/bills/{contractid}
+ * Operations on /contracts/{contractid}/bills
  */
-module.exports = {
-    /**
-     * summary: search contract&#39;s bills
-     * description: pass hid or query parameter to get houese list
+const _ = require('lodash');
+const fp = require('lodash/fp');
 
-     * parameters: contractid
-     * produces: application/json
-     * responses: 200, 400
-     */
-    get: function getContractBills(req, res, next) {
-        /**
-         * Get the data for response 200
-         * For response `default` status 200 is used.
-         */
-    }
+const translate = bills => fp.map(
+	bill => fp.defaults({house: {houseId: 999}})(_.pickBy(bill.dataValues))
+)(bills);
+
+module.exports = {
+	get: function getContractBills(req, res) {
+		const Bills = MySQL.Bills;
+		Bills.findAll({
+			where: {
+				entityType: 'property',
+				contractId: req.params.contractId,
+				projectId: req.params.projectId
+			}
+		}).then(translate)
+			.then(bills => res.send(bills))
+			.catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, err)));
+	}
 };

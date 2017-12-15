@@ -1,12 +1,12 @@
 'use strict';
 
-const generate = contract => [{
+const generateForContract = contract => [{
 	flow: 'receive',
-	entity: 'landlord',
+	entityType: 'property',
 	projectId: contract.projectId,
-	relativeId: contract.id,
-	source: 'tenant',
-	type: 'bond',
+	contractId: contract.id,
+	source: 'contract',
+	type: 'rent',
 	startDate: 1,
 	endDate: 2,
 	dueDate: 5,
@@ -18,5 +18,5 @@ const generate = contract => [{
 }];
 
 module.exports = {
-	generate
+	generateForContract
 }

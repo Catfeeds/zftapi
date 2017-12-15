@@ -5,7 +5,7 @@
 const fp = require('lodash/fp');
 const extractContract = require('../../../../../transformers/contractExtractor').extract;
 const extractUser = require('../../../../../transformers/userExtractor').extract;
-const generateBills = require('../../../../../transformers/billGenerator').generate;
+const generateBills = require('../../../../../transformers/billGenerator').generateForContract;
 
 const filterFields = fp.identity;
 

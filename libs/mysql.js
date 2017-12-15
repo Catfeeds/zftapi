@@ -692,17 +692,21 @@ function SequelizeDefine()
 				isIn: [['pay', 'receive']]
 			}
         },
-        entity: { //实体类型(租客/业主/房源/其他)
+        entityType: { //实体类型(租客/业主/房源)
             type: Sequelize.STRING(10),
             allowNull: false,
-			defaultValue: 'tenant',
+			defaultValue: 'property',
 			validate: {
-				isIn: [['tenant', 'landlord', 'house', 'other']]
+				isIn: [['tenant', 'landlord', 'property']]
 			}
         },
-        relativeId: {   //类型关联ID(租客/业主=>UDI,房源=>contractid)
+        contractId: {   //类型关联ID(房源=>contractid)
             type: Sequelize.BIGINT.UNSIGNED,
-            allowNull: false
+            allowNull: true
+        },
+        userId: {   //类型关联ID(租客/业主)
+            type: Sequelize.BIGINT.UNSIGNED,
+            allowNull: true
         },
 		projectId: {    //项目ID
             type: Sequelize.BIGINT.UNSIGNED,
@@ -711,8 +715,9 @@ function SequelizeDefine()
         source: {   //来源
 			type: Sequelize.STRING(10),
             allowNull: false,
+			defaultValue: 'contract',
 			validate: {
-				isIn: [['tenant', 'landlord', 'property']]
+				isIn: [['topup', 'accounting', 'device', 'contract']]
 			}
         },
         type: {   //账单类型(bill type)

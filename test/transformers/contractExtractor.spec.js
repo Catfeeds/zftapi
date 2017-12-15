@@ -14,6 +14,9 @@ describe('Extract contract', () => {
 				expenses: '{"name": "expenses"}',
 				paymentPlan: 'F03',
 				signUpTime: 3000
+			},
+			params: {
+				projectId: 123
 			}
 		};
 
@@ -25,7 +28,8 @@ describe('Extract contract', () => {
 			strategy: '{"name": "strategy"}',
 			expenses: '{"name": "expenses"}',
 			paymentPlan: 'F03',
-			signUpTime: 3000
+			signUpTime: 3000,
+			projectId: 123
 		});
 	});
 });

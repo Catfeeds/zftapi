@@ -75,8 +75,9 @@ create table if not exists bills
 (
 	id bigint auto_increment,
 	flow varchar(10) default 'receive' not null,
-	entity varchar(10) default 'tenant' not null,
-	relativeId bigint default '0' not null,
+	entityType varchar(10) default 'tenant' not null,
+	contractId bigint,
+	userId bigint,
 	projectId bigint not null,
 	`source` varchar(10) not null,
 	`type` varchar(20) not null,
