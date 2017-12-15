@@ -745,14 +745,6 @@ function SequelizeDefine()
 			allowNull: false,
 			defaultValue: 0
         },
-        submitter: {
-            type: Sequelize.BIGINT.UNSIGNED,    //提交人
-            allowNull: false
-        },
-        operator: {
-            type: Sequelize.BIGINT.UNSIGNED,    //经办人
-            allowNull: false
-        },
         createdAt: {
             type: Sequelize.BIGINT.UNSIGNED,    //创建时间
             allowNull: false,
@@ -783,76 +775,85 @@ function SequelizeDefine()
         freezeTableName: true
     });
 
+
     exports.BillFlows = sequelizeInstance.define('billflows', {
-        flowid: {
+        billId: {
+            type: Sequelize.BIGINT.UNSIGNED,    // 账单ID
+            allowNull: false
+        },
+        projectId: {
+            type: Sequelize.BIGINT.UNSIGNED,  //项目ID
+            allowNull: false
+        },
+        configId: {
             type: Sequelize.BIGINT.UNSIGNED,    //
             allowNull: false,
             defaultValue: 0
         },
-        billid: {
-            type: Sequelize.BIGINT.UNSIGNED,    // 账单ID
-            allowNull: false,
-            defaultValue: 0
-        },
-        projectid: {
-            type: Sequelize.STRING(64),  //项目ID
-            allowNull: false,
-            defaultValue: ''
-        },
-        category: {
-            type: Sequelize.BOOLEAN,    //
-            allowNull: false,
-            defaultValue: 0
-        },
-        relevantid: {
-            type: Sequelize.STRING(64),  //根据来源相关的ID
-            allowNull: false,
-            defaultValue: ''
+        relevantId: {
+            type: Sequelize.BIGINT.UNSIGNED,  //根据来源相关的ID
+            allowNull: true
         },
         amount: {
             type: Sequelize.BIGINT.UNSIGNED,    //金额 扩大100
             allowNull: false,
             defaultValue: 0
         },
-        paychannel: {
-            type: Sequelize.BIGINT.UNSIGNED,    // 支付渠道
-            allowNull: false,
-            defaultValue: 0
-        },
-        operator: {
-            type: Sequelize.BIGINT.UNSIGNED,    // 经办人
-            allowNull: false,
-            defaultValue: 0
-        },
-        flowfrom: {
-            type: Sequelize.BIGINT.UNSIGNED,    // 流水起始
-            allowNull: false,
-            defaultValue: 0
-        },
-        flowto: {
-            type: Sequelize.BIGINT.UNSIGNED,    // 流水截止
-            allowNull: false,
-            defaultValue: 0
-        },
-        timecreate: {
+        createdAt: {
             type: Sequelize.BIGINT.UNSIGNED,    // 创建时间
-            allowNull: false,
-            defaultValue: 0
-        },
-        timedelete: {
-            type: Sequelize.BIGINT.UNSIGNED,    // 删除时间
-            allowNull: false,
-            defaultValue: 0
-        },
-        status: {
-            type: Sequelize.BOOLEAN,    //状态
-            allowNull: false,
-            defaultValue: 0
+            allowNull: false
         }
     },{
         timestamps: false,
         freezeTableName: true
     });
+
+    exports.BillPayment = sequelizeInstance.define('billpayment', {
+        billId: {
+            type: Sequelize.BIGINT.UNSIGNED,    // 账单ID
+            allowNull: false
+        },
+        projectId: {
+            type: Sequelize.BIGINT.UNSIGNED,  //项目ID
+            allowNull: false
+        },
+		amount: {
+			type: Sequelize.BIGINT.UNSIGNED,    //金额 单位：分
+			allowNull: false,
+			defaultValue: 0
+		},
+        paymentChannel: {
+            type: Sequelize.STRING(20),    // 支付渠道
+            allowNull: false,
+            defaultValue: 'cash',
+			validate: {
+				isIn: [['cash', 'wechat', 'alipay']]
+			}
+        },
+        operator: {
+            type: Sequelize.BIGINT.UNSIGNED,    // 经办人
+            allowNull: true
+        },
+        createdAt: {
+            type: Sequelize.BIGINT.UNSIGNED,    // 创建时间
+            allowNull: false,
+            defaultValue: 0
+        },
+		status: {
+			type: Sequelize.STRING(10),    //状态
+			allowNull: false,
+			defaultValue: 'pending',
+			validate: {
+				isIn: [['pending', 'approved', 'declined']]
+			}
+		}
+    },{
+        timestamps: false,
+        freezeTableName: true
+    });
+
+	exports.BillFlows.belongsTo(exports.Bills);
+	exports.Bills.hasMany(exports.BillFlows , {as: 'billItems'});
 
     exports.Divisions = sequelizeInstance.define('divisions', {
         id: {

@@ -85,11 +85,34 @@ create table if not exists bills
 	endDate bigint default 0 not null,
 	dueDate bigint default 0 not null,
 	dueAmount bigint default 0 not null,
-	submitter bigint not null,
-	operator bigint not null,
 	createdAt bigint default '0' not null,
 	remark varchar(255) default '' null,
 	metadata text null,
+	primary key (`id`)
+) engine=innodb default charset=utf8;
+
+create table if not exists billflows
+(
+	id bigint auto_increment,
+	projectId bigint not null,
+	billId bigint not null,
+	configId bigint not null,
+	relevantId bigint,
+	amount bigint default 0 not null,
+	createdAt bigint not null,
+	deleteAt bigint,
+	primary key (`id`)
+) engine=innodb default charset=utf8;
+
+create table if not exists billpayment
+(
+	id bigint auto_increment,
+	projectId bigint not null,
+	billFlowsId bigint,
+	paymentChannel varchar(20) not null,
+	operator bigint not null,
+	createdAt bigint not null,
+	status varchar(20) default 'pending' null,
 	primary key (`id`)
 ) engine=innodb default charset=utf8;
 
