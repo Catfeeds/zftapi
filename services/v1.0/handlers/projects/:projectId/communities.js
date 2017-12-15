@@ -49,58 +49,63 @@ module.exports = {
             const projectId = param.projectId;
 
 
-            let sql;
+            // let sql;
             const replacements = {
                 houseFormat: houseFormat,
                 projectId: projectId
             };
-            switch(houseFormat){
-                case Typedef.HouseFormat.ENTIRE:
-                    sql = `select distinct(geoLocation) from ${MySQL.Entire.name} where projectId=:projectId `;
-                    break;
-                case Typedef.HouseFormat.SOLE:
-                case Typedef.HouseFormat.SHARE:
-                    sql = `select distinct(geoLocation) from ${MySQL.Soles.name} where projectId=:projectId and houseFormat=:houseFormat `;
-                    break;
-            }
+            // switch(houseFormat){
+            //     case Typedef.HouseFormat.ENTIRE:
+            //         sql = `select distinct(geoLocation) from ${MySQL.Entire.name} where projectId=:projectId `;
+            //         break;
+            //     case Typedef.HouseFormat.SOLE:
+            //     case Typedef.HouseFormat.SHARE:
+            //         sql = `select distinct(geoLocation) from ${MySQL.Soles.name} where projectId=:projectId and houseFormat=:houseFormat `;
+            //         break;
+            // }
 
-            const locations = await MySQL.Exec(sql, replacements);
-            let geoLocationIds = [];
-            locations.map(r=>{
-                geoLocationIds.push(r.geoLocation);
-            });
-
-            const geoLocations = await MySQL.GeoLocation.findAll({
-                where:{
-                    id:{$in: geoLocationIds}
-                },
-                attributes: ['id', 'divisionId', 'name']
-            });
-            let divisionIds = [];
-            let inDivision = {};
-            geoLocations.map(loc=>{
-                const parentDivision = Util.ParentDivisionId(loc.divisionId.toString());
-                divisionIds.push(parentDivision);
-                divisionIds.push(loc.divisionId);
-                if(!inDivision[loc.divisionId]){
-                    inDivision[loc.divisionId] = [];
-                }
-                inDivision[loc.divisionId].push({
-                    geoLocationId: loc.id,
-                    name: loc.name
+            try {
+                const sql = `select distinct(geoLocation) from ${MySQL.Houses.name} where houseFormat=:houseFormat and projectId=:projectId and parentId=0`;
+                const locations = await MySQL.Exec(sql, replacements);
+                let geoLocationIds = [];
+                locations.map(r=>{
+                    geoLocationIds.push(r.geoLocation);
                 });
-            });
-            divisionIds = _.uniq(divisionIds);
 
-            const divisions = await MySQL.Divisions.findAll({
-                where:{
-                    id:{$in: divisionIds}
-                },
-                attributes:['id','title']
-            });
+                const geoLocations = await MySQL.GeoLocation.findAll({
+                    where: {
+                        id: {$in: geoLocationIds}
+                    },
+                    attributes: ['id', 'divisionId', 'name']
+                });
+                let divisionIds = [];
+                let inDivision = {};
+                geoLocations.map(loc => {
+                    const parentDivision = Util.ParentDivisionId(loc.divisionId.toString());
+                    divisionIds.push(parentDivision);
+                    divisionIds.push(loc.divisionId);
+                    if (!inDivision[loc.divisionId]) {
+                        inDivision[loc.divisionId] = [];
+                    }
+                    inDivision[loc.divisionId].push({
+                        geoLocationId: loc.id,
+                        name: loc.name
+                    });
+                });
+                divisionIds = _.uniq(divisionIds);
 
-            res.send(ErrorCode.ack(ErrorCode.OK, BuildDivisionTree(divisions, inDivision)));
+                const divisions = await MySQL.Divisions.findAll({
+                    where: {
+                        id: {$in: divisionIds}
+                    },
+                    attributes: ['id', 'title']
+                });
 
+                res.send( BuildDivisionTree(divisions, inDivision) );
+            }
+            catch(e){
+                log.error(e, projectId, houseFormat);
+            }
         })();
     }
 };
