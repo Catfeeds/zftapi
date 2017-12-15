@@ -27,7 +27,7 @@ module.exports = {
 		const Users = MySQL.Users;
 		const Bills = MySQL.Bills;
 		const sequelize = MySQL.Sequelize;
-
+		console.log(req.params.projectId);
 		sequelize.transaction(t =>
 			extractUser(req)
 				.then(user => Users.create(user, {transaction: t}))

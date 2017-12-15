@@ -517,6 +517,10 @@ function SequelizeDefine()
             allowNull: false,
             defaultValue: 0
         },
+		projectId: {    //项目ID
+			type: Sequelize.BIGINT.UNSIGNED,
+			allowNull: false
+		},
         userId: {
             type: Sequelize.BIGINT.UNSIGNED,     //用户ID
             allowNull: false,
@@ -696,54 +700,55 @@ function SequelizeDefine()
 				isIn: [['tenant', 'landlord', 'house', 'other']]
 			}
         },
-        relativeID: {   //类型关联ID(租客/业主=>UDI,房源=>contractid)
+        relativeId: {   //类型关联ID(租客/业主=>UDI,房源=>contractid)
             type: Sequelize.BIGINT.UNSIGNED,
-            allowNull: false,
-            defaultValue: 0
+            allowNull: false
         },
 		projectId: {    //项目ID
-            type: Sequelize.STRING(64),
+            type: Sequelize.BIGINT.UNSIGNED,
             allowNull: false
         },
         source: {   //来源
-            type: Sequelize.BOOLEAN,
+			type: Sequelize.STRING(10),
             allowNull: false,
-            defaultValue: 0
+			validate: {
+				isIn: [['tenant', 'landlord', 'property']]
+			}
         },
-        type: {   //账单类型(expenseid)
-            type: Sequelize.BOOLEAN,
+        type: {   //账单类型(bill type)
+			type: Sequelize.STRING(20),
             allowNull: false,
-            defaultValue: 0
+			validate: {
+				isIn: [['bond', 'deposit', 'rent', 'extra',
+                    'bond-refund', 'deposit-refund', 'rent-refund', 'extra-refund']]
+			}
         },
-        billFrom: {
+        startDate: {
             type: Sequelize.BIGINT.UNSIGNED,    //开始账期
-            allowNull: false,
-            defaultValue: 0
+            allowNull: false
         },
-        billTo: {
+        endDate: {
             type: Sequelize.BIGINT.UNSIGNED,    //结束账期
-            allowNull: false,
-            defaultValue: 0
+            allowNull: false
         },
-        paidAt: {
-            type: Sequelize.BIGINT.UNSIGNED,    //支付日期
-            allowNull: false,
-            defaultValue: 0
+        dueDate: {
+            type: Sequelize.BIGINT.UNSIGNED,    //应付时期
+            allowNull: false
         },
-        amount: {   //金额 扩大100
-            type: Sequelize.BIGINT.UNSIGNED
+        dueAmount: {   //应付金额 单位： 分
+            type: Sequelize.BIGINT.UNSIGNED,
+			allowNull: false,
+			defaultValue: 0
         },
         submitter: {
             type: Sequelize.BIGINT.UNSIGNED,    //提交人
-            allowNull: false,
-            defaultValue: 0
+            allowNull: false
         },
         operator: {
             type: Sequelize.BIGINT.UNSIGNED,    //经办人
-            allowNull: false,
-            defaultValue: 0
+            allowNull: false
         },
-        timeCreate: {
+        createdAt: {
             type: Sequelize.BIGINT.UNSIGNED,    //创建时间
             allowNull: false,
             defaultValue: 0
