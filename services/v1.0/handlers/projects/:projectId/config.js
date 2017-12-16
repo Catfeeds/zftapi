@@ -1,6 +1,6 @@
 'use strict';
 /**
- * Operations on /config/{projectid}
+ * Operations on /projects/{projectid}/config
  */
 
 const fp = require('lodash/fp');
@@ -25,7 +25,7 @@ module.exports = {
 			.then(items => res.send(items))
 			.catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, err)));
 	},
-	post: function updateConfig(req, res) {
+	post: function createConfig(req, res) {
 		const body = req.body;
 		const Settings = MySQL.Settings;
 		Settings.create(body)
