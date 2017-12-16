@@ -33,18 +33,13 @@ module.exports = {
             const houseFormat = query.houseFormat;
             const q = query.q;
 
-            let sql = `select s.id as houseId, loc.name, s.group, s.building, s.unit, s.roomNumber from ${MySQL.Soles.name} as s 
-                     inner join ${MySQL.GeoLocation.name} as loc on s.geoLocation = loc.id 
+            let sql = `select h.id as houseId, loc.name, s.group, s.building, s.unit, s.roomNumber from ${MySQL.Houses.name} as h 
+                     inner join ${MySQL.GeoLocation.name} as loc on h.geoLocation = loc.id 
+                     inner join ${MySQL.Soles.name} as s on s.houseId = h.id
                       where houseFormat=:houseFormat and (roomNumber regexp :q or loc.name regexp :q) `;
-            try {
-                const result = await MySQL.Exec(sql, query);
+            const result = await MySQL.Exec(sql, query);
 
-                res.send(ErrorCode.ack(ErrorCode.OK, result));
-            }
-            catch(e){
-                log.error(e, params, query);
-                res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC));
-            }
+            res.send(result || []);
 
         })();
     }

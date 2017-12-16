@@ -36,13 +36,6 @@ function BuildDivisionTree(divisions, inDivision)
 module.exports = {
 	get: function getCommunity(req, res, next) {
 
-		//TODO: implement this ASAP
-		if (_.get(req, 'query["source"]') !== 'truth') {
-			const proxy = require('../../../../proxy/proxy');
-			console.log(req.url);
-			return proxy.delegate(req.url, res, next);
-		}
-
         (async()=>{
             const param = req.params;
             const query = req.query;
@@ -56,30 +49,32 @@ module.exports = {
             const projectId = param.projectId;
 
 
-            let sql;
+            // let sql;
             const replacements = {
                 houseFormat: houseFormat,
                 projectId: projectId
             };
-            switch(houseFormat){
-                case Typedef.HouseFormat.ENTIRE:
-                    sql = `select distinct(geoLocation) from ${MySQL.Entire.name} where projectId=:projectId `;
-                    break;
-                case Typedef.HouseFormat.SOLE:
-                case Typedef.HouseFormat.SHARE:
-                    sql = `select distinct(geoLocation) from ${MySQL.Soles.name} where projectId=:projectId and houseFormat=:houseFormat `;
-                    break;
-            }
+            // switch(houseFormat){
+            //     case Typedef.HouseFormat.ENTIRE:
+            //         sql = `select distinct(geoLocation) from ${MySQL.Entire.name} where projectId=:projectId `;
+            //         break;
+            //     case Typedef.HouseFormat.SOLE:
+            //     case Typedef.HouseFormat.SHARE:
+            //         sql = `select distinct(geoLocation) from ${MySQL.Soles.name} where projectId=:projectId and houseFormat=:houseFormat `;
+            //         break;
+            // }
 
             try {
+                const sql = `select distinct(geoLocation) from ${MySQL.Houses.name} where houseFormat=:houseFormat and projectId=:projectId and parentId=0`;
                 const locations = await MySQL.Exec(sql, replacements);
-                if (!locations || !locations.length) {
-                    return res.send(ErrorCode.ack(ErrorCode.OK));
-                }
                 let geoLocationIds = [];
-                locations.map(r => {
+                locations.map(r=>{
                     geoLocationIds.push(r.geoLocation);
                 });
+
+                if(!locations.length){
+                    return res.send([]);
+                }
 
                 const geoLocations = await MySQL.GeoLocation.findAll({
                     where: {
@@ -110,13 +105,11 @@ module.exports = {
                     attributes: ['id', 'title']
                 });
 
-                res.send(ErrorCode.ack(ErrorCode.OK, BuildDivisionTree(divisions, inDivision)));
+                res.send( BuildDivisionTree(divisions, inDivision) );
             }
             catch(e){
-                log.error(e, houseFormat, projectId);
-                res.send(500, ErrorCode.ack(ErrorCode.UNKNOWN));
+                log.error(e, projectId, houseFormat);
             }
-
         })();
     }
 };

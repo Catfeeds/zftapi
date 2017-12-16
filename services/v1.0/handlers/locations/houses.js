@@ -50,11 +50,6 @@ module.exports = {
                 log.error(err, query);
                 res.send(500, ErrorCode.ack(ErrorCode.UNKNOWN));
             }
-        ).catch(
-            err=>{
-                log.error(err, param, query);
-                res.send(500, ErrorCode.ack(ErrorCode.UNKNOWN));
-            }
-        );;
+        );
     }
 };
