@@ -1,5 +1,7 @@
 'use strict';
 const moment = require('moment');
+const _ = require('lodash');
+const fp = require('lodash/fp');
 
 const generateForContract = contract => [{
 	flow: 'receive',
@@ -42,7 +44,13 @@ const extractBillItems = (contract, bill) => [{
 	createdAt: moment().unix()
 }];
 
+const removeNullValues = bill => {
+	const billItems = fp.map(item => _.pickBy(item.dataValues))(bill.billItems);
+	return fp.defaults(_.pickBy(bill))({billItems})
+};
+
 module.exports = {
 	generateForContract,
-	extractBillItems
+	extractBillItems,
+	removeNullValues
 }
