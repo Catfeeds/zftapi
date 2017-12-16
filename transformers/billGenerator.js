@@ -45,8 +45,8 @@ const extractBillItems = (contract, bill) => [{
 }];
 
 const removeNullValues = bill => {
-	const billItems = fp.map(item => _.pickBy(item.dataValues))(bill.billItems);
-	return fp.defaults(_.pickBy(bill))({billItems})
+	const billItems = fp.map(item => _.omitBy(item.dataValues, _.isNull))(bill.billItems);
+	return fp.defaults(_.omitBy(bill, _.isNull))({billItems})
 };
 
 module.exports = {
