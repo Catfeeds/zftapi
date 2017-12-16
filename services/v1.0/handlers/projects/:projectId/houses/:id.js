@@ -14,6 +14,9 @@ async function GetEntire(projectId, id) {
                 projectId: projectId
             }
         });
+        if(!entireIns){
+            return {};
+        }
         entireIns.config;
         entireIns = MySQL.Plain(entireIns);
         const layouts = await MySQL.Layouts.findAll({
@@ -53,6 +56,9 @@ async function GetSole(projectId, id) {
                 houseFormat: Typedef.HouseFormat.SOLE
             }
         });
+        if(!house){
+            return {}
+        }
         house.config;
         house = MySQL.Plain(house);
         const layout = await MySQL.Layouts.findOne({
@@ -93,7 +99,7 @@ async function GetShare(projectId, id) {
             }
         });
         if(!share){
-            return ErrorCode.ack(ErrorCode.REQUESTUNMATCH);
+            return {};
         }
         share.config;
         share = MySQL.Plain(share);

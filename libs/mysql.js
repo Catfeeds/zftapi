@@ -146,7 +146,7 @@ exports.ExecT = function(sql, t)
 
 function SequelizeDefine()
 {
-    const Entire     = {
+    const Entire = {
         id: {
             type: Sequelize.BIGINT.UNSIGNED,
             primaryKey: true,
@@ -302,7 +302,7 @@ function SequelizeDefine()
         }
     };
 
-    exports.Entire = sequelizeInstance.define('entires', Entire, {
+    exports.Entire = sequelizeInstance.define('entire', Entire, {
         timestamps: false,
         freezeTableName: true
     });
@@ -315,11 +315,11 @@ function SequelizeDefine()
         freezeTableName: true
     });
 
-    exports.Soles.belongsTo(exports.Houses);
-    exports.Houses.hasOne(exports.Soles);
+    // exports.Soles.belongsTo(exports.Houses);
+    // exports.Houses.hasOne(exports.Soles);
 
-    exports.Entire.belongsTo(exports.Houses);
-    exports.Houses.hasOne(exports.Entire);
+    // exports.Entire.belongsTo(exports.Houses);
+    // exports.Houses.hasOne(exports.Entire);
 
     //
     const Layouts = sequelizeInstance.define('layouts', {

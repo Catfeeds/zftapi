@@ -72,6 +72,10 @@ module.exports = {
                     geoLocationIds.push(r.geoLocation);
                 });
 
+                if(!locations.length){
+                    return res.send([]);
+                }
+
                 const geoLocations = await MySQL.GeoLocation.findAll({
                     where: {
                         id: {$in: geoLocationIds}

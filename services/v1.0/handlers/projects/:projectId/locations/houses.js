@@ -39,7 +39,7 @@ module.exports = {
                       where houseFormat=:houseFormat and (roomNumber regexp :q or loc.name regexp :q) `;
             const result = await MySQL.Exec(sql, query);
 
-            res.send(ErrorCode.ack(ErrorCode.OK, result));
+            res.send(result || []);
 
         })();
     }
