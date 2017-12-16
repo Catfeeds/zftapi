@@ -178,37 +178,51 @@ async function SaveEntire(t, params, body){
 };
 async function GetEntire(params, query) {
     const projectId = params.projectId;
-    const houseId = query.houseId;
+    const houseId = query.entireId;
 
     //query variable priority
     let allSoleIds = [];
     let pagingSoleIds = [];
 
-    let where = {
-        houseFormat: Typedef.HouseFormat.ENTIRE,
-        projectId: projectId,
-        parentId: 0
-    };
+    // let where = {
+    //     houseFormat: Typedef.HouseFormat.ENTIRE,
+    //     projectId: projectId,
+    //     parentId: 0
+    // };
+    let sql = `select h.id from ${MySQL.Houses.name} as h 
+            INNER JOIN ${MySQL.Soles.name} as s ON s.houseId=h.id `;
+    let where = [];
     if(houseId){
-        where.houseId = houseId;
+        // where.houseId = houseId;
+        where.push(` h.id = entireId `);
     }
     if(query.status){
-        where.status = query.status;
+        // where.status = query.status;
+        where.push( `h.status = :status` );
     }
     if(query.layoutId){
         //
-        where.layoutId = query.layoutId;
+        // where.layoutId = query.layoutId;
+        where.push(`s.layoutId=:layoutId`);
     }
     if(query.floor){
-        where.currentFloor = query.floor;
+        // where.currentFloor = query.floor;
+        where.push(`s.currentFloor=:floor`);
     }
     if(query.q){
-        where.roomNumber = {$regexp: query.q};
+        // where.roomNumber = {$regexp: query.q};
+        where.push(`s.roomNumber REGEXP :q `);
     }
-    const allEntire = await MySQL.Houses.findAll({
-        where: where,
-        attributes:['id']
-    });
+    const final = MySQL.GenerateSQL(sql, where);
+    const allEntire = MySQL.Exec(final, query);
+    if(!allEntire || !allEntire.length){
+        return [];
+    }
+
+    // const allEntire = await MySQL.Houses.findAll({
+    //     where: where,
+    //     attributes:['id']
+    // });
     allEntire.map(sole=>{
         allSoleIds.push(sole.id);
         pagingSoleIds.push(sole.id);
@@ -390,26 +404,38 @@ async function GetSole(params, query) {
     //get the sole filter by location
     let soleIds = [];
     {
-        let where = {
-            houseFormat: query.houseFormat,
-            projectId: projectId
+        let find = {
+            where: {
+                houseFormat: query.houseFormat,
+                projectId: projectId
+            },
+            attributes: ['id']
         };
+        let sql = `select h.id from ${MySQL.Houses.name} as h 
+            INNER JOIN ${MySQL.Soles.name} as s ON s.houseId=h.id `;
+        let where = [];
         if(geoLocationIds.length){
-            where.geoLocation = {$in: geoLocationIds};
+            // where.geoLocation = {$in: geoLocationIds};
+            where.push( ` h.geoLocation In (${MySQL.GenerateSQLInArray(geoLocationIds)}) `);
         }
         if(query.status){
-            where.status = query.status;
+            where.push(`status = :status`);
+            // find.where.status = query.status;
         }
         if(query.q){
-            where.$or = [
-                {roomNumber: {$regexp: new RegExp(query.q)}},
-                {code: {$regexp: new RegExp(query.q)}}
-            ];
+            where.push( `s.roomNumber REGEXP :q or h.code REGEXP :q` );
+            // where.$or = [
+            //     {roomNumber: {$regexp: new RegExp(query.q)}},
+            //     {code: {$regexp: new RegExp(query.q)}}
+            // ];
         }
-        const soles = await MySQL.Houses.findAll({
-            where: where,
-            attributes: ['id']
-        });
+
+        const final = MySQL.GenerateSQL(sql, where);
+        const soles = MySQL.Exec(final, query);
+        if(!soles || !soles.length){
+            return [];
+        }
+        // const soles = await MySQL.Houses.findAll(find);
         soles.map(sole=>{
             soleIds.push(sole.id);
         });
@@ -647,28 +673,36 @@ async function GetShare(params, query) {
     //get the sole filter by location
     let soleIds = [];
     {
-        let where = {
-            houseFormat: query.houseFormat,
-            parentId: 0,
-            projectId: projectId,
-            deleteAt: 0
-        };
+        // let where = {
+        //     houseFormat: query.houseFormat,
+        //     parentId: 0,
+        //     projectId: projectId,
+        //     deleteAt: 0
+        // };
+        let sql = `select h.id from ${MySQL.Houses.name} as h 
+            INNER JOIN ${MySQL.Soles.name} as s ON s.houseId=h.id `;
+        let where = [];
         if(geoLocationIds.length){
-            where.geoLocation = {$in: geoLocationIds};
+            // where.geoLocation = {$in: geoLocationIds};
+            where.push( ` h.geoLocation In (${MySQL.GenerateSQLInArray(geoLocationIds)}) `);
         }
         if(query.status){
-            where.status = query.status;
+            where.push(`status = :status`);
+            // find.where.status = query.status;
         }
         if(query.q){
-            where.$or = [
-                {roomNumber: {$regexp: new RegExp(query.q)}},
-                {code: {$regexp: new RegExp(query.q)}}
-            ];
+            where.push( `s.roomNumber REGEXP :q or h.code REGEXP :q` );
+            // where.$or = [
+            //     {roomNumber: {$regexp: new RegExp(query.q)}},
+            //     {code: {$regexp: new RegExp(query.q)}}
+            // ];
         }
-        const soles = await MySQL.Houses.findAll({
-            where: where,
-            attributes: ['id']
-        });
+
+        const final = MySQL.GenerateSQL(sql, where);
+        const soles = MySQL.Exec(final, query);
+        if(!soles || !soles.length){
+            return [];
+        }
         soles.map(sole=>{
             soleIds.push(sole.id);
         });

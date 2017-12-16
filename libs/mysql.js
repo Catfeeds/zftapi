@@ -822,7 +822,12 @@ exports.GenerateSQLInArray = function(array)
 {
     var idsArray = [];
     _.each(array, function (id) {
-        idsArray.push("'"+id+"'");
+        if(_.isString(id)) {
+            idsArray.push("'" + id + "'");
+        }
+        else{
+            idsArray.push(id);
+        }
     });
     return idsArray.toString();
 };
