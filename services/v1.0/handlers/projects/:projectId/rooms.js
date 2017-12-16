@@ -44,7 +44,7 @@ module.exports = {
 
             const layout = await MySQL.Layouts.create({
                 id: SnowFlake.next(),
-                instanceId: newRoom.id
+                houseId: newRoom.id
             }, {transaction: t});
 
             t.commit();
