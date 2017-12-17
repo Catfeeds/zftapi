@@ -7,7 +7,7 @@ const fp = require('lodash/fp');
 const _ = require('lodash');
 
 const translate = (items) => {
-	return fp.map(_.identity)(items);
+	return fp.map(item => _.omitBy(item.dataValues, _.isNull))(items);
 };
 
 module.exports = {
