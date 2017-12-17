@@ -667,24 +667,24 @@ const locationIds = async(query) => {
 }
 
 async function GetShare(params, query) {
-	const projectId = params.projectId;
 	const Houses = MySQL.Houses;
 	const Soles = MySQL.Soles;
 	const GeoLocation = MySQL.GeoLocation;
 	const Layouts = MySQL.Layouts;
 	const Op = MySQL.Sequelize.Op;
+	const projectId = params.projectId;
 
 	const geoLocationIds = await locationIds(query);
 
 	const locationCondition = !_.isEmpty(geoLocationIds) ? {
 		geoLocation: {
-			[Op.in]: geoLocationIds
+			$in: geoLocationIds
 		}
 	} : {};
 
 	const statusCondition = query.status ? {
 		status: {
-			[Op.eq]: query.status
+			$eq: query.status
 		}
 	} : {};
 
@@ -696,7 +696,7 @@ async function GetShare(params, query) {
 	} : {};
 
 	const where = _.assign({projectId}, locationCondition, statusCondition, qCondition);
-	console.log(where);
+
 	const modelLayouts = query.bedRooms ?
 		{model: Layouts, where: {bedRoom: {[Op.eq]: query.bedRooms}}}
 		: Layouts;
