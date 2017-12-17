@@ -647,159 +647,274 @@ async function SaveShare(t, params, body) {
 async function GetShare(params, query) {
     const projectId = params.projectId;
 
-    let geoLocationIds = [];
-    if(query.locationId){
-        geoLocationIds = [query.locationId];
-    }
-    else if(query.divisionId){
-        let where = {};
-        if(Util.IsParentDivision(query.divisionId)){
-            where.divisionId = {$regexp: Util.ParentDivision(query.divisionId)};
-            if(query.q){
-                where.name = {$regexp: new RegExp(query.q)};
+    const geoFilter = ()=>{
+        let where = null;
+        if(query.locationId){
+            where = {
+                id: query.locationId
+            };
+        }
+        else if(query.divisionId){
+            if(Util.IsParentDivision(query.divisionId)){
+                where = {
+                    divisionId: {$regexp: Util.ParentDivision(query.divisionId)}
+                };
+            }
+            else{
+                where = {
+                    divisionId: {$regexp: query.divisionId}
+                };
             }
         }
-        else{
-            where.divisionId = {$regexp: query.divisionId};
+
+        let inc = {
+            model: MySQL.GeoLocation,
+            as: 'Location'
+        };
+        if(where){
+            inc.where = where;
         }
-        const locations = await MySQL.GeoLocation.findAll({
-            where: where,
-            attributes: ['id']
-        });
-        locations.map(loc=>{
-            geoLocationIds.push(loc.id);
-        });
-    }
-    //get the sole filter by location
-    let soleIds = [];
-    {
-        // let where = {
-        //     houseFormat: query.houseFormat,
-        //     parentId: 0,
-        //     projectId: projectId,
-        //     deleteAt: 0
-        // };
-        let sql = `select h.id from ${MySQL.Houses.name} as h 
-            INNER JOIN ${MySQL.Soles.name} as s ON s.houseId=h.id `;
-        let where = [];
-        if(geoLocationIds.length){
-            // where.geoLocation = {$in: geoLocationIds};
-            where.push( ` h.geoLocation In (${MySQL.GenerateSQLInArray(geoLocationIds)}) `);
+        return inc;
+    };
+    const layoutFilter = ()=>{
+        let where = null;
+        if(query.bedRooms){
+            where = {
+                bedRoom: query.bedRooms
+            };
         }
+
+        let inc = {
+            model: MySQL.Layouts,
+            as: 'Layout',
+            required: true
+        };
+        if(where){
+            inc.where = where;
+        }
+        return inc;
+    };
+    const soleFilter = ()=>{
+        return {
+            model: MySQL.Soles,
+            as: 'Sole'
+        }
+    };
+    const houseFilter = ()=>{
+        let where = {
+            houseFormat: query.houseFormat,
+            projectId: projectId
+        };
         if(query.status){
-            where.push(`status = :status`);
-            // find.where.status = query.status;
+            where.status = query.status;
         }
         if(query.q){
-            where.push( `s.roomNumber REGEXP :q or h.code REGEXP :q` );
-            // where.$or = [
-            //     {roomNumber: {$regexp: new RegExp(query.q)}},
-            //     {code: {$regexp: new RegExp(query.q)}}
-            // ];
+            where['$or'] = [
+                {'$Location.name$': {$regexp: query.q}},
+                {code:{$regexp: query.q}},
+                {'$Sole.roomNumber$':{$regexp: query.q}}
+            ];
         }
 
-        const final = MySQL.GenerateSQL(sql, where);
-        const soles = MySQL.Exec(final, query);
-        if(!soles || !soles.length){
-            return [];
-        }
-        soles.map(sole=>{
-            soleIds.push(sole.id);
-        });
-    }
+        return where;
+    };
 
-    if(query.bedRooms){
-        const bedRooms = await MySQL.Layouts.findAll({
-            where:{
-                houseId:{$in: soleIds},
-                bedRoom: query.bedRooms
-            },
-            attributes:['houseId']
-        });
-        soleIds = [];
-        bedRooms.map(r=>{
-            soleIds.push(r.houseId);
-        });
-    }
-
-    //paging
     const pagingInfo = Util.PagingInfo(query.index, query.size, true);
-    const soles = await MySQL.Houses.findAll({
-        where:{
-            id:{$in: soleIds}
-        },
+    const find = {
+        subQuery: false,
+        where: houseFilter(),
+        include: [
+            geoFilter(),
+            soleFilter(),
+            layoutFilter()
+        ],
         offset: pagingInfo.skip,
         limit: pagingInfo.size
-    });
-    soleIds = [];
-    let locationIds = [];
-    let soleMapping = {};
-    soles.map(sole=>{
-        sole.config;
-        soleMapping[sole.id] = MySQL.Plain(sole);
-        soleIds.push(sole.id);
-        locationIds.push(sole.geoLocation);
-    });
-
-    const GetExInfo = async()=>{
-        return [
-            await MySQL.Layouts.findOne({
-                where:{
-                    houseId: {$in: soleIds}
-                }
-            }),
-            await MySQL.GeoLocation.findAll({
-                where:{
-                    id:{$in: locationIds}
-                }
-            }),
-            await MySQL.Houses.findAll({
-                where:{
-                    parentId:{$in: soleIds}
-                }
-            })
-        ];
     };
+    return await MySQL.Houses.findAll(find);
 
-    let result = await GetExInfo();
+    // return await MySQL.Houses.findAll({
+    //     where:{
+    //         '$or':[
+    //             {'$Location.name$': {$regexp: query.q}},
+    //             {'code':{$regexp: query.q}},
+    //             {'$Sole.roomNumber$':{$regexp: query.q}}
+    //         ],
+    //         houseFormat: query.houseFormat,
+    //         projectId: projectId
+    //     },
+    //     include:[
+    //         geoFilter(),
+    //         soleFilter(),
+    //         {
+    //             model: MySQL.Layouts,
+    //             as: 'Layout',
+    //             required: false
+    //         }
+    //     ]
+    // });
 
-    const layout = result[0];
-    const locations = result[1];
-    const rooms = result[2];
-
-    if(soleMapping[layout.houseId]){
-        soleMapping[layout.houseId].layout = layout;
-    }
-
-    let locationMapping = {};
-    locations.map(location=>{
-        locationMapping[location.id] = location;
-    });
-
-    _.each(soleMapping, sole=>{
-        if(locationMapping[sole.geoLocation]){
-            sole.location = locationMapping[sole.geoLocation];
-        }
-    });
-
-    rooms.map(room=>{
-        const parentId = room.parentId;
-        if(soleMapping[parentId]){
-            if( !soleMapping[parentId].rooms ){
-                soleMapping[parentId].rooms = [];
-            }
-            soleMapping[parentId].rooms.push(room);
-        }
-    });
-
-    return {
-        paging:{
-            count: soleIds.length,
-            index: pagingInfo.index,
-            size: pagingInfo.size
-        },
-        result: _.toArray(soleMapping)
-    };
+    // let geoLocationIds = [];
+    // if(query.locationId){
+    //     geoLocationIds = [query.locationId];
+    // }
+    // else if(query.divisionId){
+    //     let where = {};
+    //     if(Util.IsParentDivision(query.divisionId)){
+    //         where.divisionId = {$regexp: Util.ParentDivision(query.divisionId)};
+    //         if(query.q){
+    //             where.name = {$regexp: new RegExp(query.q)};
+    //         }
+    //     }
+    //     else{
+    //         where.divisionId = {$regexp: query.divisionId};
+    //     }
+    //     const locations = await MySQL.GeoLocation.findAll({
+    //         where: where,
+    //         attributes: ['id']
+    //     });
+    //     locations.map(loc=>{
+    //         geoLocationIds.push(loc.id);
+    //     });
+    // }
+    // //get the sole filter by location
+    // let houseSharedIds = [];
+    // {
+    //     // let where = {
+    //     //     houseFormat: query.houseFormat,
+    //     //     parentId: 0,
+    //     //     projectId: projectId,
+    //     //     deleteAt: 0
+    //     // };
+    //     let sql = `select h.id from ${MySQL.Houses.name} as h
+    //         INNER JOIN ${MySQL.Soles.name} as s ON s.houseId=h.id `;
+    //     let where = [];
+    //     if(geoLocationIds.length){
+    //         // where.geoLocation = {$in: geoLocationIds};
+    //         where.push( ` h.geoLocation In (${MySQL.GenerateSQLInArray(geoLocationIds)}) `);
+    //     }
+    //     if(query.status){
+    //         where.push(`status = :status`);
+    //         // find.where.status = query.status;
+    //     }
+    //     if(query.q){
+    //         where.push( `s.roomNumber REGEXP :q or h.code REGEXP :q` );
+    //         // where.$or = [
+    //         //     {roomNumber: {$regexp: new RegExp(query.q)}},
+    //         //     {code: {$regexp: new RegExp(query.q)}}
+    //         // ];
+    //     }
+    //
+    //     const final = MySQL.GenerateSQL(sql, where);
+    //     const housesOfShare = MySQL.Exec(final, query);
+    //     if(!housesOfShare || !housesOfShare.length){
+    //         return [];
+    //     }
+    //     housesOfShare.map(sole=>{
+    //         houseSharedIds.push(sole.id);
+    //     });
+    // }
+    //
+    // if(query.bedRooms){
+    //     const bedRooms = await MySQL.Layouts.findAll({
+    //         where:{
+    //             houseId:{$in: houseSharedIds},
+    //             bedRoom: query.bedRooms
+    //         },
+    //         attributes:['houseId']
+    //     });
+    //     houseSharedIds = [];
+    //     bedRooms.map(r=>{
+    //         houseSharedIds.push(r.houseId);
+    //     });
+    // }
+    //
+    // //paging
+    //
+    // const soles = await MySQL.Houses.findAll({
+    //     where:{
+    //         id:{$in: houseSharedIds}
+    //     },
+    //     offset: pagingInfo.skip,
+    //     limit: pagingInfo.size
+    // });
+    // houseSharedIds = [];
+    // let locationIds = [];
+    // let soleMapping = {};
+    // soles.map(sole=>{
+    //     sole.config;
+    //     soleMapping[sole.id] = MySQL.Plain(sole);
+    //     houseSharedIds.push(sole.id);
+    //     locationIds.push(sole.geoLocation);
+    // });
+    //
+    // const GetExInfo = async()=>{
+    //     return [
+    //         // await MySQL.Layouts.findAll({
+    //         //     where:{
+    //         //         houseId: {$in: soleIds}
+    //         //     }
+    //         // }),
+    //         await MySQL.GeoLocation.findAll({
+    //             where:{
+    //                 id:{$in: locationIds}
+    //             }
+    //         }),
+    //         await MySQL.Houses.findAll({
+    //             where:{
+    //                 parentId:{$in: houseSharedIds}
+    //             }
+    //         })
+    //     ];
+    // };
+    //
+    // let result = await GetExInfo();
+    //
+    // // const layouts = result[0];
+    // const locations = result[0];
+    // const rooms = result[1];
+    //
+    // let roomIds = [];
+    // room
+    //
+    // layouts.map(layout=>{
+    //     if(soleMapping[layout.houseId]){
+    //         soleMapping[layout.houseId].layout = layout;
+    //     }
+    // });
+    //
+    // let locationMapping = {};
+    // locations.map(location=>{
+    //     locationMapping[location.id] = location;
+    // });
+    //
+    // _.each(soleMapping, sole=>{
+    //     if(locationMapping[sole.geoLocation]){
+    //         sole.location = locationMapping[sole.geoLocation];
+    //     }
+    // });
+    //
+    // rooms.map(room=>{
+    //     const parentId = room.parentId;
+    //     if(soleMapping[parentId]){
+    //         if( !soleMapping[parentId].rooms ){
+    //             soleMapping[parentId].rooms = [];
+    //         }
+    //         const roomInfo = {
+    //             name: room.name
+    //         };
+    //         soleMapping[parentId].rooms.push(room);
+    //     }
+    // });
+    //
+    // return {
+    //     paging:{
+    //         count: houseSharedIds.length,
+    //         index: pagingInfo.index,
+    //         size: pagingInfo.size
+    //     },
+    //     result: _.toArray(soleMapping)
+    // };
 }
 
 module.exports = {

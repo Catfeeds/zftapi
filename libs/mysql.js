@@ -315,12 +315,6 @@ function SequelizeDefine()
         freezeTableName: true
     });
 
-    // exports.Soles.belongsTo(exports.Houses);
-    // exports.Houses.hasOne(exports.Soles);
-
-    // exports.Entire.belongsTo(exports.Houses);
-    // exports.Houses.hasOne(exports.Entire);
-
     //
     const Layouts = sequelizeInstance.define('layouts', {
         id: {
@@ -792,6 +786,18 @@ function SequelizeDefine()
         freezeTableName: true
     });
     exports.Layouts = Layouts;
+
+    exports.Soles.belongsTo(exports.Houses);
+    exports.Houses.hasOne(exports.Soles, {as: 'Sole', foreignKey: 'houseId', targetKey: 'id'});
+
+    exports.Entire.belongsTo(exports.Houses);
+    exports.Houses.hasOne(exports.Entire, {as: 'Entire', foreignKey: 'houseId'});
+
+    exports.Layouts.belongsTo(exports.Houses, {as: 'Houses', foreignKey: 'houseId'});
+    exports.Houses.hasMany(exports.Layouts, {as: 'Layout', foreignKey: 'houseId'});
+
+    exports.GeoLocation.hasMany(exports.Houses, {foreignKey: 'geoLocation'});
+    exports.Houses.belongsTo(exports.GeoLocation, {as: 'Location', foreignKey: 'geoLocation', targetKey: 'id'});
 }
 
 
