@@ -699,7 +699,7 @@ async function GetShare(params, query) {
         }
 
         const final = MySQL.GenerateSQL(sql, where);
-        const soles = MySQL.Exec(final, query);
+        const soles = await MySQL.Exec(final, query);
         if(!soles || !soles.length){
             return [];
         }
