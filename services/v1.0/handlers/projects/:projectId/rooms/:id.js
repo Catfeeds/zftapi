@@ -26,14 +26,25 @@ module.exports = {
             const id = req.params.id;
 
             try {
+                const houseIns = await MySQL.Houses.findOne({
+                    where:{
+                        id: id,
+                        projectId: projectId,
+                        deleteAt: 0
+                    },
+                    attributes:['id', 'parentId', 'houseFormat']
+                });
+                if( houseIns.parentId === 0 && houseIns.houseFormat !== Typedef.HouseFormat.SOLE ){
+                    return;
+                }
+
                 const t = await MySQL.Sequelize.transaction();
 
-                await MySQL.Rooms.update(
+                await MySQL.Houses.update(
                     {deleteAt: moment().unix()},
                     {
                         where: {
-                            id: id,
-                            projectId: projectId
+                            id: id
                         },
                         transaction: t
                     }
@@ -43,7 +54,7 @@ module.exports = {
                     {deleteAt: moment().unix()},
                     {
                         where: {
-                            instanceId: id,
+                            houseId: id,
                         },
                         transaction: t
                     }
@@ -51,11 +62,10 @@ module.exports = {
 
                 t.commit();
 
-                res.send(ErrorCode.ack(ErrorCode.OK));
+                res.send();
             }
             catch(e){
                 log.error(e, projectId, id);
-                res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC));
             }
         })();
     },
@@ -117,10 +127,12 @@ module.exports = {
 
     get: (req, res, next)=>{
         const roomId = req.params.id;
+        const projectId =req.params.projectId;
 
-        MySQL.Rooms.findOne({
+        MySQL.Houses.findOne({
             where:{
-                id: roomId
+                id: roomId,
+                projectId: projectId
             }
         }).then(
             room=>{
@@ -130,7 +142,7 @@ module.exports = {
 
                 MySQL.Layouts.findOne({
                     where:{
-                        instanceId: room.id
+                        houseId: room.id
                     }
                 }).then(
                     layout=>{
@@ -140,7 +152,7 @@ module.exports = {
 
                         let roomIns = MySQL.Plain(room);
                         roomIns.layout = layout;
-                        res.send(ErrorCode.ack(ErrorCode.OK, roomIns));
+                        res.send(roomIns);
                     }
                 );
             },
