@@ -644,162 +644,82 @@ async function SaveShare(t, params, body) {
     //     }
     // );
 }
+
+const locationIds = async(query) => {
+	if(query.divisionId){
+		let where = {};
+		if(Util.IsParentDivision(query.divisionId)){
+			where.divisionId = {$regexp: Util.ParentDivision(query.divisionId)};
+			if(query.q){
+				where.name = {$regexp: new RegExp(query.q)};
+			}
+		}
+		else{
+			where.divisionId = {$regexp: query.divisionId};
+		}
+		const locations = await MySQL.GeoLocation.findAll({
+			where: where,
+			attributes: ['id']
+		});
+		return _.compact(_.concat([query.locationId], _.map(locations, 'id')));
+	}
+	return _.compact([query.locationId]);
+}
+
 async function GetShare(params, query) {
-    const projectId = params.projectId;
+	const Houses = MySQL.Houses;
+	const Soles = MySQL.Soles;
+	const GeoLocation = MySQL.GeoLocation;
+	const Layouts = MySQL.Layouts;
+	const Op = MySQL.Sequelize.Op;
+	const projectId = params.projectId;
 
-    let geoLocationIds = [];
-    if(query.locationId){
-        geoLocationIds = [query.locationId];
-    }
-    else if(query.divisionId){
-        let where = {};
-        if(Util.IsParentDivision(query.divisionId)){
-            where.divisionId = {$regexp: Util.ParentDivision(query.divisionId)};
-            if(query.q){
-                where.name = {$regexp: new RegExp(query.q)};
-            }
-        }
-        else{
-            where.divisionId = {$regexp: query.divisionId};
-        }
-        const locations = await MySQL.GeoLocation.findAll({
-            where: where,
-            attributes: ['id']
-        });
-        locations.map(loc=>{
-            geoLocationIds.push(loc.id);
-        });
-    }
-    //get the sole filter by location
-    let soleIds = [];
-    {
-        // let where = {
-        //     houseFormat: query.houseFormat,
-        //     parentId: 0,
-        //     projectId: projectId,
-        //     deleteAt: 0
-        // };
-        let sql = `select h.id from ${MySQL.Houses.name} as h 
-            INNER JOIN ${MySQL.Soles.name} as s ON s.houseId=h.id `;
-        let where = [];
-        if(geoLocationIds.length){
-            // where.geoLocation = {$in: geoLocationIds};
-            where.push( ` h.geoLocation In (${MySQL.GenerateSQLInArray(geoLocationIds)}) `);
-        }
-        if(query.status){
-            where.push(`status = :status`);
-            // find.where.status = query.status;
-        }
-        if(query.q){
-            where.push( `s.roomNumber REGEXP :q or h.code REGEXP :q` );
-            // where.$or = [
-            //     {roomNumber: {$regexp: new RegExp(query.q)}},
-            //     {code: {$regexp: new RegExp(query.q)}}
-            // ];
-        }
+	const geoLocationIds = await locationIds(query);
 
-        const final = MySQL.GenerateSQL(sql, where);
-        const soles = await MySQL.Exec(final, query);
-        if(!soles || !soles.length){
-            return [];
-        }
-        soles.map(sole=>{
-            soleIds.push(sole.id);
-        });
-    }
+	const locationCondition = !_.isEmpty(geoLocationIds) ? {
+		geoLocation: {
+			$in: geoLocationIds
+		}
+	} : {};
 
-    if(query.bedRooms){
-        const bedRooms = await MySQL.Layouts.findAll({
-            where:{
-                houseId:{$in: soleIds},
-                bedRoom: query.bedRooms
-            },
-            attributes:['houseId']
-        });
-        soleIds = [];
-        bedRooms.map(r=>{
-            soleIds.push(r.houseId);
-        });
-    }
+	const statusCondition = query.status ? {
+		status: {
+			$eq: query.status
+		}
+	} : {};
 
-    //paging
-    const pagingInfo = Util.PagingInfo(query.index, query.size, true);
-    const soles = await MySQL.Houses.findAll({
-        where:{
-            id:{$in: soleIds}
-        },
-        offset: pagingInfo.skip,
-        limit: pagingInfo.size
-    });
-    soleIds = [];
-    let locationIds = [];
-    let soleMapping = {};
-    soles.map(sole=>{
-        sole.config;
-        soleMapping[sole.id] = MySQL.Plain(sole);
-        soleIds.push(sole.id);
-        locationIds.push(sole.geoLocation);
-    });
+	const qCondition = query.q ? {
+		$or: {
+			'$sole.roomNumber$': {$regexp: query.q},
+			code: {$regexp: query.q}
+		}
+	} : {};
 
-    const GetExInfo = async()=>{
-        return [
-            await MySQL.Layouts.findOne({
-                where:{
-                    houseId: {$in: soleIds}
-                }
-            }),
-            await MySQL.GeoLocation.findAll({
-                where:{
-                    id:{$in: locationIds}
-                }
-            }),
-            await MySQL.Houses.findAll({
-                where:{
-                    parentId:{$in: soleIds}
-                }
-            })
-        ];
-    };
+	const where = _.assign({projectId}, locationCondition, statusCondition, qCondition);
 
-    let result = await GetExInfo();
+	const modelLayouts = query.bedRooms ?
+		{model: Layouts, where: {bedRoom: {[Op.eq]: query.bedRooms}}}
+		: Layouts;
 
-    const layout = result[0];
-    const locations = result[1];
-    const rooms = result[2];
+	const pagingInfo = Util.PagingInfo(query.index, query.size, true);
+	const results = await Houses.findAll({
+		include: [{model: Soles, required: true},
+			{model: GeoLocation, as: 'location'},
+			modelLayouts,
+			'rooms'],
+		where: where,
+		offset: pagingInfo.skip,
+		limit: pagingInfo.size
+	})
 
-    if(soleMapping[layout.houseId]){
-        soleMapping[layout.houseId].layout = layout;
-    }
-
-    let locationMapping = {};
-    locations.map(location=>{
-        locationMapping[location.id] = location;
-    });
-
-    _.each(soleMapping, sole=>{
-        if(locationMapping[sole.geoLocation]){
-            sole.location = locationMapping[sole.geoLocation];
-        }
-    });
-
-    rooms.map(room=>{
-        const parentId = room.parentId;
-        if(soleMapping[parentId]){
-            if( !soleMapping[parentId].rooms ){
-                soleMapping[parentId].rooms = [];
-            }
-            soleMapping[parentId].rooms.push(room);
-        }
-    });
-
-    return {
-        paging:{
-            count: soleIds.length,
-            index: pagingInfo.index,
-            size: pagingInfo.size
-        },
-        result: _.toArray(soleMapping)
-    };
+	return {
+		paging: {
+			count: results.length,
+			index: pagingInfo.index,
+			size: pagingInfo.size
+		},
+		results
+	};
 }
 
 module.exports = {

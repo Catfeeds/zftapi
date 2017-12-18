@@ -315,11 +315,12 @@ function SequelizeDefine()
         freezeTableName: true
     });
 
-    // exports.Soles.belongsTo(exports.Houses);
-    // exports.Houses.hasOne(exports.Soles);
+    exports.Soles.belongsTo(exports.Houses);
+    exports.Houses.hasOne(exports.Soles);
 
-    // exports.Entire.belongsTo(exports.Houses);
-    // exports.Houses.hasOne(exports.Entire);
+    exports.Entire.belongsTo(exports.Houses);
+    exports.Houses.hasOne(exports.Entire);
+	exports.Houses.hasMany(exports.Houses, {as: 'rooms', foreignKey: 'parentId'});
 
     //
     const Layouts = sequelizeInstance.define('layouts', {
@@ -380,6 +381,8 @@ function SequelizeDefine()
         timestamps: false,
         freezeTableName: true
     });
+	exports.Layouts = Layouts;
+	exports.Houses.hasOne(exports.Layouts);
 
 
     exports.Settings = sequelizeInstance.define('settings', {
@@ -569,6 +572,8 @@ function SequelizeDefine()
 	});
 
 	exports.GeoLocation = GeoLocation;
+	exports.Houses.belongsTo(exports.GeoLocation, {foreignKey: 'geoLocation'});
+
 
 	exports.Division = sequelizeInstance.define('division', {
         name: {
@@ -791,7 +796,7 @@ function SequelizeDefine()
         timestamps: false,
         freezeTableName: true
     });
-    exports.Layouts = Layouts;
+
 }
 
 
