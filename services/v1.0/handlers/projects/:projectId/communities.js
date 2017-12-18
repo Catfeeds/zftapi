@@ -54,6 +54,7 @@ module.exports = {
                 houseFormat: houseFormat,
                 projectId: projectId
             };
+            //
             // switch(houseFormat){
             //     case Typedef.HouseFormat.ENTIRE:
             //         sql = `select distinct(geoLocation) from ${MySQL.Entire.name} where projectId=:projectId `;
@@ -64,12 +65,18 @@ module.exports = {
             //         break;
             // }
 
+
+
             try {
-                const sql = `select distinct(geoLocation) from ${MySQL.Houses.name} where houseFormat=:houseFormat and projectId=:projectId and parentId=0`;
+                const sql = `select distinct(bu.locationId),bu.id as buildingId from ${MySQL.Houses.name} as h 
+                    inner join buildings as bu on h.buildingId=bu.id 
+                     where h.houseFormat=:houseFormat and h.projectId=:projectId`;
                 const locations = await MySQL.Exec(sql, replacements);
                 let geoLocationIds = [];
+                let locationBuilding = {};
                 locations.map(r=>{
-                    geoLocationIds.push(r.geoLocation);
+                    geoLocationIds.push(r.locationId);
+                    locationBuilding[r.locationId] = r.buildingId;
                 });
 
                 if(!locations.length){
@@ -93,6 +100,7 @@ module.exports = {
                     }
                     inDivision[loc.divisionId].push({
                         geoLocationId: loc.id,
+                        buildingId: locationBuilding[loc.id],
                         name: loc.name
                     });
                 });

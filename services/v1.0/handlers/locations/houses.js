@@ -37,14 +37,15 @@ module.exports = {
                     d.divisionId = d.adcode;
 
                     const location = d.location.split(',');
+                    d.code = d.id;
                     d.longitude = location[0];
                     d.latitude = location[1];
 
-                    d = _.omit(d, ['adcode', 'location', 'typecode']);
+                    d = _.omit(d, ['adcode', 'location', 'typecode','id']);
                     returns.push(d);
                 });
 
-                res.send(ErrorCode.ack(ErrorCode.OK, returns));
+                res.send(returns);
             },
             err=>{
                 log.error(err, query);

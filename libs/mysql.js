@@ -22,7 +22,7 @@ exports.Load = function () {
         sequelizeInstance = new Sequelize(null, null, null, {
             dialect: 'mysql',
             replication:{
-				read: config.RDS,
+				read: [config.RDS],
 				write: config.RDS
             },
             logging: true,
@@ -146,56 +146,19 @@ exports.ExecT = function(sql, t)
 
 function SequelizeDefine()
 {
-    const Entire = {
-        id: {
+    const Building = sequelizeInstance.define('buildings', {
+        id:{
             type: Sequelize.BIGINT.UNSIGNED,
             primaryKey: true,
-            autoIncrement: true
+            allowNull: false,
         },
-        houseId:{
-            type: Sequelize.BIGINT.UNSIGNED,
+        projectId: {
+            type: Sequelize.BIGINT.UNSIGNED,  //项目ID
             allowNull: false
         },
-        totalFloor: {
-            type: Sequelize.INTEGER // 总层高
-            , allowNull: false
-            , defaultValue: 0
-        },
-        roomCountOnFloor: {
-            type: Sequelize.INTEGER // 每层房间数
-            , allowNull: false
-            , defaultValue: 0
-        },
-        enabledFloors: {
-            type: Sequelize.TEXT,   //房屋拥有配置
-            get: function(){
-                let enabledFloors;
-                try{
-                    enabledFloors = JSON.parse(this.getDataValue('enabledFloors'));
-                }
-                catch(e){
-                    enabledFloors = {};
-                }
-                return enabledFloors;
-            },
-            set : function (value) {
-                this.setDataValue('enabledFloors', JSON.stringify(value));
-            }
-        }
-    };
-    const Soles = {
-        id: {
+        locationId: {
             type: Sequelize.BIGINT.UNSIGNED,
-            primaryKey: true,
-            autoIncrement: true
-        },
-        layoutId:{
-            type: Sequelize.BIGINT.UNSIGNED,
-            defaultValue: 0
-        },
-        houseId: {
-            type: Sequelize.BIGINT.UNSIGNED,
-            allowNull: false
+            allowNull: false,
         },
         group: {
             type: Sequelize.STRING(10)  //团组名称(一期/香桂苑)
@@ -212,54 +175,31 @@ function SequelizeDefine()
             , allowNull: false
             , defaultValue: ''
         },
-        roomNumber: {
-            type: Sequelize.STRING(10)  //房号
-            , allowNull: false
-            , defaultValue: ''
-        },
-        currentFloor: {
-            type: Sequelize.INTEGER // 所在层
-            , allowNull: false
-            , defaultValue: 0
-        },
         totalFloor: {
             type: Sequelize.INTEGER // 总层高
             , allowNull: false
             , defaultValue: 0
-        }
-    };
-
-    const Houses = {
-        id:{
-            type: Sequelize.BIGINT.UNSIGNED,
-            allowNull: false,
-            primaryKey: true
         },
-        projectId: {
-            type: Sequelize.BIGINT.UNSIGNED,  //项目ID
-            allowNull: false
-        },
-        parentId:{
-            type: Sequelize.BIGINT.UNSIGNED,
-            allowNull: false
-        },
-        name: {
-            type: Sequelize.STRING(10),
-            allowNull: false,
-            defaultValue: ''
-        },
-        houseFormat:{
-            type: Sequelize.STRING(8),
-            allowNull: false
-        },
-        code: {
-            type: Sequelize.STRING(10),  //编号
-            allowNull: false,
-            defaultValue: ''
-        },
-        geoLocation: {
-            type: Sequelize.BIGINT.UNSIGNED  //小区名称
+        houseCountOnFloor:{
+            type: Sequelize.INTEGER // 总层高
             , allowNull: false
+            , defaultValue: 0
+        },
+        config: {
+            type: Sequelize.TEXT,   //房屋拥有配置
+            get: function(){
+                let config;
+                try{
+                    config = JSON.parse(this.getDataValue('config'));
+                }
+                catch(e){
+                    config = {};
+                }
+                return config;
+            },
+            set : function (value) {
+                this.setDataValue('config', JSON.stringify(value));
+            }
         },
         createdAt: {
             type: Sequelize.BIGINT.UNSIGNED // 创建时间
@@ -268,6 +208,47 @@ function SequelizeDefine()
         },
         deleteAt: {
             type: Sequelize.BIGINT.UNSIGNED // 删除时间
+            , allowNull: false
+            , defaultValue: 0
+        },
+    },{
+        timestamps: false,
+        freezeTableName: true
+    });
+    const Houses = sequelizeInstance.define('houses', {
+        id:{
+            type: Sequelize.BIGINT.UNSIGNED,
+            primaryKey: true,
+        },
+        houseFormat:{
+            type: Sequelize.STRING(8),
+            allowNull: false
+        },
+        projectId: {
+            type: Sequelize.BIGINT.UNSIGNED,  //项目ID
+            allowNull: false
+        },
+        buildingId:{
+            type: Sequelize.BIGINT.UNSIGNED,  //建筑ID
+            allowNull: false
+        },
+        code: {
+            type: Sequelize.STRING(10),  //编号
+            allowNull: false,
+            defaultValue: ''
+        },
+        layoutId:{
+            type: Sequelize.BIGINT.UNSIGNED,  //项目ID
+            allowNull: false,
+            defaultValue: 0
+        },
+        roomNumber: {
+            type: Sequelize.STRING(10)  //房号
+            , allowNull: false
+            , defaultValue: ''
+        },
+        currentFloor: {
+            type: Sequelize.INTEGER // 所在层
             , allowNull: false
             , defaultValue: 0
         },
@@ -299,37 +280,98 @@ function SequelizeDefine()
             set : function (value) {
                 this.setDataValue('config', JSON.stringify(value));
             }
-        }
-    };
-
-    exports.Entire = sequelizeInstance.define('entire', Entire, {
+        },
+        createdAt: {
+            type: Sequelize.BIGINT.UNSIGNED // 创建时间
+            , allowNull: false
+            , defaultValue: 0
+        },
+        deleteAt: {
+            type: Sequelize.BIGINT.UNSIGNED // 删除时间
+            , allowNull: false
+            , defaultValue: 0
+        },
+    },{
         timestamps: false,
         freezeTableName: true
     });
-    exports.Soles = sequelizeInstance.define('soles', Soles, {
+    const Rooms = sequelizeInstance.define('rooms', {
+        id:{
+            type: Sequelize.BIGINT.UNSIGNED,
+            primaryKey: true,
+        },
+        houseId:{
+            type: Sequelize.BIGINT.UNSIGNED,
+            allowNull: false,
+        },
+        name: {
+            type: Sequelize.STRING(10),
+            allowNull: false,
+            defaultValue: ''
+        },
+        people: {
+            type: Sequelize.INTEGER,
+            allowNull: false,
+            defaultValue: 0
+        },
+        type:{
+            type: Sequelize.STRING(8),
+            allowNull: false,
+            defaultValue: ''
+        },
+        roomArea: {
+            type: Sequelize.INTEGER,  // 面积
+            allowNull: false,
+            defaultValue: 0
+        },
+        orientation: {
+            type: Sequelize.STRING(2),  // 朝向
+            allowNull: false,
+            defaultValue: 'N'
+        },
+        config: {
+            type: Sequelize.TEXT,   //房屋拥有配置
+            get: function(){
+                let config;
+                try{
+                    config = JSON.parse(this.getDataValue('config'));
+                }
+                catch(e){
+                    config = {};
+                }
+                return config;
+            },
+            set : function (value) {
+                this.setDataValue('config', JSON.stringify(value));
+            }
+        },
+        status: {
+            type: Sequelize.STRING(10)  //房间状态
+            , allowNull: false
+            , defaultValue: 'open'
+        },
+        createdAt: {
+            type: Sequelize.BIGINT.UNSIGNED // 创建时间
+            , allowNull: false
+            , defaultValue: 0
+        },
+        deleteAt: {
+            type: Sequelize.BIGINT.UNSIGNED // 删除时间
+            , allowNull: false
+            , defaultValue: 0
+        },
+    },{
         timestamps: false,
         freezeTableName: true
     });
-    exports.Houses = sequelizeInstance.define('houses', Houses, {
-        timestamps: false,
-        freezeTableName: true
-    });
 
-    exports.Soles.belongsTo(exports.Houses);
-    exports.Houses.hasOne(exports.Soles);
-
-    exports.Entire.belongsTo(exports.Houses);
-    exports.Houses.hasOne(exports.Entire);
-	exports.Houses.hasMany(exports.Houses, {as: 'rooms', foreignKey: 'parentId'});
-
-    //
     const Layouts = sequelizeInstance.define('layouts', {
         id: {
             type: Sequelize.BIGINT.UNSIGNED,
             primaryKey: true
         },
-        houseId: {
-            type: Sequelize.BIGINT.UNSIGNED,
+        sourceId: {
+            type: Sequelize.BIGINT.UNSIGNED,    //building or house
             allowNull: false
         },
         name: {
@@ -381,9 +423,63 @@ function SequelizeDefine()
         timestamps: false,
         freezeTableName: true
     });
-	exports.Layouts = Layouts;
-	exports.Houses.hasOne(exports.Layouts);
+    const GeoLocation = sequelizeInstance.define('location', {
+        id:{
+            type: Sequelize.BIGINT.UNSIGNED,
+            primaryKey: true,
+            autoIncrement: true
+        },
+        code: {
+            type: Sequelize.STRING(12),
+            allowNull: false,
+            defaultValue: ''
+        },
+        divisionId: {
+            type: Sequelize.BIGINT.UNSIGNED,     //区划 ID
+            allowNull: false
+        },
+        district: {
+            type:Sequelize.STRING(16),
+            allowNull: false,
+            defaultValue: ''
+        },
+        name: {
+            type: Sequelize.STRING(16),     //查询结果名称
+            allowNull: false
+        },
+        address: {
+            type: Sequelize.STRING(32),     //查询结果地址
+            allowNull: false
+        },
+        longitude: {
+            type: Sequelize.DECIMAL(9,5),   //经纬度 seperate longitude latitude by ','
+            allowNull: false
+        },
+        latitude: {
+            type: Sequelize.DECIMAL(9,5),   //经纬度 seperate longitude latitude by ','
+            allowNull: false
+        }
+    },{
+        timestamps: false,
+        freezeTableName: true
+    });
 
+    Houses.belongsTo(Building, {as: 'Building'});
+    Building.hasMany(Houses, {as: 'Houses', foreignKey:'buildingId'});
+
+    Houses.hasMany(Rooms, {as: 'Rooms', foreignKey: 'houseId'});
+    Rooms.belongsTo(Houses, {as: 'House'});
+
+    Houses.hasOne(Layouts, {as: 'Layouts', foreignKey: 'sourceId'});
+    Building.hasMany(Layouts, {as: 'Layouts', foreignKey: 'sourceId'});
+
+    GeoLocation.hasMany(Building, {as: 'Building', foreignKey: 'locationId'});
+    Building.belongsTo(GeoLocation, {as: 'Location'});
+
+
+    exports.Building = Building;
+    exports.Houses = Houses;
+    exports.Rooms = Rooms;
 
     exports.Settings = sequelizeInstance.define('settings', {
         projectId: {
@@ -530,46 +626,7 @@ function SequelizeDefine()
 	exports.Contracts = Contracts;
 	exports.Users = Users;
 
-	const GeoLocation = sequelizeInstance.define('location', {
-        id:{
-            type: Sequelize.BIGINT.UNSIGNED,
-            primaryKey: true,
-            autoIncrement: true
-        },
-        code: {
-            type: Sequelize.STRING(12),
-            allowNull: false,
-            defaultValue: ''
-        },
-        divisionId: {
-            type: Sequelize.BIGINT.UNSIGNED,     //区划 ID
-            allowNull: false
-        },
-        district: {
-            type:Sequelize.STRING(16),
-            allowNull: false,
-            defaultValue: ''
-        },
-        name: {
-            type: Sequelize.STRING(16),     //查询结果名称
-            allowNull: false
-        },
-        address: {
-            type: Sequelize.STRING(32),     //查询结果地址
-            allowNull: false
-        },
-        longitude: {
-            type: Sequelize.DECIMAL(9,5),   //经纬度 seperate longitude latitude by ','
-            allowNull: false
-        },
-        latitude: {
-            type: Sequelize.DECIMAL(9,5),   //经纬度 seperate longitude latitude by ','
-            allowNull: false
-        }
-	},{
-		timestamps: false,
-		freezeTableName: true
-	});
+
 
 	exports.GeoLocation = GeoLocation;
 	exports.Houses.belongsTo(exports.GeoLocation, {foreignKey: 'geoLocation'});
@@ -796,7 +853,7 @@ function SequelizeDefine()
         timestamps: false,
         freezeTableName: true
     });
-
+    exports.Layouts = Layouts;
 }
 
 
