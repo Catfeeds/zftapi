@@ -39,6 +39,11 @@ const RoomType = [
     '餐厅隔',
     '厨房隔',
 ];
+const HouseStatus = {
+    OPEN: 'OPEN',
+    CLOSED: 'CLOSED',
+    DELETED: 'DELETED'
+};
 const OperationStatus = {
     IDLE: 'IDLE',
     INUSE: 'INUSE',
@@ -93,6 +98,7 @@ const IsOrientation = (ori)=>{
 
 exports.HouseFormat = HouseFormat;
 exports.HouseFormatLiteral = HouseFormatLiteral;
+exports.HouseStatus = HouseStatus;
 exports.OperationStatus = OperationStatus;
 exports.OperationStatusLiteral = OperationStatusLiteral;
 exports.Orientation = Orientation;
