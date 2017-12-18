@@ -453,6 +453,9 @@ module.exports = {
                     {model: MySQL.Rooms, as: 'Rooms', attributes:['config', 'name', 'people', 'type', 'roomArea', 'orientation']}
                 ]
             });
+            if(!houseIns){
+                return res.send(404, ErrorCode.ack(ErrorCode.REQUESTUNMATCH));
+            }
 
             res.send({
                 code: houseIns.code,

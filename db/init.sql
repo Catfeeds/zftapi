@@ -1,7 +1,7 @@
 CREATE DATABASE IF NOT EXISTS zft CHARACTER SET utf8 COLLATE utf8_general_ci;
 USE zft;
 
-create table if not exists building
+create table if not exists buildings
 (
   `id` bigint(20) UNSIGNED NOT NULL,
   `projectId` bigint(20) UNSIGNED NOT NULL,
@@ -14,7 +14,7 @@ create table if not exists building
   `config` text CHARACTER SET utf8 COLLATE utf8_general_ci NULL,
   `createdAt` bigint(20) UNSIGNED NOT NULL DEFAULT 0,
   `deleteAt` bigint(20) NOT NULL DEFAULT 0,
-  PRIMARY KEY (`id`) USING UNIQUE
+  PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
 
 create table if not exists rooms
@@ -30,7 +30,7 @@ create table if not exists rooms
   `status` varchar(10) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
   `createdAt` bigint(20) UNSIGNED NOT NULL DEFAULT 0,
   `deleteAt` bigint(20) UNSIGNED NOT NULL DEFAULT 0,
-  PRIMARY KEY (`id`) USING UNIQUE,
+  PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
 
 create table if not exists contracts
@@ -121,7 +121,7 @@ create table if not exists layouts
   `createdAt` bigint(20) UNSIGNED NOT NULL DEFAULT 0,
   `deleteAt` bigint(20) UNSIGNED NOT NULL DEFAULT 0,
   `remark` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '',
-  PRIMARY KEY (`id`) USING UNIQUE,
+  PRIMARY KEY (`id`) USING BTREE
 ) engine=innodb default charset=utf8;
 
 create table if not exists houses
@@ -140,7 +140,7 @@ create table if not exists houses
   `config` text CHARACTER SET utf8 COLLATE utf8_general_ci NULL,
   `createdAt` bigint(20) UNSIGNED NOT NULL DEFAULT 0,
   `deleteAt` bigint(20) UNSIGNED NOT NULL DEFAULT 0,
-  PRIMARY KEY (`id`) USING UNIQUE,
+  PRIMARY KEY (`id`) USING BTREE
 ) engine=innodb default charset=utf8;
 
 create table if not exists location

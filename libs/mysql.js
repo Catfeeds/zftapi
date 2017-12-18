@@ -22,7 +22,7 @@ exports.Load = function () {
         sequelizeInstance = new Sequelize(null, null, null, {
             dialect: 'mysql',
             replication:{
-				read: [config.RDS],
+				read: config.RDS,
 				write: config.RDS
             },
             logging: true,
@@ -629,8 +629,6 @@ function SequelizeDefine()
 
 
 	exports.GeoLocation = GeoLocation;
-	exports.Houses.belongsTo(exports.GeoLocation, {foreignKey: 'geoLocation'});
-
 
 	exports.Division = sequelizeInstance.define('division', {
         name: {
