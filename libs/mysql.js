@@ -200,7 +200,17 @@ function SequelizeDefine()
             set : function (value) {
                 this.setDataValue('config', JSON.stringify(value));
             }
-        }
+        },
+        createdAt: {
+            type: Sequelize.BIGINT.UNSIGNED // 创建时间
+            , allowNull: false
+            , defaultValue: 0
+        },
+        deleteAt: {
+            type: Sequelize.BIGINT.UNSIGNED // 删除时间
+            , allowNull: false
+            , defaultValue: 0
+        },
     },{
         timestamps: false,
         freezeTableName: true

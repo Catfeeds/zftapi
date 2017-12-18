@@ -108,7 +108,8 @@ async function SaveEntire(t, params, body){
             totalFloor: body.totalFloor,
             houseCountOnFloor: body.houseCountOnFloor || body.roomCountOnFloor,
             config: body.config,
-            Layouts: body.layouts || []
+            Layouts: body.layouts || [],
+            createdAt: createdAt
         };
 
         await MySQL.Building.create(buildingIns, {transaction: t, include:[{model: MySQL.Layouts, as: 'Layouts'}]});
@@ -266,7 +267,8 @@ async function SaveSole(t, params, body) {
             unit: body.unit,
             locationId: body.location.id,
             totalFloor: body.totalFloor,
-            config: body.config
+            config: body.config,
+            createdAt: createdAt
         };
 
         await MySQL.Building.create(buildingIns, {transaction: t, include:[{model: MySQL.Layouts, as: 'Layouts'}]});
@@ -457,7 +459,8 @@ async function SaveShare(t, params, body) {
             unit: body.unit,
             locationId: body.location.id,
             totalFloor: body.totalFloor,
-            config: body.config
+            config: body.config,
+            createdAt: createdAt
         };
 
         await MySQL.Building.create(buildingIns, {transaction: t, include:[{model: MySQL.Layouts, as: 'Layouts'}]});
