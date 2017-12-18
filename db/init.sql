@@ -1,58 +1,36 @@
 CREATE DATABASE IF NOT EXISTS zft CHARACTER SET utf8 COLLATE utf8_general_ci;
 USE zft;
 
-create table if not exists entire
+create table if not exists building
 (
   `id` bigint(20) UNSIGNED NOT NULL,
-  `projectId` varchar(64) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '',
-  `geoLocation` bigint(20) UNSIGNED NOT NULL,
-  `totalFloor` int(11) NOT NULL DEFAULT 0,
-  `roomCountOnFloor` int(11) NOT NULL DEFAULT 0,
-  `enabledFloors` text CHARACTER SET utf8 COLLATE utf8_general_ci NULL,
-  `createdAt` bigint(20) UNSIGNED NOT NULL DEFAULT 0,
-  `deleteAt` bigint(20) UNSIGNED NOT NULL DEFAULT 0,
-  `status` varchar(10) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT 'open',
-  `config` text CHARACTER SET utf8 COLLATE utf8_general_ci NULL,
-  PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
-
-create table if not exists soles
-(
-  `id` bigint(20) UNSIGNED NOT NULL,
-  `projectId` varchar(64) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '',
-  `code` varchar(10) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '',
-  `geoLocation` bigint(20) UNSIGNED NOT NULL,
-  `entireId` bigint(20) UNSIGNED NULL DEFAULT 0,
+  `projectId` bigint(20) UNSIGNED NOT NULL,
+  `locationId` bigint(20) UNSIGNED NOT NULL,
   `group` varchar(10) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '',
   `building` varchar(10) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '',
   `unit` varchar(10) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '',
-  `roomNumber` varchar(10) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '',
-  `currentFloor` int(11) NOT NULL DEFAULT 0,
   `totalFloor` int(11) NOT NULL DEFAULT 0,
-  `createdAt` bigint(20) UNSIGNED NOT NULL DEFAULT 0,
-  `deleteAt` bigint(20) UNSIGNED NOT NULL DEFAULT 0,
-  `desc` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '',
-  `status` varchar(10) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+  `houseCountOnFloor` int(11) NOT NULL DEFAULT 0,
   `config` text CHARACTER SET utf8 COLLATE utf8_general_ci NULL,
-  `houseKeeper` bigint(20) UNSIGNED NULL DEFAULT 0,
-  `layoutId` bigint(20) UNSIGNED NULL DEFAULT 0,
-  `houseFormat` varchar(8) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
-  PRIMARY KEY (`id`) USING BTREE
+  `createdAt` bigint(20) UNSIGNED NOT NULL DEFAULT 0,
+  `deleteAt` bigint(20) NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id`) USING UNIQUE
 ) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
 
 create table if not exists rooms
 (
   `id` bigint(20) UNSIGNED NOT NULL,
-  `projectId` varchar(64) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '',
-  `soleId` bigint(20) UNSIGNED NULL DEFAULT 0,
+  `houseId` bigint(20) UNSIGNED NOT NULL,
+  `name` varchar(10) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '',
+  `people` int(11) NOT NULL DEFAULT 0,
+  `type` varchar(8) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '',
+  `roomArea` int(11) NOT NULL DEFAULT 0,
+  `orientation` varchar(2) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT 'N',
+  `config` text CHARACTER SET utf8 COLLATE utf8_general_ci NULL,
+  `status` varchar(10) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
   `createdAt` bigint(20) UNSIGNED NOT NULL DEFAULT 0,
   `deleteAt` bigint(20) UNSIGNED NOT NULL DEFAULT 0,
-  `desc` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
-  `status` varchar(10) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT 'open',
-  `config` text CHARACTER SET utf8 COLLATE utf8_general_ci NULL,
-  `name` varchar(10) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '',
-  `type` varchar(10) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '',
-  PRIMARY KEY (`id`) USING BTREE
+  PRIMARY KEY (`id`) USING UNIQUE,
 ) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
 
 create table if not exists contracts
@@ -133,35 +111,36 @@ create table if not exists users
 create table if not exists layouts
 (
 	`id` bigint(20) UNSIGNED NOT NULL,
-	`houseId` bigint(20) UNSIGNED NOT NULL,
-	`name` varchar(10) NOT NULL DEFAULT '',
-	`bedRoom` int(11) NOT NULL DEFAULT 0,
-	`livingRoom` int(11) NOT NULL DEFAULT 0,
-	`bathRoom` int(11) NOT NULL DEFAULT 0,
-	`orientation` varchar(2) NOT NULL DEFAULT 'N',
-	`roomArea` int(11) NOT NULL DEFAULT 0,
-	`createdAt` bigint(20) UNSIGNED NOT NULL DEFAULT 0,
-	`deleteAt` bigint(20) UNSIGNED NOT NULL DEFAULT 0,
-	`remark` varchar(255) NOT NULL DEFAULT '',
-  primary key (`id`)
+  `sourceId` bigint(20) UNSIGNED NOT NULL,
+  `name` varchar(10) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '',
+  `bedRoom` int(11) NOT NULL DEFAULT 0,
+  `livingRoom` int(11) NOT NULL DEFAULT 0,
+  `bathRoom` int(11) NOT NULL DEFAULT 0,
+  `orientation` varchar(2) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT 'N',
+  `roomArea` int(11) NOT NULL DEFAULT 0,
+  `createdAt` bigint(20) UNSIGNED NOT NULL DEFAULT 0,
+  `deleteAt` bigint(20) UNSIGNED NOT NULL DEFAULT 0,
+  `remark` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '',
+  PRIMARY KEY (`id`) USING UNIQUE,
 ) engine=innodb default charset=utf8;
 
 create table if not exists houses
 (
 	`id` bigint(20) UNSIGNED NOT NULL,
-	`projectId` bigint(20) UNSIGNED NOT NULL,
-	`parentId` bigint(20) UNSIGNED NOT NULL,
-	`name` varchar(10) NOT NULL DEFAULT '',
-	`houseFormat` varchar(8) NOT NULL,
-	`code` varchar(10) NOT NULL DEFAULT '',
-	`geoLocation` bigint(20) UNSIGNED NOT NULL,
-	`createdAt` bigint(20) UNSIGNED NOT NULL DEFAULT 0,
-	`deleteAt` bigint(20) UNSIGNED NOT NULL DEFAULT 0,
-	`houseKeeper` bigint(20) UNSIGNED NULL DEFAULT 0,
-	`desc` varchar(255) NULL DEFAULT '',
-	`status` varchar(10) NOT NULL DEFAULT 'open',
-	`config` text NULL,
-	PRIMARY KEY (`id`) USING BTREE
+  `houseFormat` varchar(8) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+  `projectId` bigint(20) UNSIGNED NOT NULL,
+  `buildingId` bigint(20) UNSIGNED NOT NULL,
+  `code` varchar(10) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '',
+  `layoutId` bigint(20) UNSIGNED NOT NULL DEFAULT 0,
+  `roomNumber` varchar(10) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '',
+  `currentFloor` int(11) NOT NULL DEFAULT 0,
+  `houseKeeper` bigint(20) UNSIGNED NULL DEFAULT 0,
+  `desc` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT '',
+  `status` varchar(10) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT 'open',
+  `config` text CHARACTER SET utf8 COLLATE utf8_general_ci NULL,
+  `createdAt` bigint(20) UNSIGNED NOT NULL DEFAULT 0,
+  `deleteAt` bigint(20) UNSIGNED NOT NULL DEFAULT 0,
+  PRIMARY KEY (`id`) USING UNIQUE,
 ) engine=innodb default charset=utf8;
 
 create table if not exists location
@@ -193,31 +172,6 @@ create table if not exists `settings`
 	value varchar(255) default '' not null,
   primary key (`id`)
 ) engine=innodb default charset=utf8;
-
-create table if not exists `soles`
-(
-	`id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
-	`layoutId` bigint(20) UNSIGNED NULL DEFAULT 0,
-	`houseId` bigint(20) UNSIGNED NOT NULL,
-	`group` varchar(10) NOT NULL DEFAULT '',
-	`building` varchar(10) NOT NULL DEFAULT '',
-	`unit` varchar(10) NOT NULL DEFAULT '',
-	`roomNumber` varchar(10) NOT NULL DEFAULT '',
-	`currentFloor` int(11) NOT NULL DEFAULT 0,
-	`totalFloor` int(11) NOT NULL DEFAULT 0,
-	PRIMARY KEY (`id`) USING BTREE,
-	INDEX `houseId`(`houseId`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 1;
-
-create table if not exists `entire`
-(
-	`id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
-	`houseId` bigint(20) UNSIGNED NOT NULL,
-	`totalFloor` int(11) NOT NULL DEFAULT 0,
-	`roomCountOnFloor` int(11) NOT NULL DEFAULT 0,
-	`enabledFloors` text CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL,
-	PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB AUTO_INCREMENT = 1;
 
 create table if not exists `divisions`
 (

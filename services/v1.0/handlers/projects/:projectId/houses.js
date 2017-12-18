@@ -20,13 +20,13 @@ function EntireCheck(body) {
 }
 function SoleCheck(body) {
     return Util.ParameterCheck(body,
-            ['location', 'roomNumber', 'totalFloor', 'currentFloor', 'totalFloor']
+            ['location', 'roomNumber', 'currentFloor', 'totalFloor']
         )
     && (_.isObject(body.layout) && !_.isArray(body.layout));
 }
 function ShareCheck(body) {
     return Util.ParameterCheck(body,
-        ['location', 'roomNumber', 'totalFloor', 'currentFloor', 'totalFloor']
+        ['location', 'roomNumber', 'currentFloor', 'totalFloor']
     )
     && (_.isObject(body.layout) && !_.isArray(body.layout));
 }
@@ -353,7 +353,7 @@ async function GetSole(params, query) {
                     , attributes: ['group', 'building', 'unit']
                 },
                 {model: MySQL.Layouts, as: 'Layouts', attributes: ["name","bedRoom", "livingRoom", "bathRoom", "orientation", "roomArea", "remark"]},
-                {model: MySQL.Rooms, as: 'Rooms', attributes:['config', 'name', 'people', 'type', 'roomArea', 'orientation']}
+                {model: MySQL.Rooms, as: 'Rooms', attributes:['id', 'config', 'name', 'people', 'type', 'roomArea', 'orientation']}
             ],
             offset: pagingInfo.skip,
             limit: pagingInfo.size
@@ -656,8 +656,8 @@ async function GetShare(params, query) {
                         model: MySQL.GeoLocation, as: 'Location'
                     }]
                 },
-                {model: MySQL.Layouts, as: 'Layouts'},
-                {model: MySQL.Rooms, as: 'Rooms', attributes:['config', 'name', 'people', 'type', 'roomArea', 'orientation']}
+                {model: MySQL.Layouts, as: 'Layouts', attributes: ["name","bedRoom", "livingRoom", "bathRoom", "orientation", "roomArea", "remark"]},
+                {model: MySQL.Rooms, as: 'Rooms', attributes:['id', 'config', 'name', 'people', 'type', 'roomArea', 'orientation']}
             ],
             offset: pagingInfo.skip,
             limit: pagingInfo.size
