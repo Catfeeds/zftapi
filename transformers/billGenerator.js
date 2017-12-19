@@ -6,7 +6,7 @@ const fp = require('lodash/fp');
 // TODO: paymentPlan
 const dueAt = (startDate, paymentPlan) => startDate;
 
-const expensesReduce = (expenses) => _.sumBy(fp.filter(e => e.pattern === 'withRent')(expenses), 'rent');
+const expensesReduce = expenses => _.sumBy(fp.filter(e => e.pattern === 'withRent')(expenses), 'rent');
 
 const dueAmountOf = (strategy, expenses) => strategy.freq.rent + expensesReduce(expenses);
 
@@ -14,14 +14,14 @@ const expenseAmount = (expense, from, to) => _.get(expense, 'rent') * billPace(e
 
 const billPace = (pattern, from, to) => isNaN(pattern) ? monthDiff(from, to) : _.parseInt(pattern);
 
-const monthDiff = (from, to) => Math.ceil(moment.duration(moment.unix(to).diff(moment.unix((from)))).asMonths())
+const monthDiff = (from, to) => Math.ceil(moment.duration(moment.unix(to).diff(moment.unix((from)))).asMonths());
 
 const billScheduler = (from, to, pattern) => {
 	const diff = monthDiff(from, to);
 	return _.range(0, diff, billPace(pattern, from, to))
 };
 const plusMonth = (from, m) => moment.unix(from).add(m, 'month').unix();
-const bondOf = (contract) => _.compact([_.get(contract, 'strategy.bond')]);
+const bondOf = contract => _.compact([_.get(contract, 'strategy.bond')]);
 
 const generateForContract = contract => {
 	const from = contract.from;
@@ -34,10 +34,9 @@ const generateForContract = contract => {
 		fp.map(expense => paidOffBill(expense, from, to))
 		(fp.filter(e => _.includes(['paidOff'], e.pattern))(expenses));
 	const regularBills = (expenses, from, to) => _.flatten(
-		fp.map(expense => recursiveBill(expense, from, to))
+		fp.map(expense => recursiveBills(expense, from, to, regularBill))
 		(fp.filter(e => _.includes(['1', '2', '3', '6', '12'], e.pattern))(expenses)));
 
-	//TODO: bond is different
 	const paidOffBill = (expense, from, to) => ({
 		flow: 'receive',
 		entityType: 'property',
@@ -53,11 +52,9 @@ const generateForContract = contract => {
 		metadata: expense
 	});
 
-	const recursiveBill = (expense, from, to) => {
-		return billScheduler(from, to, expense.pattern).map(m =>
-			regularBill(expense, plusMonth(from, m),
-				plusMonth(from, m + billPace(expense.pattern, from, to))));
-	}
+	const recursiveBills = (expense, from, to, singleBill) => billScheduler(from, to, expense.pattern).map(m =>
+		singleBill(expense, plusMonth(from, m),
+			plusMonth(from, m + billPace(expense.pattern, from, to))));
 
 	const regularBill = (expense, from, to) => ({
 		flow: 'receive',
@@ -103,9 +100,7 @@ const generateForContract = contract => {
 		metadata: {bond: amount}
 	});
 
-	return _.concat(billScheduler(from, to, strategy.freq.pattern).map(m =>
-			standardBill(strategy.freq, plusMonth(from, m),
-				plusMonth(from, m + billPace(strategy.freq.pattern, from, to)))),
+	return _.concat(recursiveBills(strategy.freq, from, to, standardBill),
 		paidOffBills(expenses, from, to), regularBills(expenses, from, to),
 		bondOf(contract).map(amount => bondBill(amount, from, to)));
 };
