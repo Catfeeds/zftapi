@@ -852,6 +852,37 @@ function SequelizeDefine()
         freezeTableName: true
     });
     exports.Layouts = Layouts;
+
+
+    //Devices
+    const HouseDevices = sequelizeInstance.define('housesDevices', {
+        id: {
+            type: Sequelize.BIGINT.UNSIGNED,
+            autoIncrement: true,
+            primaryKey: true
+        },
+        sourceId:{
+            type: Sequelize.BIGINT.UNSIGNED,
+            allowNull: false,
+        },
+        deviceId:{
+            type: Sequelize.STRING(32),
+            allowNull: false,
+        },
+        startDate:{
+            type: Sequelize.BIGINT.UNSIGNED,
+            defaultValue: 0
+        },
+        endDate:{
+            type: Sequelize.BIGINT.UNSIGNED,
+            defaultValue: 0
+        },
+    },{
+        timestamps: false,
+        freezeTableName: true
+    });
+
+
 }
 
 
