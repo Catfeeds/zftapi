@@ -190,7 +190,7 @@ async function GetEntire(params, query) {
                 building: r.Building.building,
                 unit: r.Building.unit,
                 roomNumber: r.roomNumber,
-                room: r.Rooms[0],
+                rooms: r.Rooms,
                 layout: r.Layouts
             });
         });
@@ -368,7 +368,7 @@ async function GetSole(params, query) {
                 building: r.Building.building,
                 unit: r.Building.unit,
                 roomNumber: r.roomNumber,
-                room: r.Rooms[0],
+                rooms: r.Rooms,
                 layout: r.Layouts
             });
         });
@@ -475,121 +475,6 @@ async function SaveShare(t, params, body) {
         log.error(e);
         throw Error(ErrorCode.DATABASEEXEC);
     }
-
-    // const BuildSoles = async(t, location)=>{
-    //     const house = common.CreateHouse(projectId, body.houseFormat, 0, ''
-    //         , location.id, body.houseKeeper
-    //         , body.desc, Typedef.OperationStatus.IDLE
-    //         , body.config
-    //     );
-    //     const houseIns = await MySQL.Houses.create(house, {transaction: t, individualHooks: true});
-    //
-    //     const sole = common.CreateSole(0, house.id, body.group, body.building, body.unit, body.roomNumber, body.currentFloor, body.totalFloor);
-    //     await MySQL.Soles.create(sole, {transaction: t, individualHooks: true});
-    //     return houseIns;
-    // };
-    // const BuildSoleLayout = async(t, soleIns)=>{
-    //     const layout = common.CreateLayout(
-    //         soleIns.id,
-    //         body.roomArea,
-    //         body.name,
-    //         body.bedRoom,
-    //         body.livingRoom,
-    //         body.bathRoom,
-    //         body.orientation,
-    //         body.remark
-    //     );
-    //     await MySQL.Layouts.create(layout);
-    // };
-    // const BuildRooms = (t, soleIns)=>{
-    //     let bedRoom = body.layout.bedRoom;
-    //     let rooms = [];
-    //     let i = 65;
-    //     do{
-    //         let room = common.CreateHouse(projectId, body.houseFormat, soleIns.id,
-    //              '', soleIns.geoLocation, soleIns.houseKeeper, '',
-    //              Typedef.OperationStatus.IDLE, []
-    //         );
-    //         room.name = String.fromCharCode(i++);
-    //         rooms.push(room);
-    //     }while(--bedRoom);
-    //
-    //     return MySQL.Houses.bulkCreate(rooms, {transaction: t, individualHooks: true});
-    // };
-    // const BuildRoomLayout = (t, rooms)=>{
-    //     let layouts = [];
-    //     rooms.map(room=>{
-    //         const layout = {
-    //             id: SnowFlake.next(),
-    //             houseId: room.id,
-    //         };
-    //         layouts.push(layout);
-    //     });
-    //
-    //     return MySQL.Layouts.bulkCreate(layouts, {transaction: t});
-    // };
-    //
-    //
-    // const soleIns = await BuildSoles(t, location);
-    // await BuildSoleLayout(t, soleIns);
-    // const rooms = await BuildRooms(t, soleIns);
-    // await BuildRoomLayout(t, rooms);
-
-    // const Transaction = async(location)=>{
-    //     return MySQL.Sequelize.transaction(t=>{
-    //         return common.UpsertGeoLocation(location, t).then(
-    //             location=> {
-    //                 return BuildSoles(t, location[0]).then(
-    //                     soleIns=>{
-    //                         return BuildSoleLayout(t, soleIns).then(
-    //                             ()=>{
-    //                                 return BuildRooms(t, soleIns).then(
-    //                                     rooms=>{
-    //                                         return BuildRoomLayout(t, rooms);
-    //                                     }
-    //                                 );
-    //                             }
-    //                         );
-    //                     }
-    //                 );
-    //             }
-    //         );
-    //     });
-    // };
-    // MySQL.GeoLocation.findOne({
-    //     where:{
-    //         code: body.location.id
-    //     },
-    //     attributes:['id']
-    // }).then(
-    //     geoLocation=>{
-    //         if(!geoLocation){
-    //             return Transaction(body.location);
-    //         }
-    //
-    //         MySQL.Soles.count({
-    //             where:{
-    //                 geoLocation: geoLocation.id
-    //             }
-    //         }).then(
-    //             soleExists=>{
-    //                 if(soleExists){
-    //                     return reject(ErrorCode.ack(ErrorCode.DUPLICATEREQUEST));
-    //                 }
-    //
-    //                 Transaction(body.location).then(
-    //                     ()=>{
-    //                         resolve(ErrorCode.ack(ErrorCode.OK));
-    //                     },
-    //                     err=>{
-    //                         log.error(err);
-    //                         return reject(ErrorCode.ack(ErrorCode.DATABASEEXEC));
-    //                     }
-    //                 );
-    //             }
-    //         );
-    //     }
-    // );
 }
 async function GetShare(params, query) {
     const projectId = params.projectId;
@@ -672,7 +557,7 @@ async function GetShare(params, query) {
                 building: r.Building.building,
                 unit: r.Building.unit,
                 roomNumber: r.roomNumber,
-                room: r.Rooms[0],
+                rooms: r.Rooms,
                 layout: r.Layouts
             });
         });
