@@ -3,13 +3,14 @@ const moment = require('moment');
 const _ = require('lodash');
 const fp = require('lodash/fp');
 
+// TODO: paymentPlan
 const dueAt = (startDate, paymentPlan) => startDate;
 
 const expensesReduce = (expenses) => _.sumBy(_.filter(expenses, e => e.pattern === 'withRent'), 'rent');
 
 const dueAmountOf = (strategy, expenses) => strategy.freq.rent + expensesReduce(expenses);
 
-const expenseAmount = (expense) => _.get(expense, 'rent');
+const expenseAmount = (expense, from, to) => _.get(expense, 'rent') * billPace(expense.pattern, from, to);
 
 const billPace = (pattern, from, to) => isNaN(pattern) ? monthDiff(from, to) : _.parseInt(pattern);
 
@@ -32,8 +33,9 @@ const generateForContract = contract => {
 		(fp.filter(e => _.includes(['paidOff'], e.pattern))(expenses));
 	const regularBills = (expenses, from, to) => _.flatten(
 		fp.map(expense => recursiveBill(expense, from, to))
-			(fp.filter(e => _.includes(['1', '2', '3', '6', '12'], e.pattern))(expenses)));
+		(fp.filter(e => _.includes(['1', '2', '3', '6', '12'], e.pattern))(expenses)));
 
+	//TODO: bond is different
 	const paidOffBill = (expense, from, to) => ({
 		flow: 'receive',
 		entityType: 'property',
@@ -45,7 +47,7 @@ const generateForContract = contract => {
 		endDate: to,
 		dueDate: dueAt(from, paymentPlan),
 		createdAt: moment().unix(),
-		dueAmount: expenseAmount(expense),
+		dueAmount: expenseAmount(expense, from, to),
 		metadata: {}
 	});
 
@@ -66,7 +68,7 @@ const generateForContract = contract => {
 		endDate: to,
 		dueDate: dueAt(from, paymentPlan),
 		createdAt: moment().unix(),
-		dueAmount: expenseAmount(expense),
+		dueAmount: expenseAmount(expense, from, to),
 		metadata: {}
 	});
 	const standardBill = (freq, from, to) => ({
@@ -80,7 +82,7 @@ const generateForContract = contract => {
 		endDate: to,
 		dueDate: dueAt(from, paymentPlan),
 		createdAt: moment().unix(),
-		dueAmount: dueAmountOf(strategy, expenses),
+		dueAmount: dueAmountOf(strategy, expenses) * billPace(freq.pattern, from, to),
 		metadata: {}
 	});
 	return _.concat(billScheduler(from, to, strategy.freq.pattern).map(m =>
@@ -89,7 +91,7 @@ const generateForContract = contract => {
 		paidOffBills(expenses, from, to), regularBills(expenses, from, to));
 };
 
-
+//TODO: billFlow
 const extractBillItems = (contract, bill) => [{
 	billId: bill.id,
 	projectId: contract.projectId,
