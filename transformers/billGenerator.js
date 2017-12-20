@@ -11,11 +11,15 @@ const dueAmountOf = (strategy, expenses) => strategy.freq.rent + expensesReduce(
 
 const expenseAmount = (expense) => _.get(expense, 'rent');
 
-const billScheduler = (from, to, freq) => {
-	const monthDiff = Math.ceil(moment.duration(moment.unix(to).diff(moment.unix((from)))).asMonths())
-	const pace = _.parseInt(freq.pattern);
-	return _.range(0, monthDiff, pace)
+const billPace = (pattern, from, to) => isNaN(pattern) ? monthDiff(from, to) : _.parseInt(pattern);
+
+const monthDiff = (from, to) => Math.ceil(moment.duration(moment.unix(to).diff(moment.unix((from)))).asMonths())
+
+const billScheduler = (from, to, pattern) => {
+	const diff = monthDiff(from, to);
+	return _.range(0, diff, billPace(pattern, from, to))
 };
+const plusMonth = (from, m) => moment.unix(from).add(m, 'month').unix();
 
 const generateForContract = contract => {
 	const from = contract.from;
@@ -46,10 +50,9 @@ const generateForContract = contract => {
 	});
 
 	const recursiveBill = (expense, from, to) => {
-		console.log(expense, from, to);
 		return billScheduler(from, to, expense.pattern).map(m =>
-			regularBill(expense, moment.unix(from).add(m, 'month').unix(),
-				moment.unix(from).add(m + _.parseInt(expense.pattern), 'month').unix()));
+			regularBill(expense, plusMonth(from, m),
+				plusMonth(from, m + billPace(expense.pattern, from, to))));
 	}
 
 	const regularBill = (expense, from, to) => ({
@@ -80,9 +83,9 @@ const generateForContract = contract => {
 		dueAmount: dueAmountOf(strategy, expenses),
 		metadata: {}
 	});
-	return _.concat(billScheduler(from, to, strategy.freq).map(m =>
-			standardBill(strategy.freq, moment.unix(from).add(m, 'month').unix(),
-				moment.unix(from).add(m + _.parseInt(strategy.freq.pattern), 'month').unix())),
+	return _.concat(billScheduler(from, to, strategy.freq.pattern).map(m =>
+			standardBill(strategy.freq, plusMonth(from, m),
+				plusMonth(from, m + billPace(strategy.freq.pattern, from, to)))),
 		paidOffBills(expenses, from, to), regularBills(expenses, from, to));
 };
 

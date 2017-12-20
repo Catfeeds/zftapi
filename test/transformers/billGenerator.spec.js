@@ -40,9 +40,9 @@ describe('Bill generator', () => {
 						pattern: "paidOff"
 					}
 				],
-				"from": startDate,
-				"to": oneYearLater,
-				"paymentPlan": "-00",
+				from: startDate,
+				to: oneYearLater,
+				paymentPlan: "-00",
 				projectId: 1,
 				contractId: 2,
 
@@ -61,9 +61,9 @@ describe('Bill generator', () => {
 					}
 				},
 				expenses: [],
-				"from": startDate,
-				"to": oneYearLater,
-				"paymentPlan": "-00",
+				from: startDate,
+				to: oneYearLater,
+				paymentPlan: "-00",
 				projectId: 1,
 				id: 2,
 
@@ -98,9 +98,9 @@ describe('Bill generator', () => {
 					rent: 45000,
 					pattern: 'paidOff'
 				}],
-				"from": startDate,
-				"to": oneYearLater,
-				"paymentPlan": "-00",
+				from: startDate,
+				to: oneYearLater,
+				paymentPlan: "-00",
 				projectId: 1,
 				id: 2,
 
@@ -136,14 +136,14 @@ describe('Bill generator', () => {
 					rent: 12000,
 					pattern: '1'
 				}],
-				"from": startDate,
-				"to": oneYearLater,
-				"paymentPlan": "-00",
+				from: startDate,
+				to: oneYearLater,
+				paymentPlan: "-00",
 				projectId: 1,
 				id: 2,
 
 			});
-			console.log('bills', bills);
+
 			const regularBill = fp.filter(b => b.type === 'extra')(bills);
 			regularBill.should.have.length(12);
 			_.omit(regularBill[0], 'createdAt').should.be.eql({
@@ -157,6 +157,40 @@ describe('Bill generator', () => {
 				endDate: oneMonthLater,
 				dueDate: startDate,
 				dueAmount: 12000,
+				metadata: {}
+			});
+		});
+
+		it('should support paid off pattern in standard bills', () => {
+			const startDate = moment().unix();
+			const oneYearLater = moment().add(1, 'year').unix();
+			const bills = generate({
+				strategy: {
+					freq: {
+						rent: 3600,
+						pattern: 'paidOff'
+					}
+				},
+				expenses: [],
+				from: startDate,
+				to: oneYearLater,
+				paymentPlan: "-01",
+				projectId: 1,
+				id: 2,
+
+			});
+			bills.should.have.length(1);
+			_.omit(bills[0], 'createdAt').should.be.eql({
+				flow: 'receive',
+				entityType: 'property',
+				projectId: 1,
+				contractId: 2,
+				source: 'contract',
+				type: 'rent',
+				startDate: startDate,
+				endDate: oneYearLater,
+				dueDate: startDate,
+				dueAmount: 3600,
 				metadata: {}
 			});
 		});
