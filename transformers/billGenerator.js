@@ -32,10 +32,10 @@ const generateForContract = contract => {
 
 	const paidOffBills = (expenses, from, to) =>
 		fp.map(expense => paidOffBill(expense, from, to))
-			(fp.filter(e => _.includes(['paidOff'], e.pattern))(expenses));
+		(fp.filter(e => _.includes(['paidOff'], e.pattern))(expenses));
 	const regularBills = (expenses, from, to) => _.flatten(
 		fp.map(expense => recursiveBills(expense, from, to, regularBill))
-			(fp.filter(e => _.includes(['1', '2', '3', '6', '12'], e.pattern))(expenses)));
+		(fp.filter(e => _.includes(['1', '2', '3', '6', '12'], e.pattern))(expenses)));
 
 	const paidOffBill = (expense, from, to) => ({
 		flow: 'receive',
@@ -70,20 +70,27 @@ const generateForContract = contract => {
 		dueAmount: expenseAmount(expense, from, to),
 		metadata: expense
 	});
-	const standardBill = (freq, from, to) => ({
-		flow: 'receive',
-		entityType: 'property',
-		projectId: contract.projectId,
-		contractId: contract.id,
-		source: 'contract',
-		type: 'rent',
-		startDate: from,
-		endDate: to,
-		dueDate: dueAt(from, paymentPlan),
-		createdAt: moment().unix(),
-		dueAmount: dueAmountOf(strategy, expenses) * billPace(freq.pattern, from, to),
-		metadata: {freq, expenses: fp.filter(e => e.pattern === 'withRent')(expenses)}
-	});
+	const standardBill = (freq, from, to) => {
+		const months = billPace(freq.pattern, from, to);
+		return {
+			flow: 'receive',
+			entityType: 'property',
+			projectId: contract.projectId,
+			contractId: contract.id,
+			source: 'contract',
+			type: 'rent',
+			startDate: from,
+			endDate: to,
+			dueDate: dueAt(from, paymentPlan),
+			createdAt: moment().unix(),
+			dueAmount: dueAmountOf(strategy, expenses) * months,
+			metadata: {
+				freq,
+				expenses: fp.filter(e => e.pattern === 'withRent')(expenses),
+				months
+			}
+		};
+	}
 
 	const bondBill = (amount, from, to) => ({
 		flow: 'receive',
@@ -105,32 +112,41 @@ const generateForContract = contract => {
 		bondOf(contract).map(amount => bondBill(amount, from, to)));
 };
 
-//TODO: billFlow
-const extractBillItems = (contract, bill) => [{
-	billId: bill.id,
-	projectId: contract.projectId,
-	configId: 123,
-	amount: 10000,
-	createdAt: moment().unix()
-}, {
-	billId: bill.id,
-	projectId: contract.projectId,
-	configId: 124,
-	amount: 11000,
-	createdAt: moment().unix()
-}, {
-	billId: bill.id,
-	projectId: contract.projectId,
-	configId: 125,
-	amount: 12000,
-	createdAt: moment().unix()
-}, {
-	billId: bill.id,
-	projectId: contract.projectId,
-	configId: 126,
-	amount: 13000,
-	createdAt: moment().unix()
-}];
+const extractBillItems = (contract, bill) => {
+	const standardBill = _.compact([_.get(bill, 'metadata.freq')]);
+	const paidWithBill = _.get(bill, 'metadata.expenses', []);
+	const otherBill = _.compact([_.get(bill, 'metadata.configId')]);
+	const bondBill = _.compact([_.get(bill, 'metadata.bond')]);
+	console.log(bondBill);
+	return _.concat(standardBill.map(pattern => ({
+			billId: bill.id,
+			projectId: contract.projectId,
+			configId: 121, // 常规租金
+			amount: pattern.rent * bill.metadata.months,
+			createdAt: moment().unix()
+		})),
+		paidWithBill.map(pattern => ({
+			billId: bill.id,
+			projectId: contract.projectId,
+			configId: pattern.configId,
+			amount: pattern.rent * bill.metadata.months,
+			createdAt: moment().unix()
+		})),
+		otherBill.map(pattern => ({
+			billId: bill.id,
+			projectId: contract.projectId,
+			configId: pattern.configId,
+			amount: bill.dueAmount,
+			createdAt: moment().unix()
+		})),
+		bondBill.map(pattern => ({
+			billId: bill.id,
+			projectId: contract.projectId,
+			configId: 123, //常规押金
+			amount: bill.dueAmount,
+			createdAt: moment().unix()
+		})));
+}
 
 const removeNullValues = bill => {
 	const billItems = fp.map(item => _.omitBy(item.dataValues, _.isNull))(bill.billItems);

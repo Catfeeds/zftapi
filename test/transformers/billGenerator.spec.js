@@ -3,6 +3,7 @@ const moment = require('moment');
 const _ = require('lodash');
 const fp = require('lodash/fp');
 const generate = require('../../transformers/billGenerator').generateForContract;
+const extractBillItems = require('../../transformers/billGenerator').extractBillItems;
 const removeNullValues = require('../../transformers/billGenerator').removeNullValues;
 
 describe('Bill generator', () => {
@@ -86,7 +87,8 @@ describe('Bill generator', () => {
 						rent: 3600,
 						pattern: '12'
 					},
-					expenses: []
+					expenses: [],
+					months: 12
 				}
 			});
 		});
@@ -213,7 +215,8 @@ describe('Bill generator', () => {
 						rent: 3600,
 						pattern: 'paidOff'
 					},
-					expenses: []
+					expenses: [],
+					months: 12
 				}
 			});
 		})
@@ -262,7 +265,8 @@ describe('Bill generator', () => {
 						configId: 112,
 						rent: 200,
 						pattern: 'withRent'
-					}]
+					}],
+					months: 1
 				}
 
 			});
@@ -311,7 +315,8 @@ describe('Bill generator', () => {
 						configId: 112,
 						rent: 200,
 						pattern: 'withRent'
-					}]
+					}],
+					months: 12
 				}
 			});
 		});
@@ -354,5 +359,50 @@ describe('Bill generator', () => {
 			});
 		});
 
+	});
+	describe('extractBillItems', function () {
+		it('should generate billItems base on contract and bill', () => {
+			const startDate = moment().unix();
+			const oneYearLater = moment().add(1, 'year').unix();
+			const contract = {
+				strategy: {
+					freq: {
+						rent: 100,
+						pattern: 'paidOff'
+					},
+					bond: 100
+				},
+				expenses: [],
+				from: startDate,
+				to: oneYearLater,
+				paymentPlan: "-00",
+				projectId: 1,
+				id: 2,
+
+			};
+
+			const bill = {
+				id: 999,
+				flow: 'receive',
+				entityType: 'property',
+				projectId: 1,
+				contractId: 2,
+				source: 'contract',
+				type: 'bond',
+				startDate: startDate,
+				endDate: oneYearLater,
+				dueDate: startDate,
+				dueAmount: 100,
+				metadata: {
+					bond: 100
+				}
+			};
+			_.omit(extractBillItems(contract, bill)[0], 'createdAt').should.be.eql({
+				"amount": 100,
+				"billId": 999,
+				"configId": 123,
+				"projectId": 1
+			});
+		});
 	});
 });

@@ -3696,6 +3696,7 @@ INSERT INTO `divisions` VALUES (810000, '香港特别行政区', 1, 0, 0.00000, 
 INSERT INTO `divisions` VALUES (820000, '澳门特别行政区', 1, 0, 0.00000, 0.00000, 0);
 
 
+INSERT INTO `settings` VALUES (121, null, '租金', 'name', '常规租金');
 INSERT INTO `settings` VALUES (123, null, '押金', 'name', '常规押金');
 INSERT INTO `settings` VALUES (124, null, '能源费', 'name', '电费');
 INSERT INTO `settings` VALUES (125, null, '能源费', 'name', '水费');
