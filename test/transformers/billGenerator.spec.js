@@ -31,7 +31,8 @@ describe('Bill generator', () => {
 					freq: {
 						rent: 3600,
 						pattern: '1'
-					}
+					},
+					bond: 0
 				},
 				expenses: [
 					{
@@ -58,7 +59,8 @@ describe('Bill generator', () => {
 					freq: {
 						rent: 3600,
 						pattern: '12'
-					}
+					},
+					bond: 0
 				},
 				expenses: [],
 				from: startDate,
@@ -79,7 +81,13 @@ describe('Bill generator', () => {
 				endDate: oneYearLater,
 				dueDate: startDate,
 				dueAmount: 3600 * 12,
-				metadata: {}
+				metadata: {
+					freq: {
+						rent: 3600,
+						pattern: '12'
+					},
+					expenses: []
+				}
 			});
 		});
 
@@ -91,7 +99,8 @@ describe('Bill generator', () => {
 					freq: {
 						rent: 3600,
 						pattern: '12'
-					}
+					},
+					bond: 0
 				},
 				expenses: [{
 					configId: 112,
@@ -117,7 +126,11 @@ describe('Bill generator', () => {
 				endDate: oneYearLater,
 				dueDate: startDate,
 				dueAmount: 12000,
-				metadata: {}
+				metadata: {
+					configId: 112,
+					rent: 1000,
+					pattern: 'paidOff'
+				}
 			});
 		});
 		it('should generate regular bills', () => {
@@ -157,7 +170,11 @@ describe('Bill generator', () => {
 				endDate: oneMonthLater,
 				dueDate: startDate,
 				dueAmount: 12000,
-				metadata: {}
+				metadata: {
+					configId: 112,
+					rent: 12000,
+					pattern: '1'
+				}
 			});
 		});
 
@@ -191,7 +208,13 @@ describe('Bill generator', () => {
 				endDate: oneYearLater,
 				dueDate: startDate,
 				dueAmount: 43200,
-				metadata: {}
+				metadata: {
+					freq: {
+						rent: 3600,
+						pattern: 'paidOff'
+					},
+					expenses: []
+				}
 			});
 		})
 
@@ -230,7 +253,18 @@ describe('Bill generator', () => {
 				endDate: oneMonthLater,
 				dueDate: startDate,
 				dueAmount: 300,
-				metadata: {}
+				metadata: {
+					freq: {
+						rent: 100,
+						pattern: '1'
+					},
+					expenses: [{
+						configId: 112,
+						rent: 200,
+						pattern: 'withRent'
+					}]
+				}
+
 			});
 		});
 
@@ -268,7 +302,55 @@ describe('Bill generator', () => {
 				endDate: oneYearLater,
 				dueDate: startDate,
 				dueAmount: 3600,
-				metadata: {}
+				metadata: {
+					freq: {
+						rent: 100,
+						pattern: 'paidOff'
+					},
+					expenses: [{
+						configId: 112,
+						rent: 200,
+						pattern: 'withRent'
+					}]
+				}
+			});
+		});
+
+		it('should generate bond bill while bond is greater than 0', () => {
+			const startDate = moment().unix();
+			const oneYearLater = moment().add(1, 'year').unix();
+			const bills = generate({
+				strategy: {
+					freq: {
+						rent: 100,
+						pattern: 'paidOff'
+					},
+					bond: 100
+				},
+				expenses: [],
+				from: startDate,
+				to: oneYearLater,
+				paymentPlan: "-00",
+				projectId: 1,
+				id: 2,
+
+			});
+			bills.should.have.length(2);
+			const bondBill = fp.filter(b => b.type === 'bond')(bills);
+			_.omit(bondBill[0], 'createdAt').should.be.eql({
+				flow: 'receive',
+				entityType: 'property',
+				projectId: 1,
+				contractId: 2,
+				source: 'contract',
+				type: 'bond',
+				startDate: startDate,
+				endDate: oneYearLater,
+				dueDate: startDate,
+				dueAmount: 100,
+				metadata: {
+					bond: 100
+				}
 			});
 		});
 
