@@ -32,10 +32,10 @@ const generateForContract = contract => {
 
 	const paidOffBills = (expenses, from, to) =>
 		fp.map(expense => paidOffBill(expense, from, to))
-		(fp.filter(e => _.includes(['paidOff'], e.pattern))(expenses));
+			(fp.filter(e => _.includes(['paidOff'], e.pattern))(expenses));
 	const regularBills = (expenses, from, to) => _.flatten(
 		fp.map(expense => recursiveBills(expense, from, to, regularBill))
-		(fp.filter(e => _.includes(['1', '2', '3', '6', '12'], e.pattern))(expenses)));
+			(fp.filter(e => _.includes(['1', '2', '3', '6', '12'], e.pattern))(expenses)));
 
 	const paidOffBill = (expense, from, to) => ({
 		flow: 'receive',

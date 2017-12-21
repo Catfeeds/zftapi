@@ -46,7 +46,7 @@ module.exports = {
 					fp.map(bill => createBill(contract, bill, t))(generateBills(contract)))
 				)
 		).then(results => res.send(201, ErrorCode.ack(ErrorCode.OK, {req: req.body, res: results})))
-			// .catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, err)));
+			.catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, err)));
 
 	},
 	get: function getContracts(req, res) {
