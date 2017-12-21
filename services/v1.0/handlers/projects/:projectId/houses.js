@@ -645,7 +645,7 @@ module.exports = {
                 return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED));
             }
 
-            if(!Util.ParameterCheck(body.location, ['id', 'divisionId', 'name', 'district', 'address', 'latitude', 'longitude'])){
+            if(!Util.ParameterCheck(body.location, ['code', 'divisionId', 'name', 'district', 'address', 'latitude', 'longitude'])){
                 return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED));
             }
 
@@ -679,18 +679,21 @@ module.exports = {
                     const newLocation = await common.AsyncUpsertGeoLocation(body.location, t);
                     body.location = MySQL.Plain( newLocation[0] );
                 }
-                else {
-
-                    const entireExists = await MySQL.Houses.count({
-                        where: {
-                            geoLocation: location.id
-                        }
-                    });
-
-                    if (entireExists) {
-                        return res.send(400, ErrorCode.ack(ErrorCode.DUPLICATEREQUEST));
-                    }
+                else{
+                    body.location.id = location.id;
                 }
+                // else {
+                //
+                //     const entireExists = await MySQL.Houses.count({
+                //         where: {
+                //             geoLocation: location.id
+                //         }
+                //     });
+                //
+                //     if (entireExists) {
+                //         return res.send(400, ErrorCode.ack(ErrorCode.DUPLICATEREQUEST));
+                //     }
+                // }
 
                 const houseFormat = body.houseFormat;
                 let ack;

@@ -12,7 +12,7 @@ exports.UpsertGeoLocation = (location, t)=>{
 };
 
 exports.AsyncUpsertGeoLocation = async(location, t)=>{
-    location.code = location.id;
+    location.code = location.id || location.code;
     location = _.omit(location, 'id');
 
     return await MySQL.GeoLocation.findOrCreate({
@@ -24,48 +24,76 @@ exports.AsyncUpsertGeoLocation = async(location, t)=>{
     })
 };
 
-exports.CreateHouse = (projectId, houseFormat, parentId, code, locationId, houseKeeper, desc, status, config)=>{
-    const house = {
-        id: SnowFlake.next(),
-        projectId: projectId,
-        parentId: parentId,
-        houseFormat: houseFormat,
-        code: code,
-        geoLocation: locationId,
-        createdAt: moment().unix(),
-        houseKeeper: houseKeeper,
-        desc: desc,
-        status: status,
-        config: config
-    };
-    return house;
-};
+exports.QueryEntire = (projectId, query, include, attributes)=>{
+    return new Promise((resolve, reject)=>{
+        const where = _.assignIn({},
+            query.buildingId ? {'$Building.id$': query.buildingId} : {},
+            query.houseFormat ? {houseFormat: query.houseFormat} : {},
+            query.houseStatus ? { 'status': query.houseStatus } : {},
+            query.roomStatus ? {'$Rooms.status$': query.roomStatus }: {},
+            query.layoutId ? {'layoutId': query.layoutId}: {},
+            query.floor ? {'currentFloor': query.floor}: {},
+            query.q ? {$or: [
+                {roomNumber: {$regexp: query.q}},
+                {code: {$regexp: query.q}},
+            ]} : {},
+            query.bedRoom ? {'$Layouts.bedRoom$': query.bedRoom} : {}
+        );
 
-exports.CreateSole = (layoutId, houseId, group, building, unit, roomNumber, currentFloor, totalFloor)=>{
-    const sole = {
-        layoutId: layoutId,
-        houseId: houseId,
-        group: group,
-        building: building,
-        unit: unit,
-        roomNumber: roomNumber,
-        currentFloor: currentFloor,
-        totalFloor: totalFloor,
-    };
-    return sole;
-};
+        const queryInclude = _.union(
+            [
+                {
+                    model: MySQL.Building, as: 'Building'
+                    , include:[{
+                    model: MySQL.GeoLocation, as: 'Location'
+                }]
+                },
+                {model: MySQL.Layouts, as: 'Layouts'},
+                {
+                    model: MySQL.Rooms,
+                    as: 'Rooms',
+                    include:[
+                        {
+                            model: MySQL.HouseDevices,
+                            as: 'Devices'
+                        }
+                    ]
+                }
+            ],
+            include ? include : []
+        );
 
-exports.CreateLayout = (houseId, roomArea, name, bedRoom, livingRoom, bathRoom, orientation, remark)=>{
-    const layout = {
-        id: SnowFlake.next(),
-        houseId: houseId,
-        name: name,
-        bedRoom: bedRoom,
-        livingRoom: livingRoom,
-        bathRoom: bathRoom,
-        orientation: orientation,
-        roomArea: roomArea,
-        remark: remark,
-    };
-    return layout;
+
+        const pagingInfo = Util.PagingInfo(query.index, query.size, true);
+
+        Promise.all([
+            MySQL.Houses.count(
+                _.assignIn({
+                    where: where,
+                }, attributes ? attributes:{})
+            ),
+            MySQL.Houses.findAll(
+                _.assignIn({
+                    where: where,
+                    subQuery: false,
+                    include: queryInclude,
+                    offset: pagingInfo.skip,
+                    limit: pagingInfo.size
+                }, attributes ? attributes:{})
+            )
+        ]).then(
+            result=>{
+                const count = result[0];
+
+                resolve({
+                    count: count,
+                    data: result[1]
+                })
+            },
+            err=>{
+                log.error(err, projectId, query, include, attributes);
+                reject(ErrorCode.DATABASEEXEC);
+            }
+        );
+    });
 };

@@ -426,7 +426,7 @@ module.exports = {
             const query = req.query;
             const params = req.params;
 
-            const id = params.id;
+            const id = params.houseId;
             const projectId = params.projectId;
 
             if(!Util.ParameterCheck(query,
@@ -486,7 +486,7 @@ module.exports = {
          * For response `default` status 200 is used.
          */
         (async()=>{
-            const houseId = req.params.id;
+            const houseId = req.params.houseId;
             const projectId = req.params.projectId;
 
             const isExists = await MySQL.Houses.count({
@@ -582,7 +582,7 @@ module.exports = {
             const query = req.query;
 
             const projectId = params.projectId;
-            const houseId = params.id;
+            const houseId = params.houseId;
 
             if(!Util.ParameterCheck(query,
                     ['houseFormat']

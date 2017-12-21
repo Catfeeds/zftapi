@@ -22,8 +22,6 @@ module.exports = {
 		 * For response `default` status 200 is used.
 		 */
         (async()=>{
-            const projectId = req.params.projectId;
-
             const environments = {
                 houseFormat: Typedef.HouseFormat
             };

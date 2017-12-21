@@ -8,6 +8,7 @@ const config = require('config');
 let connection;
 let pool;
 let sequelizeInstance;
+let EMSequelizeInstance;
 
 exports = module.exports = function(host, port, user, passwd, database, isReadOnly){
 };
@@ -16,14 +17,51 @@ exports.Literal = (str)=>{
     return sequelizeInstance.literal(str);
 };
 
+exports.LoadEM = ()=>{
+    return new Promise((resolve, reject)=>{
+        EMSequelizeInstance = new Sequelize(null, null, null, {
+            dialect: 'mysql',
+            replication:{
+                read: config.RDS.EM.read,
+                write: config.RDS.EM.write
+            },
+            logging: true,
+            timezone: "+08:00",
+            retry:{
+                max: 0
+            },
+            pool:{
+                maxConnections: 20,
+                minConnections: 5,
+                maxIdleTime: 1000
+            }
+        });
+        EMSequelizeInstance.authenticate().then(
+            function (err) {
+                log.info('RDS EM Connection Successful...');
+                resolve();
+
+                exports.EMSequelize = EMSequelizeInstance;
+
+                EMDefine();
+            }
+        ).catch(function (err) {
+            log.error(err);
+            reject(err);
+        });
+    });
+};
+
+
+
 exports.Load = function () {
 
     return new Promise((resolve, reject)=>{
         sequelizeInstance = new Sequelize(null, null, null, {
             dialect: 'mysql',
             replication:{
-				read: config.RDS,
-				write: config.RDS
+				read: config.RDS.read,
+				write: config.RDS.write
             },
             logging: true,
             timezone: "+08:00",
@@ -861,6 +899,10 @@ function SequelizeDefine()
             autoIncrement: true,
             primaryKey: true
         },
+        projectId:{
+            type: Sequelize.BIGINT.UNSIGNED,
+            allowNull: true
+        },
         sourceId:{
             type: Sequelize.BIGINT.UNSIGNED,
             allowNull: false,
@@ -882,9 +924,79 @@ function SequelizeDefine()
         freezeTableName: true
     });
 
+    const HouseDevicePrice = sequelizeInstance.define('houseDevicePrice', {
+        id: {
+            type: Sequelize.BIGINT.UNSIGNED,
+            autoIncrement: true,
+            primaryKey: true
+        },
+        projectId:{
+            type: Sequelize.BIGINT.UNSIGNED,
+            allowNull: true
+        },
+        sourceId:{
+            type: Sequelize.BIGINT.UNSIGNED,
+            allowNull: false,
+        },
+        deviceId:{
+            type: Sequelize.STRING(32),
+            allowNull: false,
+        },
+        startDate:{
+            type: Sequelize.BIGINT.UNSIGNED,
+            defaultValue: 0
+        },
+        endDate:{
+            type: Sequelize.BIGINT.UNSIGNED,
+            defaultValue: 0
+        },
+        type: {
+            type: Sequelize.STRING(10),
+            allowNull: false    //ELECTRIC
+        },
+        price: {
+            type: Sequelize.INTEGER,
+            allowNull: false,
+            defaultValue: 0
+        }
+    },{
+        timestamps: false,
+        freezeTableName: true
+    });
 
+    Houses.hasMany(HouseDevices, {as: 'Devices', foreignKey: 'sourceId'});
+    Rooms.hasMany(HouseDevices, {as: 'Devices', foreignKey: 'sourceId'});
+
+    exports.HouseDevices = HouseDevices;
+    exports.HouseDevicePrice = HouseDevicePrice;
+
+    const Projects = sequelizeInstance.define('projects', {
+        id: {
+            type: Sequelize.BIGINT.UNSIGNED,
+            autoIncrement: true,
+            primaryKey: true
+        },
+        pid: {
+            type: Sequelize.BIGINT.UNSIGNED,
+            allowNull: false
+        },
+        externalId: {
+            type: Sequelize.STRING(32),
+            allowNull: false
+        },
+
+    },{
+        timestamps: false,
+        freezeTableName: true
+    });
+    exports.Projects = Projects;
 }
 
+function EMDefine()
+{
+    let EM = {};
+
+}
 
 exports.GenerateFundID = function(uid)
 {
