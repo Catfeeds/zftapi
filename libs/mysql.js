@@ -938,18 +938,6 @@ function SequelizeDefine()
             type: Sequelize.BIGINT.UNSIGNED,
             allowNull: false,
         },
-        deviceId:{
-            type: Sequelize.STRING(32),
-            allowNull: false,
-        },
-        startDate:{
-            type: Sequelize.BIGINT.UNSIGNED,
-            defaultValue: 0
-        },
-        endDate:{
-            type: Sequelize.BIGINT.UNSIGNED,
-            defaultValue: 0
-        },
         type: {
             type: Sequelize.STRING(10),
             allowNull: false    //ELECTRIC
@@ -966,6 +954,7 @@ function SequelizeDefine()
 
     Houses.hasMany(HouseDevices, {as: 'Devices', foreignKey: 'sourceId'});
     Rooms.hasMany(HouseDevices, {as: 'Devices', foreignKey: 'sourceId'});
+    HouseDevices.hasMany(HouseDevicePrice, {as: 'DevicePrice', foreignKey: 'sourceId'});
 
     exports.HouseDevices = HouseDevices;
     exports.HouseDevicePrice = HouseDevicePrice;

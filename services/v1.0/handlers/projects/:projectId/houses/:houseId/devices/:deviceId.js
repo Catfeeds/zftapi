@@ -45,6 +45,7 @@ module.exports = {
         const projectId = req.params.projectId;
         const houseId = req.params.houseId;
         const deviceId = req.params.deviceId;
+        const body = req.body;
 
         (async()=>{
             const houseDevices = await MySQL.HouseDevices.findAll({
@@ -59,6 +60,8 @@ module.exports = {
                 return houseDevice.deviceId === deviceId
             });
             try {
+                const t = await MySQL.Sequelize.transaction();
+
                 if (index === -1) {
                     //create
                     await MySQL.HouseDevices.create({
@@ -66,8 +69,40 @@ module.exports = {
                         sourceId: houseId,
                         deviceId: deviceId,
                         startDate: moment().unix()
-                    });
+                    },{transaction: t});
                 }
+
+                if(body.electric){
+                    const electricIns = await MySQL.HouseDevicePrice.findOne({
+                        where:{
+                            projectId: projectId,
+                            sourceId: houseId,
+                            type: 'ELECTRIC'
+                        },
+                        attributes: ['id']
+                    });
+                    if(!electricIns){
+                        await MySQL.HouseDevicePrice.create({
+                            projectId: projectId,
+                            sourceId: houseId,
+                            type: 'ELECTRIC',
+                            price: body.electric
+                        }, { transaction: t })
+                    }
+                    else{
+                        await MySQL.HouseDevicePrice.update(
+                            {price: body.electric},
+                            {
+                                where:{
+                                    id: electricIns.id
+                                },
+                                transaction: t
+                            }
+                            );
+                    }
+                }
+
+                await t.commit();
 
                 res.send(201);
             }
