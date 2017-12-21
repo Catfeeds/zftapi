@@ -117,7 +117,7 @@ const extractBillItems = (contract, bill) => {
 	const paidWithBill = _.get(bill, 'metadata.expenses', []);
 	const otherBill = _.compact([_.get(bill, 'metadata.configId')]);
 	const bondBill = _.compact([_.get(bill, 'metadata.bond')]);
-	console.log(bondBill);
+
 	return _.concat(standardBill.map(pattern => ({
 			billId: bill.id,
 			projectId: contract.projectId,
@@ -132,10 +132,10 @@ const extractBillItems = (contract, bill) => {
 			amount: pattern.rent * bill.metadata.months,
 			createdAt: moment().unix()
 		})),
-		otherBill.map(pattern => ({
+		otherBill.map(configId => ({
 			billId: bill.id,
 			projectId: contract.projectId,
-			configId: pattern.configId,
+			configId,
 			amount: bill.dueAmount,
 			createdAt: moment().unix()
 		})),
@@ -146,7 +146,7 @@ const extractBillItems = (contract, bill) => {
 			amount: bill.dueAmount,
 			createdAt: moment().unix()
 		})));
-}
+};
 
 const removeNullValues = bill => {
 	const billItems = fp.map(item => _.omitBy(item.dataValues, _.isNull))(bill.billItems);
@@ -157,4 +157,4 @@ module.exports = {
 	generateForContract,
 	extractBillItems,
 	removeNullValues
-}
+};
