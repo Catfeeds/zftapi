@@ -924,7 +924,8 @@ function SequelizeDefine()
             defaultValue: 0
         }
     },{
-        timestamps: false,
+        timestamps: true,
+        paranoid: true,
         freezeTableName: true
     });
 
@@ -952,13 +953,14 @@ function SequelizeDefine()
             defaultValue: 0
         }
     },{
-        timestamps: false,
+        timestamps: true,
+        paranoid: true,
         freezeTableName: true
     });
 
-    Houses.hasMany(HouseDevices, {as: 'Devices', foreignKey: 'sourceId'});
-    Rooms.hasMany(HouseDevices, {as: 'Devices', foreignKey: 'sourceId'});
-    HouseDevices.hasMany(HouseDevicePrice, {as: 'DevicePrice', foreignKey: 'sourceId'});
+    Houses.hasMany(HouseDevices, {as: 'devices', foreignKey: 'sourceId'});
+    Rooms.hasMany(HouseDevices, {as: 'devices', foreignKey: 'sourceId'});
+    HouseDevices.hasMany(HouseDevicePrice, {as: 'devicePrice', foreignKey: 'sourceId'});
 
     exports.HouseDevices = HouseDevices;
     exports.HouseDevicePrice = HouseDevicePrice;
@@ -1053,7 +1055,7 @@ exports.GenerateSQL = function(sql, queryArray)
 * */
 exports.Plain = function (data)
 {
-    return data.get({plain: true})
+    return data.toJSON();
 };
 
 /*

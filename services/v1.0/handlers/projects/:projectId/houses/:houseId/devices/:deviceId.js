@@ -68,7 +68,8 @@ module.exports = {
                         projectId: projectId,
                         sourceId: houseId,
                         deviceId: deviceId,
-                        startDate: moment().unix()
+                        startDate: moment().unix(),
+
                     },{transaction: t});
                 }
 

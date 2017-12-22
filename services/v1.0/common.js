@@ -55,7 +55,7 @@ exports.QueryEntire = (projectId, query, include, attributes)=>{
                     include:[
                         {
                             model: MySQL.HouseDevices,
-                            as: 'Devices'
+                            as: 'devices'
                         }
                     ]
                 }
