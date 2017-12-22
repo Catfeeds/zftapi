@@ -31,5 +31,7 @@ services:
           - ZFT_RDS_DATABASE=zft
           - AMAPKEY
           - MONGOURL
+          - EMRead
+          - EMWrite
         depends_on:
           - db
