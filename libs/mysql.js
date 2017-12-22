@@ -306,9 +306,11 @@ function SequelizeDefine()
         },
         name: {
             type: Sequelize.STRING(10),
-            allowNull: false,
-            defaultValue: ''
-        },
+			allowNull: false,
+			validate: {
+				notEmpty: true
+			}
+		},
         people: {
             type: Sequelize.INTEGER,
             allowNull: false,

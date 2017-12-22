@@ -53,5 +53,32 @@ module.exports = {
 
             res.send(ErrorCode.ack(ErrorCode.OK, newRoom));
         })();
-    }
+    },
+	get: (req, res, next)=>{
+		/**
+		 * Get the data for response 200
+		 * For response `default` status 200 is used.
+		 */
+		(async()=>{
+			const params = req.params;
+			const query = req.query;
+
+			if(!Util.ParameterCheck(query,
+					['houseFormat', 'q']
+				)){
+				return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED));
+			}
+
+			let sql = `select h.id as houseId, loc.name as locationName, b.group, b.building, b.unit, h.roomNumber 
+			         from ${MySQL.Houses.name} as h
+                     inner join ${MySQL.Rooms.name} as s on s.houseId = h.id
+                     inner join ${MySQL.Building.name} as b on b.id = h.buildingId
+                     inner join ${MySQL.GeoLocation.name} as loc on b.locationId = loc.id
+                      where houseFormat=:houseFormat and (roomNumber regexp :q or loc.name regexp :q) `;
+			const result = await MySQL.Exec(sql, query);
+
+			res.send(result || []);
+
+		})();
+	}
 };
