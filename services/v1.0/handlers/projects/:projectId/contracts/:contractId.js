@@ -37,11 +37,20 @@ module.exports = {
      * produces: application/json
      * responses: 200, 400
      */
-    delete: function (req, res, next) {
-        /**
-         * Get the data for response 200
-         * For response `default` status 200 is used.
-         */
+    delete: function (req, res) {
+		const Contracts = MySQL.Contracts;
+		Contracts.findById(req.params.contractId)
+			.then(contract => {
+				if (fp.isEmpty(contract)) {
+					res.send(404);
+					return;
+				}
+				contract.destroy().then(() => {
+					res.send(204);
+				})
+
+			})
+			.catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, err)));
     },
     /**
      * summary: reset the contract

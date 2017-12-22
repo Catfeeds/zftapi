@@ -579,7 +579,8 @@ function SequelizeDefine()
             defaultValue: 0
         }
     },{
-        timestamps: false,
+        timestamps: true,
+		paranoid: true,
         freezeTableName: true
     });
 

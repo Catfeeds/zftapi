@@ -46,7 +46,10 @@ create table if not exists contracts
 	contractNumber varchar(50) default '' not null,
 	paymentPlan varchar(3) not null,
 	signUpTime bigint default '0' not null,
-  primary key (`id`)
+	`createdAt` DATETIME NOT NULL,
+	`updatedAt` DATETIME NOT NULL,
+	`deletedAt` DATETIME,
+  	primary key (`id`)
 ) engine=innodb default charset=utf8;
 
 create table if not exists bills
