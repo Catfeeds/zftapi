@@ -919,12 +919,16 @@ function SequelizeDefine()
             type: Sequelize.BIGINT.UNSIGNED,
             defaultValue: 0
         },
+        public:{
+            type: Sequelize.BOOLEAN,
+            defaultValue: 0
+        }
     },{
         timestamps: false,
         freezeTableName: true
     });
 
-    const HouseDevicePrice = sequelizeInstance.define('houseDevicePrice', {
+    const HouseDevicePrice = sequelizeInstance.define('housesDevicesPrice', {
         id: {
             type: Sequelize.BIGINT.UNSIGNED,
             autoIncrement: true,

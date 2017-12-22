@@ -12,15 +12,9 @@ const HouseFormat = {
     ENTIRE: 'ENTIRE'
 };
 const HouseFormatLiteral = {
-    [HouseFormat.SHARE]: {
-        name: '合租'
-    },
-    [HouseFormat.SOLE]: {
-        name: '整租'
-    },
-    [HouseFormat.ENTIRE]: {
-        name: '独幢'
-    }
+    [HouseFormat.SHARE]: '合租',
+    [HouseFormat.SOLE]: '整租',
+    [HouseFormat.ENTIRE]: '独幢'
 };
 
 const RoomType = [

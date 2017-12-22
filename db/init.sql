@@ -185,6 +185,40 @@ create table if not exists `divisions`
 	PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB COMMENT = '行政区划';
 
+create table if not exists `housesDevices`
+(
+	`id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+	`projectId` bigint(20) NOT NULL,
+	`sourceId` bigint(20) UNSIGNED NOT NULL,
+	`deviceId` varchar(32) NOT NULL,
+	`startDate` bigint(20) UNSIGNED NULL DEFAULT 0,
+	`endDate` bigint(20) UNSIGNED NULL DEFAULT 0,
+	PRIMARY KEY (`id`) USING BTREE,
+	INDEX `sourceId`(`sourceId`) USING BTREE
+) ENGINE = InnoDB;
+
+create table if not exists `housesDevicesPrice`
+(
+	`id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+	`projectId` bigint(20) UNSIGNED NULL DEFAULT NULL,
+	`sourceId` bigint(20) UNSIGNED NOT NULL,
+	`type` varchar(10) NOT NULL,
+	`price` int(11) NOT NULL DEFAULT 0,
+	PRIMARY KEY (`id`) USING BTREE,
+	INDEX `sourceId`(`sourceId`) USING BTREE
+) ENGINE = InnoDB;
+
+create table if not exists `projects`
+(
+	`id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+	`pid` bigint(20) UNSIGNED NOT NULL,
+	`externalId` varchar(32) NOT NULL,
+	PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB;
+
+#project demo record
+INSERT INTO `zft`.`projects` (`id`, `pid`, `externalId`) VALUES ('1', '100', '5938bb4f4d3684627bcabd7f');
+
 INSERT INTO `divisions` VALUES (110000, '北京市', 1, 0, 39.90000, 116.40000, 1);
 INSERT INTO `divisions` VALUES (110100, '市辖区', 2, 110000, 0.00000, 0.00000, 0);
 INSERT INTO `divisions` VALUES (110101, '东城区', 3, 110100, 39.93000, 116.42000, 0);
