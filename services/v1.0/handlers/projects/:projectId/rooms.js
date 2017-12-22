@@ -7,7 +7,9 @@ const fp = require('lodash/fp');
 /**
  * Operations on /rooms/{hid}
  */
-const translate = models => {
+const translate = (models, pagingInfo) => {
+	console.log(models);
+	console.log(pagingInfo);
 	const single = model => {
 		const room = model.dataValues;
 		const house = room.House.dataValues;
@@ -24,7 +26,14 @@ const translate = models => {
 			roomName: room.name
 		}
 	};
-	return fp.map(single)(models);
+	return {
+		paging: {
+			count: models.count,
+			index: pagingInfo.index,
+			size: pagingInfo.size
+		},
+		data: fp.map(single)(models.rows)
+	}
 };
 module.exports = {
     post: (req, res, next)=>{
@@ -117,20 +126,13 @@ module.exports = {
 					{'$House.roomNumber$': {$regexp: query.q}}
 				]
 			},
-			attributes: ['id', 'name']
+			attributes: ['id', 'name'],
+			offset: pagingInfo.skip,
+			limit: pagingInfo.size
 		};
 
-		Rooms.findAll(modelOption)
-			.then(translate)
-			.then(data => {
-				res.send({
-					paging: {
-						count: data.length,
-						index: pagingInfo.index,
-						size: pagingInfo.size
-					},
-					data
-				});
-			})
+		Rooms.findAndCountAll(modelOption)
+			.then(data => translate(data, pagingInfo))
+			.then(data => res.send(data))
 	}
 };
