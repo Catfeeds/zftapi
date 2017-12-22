@@ -7,10 +7,12 @@ require(appRootPath.path + '/libs/log')("zftAPI");
     global.ENV = require('process').env;
     global.Typedef = Include('/libs/typedef');
     global.MySQL = Include('/libs/mysql');
+    global.MongoDB = Include('/libs/mongodb');
     global.Util = Include('/libs/util');
     global.ErrorCode = Include('/libs/errorCode');
     global.Amap = Include('/libs/amap');
     global.SnowFlake = Include('/libs/snowflake').Alloc(1, 1);
+    global.GUID = Include('/libs/guid');
 }
 
 let Server = Restify.createServer();
@@ -23,10 +25,18 @@ Include('/libs/enumServices').Load(
     ['/services']
 );
 
-MySQL.Load().then(
-    resolve=>{
-        Server.listen(8000, function () {
-            console.log('App running on %s:%d', Server.address().address, Server.address().port);
-        });
+MongoDB(ENV.MONGOURL).then(
+    ()=>{
+        MySQL.LoadEM().then(
+            ()=>{
+                MySQL.Load().then(
+                    resolve=>{
+                        Server.listen(8000, function () {
+                            console.log('App running on %s:%d', Server.address().address, Server.address().port);
+                        });
+                    }
+                );
+            }
+        );
     }
 );

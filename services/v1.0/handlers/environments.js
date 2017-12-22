@@ -22,11 +22,14 @@ module.exports = {
 		 * For response `default` status 200 is used.
 		 */
         (async()=>{
-            const projectId = req.params.projectId;
-
             const environments = {
-                houseFormat: Typedef.HouseFormat
+                houseFormat: Typedef.HouseFormatLiteral,
+				projectId: 100,
+				roomType: Typedef.RoomType,
+				operationStatus: Typedef.OperationStatusLiteral,
+				orientation: Typedef.OrientationLiteral,
             };
+            res.send(environments);
         })();
 	},
 };

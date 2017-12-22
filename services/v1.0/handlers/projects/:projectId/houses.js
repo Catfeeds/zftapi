@@ -125,91 +125,6 @@ async function SaveEntire(t, params, body){
         throw Error(ErrorCode.DATABASEEXEC);
     }
 }
-async function GetEntire(params, query) {
-    const projectId = params.projectId;
-
-    /*
-    * buildingId/houseStatus/roomStatus/layoutId/floor/q/bedRoom
-    * */
-    const buildingId = query.buildingId;
-
-    const where = _.assignIn({},
-        query.buildingId ? {'$Building.id$': query.buildingId} : {},
-        query.houseFormat ? {houseFormat: query.houseFormat} : {},
-        query.houseStatus ? { 'status': query.houseStatus } : {},
-        query.roomStatus ? {'$Rooms.status$': query.roomStatus }: {},
-        query.layoutId ? {'layoutId': query.layoutId}: {},
-        query.floor ? {'currentFloor': query.floor}: {},
-        query.q ? {$or: [
-            {roomNumber: {$regexp: query.q}},
-            {code: {$regexp: query.q}},
-        ]} : {},
-        query.bedRoom ? {'$Layouts.bedRoom$': query.bedRoom} : {}
-    );
-
-    const pagingInfo = Util.PagingInfo(query.index, query.size, true);
-    try {
-        const count = await MySQL.Houses.count({
-            where: where,
-            include: [
-                {
-                    model: MySQL.Building, as: 'Building'
-                    , include:[{
-                        model: MySQL.GeoLocation, as: 'Location'
-                    }]
-                },
-                {model: MySQL.Layouts, as: 'Layouts'},
-                {model: MySQL.Rooms, as: 'Rooms'}
-            ]
-        });
-
-        const result = await MySQL.Houses.findAll({
-            where: where,
-            subQuery: false,
-            include: [
-                {
-                    model: MySQL.Building, as: 'Building'
-                    , include:[{
-                        model: MySQL.GeoLocation, as: 'Location'
-                    }]
-                    , attributes: ['group', 'building', 'unit']
-                },
-                {model: MySQL.Layouts, as: 'Layouts', attributes: ["name","bedRoom", "livingRoom", "bathRoom", "orientation", "roomArea", "remark"]},
-                {model: MySQL.Rooms, as: 'Rooms', attributes:['config', 'name', 'people', 'type', 'roomArea', 'orientation']}
-            ],
-            offset: pagingInfo.skip,
-            limit: pagingInfo.size
-        });
-
-        let data = [];
-        result.map(r=>{
-            data.push({
-                houseId: r.id,
-                code: r.code,
-                group: r.Building.group,
-                building: r.Building.building,
-                unit: r.Building.unit,
-                roomNumber: r.roomNumber,
-                rooms: r.Rooms,
-                layout: r.Layouts
-            });
-        });
-
-        return {
-            paging:{
-                count: count,
-                index: pagingInfo.index,
-                size: pagingInfo.size
-            },
-            data: data
-        };
-    }
-    catch(e){
-        log.error(e);
-        throw Error(ErrorCode.DATABASEEXEC);
-    }
-}
-
 async function SaveSole(t, params, body) {
     const projectId = params.projectId;
 
@@ -284,110 +199,6 @@ async function SaveSole(t, params, body) {
         throw Error(ErrorCode.DATABASEEXEC);
     }
 }
-async function GetSole(params, query) {
-    const projectId = params.projectId;
-
-    /*
-    * divisionId/geoLocationId/q/houseStatus/roomStatus/bedRoom
-    * */
-    const buildingId = query.buildingId;
-
-    const divisionLocation = ()=>{
-        if(query.locationId){
-            // geoLocationIds = [query.locationId];
-            return {'$Building.Location.id$': query.locationId};
-        }
-        else if(query.divisionId){
-            let where = {};
-            if(Util.IsParentDivision(query.divisionId)){
-                return {
-                    '$Building.Location.divisionId': {$regexp: Util.ParentDivision(query.divisionId)}
-                };
-            }
-            else{
-                return {
-                    '$Building.Location.divisionId': query.divisionId
-                };
-            }
-        }
-    };
-
-    const where = _.assignIn({projectId: projectId},
-        query.houseFormat ? {houseFormat: query.houseFormat} : {},
-        divisionLocation() && {},
-        query.houseStatus ? { 'status': query.houseStatus } : {},
-        query.roomStatus ? {'$Rooms.status$': query.roomStatus }: {},
-        query.q ? {$or: [
-            {'$Building.Location.name$': {$regexp: query.q}},
-            {roomNumber: {$regexp: query.q}},
-            {code: {$regexp: query.q}},
-        ]} : {},
-        query.bedRoom ? {'$Layouts.bedRoom$': query.bedRoom} : {}
-    );
-
-    const pagingInfo = Util.PagingInfo(query.index, query.size, true);
-    try {
-        const count = await MySQL.Houses.count({
-            where: where,
-            include: [
-                {
-                    model: MySQL.Building, as: 'Building'
-                    , include:[{
-                        model: MySQL.GeoLocation, as: 'Location'
-                    }]
-                },
-                {model: MySQL.Layouts, as: 'Layouts'},
-                {model: MySQL.Rooms, as: 'Rooms'}
-            ]
-        });
-
-        const result = await MySQL.Houses.findAll({
-            where: where,
-            subQuery: false,
-            include: [
-                {
-                    model: MySQL.Building, as: 'Building'
-                    , include:[{
-                    model: MySQL.GeoLocation, as: 'Location'
-                }]
-                    , attributes: ['group', 'building', 'unit']
-                },
-                {model: MySQL.Layouts, as: 'Layouts', attributes: ["name","bedRoom", "livingRoom", "bathRoom", "orientation", "roomArea", "remark"]},
-                {model: MySQL.Rooms, as: 'Rooms', attributes:['id', 'config', 'name', 'people', 'type', 'roomArea', 'orientation']}
-            ],
-            offset: pagingInfo.skip,
-            limit: pagingInfo.size
-        });
-
-        let data = [];
-        result.map(r=>{
-            data.push({
-                houseId: r.id,
-                code: r.code,
-                group: r.Building.group,
-                building: r.Building.building,
-                unit: r.Building.unit,
-                roomNumber: r.roomNumber,
-                rooms: r.Rooms,
-                layout: r.Layouts
-            });
-        });
-
-        return {
-            paging:{
-                count: count,
-                index: pagingInfo.index,
-                size: pagingInfo.size
-            },
-            data: data
-        };
-    }
-    catch(e){
-        log.error(e);
-        throw Error(ErrorCode.DATABASEEXEC);
-    }
-}
-
 async function SaveShare(t, params, body) {
 
     const projectId = params.projectId;
@@ -476,12 +287,55 @@ async function SaveShare(t, params, body) {
         throw Error(ErrorCode.DATABASEEXEC);
     }
 }
-async function GetShare(params, query) {
+
+async function Gethouses(params, query) {
     const projectId = params.projectId;
 
     /*
-    * divisionId/geoLocationId/q/houseStatus/roomStatus/bedRoom
+    * buildingId/houseStatus/roomStatus/layoutId/floor/q/bedRoom
     * */
+    const deviceFilter = async()=>{
+        if(query.device){
+            try {
+                const sourceIds = fp.map(item => {
+                    return item.sourceId;
+                })(await MySQL.HouseDevices.findAll({
+                    where: {
+                        projectId: projectId,
+                        endDate: 0
+                    },
+                    attributes: ['sourceId']
+                }));
+                if (query.device === 'BIND') {
+                    //
+                    return {
+                        $or: [
+                            {'id': {$in: sourceIds}},
+                            {'$Rooms.id$': {$in: sourceIds}},
+                        ]
+                    }
+                }
+                else if (query.device === 'FREE') {
+                    return {
+                        $or: [
+                            {'id': {$notIn: sourceIds}},
+                            {'$Rooms.id$': {$notIn: sourceIds}},
+                        ]
+                    }
+                }
+                else{
+                    return {};
+                }
+            }
+            catch(e){
+                log.error(e, params, query);
+                throw Error(ErrorCode.DATABASEEXEC);
+            }
+        }
+        else{
+            return {};
+        }
+    };
     const divisionLocation = ()=>{
         if(query.locationId){
             // geoLocationIds = [query.locationId];
@@ -502,63 +356,143 @@ async function GetShare(params, query) {
         }
     };
 
-    const where = _.assignIn({},
-        query.houseFormat ? {houseFormat: query.houseFormat} : {},
-        divisionLocation() && {},
-        query.houseStatus ? { 'status': query.houseStatus } : {},
-        query.roomStatus ? {'$Rooms.status$': query.roomStatus }: {},
-        query.q ? {$or: [
-            {'$Building.Location.name$': {$regexp: query.q}},
-            {roomNumber: {$regexp: query.q}},
-            {code: {$regexp: query.q}},
-        ]} : {},
-        query.bedRoom ? {'$Layouts.bedRoom$': query.bedRoom} : {}
-    );
-
     const pagingInfo = Util.PagingInfo(query.index, query.size, true);
     try {
+        const where = _.assignIn({
+            },
+            query.buildingId ? {'$Building.id$': query.buildingId} : {},
+            divisionLocation() && {},
+            query.houseFormat ? {houseFormat: query.houseFormat} : {},
+            query.houseStatus ? { 'status': query.houseStatus } : {},
+            query.roomStatus ? {'$Rooms.status$': query.roomStatus }: {},
+            query.layoutId ? {'layoutId': query.layoutId}: {},
+            query.floor ? {'currentFloor': query.floor}: {},
+            query.q ? {$or: [
+                {'$Building.Location.name$': {$regexp: query.q}},
+                {roomNumber: {$regexp: query.q}},
+                {code: {$regexp: query.q}},
+            ]} : {},
+            query.bedRoom ? {'$Layouts.bedRoom$': query.bedRoom} : {},
+            query.device ? await deviceFilter() : {},
+        );
+
+        const include = [
+            {
+                model: MySQL.Building, as: 'Building'
+                , include:[{
+                model: MySQL.GeoLocation, as: 'Location',
+            }]
+                , attributes: ['group', 'building', 'unit'],
+            },
+            {
+                model: MySQL.Layouts,
+                as: 'Layouts',
+                attributes: ["name", "bedRoom", "livingRoom", "bathRoom", "orientation", "roomArea", "remark"],
+            },
+            {
+                model: MySQL.Rooms,
+                as: 'Rooms',
+                attributes:['id', 'config', 'name', 'people', 'type', 'roomArea', 'orientation'],
+                include:[
+                    {
+                        model: MySQL.HouseDevices,
+                        as: 'devices',
+                        required: false,
+                        attributes: ['deviceId', "public"],
+                        where:{
+                            endDate: 0
+                        }
+                    }
+                ]
+            },
+            {
+                model: MySQL.HouseDevices,
+                as: 'devices',
+                attributes: ['deviceId', "public"],
+                where:{
+                    endDate: 0
+                },
+                required: false
+            }
+        ];
+
         const count = await MySQL.Houses.count({
             where: where,
-            include: [
-                {
-                    model: MySQL.Building, as: 'Building'
-                    , include:[{
-                        model: MySQL.GeoLocation, as: 'Location'
-                    }]
-                },
-                {model: MySQL.Layouts, as: 'Layouts'},
-                {model: MySQL.Rooms, as: 'Rooms'}
-            ]
+            include: include
         });
 
-        const result = await MySQL.Houses.findAll({
+        const result = fp.map(house=>{return house.toJSON();})(await MySQL.Houses.findAll({
             where: where,
             subQuery: false,
-            include: [
-                {
-                    model: MySQL.Building, as: 'Building'
-                    , include:[{
-                        model: MySQL.GeoLocation, as: 'Location'
-                    }]
-                },
-                {model: MySQL.Layouts, as: 'Layouts', attributes: ["name","bedRoom", "livingRoom", "bathRoom", "orientation", "roomArea", "remark"]},
-                {model: MySQL.Rooms, as: 'Rooms', attributes:['id', 'config', 'name', 'people', 'type', 'roomArea', 'orientation']}
-            ],
+            include: include,
             offset: pagingInfo.skip,
             limit: pagingInfo.size
+        }));
+
+        let deviceIds = [];
+        _.each(result, house=>{
+            const getDeviceId = (dev)=>{
+                deviceIds.push(new RegExp(dev.deviceId.substr(3)));
+            };
+            _.each(house.devices, dev=>{ getDeviceId(dev); });
+            _.each(house.Rooms, room=>{
+                _.each(room.devices, dev=>{ getDeviceId(dev); });
+            });
+        });
+        deviceIds = _.uniq(deviceIds);
+
+        const devices = await MongoDB.Sensor
+            .find({
+                key:{$in: deviceIds}
+            })
+            .select("title key lasttotal lastupdate");
+
+        let deviceMapping ={};
+        _.each(devices, dev=>{
+            const deviceId = GUID.DeviceID(dev.key);
+            deviceMapping[`YTL${deviceId.addrid}`] = dev;
         });
 
         let data = [];
-        result.map(r=>{
+        _.each(result, house=>{
+            let houseDevices = [];
+            const createDevices = (dev)=>{
+                const device = deviceMapping[dev.deviceId];
+                if(!device){
+                    return null;
+                }
+                const lastupdate = moment(device.lastupdate);
+                return {
+                    deviceId: dev.deviceId,
+                    title: device.title,
+                    scale: device.lasttotal,
+                    updatedAt: lastupdate.unix(),
+                    public: dev.public
+                };
+            };
+            _.each( house.devices, dev=>{
+                houseDevices.push(createDevices(dev));
+                _.each(house.Rooms, room=>{
+                    let roomDevices = [];
+                    _.each(room.devices, dev=>{
+                        roomDevices.push( createDevices(dev) );
+                    });
+                    room.devices = roomDevices;
+                });
+            } );
+            houseDevices = _.compact(houseDevices);
+
+
             data.push({
-                houseId: r.id,
-                code: r.code,
-                group: r.Building.group,
-                building: r.Building.building,
-                unit: r.Building.unit,
-                roomNumber: r.roomNumber,
-                rooms: r.Rooms,
-                layout: r.Layouts
+                houseId: house.id,
+                code: house.code,
+                group: house.Building.group,
+                building: house.Building.building,
+                unit: house.Building.unit,
+                roomNumber: house.roomNumber,
+                rooms: house.Rooms,
+                layout: house.Layouts,
+                devices: houseDevices
             });
         });
 
@@ -601,20 +535,8 @@ module.exports = {
                 return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED));
             }
 
-            let result;
             try {
-                switch (query.houseFormat) {
-                    case Typedef.HouseFormat.ENTIRE:
-                        result = await GetEntire(params, query);
-                        break;
-                    case Typedef.HouseFormat.SOLE:
-                        result = await GetSole(params, query);
-                        break;
-                    case Typedef.HouseFormat.SHARE:
-                        result = await GetShare(params, query);
-                        break;
-                }
-
+                let result = await Gethouses(params, query);
                 res.send(result);
             }
             catch(e){
@@ -645,7 +567,7 @@ module.exports = {
                 return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED));
             }
 
-            if(!Util.ParameterCheck(body.location, ['id', 'divisionId', 'name', 'district', 'address', 'latitude', 'longitude'])){
+            if(!Util.ParameterCheck(body.location, ['code', 'divisionId', 'name', 'district', 'address', 'latitude', 'longitude'])){
                 return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED));
             }
 
@@ -679,18 +601,21 @@ module.exports = {
                     const newLocation = await common.AsyncUpsertGeoLocation(body.location, t);
                     body.location = MySQL.Plain( newLocation[0] );
                 }
-                else {
-
-                    const entireExists = await MySQL.Houses.count({
-                        where: {
-                            geoLocation: location.id
-                        }
-                    });
-
-                    if (entireExists) {
-                        return res.send(400, ErrorCode.ack(ErrorCode.DUPLICATEREQUEST));
-                    }
+                else{
+                    body.location.id = location.id;
                 }
+                // else {
+                //
+                //     const entireExists = await MySQL.Houses.count({
+                //         where: {
+                //             geoLocation: location.id
+                //         }
+                //     });
+                //
+                //     if (entireExists) {
+                //         return res.send(400, ErrorCode.ack(ErrorCode.DUPLICATEREQUEST));
+                //     }
+                // }
 
                 const houseFormat = body.houseFormat;
                 let ack;

@@ -8,6 +8,7 @@ const config = require('config');
 let connection;
 let pool;
 let sequelizeInstance;
+let EMSequelizeInstance;
 
 exports = module.exports = function(host, port, user, passwd, database, isReadOnly){
 };
@@ -15,6 +16,45 @@ exports = module.exports = function(host, port, user, passwd, database, isReadOn
 exports.Literal = (str)=>{
     return sequelizeInstance.literal(str);
 };
+
+exports.LoadEM = ()=>{
+    return new Promise((resolve, reject)=>{
+        const EMRead = JSON.parse(ENV.EMRead);
+        const EMWrite = JSON.parse(ENV.EMWrite);
+        EMSequelizeInstance = new Sequelize(null, null, null, {
+            dialect: 'mysql',
+            replication:{
+                read: EMRead,
+                write: EMWrite
+            },
+            logging: true,
+            timezone: "+08:00",
+            retry:{
+                max: 0
+            },
+            pool:{
+                maxConnections: 20,
+                minConnections: 5,
+                maxIdleTime: 1000
+            }
+        });
+        EMSequelizeInstance.authenticate().then(
+            function (err) {
+                log.info('RDS EM Connection Successful...');
+                resolve();
+
+                exports.EMSequelize = EMSequelizeInstance;
+
+                EMDefine();
+            }
+        ).catch(function (err) {
+            log.error(err);
+            reject(err);
+        });
+    });
+};
+
+
 
 exports.Load = function () {
 
@@ -855,8 +895,108 @@ function SequelizeDefine()
         freezeTableName: true
     });
     exports.Layouts = Layouts;
+
+
+    //Devices
+    const HouseDevices = sequelizeInstance.define('housesDevices', {
+        id: {
+            type: Sequelize.BIGINT.UNSIGNED,
+            autoIncrement: true,
+            primaryKey: true
+        },
+        projectId:{
+            type: Sequelize.BIGINT.UNSIGNED,
+            allowNull: true
+        },
+        sourceId:{
+            type: Sequelize.BIGINT.UNSIGNED,
+            allowNull: false,
+        },
+        deviceId:{
+            type: Sequelize.STRING(32),
+            allowNull: false,
+        },
+        startDate:{
+            type: Sequelize.BIGINT.UNSIGNED,
+            defaultValue: 0
+        },
+        endDate:{
+            type: Sequelize.BIGINT.UNSIGNED,
+            defaultValue: 0
+        },
+        public:{
+            type: Sequelize.BOOLEAN,
+            defaultValue: 0
+        }
+    },{
+        timestamps: true,
+        paranoid: true,
+        freezeTableName: true
+    });
+
+    const HouseDevicePrice = sequelizeInstance.define('housesDevicesPrice', {
+        id: {
+            type: Sequelize.BIGINT.UNSIGNED,
+            autoIncrement: true,
+            primaryKey: true
+        },
+        projectId:{
+            type: Sequelize.BIGINT.UNSIGNED,
+            allowNull: true
+        },
+        sourceId:{
+            type: Sequelize.BIGINT.UNSIGNED,
+            allowNull: false,
+        },
+        type: {
+            type: Sequelize.STRING(10),
+            allowNull: false    //ELECTRIC
+        },
+        price: {
+            type: Sequelize.INTEGER,
+            allowNull: false,
+            defaultValue: 0
+        }
+    },{
+        timestamps: true,
+        paranoid: true,
+        freezeTableName: true
+    });
+
+    Houses.hasMany(HouseDevices, {as: 'devices', foreignKey: 'sourceId'});
+    Rooms.hasMany(HouseDevices, {as: 'devices', foreignKey: 'sourceId'});
+    HouseDevices.hasMany(HouseDevicePrice, {as: 'devicePrice', foreignKey: 'sourceId'});
+
+    exports.HouseDevices = HouseDevices;
+    exports.HouseDevicePrice = HouseDevicePrice;
+
+    const Projects = sequelizeInstance.define('projects', {
+        id: {
+            type: Sequelize.BIGINT.UNSIGNED,
+            autoIncrement: true,
+            primaryKey: true
+        },
+        pid: {
+            type: Sequelize.BIGINT.UNSIGNED,
+            allowNull: false
+        },
+        externalId: {
+            type: Sequelize.STRING(32),
+            allowNull: false
+        },
+
+    },{
+        timestamps: false,
+        freezeTableName: true
+    });
+    exports.Projects = Projects;
 }
 
+function EMDefine()
+{
+    let EM = {};
+
+}
 
 exports.GenerateFundID = function(uid)
 {
@@ -920,7 +1060,7 @@ exports.GenerateSQL = function(sql, queryArray)
 * */
 exports.Plain = function (data)
 {
-    return data.get({plain: true})
+    return data.toJSON();
 };
 
 /*

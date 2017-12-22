@@ -29,6 +29,7 @@ services:
           - ZFT_RDS_USERNAME=root
           - ZFT_RDS_PASSWORD=example
           - ZFT_RDS_DATABASE=zft
-          - AMAPKEY=107c05b76a89fc48c752a314ced445f9
+          - AMAPKEY
+          - MONGOURL
         depends_on:
           - db
