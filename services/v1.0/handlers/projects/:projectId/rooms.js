@@ -2,10 +2,30 @@
 
 const moment = require('moment');
 const _ = require('lodash');
+const fp = require('lodash/fp');
 
 /**
  * Operations on /rooms/{hid}
  */
+const translate = models => {
+	const single = model => {
+		const room = model.dataValues;
+		const house = room.House.dataValues;
+		const building = house.Building.dataValues;
+		const location = building.Location.dataValues;
+		return {
+			id: room.id,
+			houseId: house.id,
+			locationName: location.name,
+			group: building.group,
+			building: building.building,
+			unit: building.unit,
+			roomNumber: house.roomNumber,
+			roomName: room.name
+		}
+	};
+	return fp.map(single)(models);
+};
 module.exports = {
     post: (req, res, next)=>{
         //
@@ -55,44 +75,62 @@ module.exports = {
             res.send(ErrorCode.ack(ErrorCode.OK, newRoom));
         })();
     },
-	get: (req, res, next)=>{
-		/**
-		 * Get the data for response 200
-		 * For response `default` status 200 is used.
-		 */
-		(async()=>{
-			const params = req.params;
-			const query = req.query;
+	get: (req, res) => {
+		const params = req.params;
+		const query = req.query;
 
-			if(!Util.ParameterCheck(query,
-					['houseFormat', 'q']
-				)){
-				return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED));
-			}
+		if (!Util.ParameterCheck(query, ['q'])) {
+			return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED));
+		}
 
-			const extendQuery = _.assign({}, query, {projectId: params.projectId});
+		const pagingInfo = Util.PagingInfo(query.index, query.size, true);
 
-			const pagingInfo = Util.PagingInfo(query.index, query.size, true);
+		const Houses = MySQL.Houses;
+		const Rooms = MySQL.Rooms;
+		const Building = MySQL.Building;
+		const GeoLocation = MySQL.GeoLocation;
 
-			let sql = `select s.id as id, s.name as roomName, h.id as houseId, loc.name as locationName, b.group, b.building, b.unit, h.roomNumber 
-			         from ${MySQL.Houses.name} as h
-                     inner join ${MySQL.Rooms.name} as s on s.houseId = h.id
-                     inner join ${MySQL.Building.name} as b on b.id = h.buildingId
-                     inner join ${MySQL.GeoLocation.name} as loc on b.locationId = loc.id
-                      where houseFormat=:houseFormat and h.projectId = :projectId
-                      and (roomNumber regexp :q or loc.name regexp :q) `;
-			const data = await MySQL.Exec(sql, extendQuery);
+		const houseCondition = _.assign(
+			{projectId: params.projectId},
+			query.houseFormat ? {houseFormat: query.houseFormat} : {}
+		);
 
-			res.send({
-				paging:{
-					count: data.length,
-					index: pagingInfo.index,
-					size: pagingInfo.size
-				},
-				data
-            });
+		const modelOption = {
+			include: [{
+				model: Houses, required: true,
+				as: 'House',
+				where: houseCondition,
+				attributes: ['id', 'roomNumber'],
+				include: [{
+					model: Building, required: true, as: 'Building',
+					attributes: ['group', 'building', 'unit'],
+					include: [{
+						model: GeoLocation, required: true,
+						as: 'Location',
+						attributes: ['name']
+					}]
+				}]
+			}],
+			where: {
+				$or: [
+					{'$House.Building.Location.name$': {$regexp: query.q}},
+					{'$House.roomNumber$': {$regexp: query.q}}
+				]
+			},
+			attributes: ['id', 'name']
+		};
 
-
-		})();
+		Rooms.findAll(modelOption)
+			.then(translate)
+			.then(data => {
+				res.send({
+					paging: {
+						count: data.length,
+						index: pagingInfo.index,
+						size: pagingInfo.size
+					},
+					data
+				});
+			})
 	}
 };
