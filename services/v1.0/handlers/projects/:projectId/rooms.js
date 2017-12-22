@@ -1,6 +1,7 @@
 'use strict';
 
 const moment = require('moment');
+const _ = require('lodash');
 
 /**
  * Operations on /rooms/{hid}
@@ -68,15 +69,19 @@ module.exports = {
 				)){
 				return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED));
 			}
+
+			const extendQuery = _.assign({}, query, {projectId: params.projectId});
+
 			const pagingInfo = Util.PagingInfo(query.index, query.size, true);
 
-			let sql = `select s.id as id, h.id as houseId, loc.name as locationName, b.group, b.building, b.unit, h.roomNumber 
+			let sql = `select s.id as id, s.name as roomName, h.id as houseId, loc.name as locationName, b.group, b.building, b.unit, h.roomNumber 
 			         from ${MySQL.Houses.name} as h
                      inner join ${MySQL.Rooms.name} as s on s.houseId = h.id
                      inner join ${MySQL.Building.name} as b on b.id = h.buildingId
                      inner join ${MySQL.GeoLocation.name} as loc on b.locationId = loc.id
-                      where houseFormat=:houseFormat and (roomNumber regexp :q or loc.name regexp :q) `;
-			const data = await MySQL.Exec(sql, query);
+                      where houseFormat=:houseFormat and h.projectId = :projectId
+                      and (roomNumber regexp :q or loc.name regexp :q) `;
+			const data = await MySQL.Exec(sql, extendQuery);
 
 			res.send({
 				paging:{
