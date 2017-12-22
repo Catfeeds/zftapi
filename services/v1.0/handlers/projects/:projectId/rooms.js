@@ -68,6 +68,7 @@ module.exports = {
 				)){
 				return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED));
 			}
+			const pagingInfo = Util.PagingInfo(query.index, query.size, true);
 
 			let sql = `select h.id as houseId, loc.name as locationName, b.group, b.building, b.unit, h.roomNumber 
 			         from ${MySQL.Houses.name} as h
@@ -75,9 +76,17 @@ module.exports = {
                      inner join ${MySQL.Building.name} as b on b.id = h.buildingId
                      inner join ${MySQL.GeoLocation.name} as loc on b.locationId = loc.id
                       where houseFormat=:houseFormat and (roomNumber regexp :q or loc.name regexp :q) `;
-			const result = await MySQL.Exec(sql, query);
+			const data = await MySQL.Exec(sql, query);
 
-			res.send(result || []);
+			res.send({
+				paging:{
+					count: data.length,
+					index: pagingInfo.index,
+					size: pagingInfo.size
+				},
+				data
+            });
+
 
 		})();
 	}
