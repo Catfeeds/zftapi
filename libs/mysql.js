@@ -19,11 +19,13 @@ exports.Literal = (str)=>{
 
 exports.LoadEM = ()=>{
     return new Promise((resolve, reject)=>{
+        const EMRead = JSON.parse(ENV.EMRead);
+        const EMWrite = JSON.parse(ENV.EMWrite);
         EMSequelizeInstance = new Sequelize(null, null, null, {
             dialect: 'mysql',
             replication:{
-                read: config.RDS.EM.read,
-                write: config.RDS.EM.write
+                read: EMRead,
+                write: EMWrite
             },
             logging: true,
             timezone: "+08:00",
