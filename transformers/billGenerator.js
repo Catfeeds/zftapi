@@ -3,8 +3,7 @@ const moment = require('moment');
 const _ = require('lodash');
 const fp = require('lodash/fp');
 
-// TODO: paymentPlan
-const dueAt = (startDate, paymentPlan) => startDate;
+const dueDateShifter = require('./dueDateShifter').dueDateShifter;
 
 const expensesReduce = expenses => _.sumBy(fp.filter(e => e.pattern === 'withRent')(expenses), 'rent');
 
@@ -23,12 +22,16 @@ const billScheduler = (from, to, pattern) => {
 const plusMonth = (from, m) => moment.unix(from).add(m, 'month').unix();
 const bondOf = contract => _.compact([_.get(contract, 'strategy.bond')]);
 
+
 const generateForContract = contract => {
 	const from = contract.from;
 	const to = contract.to;
 	const paymentPlan = contract.paymentPlan;
 	const strategy = contract.strategy;
 	const expenses = contract.expenses;
+	const nextDueDate = dueDateShifter(from);
+	// TODO: paymentPlan
+	const dueAt = (startDate, paymentPlan) => nextDueDate(startDate, paymentPlan);
 
 	const paidOffBills = (expenses, from, to) =>
 		fp.map(expense => paidOffBill(expense, from, to))
