@@ -22,8 +22,7 @@ const billScheduler = (from, to, pattern) => {
 const plusMonth = (from, m) => moment.unix(from).add(m, 'month').unix();
 const bondOf = contract => _.compact([_.get(contract, 'strategy.bond')]);
 
-
-const generateForContract = contract => {
+const generate = contract => {
 	const from = contract.from;
 	const to = contract.to;
 	const paymentPlan = contract.paymentPlan;
@@ -93,7 +92,7 @@ const generateForContract = contract => {
 				months
 			}
 		};
-	}
+	};
 
 	const bondBill = (amount, from, to) => ({
 		flow: 'receive',
@@ -115,49 +114,6 @@ const generateForContract = contract => {
 		bondOf(contract).map(amount => bondBill(amount, from, to)));
 };
 
-const extractBillItems = (contract, bill) => {
-	const standardBill = _.compact([_.get(bill, 'metadata.freq')]);
-	const paidWithBill = _.get(bill, 'metadata.expenses', []);
-	const otherBill = _.compact([_.get(bill, 'metadata.configId')]);
-	const bondBill = _.compact([_.get(bill, 'metadata.bond')]);
-
-	return _.concat(standardBill.map(pattern => ({
-			billId: bill.id,
-			projectId: contract.projectId,
-			configId: 121, // 常规租金
-			amount: pattern.rent * bill.metadata.months,
-			createdAt: moment().unix()
-		})),
-		paidWithBill.map(pattern => ({
-			billId: bill.id,
-			projectId: contract.projectId,
-			configId: pattern.configId,
-			amount: pattern.rent * bill.metadata.months,
-			createdAt: moment().unix()
-		})),
-		otherBill.map(configId => ({
-			billId: bill.id,
-			projectId: contract.projectId,
-			configId,
-			amount: bill.dueAmount,
-			createdAt: moment().unix()
-		})),
-		bondBill.map(pattern => ({
-			billId: bill.id,
-			projectId: contract.projectId,
-			configId: 123, //常规押金
-			amount: bill.dueAmount,
-			createdAt: moment().unix()
-		})));
-};
-
-const removeNullValues = bill => {
-	const billItems = fp.map(item => _.omitBy(item.dataValues, _.isNull))(bill.billItems);
-	return fp.defaults(_.omitBy(bill, _.isNull))({billItems})
-};
-
 module.exports = {
-	generateForContract,
-	extractBillItems,
-	removeNullValues
+	generate
 };
