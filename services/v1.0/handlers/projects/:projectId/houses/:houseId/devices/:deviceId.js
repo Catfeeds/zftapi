@@ -69,7 +69,7 @@ module.exports = {
                         sourceId: houseId,
                         deviceId: deviceId,
                         startDate: moment().unix(),
-
+                        public: body.public
                     },{transaction: t});
                 }
 

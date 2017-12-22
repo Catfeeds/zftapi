@@ -191,8 +191,9 @@ create table if not exists `housesDevices`
 	`projectId` bigint(20) NOT NULL,
 	`sourceId` bigint(20) UNSIGNED NOT NULL,
 	`deviceId` varchar(32) NOT NULL,
-	`startDate` bigint(20) UNSIGNED NULL DEFAULT 0,
-	`endDate` bigint(20) UNSIGNED NULL DEFAULT 0,
+	`startDate` bigint(20) UNSIGNED NOT NULL DEFAULT 0,
+	`endDate` bigint(20) UNSIGNED NOT NULL DEFAULT 0,
+	`public` tinyint(1) NOT NULL DEFAULT 0,
 	PRIMARY KEY (`id`) USING BTREE,
 	INDEX `sourceId`(`sourceId`) USING BTREE
 ) ENGINE = InnoDB;
