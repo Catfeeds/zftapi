@@ -70,7 +70,7 @@ module.exports = {
 			}
 			const pagingInfo = Util.PagingInfo(query.index, query.size, true);
 
-			let sql = `select h.id as houseId, loc.name as locationName, b.group, b.building, b.unit, h.roomNumber 
+			let sql = `select s.id as id, h.id as houseId, loc.name as locationName, b.group, b.building, b.unit, h.roomNumber 
 			         from ${MySQL.Houses.name} as h
                      inner join ${MySQL.Rooms.name} as s on s.houseId = h.id
                      inner join ${MySQL.Building.name} as b on b.id = h.buildingId
