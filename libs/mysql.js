@@ -8,7 +8,6 @@ const config = require('config');
 let connection;
 let pool;
 let sequelizeInstance;
-let EMSequelizeInstance;
 
 exports = module.exports = function(host, port, user, passwd, database, isReadOnly){
 };
@@ -17,15 +16,15 @@ exports.Literal = (str)=>{
     return sequelizeInstance.literal(str);
 };
 
-exports.LoadEM = ()=>{
+exports.LoadEM = () => {
     return new Promise((resolve, reject)=>{
-        const EMRead = JSON.parse(ENV.EMRead);
-        const EMWrite = JSON.parse(ENV.EMWrite);
-        EMSequelizeInstance = new Sequelize(null, null, null, {
+        const read = JSON.parse(config.RDS.read);
+        const write = JSON.parse(config.RDS.write);
+		sequelizeInstance = new Sequelize(null, null, null, {
             dialect: 'mysql',
-            replication:{
-                read: EMRead,
-                write: EMWrite
+            replication: {
+                read,
+                write
             },
             logging: true,
             timezone: "+08:00",
@@ -38,14 +37,14 @@ exports.LoadEM = ()=>{
                 maxIdleTime: 1000
             }
         });
-        EMSequelizeInstance.authenticate().then(
+		sequelizeInstance.authenticate().then(
             function (err) {
                 log.info('RDS EM Connection Successful...');
                 resolve();
 
-                exports.EMSequelize = EMSequelizeInstance;
+				exports.Sequelize = sequelizeInstance;
 
-                EMDefine();
+				SequelizeDefine();
             }
         ).catch(function (err) {
             log.error(err);
@@ -54,43 +53,6 @@ exports.LoadEM = ()=>{
     });
 };
 
-
-
-exports.Load = function () {
-
-    return new Promise((resolve, reject)=>{
-        sequelizeInstance = new Sequelize(null, null, null, {
-            dialect: 'mysql',
-            replication:{
-				read: config.RDS,
-				write: config.RDS
-            },
-            logging: true,
-            timezone: "+08:00",
-            retry:{
-                max: 0
-            },
-            pool:{
-                maxConnections: 20,
-                minConnections: 5,
-                maxIdleTime: 1000
-            }
-        });
-        sequelizeInstance.authenticate().then(
-            function (err) {
-                log.info('RDS Connection Successful...');
-                resolve();
-
-                exports.Sequelize = sequelizeInstance;
-
-                SequelizeDefine();
-            }
-        ).catch(function (err) {
-            log.error(err);
-            reject(err);
-        });
-    });
-};
 
 exports.Exec = function(sql, replacements)
 {
@@ -177,7 +139,6 @@ exports.ExecT = function(sql, t)
                 break;
             default:
                 return null;
-                break;
         }
     }
 

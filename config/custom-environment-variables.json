@@ -1,9 +1,8 @@
 {
-    "RDS": {
-        "host": "ZFT_RDS_HOST",
-        "port": "ZFT_RDS_PORT",
-        "username": "ZFT_RDS_USERNAME",
-        "password": "ZFT_RDS_PASSWORD",
-        "database": "ZFT_RDS_DATABASE"
-    }
+  "RDS": {
+    "read": "ZFT_EM_READ",
+    "write": "ZFT_EM_WRITE"
+  },
+  "MAP": "ZFT_AMAP_KEY",
+  "MONGODB": "ZFT_MONGO_URL"
 }

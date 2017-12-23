@@ -16,7 +16,7 @@ function ParameterToQuery(param) {
 exports.InputTips = (query)=>{
     return new Promise((resolve, reject)=>{
         const reqStr = ParameterToQuery(query);
-        const reqURL = `${URL}inputtips?output=json&key=${ENV.AMAPKEY}&${reqStr}`;
+        const reqURL = `${URL}inputtips?output=json&key=${config.MAP}&${reqStr}`;
 
         (async () => {
             try {

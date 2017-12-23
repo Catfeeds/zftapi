@@ -1,6 +1,8 @@
 require('include-node');
 const appRootPath = require('app-root-path');
 const Restify = require('restify');
+const config = require('config');
+
 require(appRootPath.path + '/libs/log')("zftAPI");
 
 {
@@ -25,18 +27,13 @@ Include('/libs/enumServices').Load(
     ['/services']
 );
 
-MongoDB(ENV.MONGOURL).then(
-    ()=>{
-        MySQL.LoadEM().then(
-            ()=>{
-                MySQL.Load().then(
-                    resolve=>{
-                        Server.listen(8000, function () {
-                            console.log('App running on %s:%d', Server.address().address, Server.address().port);
-                        });
-                    }
-                );
-            }
-        );
-    }
-);
+MongoDB(config.MONGODB).then(
+	() => {
+		MySQL.LoadEM().then(
+			() => {
+				Server.listen(8000, function () {
+					console.log('App running on %s:%d', Server.address().address, Server.address().port);
+				});
+			});
+
+	});

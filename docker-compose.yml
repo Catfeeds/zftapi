@@ -24,14 +24,9 @@ services:
           - ".:/src"
           - "./node_modules:/src/node_modules"
         environment:
-          - ZFT_RDS_HOST=db
-          - ZFT_RDS_PORT=3306
-          - ZFT_RDS_USERNAME=root
-          - ZFT_RDS_PASSWORD=example
-          - ZFT_RDS_DATABASE=zft
-          - AMAPKEY
-          - MONGOURL
-          - EMRead
-          - EMWrite
+          - ZFT_AMAP_KEY
+          - ZFT_MONGO_URL
+          - ZFT_EM_READ=[{"host":"db","port":3306,"username":"root","password":"example","database":"zft"}]
+          - ZFT_EM_WRITE={"host":"db","port":3306,"username":"root","password":"example","database":"zft"}
         depends_on:
           - db
