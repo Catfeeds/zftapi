@@ -197,6 +197,9 @@ create table if not exists `housesDevices`
 	`startDate` bigint(20) UNSIGNED NOT NULL DEFAULT 0,
 	`endDate` bigint(20) UNSIGNED NOT NULL DEFAULT 0,
 	`public` tinyint(1) NOT NULL DEFAULT 0,
+	`createdAt`  datetime NOT NULL ,
+	`updatedAt`  datetime NOT NULL ,
+	`deletedAt`  datetime NULL DEFAULT NULL ,
 	PRIMARY KEY (`id`) USING BTREE,
 	INDEX `sourceId`(`sourceId`) USING BTREE
 ) ENGINE = InnoDB;
@@ -208,6 +211,9 @@ create table if not exists `housesDevicesPrice`
 	`sourceId` bigint(20) UNSIGNED NOT NULL,
 	`type` varchar(10) NOT NULL,
 	`price` int(11) NOT NULL DEFAULT 0,
+	`createdAt`  datetime NOT NULL ,
+	`updatedAt`  datetime NOT NULL ,
+	`deletedAt`  datetime NULL DEFAULT NULL ,
 	PRIMARY KEY (`id`) USING BTREE,
 	INDEX `sourceId`(`sourceId`) USING BTREE
 ) ENGINE = InnoDB;
