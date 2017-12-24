@@ -3,6 +3,7 @@ const moment = require('moment');
 const _ = require('lodash');
 const fp = require('lodash/fp');
 
+const scheduler = require('./billScheduler');
 const dueDateShifter = require('./dueDateShifter').dueDateShifter;
 
 const expensesReduce = expenses => _.sumBy(fp.filter(e => e.pattern === 'withRent')(expenses), 'rent');
@@ -11,14 +12,10 @@ const dueAmountOf = (strategy, expenses) => strategy.freq.rent + expensesReduce(
 
 const expenseAmount = (expense, from, to) => _.get(expense, 'rent') * billPace(expense.pattern, from, to);
 
-const billPace = (pattern, from, to) => isNaN(pattern) ? monthDiff(from, to) : _.parseInt(pattern);
+const billPace = scheduler.billPace;
 
-const monthDiff = (from, to) => Math.ceil(moment.duration(moment.unix(to).diff(moment.unix((from)))).asMonths());
+const billCycles = scheduler.billCycles;
 
-const billScheduler = (from, to, pattern) => {
-	const diff = monthDiff(from, to);
-	return _.range(0, diff, billPace(pattern, from, to))
-};
 const plusMonth = (from, m) => moment.unix(from).add(m, 'month').unix();
 const bondOf = contract => _.compact([_.get(contract, 'strategy.bond')]);
 
@@ -28,9 +25,7 @@ const generate = contract => {
 	const paymentPlan = contract.paymentPlan;
 	const strategy = contract.strategy;
 	const expenses = contract.expenses;
-	const nextDueDate = dueDateShifter(from);
-	// TODO: paymentPlan
-	const dueAt = (startDate, paymentPlan) => nextDueDate(startDate, paymentPlan);
+	const dueAt = dueDateShifter(from, to);
 
 	const paidOffBills = (expenses, from, to) =>
 		fp.map(expense => paidOffBill(expense, from, to))
@@ -48,13 +43,13 @@ const generate = contract => {
 		type: 'extra',
 		startDate: from,
 		endDate: to,
-		dueDate: dueAt(from, paymentPlan),
+		dueDate: from,
 		createdAt: moment().unix(),
 		dueAmount: expenseAmount(expense, from, to),
 		metadata: expense
 	});
 
-	const recursiveBills = (expense, from, to, singleBill) => billScheduler(from, to, expense.pattern).map(m =>
+	const recursiveBills = (expense, from, to, singleBill) => billCycles(from, to, expense.pattern).map(m =>
 		singleBill(expense, plusMonth(from, m),
 			plusMonth(from, m + billPace(expense.pattern, from, to))));
 
@@ -67,7 +62,7 @@ const generate = contract => {
 		type: 'extra',
 		startDate: from,
 		endDate: to,
-		dueDate: dueAt(from, paymentPlan),
+		dueDate: dueAt(expense.pattern, paymentPlan, from),
 		createdAt: moment().unix(),
 		dueAmount: expenseAmount(expense, from, to),
 		metadata: expense
@@ -83,7 +78,7 @@ const generate = contract => {
 			type: 'rent',
 			startDate: from,
 			endDate: to,
-			dueDate: dueAt(from, paymentPlan),
+			dueDate: dueAt(freq.pattern, paymentPlan, from),
 			createdAt: moment().unix(),
 			dueAmount: dueAmountOf(strategy, expenses) * months,
 			metadata: {
