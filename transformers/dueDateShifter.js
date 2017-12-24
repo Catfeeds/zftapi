@@ -5,7 +5,7 @@ const moment = require('moment');
 const billCycles = require('./billScheduler').billCycles;
 
 const shiftByPlan = (cycle, benchmark, paymentPlan) => {
-	const patternBackShift = /(-)(\d{2})/;
+	const patternBackShift = /^(-)(\d{2})$/;
 	if(patternBackShift.test(paymentPlan)) {
 		const matched = patternBackShift.exec(paymentPlan);
 		return moment.unix(benchmark).subtract(matched[2], 'days').unix()

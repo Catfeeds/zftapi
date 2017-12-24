@@ -33,4 +33,14 @@ describe('DueDateShifter', () => {
 		dueDateShifter(startDate, oneYearLater)(pattern, paymentPlan, secondMonth)
 			.should.eql(expectBillDate);
 	});
+
+	it('should give same date back if pattern is invalid', () => {
+		const startDate = moment('2017-12-11').unix();
+		const oneYearLater = moment('2018-12-10').unix();
+		const secondMonth = moment('2018-01-11').unix();
+		const pattern = '1';
+		const paymentPlan = '-100';
+		dueDateShifter(startDate, oneYearLater)(pattern, paymentPlan, secondMonth)
+			.should.eql(secondMonth);
+	});
 });
