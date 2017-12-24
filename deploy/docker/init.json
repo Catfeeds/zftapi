@@ -1,0 +1,1 @@
+{"_id":{"$oid":"5900699e86c2e25c262ca357"},"timecreate":1493199262,"billingAccount":{"$oid":"5900699e86c2e25c262ca358"},"offduty":"17:00","onduty":"8:00","level":123,"description":"123123123","title":"临时测试","timestatus":0,"status":"DEBUG","billingservice":true,"__v":0,"billingtime":1505231999}

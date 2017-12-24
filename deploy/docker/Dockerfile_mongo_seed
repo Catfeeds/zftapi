@@ -1,0 +1,5 @@
+FROM registry.docker-cn.com/library/mongo:latest
+COPY docker/init.json /init.json
+
+ADD wait-for-it.sh /wait-for-it.sh
+RUN chmod a+x /wait-for-it.sh
