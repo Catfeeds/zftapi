@@ -14,10 +14,22 @@ const shiftByPlan = (cycle, benchmark, paymentPlan) => {
 	if(patternForwardFix.test(paymentPlan)) {
 		const matched = patternForwardFix.exec(paymentPlan);
 		const dayInMonth = matched[2];
-		const candidateMonth = [
+		const candidateMonths = [
 			moment(`${moment.unix(benchmark).format('YYYY-MM')}-${dayInMonth}`),
 			moment(`${moment.unix(benchmark).add(1, 'month').format('YYYY-MM')}-${dayInMonth}`)];
-		const dateInCycle = fp.find(inCycle(cycle))(candidateMonth);
+		const dateInCycle = fp.find(inCycle(cycle))(candidateMonths);
+		return _.isUndefined(dateInCycle) ? benchmark : dateInCycle.unix();
+	}
+
+	const patternFixedBeforeBill = /^F(\d{2})$/;
+	if(patternFixedBeforeBill.test(paymentPlan)) {
+		const matched = patternFixedBeforeBill.exec(paymentPlan);
+		const dayInMonth = matched[1];
+		const candidateMonths = [
+			moment(`${moment.unix(benchmark).format('YYYY-MM')}-${dayInMonth}`),
+			moment(`${moment.unix(benchmark).subtract(1, 'month').format('YYYY-MM')}-${dayInMonth}`)
+			];
+		const dateInCycle = fp.find(beforeCycle(cycle))(candidateMonths);
 		return _.isUndefined(dateInCycle) ? benchmark : dateInCycle.unix();
 	}
 	return benchmark;
@@ -26,6 +38,7 @@ const shiftByPlan = (cycle, benchmark, paymentPlan) => {
 const givenDateInRange = (date, cycle) => date.isBetween(moment.unix(cycle.start), moment.unix(cycle.end), null, '[]')
 const inCycle = _.curryRight(givenDateInRange);
 const inRange = _.curry(givenDateInRange);
+const beforeCycle = (cycle) => (date) => date.isSameOrBefore(moment.unix(cycle.start));
 
 const dueDateShifter = (leaseStart, leaseEnd) => (pattern, paymentPlan, from) => {
 	const restCycles = _.drop(billCycles(leaseStart, leaseEnd, pattern));
