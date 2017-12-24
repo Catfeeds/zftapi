@@ -87,4 +87,37 @@ describe('DueDateShifter', () => {
 		dueDateShifter(startDate, oneYearLater)(pattern, paymentPlan, secondMonth)
 			.should.eql(expectBillDate);
 	});
+
+	it('should apply fixedBeforeOneMonth pattern', () => {
+		const startDate = moment('2017-12-11').unix();
+		const oneYearLater = moment('2018-12-10').unix();
+		const secondMonth = moment('2018-01-11').unix();
+		const expectBillDate = moment('2017-12-05').unix();
+		const pattern = '1';
+		const paymentPlan = 'M05';
+		dueDateShifter(startDate, oneYearLater)(pattern, paymentPlan, secondMonth)
+			.should.eql(expectBillDate);
+	});
+
+	it('should pick date at one month before bill date in fixedBeforeOneMonth pattern', () => {
+		const startDate = moment('2017-12-11').unix();
+		const oneYearLater = moment('2018-12-10').unix();
+		const fourthMonth = moment('2018-03-11').unix();
+		const expectBillDate = moment('2018-02-23').unix();
+		const pattern = '1';
+		const paymentPlan = 'M23';
+		dueDateShifter(startDate, oneYearLater)(pattern, paymentPlan, fourthMonth)
+			.should.eql(expectBillDate);
+	});
+
+	it('should give the same date back if the bill start date is not match with the billing cycles', () => {
+		const startDate = moment('2017-12-11').unix();
+		const oneYearLater = moment('2018-12-10').unix();
+		const randomDate = moment('2018-03-01').unix();
+		const expectBillDate = moment('2018-03-01').unix();
+		const pattern = '6';
+		const paymentPlan = 'M23';
+		dueDateShifter(startDate, oneYearLater)(pattern, paymentPlan, randomDate)
+			.should.eql(expectBillDate);
+	});
 });

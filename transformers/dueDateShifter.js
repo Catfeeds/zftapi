@@ -32,6 +32,13 @@ const shiftByPlan = (cycle, benchmark, paymentPlan) => {
 		const dateInCycle = fp.find(beforeCycle(cycle))(candidateMonths);
 		return _.isUndefined(dateInCycle) ? benchmark : dateInCycle.unix();
 	}
+
+	const patternFixedBeforeOneMonth = /^M(\d{2})$/;
+	if(patternFixedBeforeOneMonth.test(paymentPlan)) {
+		const matched = patternFixedBeforeOneMonth.exec(paymentPlan);
+		const dayInMonth = matched[1];
+		return moment(`${moment.unix(benchmark).subtract(1, 'month').format('YYYY-MM')}-${dayInMonth}`).unix();
+	}
 	return benchmark;
 };
 
