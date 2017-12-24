@@ -3,5 +3,5 @@
 const _ = require('lodash');
 
 module.exports = {
-	extract: req => new Promise((resolve) => resolve(_.get(req.body, 'user')))
+	extract: async req => await _.get(req.body, 'user')
 }
