@@ -13,10 +13,8 @@ const dueAmountOf = (strategy, expenses) => strategy.freq.rent + expensesReduce(
 const expenseAmount = (expense, from, to) => _.get(expense, 'rent') * billPace(expense.pattern, from, to);
 
 const billPace = scheduler.billPace;
-
 const billCycles = scheduler.billCycles;
 
-const plusMonth = (from, m) => moment.unix(from).add(m, 'month').unix();
 const bondOf = contract => _.compact([_.get(contract, 'strategy.bond')]);
 
 const generate = contract => {
@@ -50,8 +48,7 @@ const generate = contract => {
 	});
 
 	const recursiveBills = (expense, from, to, singleBill) => billCycles(from, to, expense.pattern).map(m =>
-		singleBill(expense, plusMonth(from, m),
-			plusMonth(from, m + billPace(expense.pattern, from, to))));
+		singleBill(expense, m.start, m.end));
 
 	const regularBill = (expense, from, to) => ({
 		flow: 'receive',

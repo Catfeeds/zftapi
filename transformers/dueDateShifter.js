@@ -1,10 +1,22 @@
+'use strict';
+const fp = require('lodash/fp');
+const _ = require('lodash');
+const moment = require('moment');
 const billCycles = require('./billScheduler').billCycles;
 
-const shiftByPlan = (cycle, benchmark, paymentPlan) => benchmark;
+const shiftByPlan = (cycle, benchmark, paymentPlan) => {
+	if(paymentPlan === '-03') {
+		return moment.unix(benchmark).subtract(3, 'days').unix()
+	}
+	return benchmark;
+};
+
+const currentCycle = (timestamp) => (cycle) => moment.unix(timestamp).isBetween(moment.unix(cycle.start), moment.unix(cycle.end), null, '[]')
 
 const dueDateShifter = (leaseStart, leaseEnd) => (pattern, paymentPlan, from) => {
-	const currentCycle = billCycles(leaseStart, leaseEnd, pattern)[0];
-	return shiftByPlan(currentCycle, from, paymentPlan);
+	const restCycles = _.drop(billCycles(leaseStart, leaseEnd, pattern));
+	const firstCycle = fp.find(currentCycle(from))(restCycles);
+	return _.isUndefined(firstCycle) ? from : shiftByPlan(firstCycle, from, paymentPlan);
 };
 
 module.exports = {
