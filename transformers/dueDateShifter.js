@@ -42,7 +42,7 @@ const shiftByPlan = (cycle, benchmark, paymentPlan) => {
 	return benchmark;
 };
 
-const givenDateInRange = (date, cycle) => date.isBetween(moment.unix(cycle.start), moment.unix(cycle.end), null, '[]')
+const givenDateInRange = (date, cycle) => date.isBetween(moment.unix(cycle.start), moment.unix(cycle.end), null, '[)')
 const inCycle = _.curryRight(givenDateInRange);
 const inRange = _.curry(givenDateInRange);
 const beforeCycle = (cycle) => (date) => date.isSameOrBefore(moment.unix(cycle.start));
