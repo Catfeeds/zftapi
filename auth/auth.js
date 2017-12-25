@@ -1,17 +1,18 @@
 'use strict';
+const _ = require('lodash');
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 
 const authenticate = (req, res, next) => {
-	passport.authenticate("local", function(err, user, info) {
+	passport.authenticate("local", function (err, user, info) {
 		console.log(`${user} is authentic.`);
-		req.logIn(user, function(err) {
+		req.logIn(user, function (err) {
 			if (err) {
 				return next(err);
 			}
 
-			if(user.username) {
-				res.json({ success: 'Welcome ' + user.username + "!"});
+			if (user.username) {
+				res.json({success: 'Welcome ' + user.username + "!"});
 				return next();
 			}
 		});
@@ -19,7 +20,7 @@ const authenticate = (req, res, next) => {
 };
 
 const guard = (req, res, next) => {
-	if (_.includes(['/v1.0/login', '/healthCheck'], req.url)) {
+	if (_.includes(['/v1.0/login', '/v1.0/healthCheck'], req.url)) {
 		return next();
 	}
 	console.log('authenticated? ', req.isAuthenticated());
