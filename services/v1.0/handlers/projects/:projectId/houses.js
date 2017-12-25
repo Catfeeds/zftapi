@@ -31,8 +31,6 @@ function ShareCheck(body) {
     && (_.isObject(body.layout) && !_.isArray(body.layout));
 }
 
-
-
 async function SaveEntire(t, params, body){
     const projectId = params.projectId;
     const createdAt = moment().unix();
@@ -413,6 +411,10 @@ async function Gethouses(params, query) {
                     endDate: 0
                 },
                 required: false
+            },
+            {
+                model: MySQL.HouseDevicePrice,
+                as: 'prices',
             }
         ];
 
@@ -492,7 +494,13 @@ async function Gethouses(params, query) {
                 roomNumber: house.roomNumber,
                 rooms: house.Rooms,
                 layout: house.Layouts,
-                devices: houseDevices
+                devices: houseDevices,
+                prices: fp.map(price=>{
+                    return {
+                        type: price.type,
+                        price: price.price
+                    }
+                })(house.prices)
             });
         });
 

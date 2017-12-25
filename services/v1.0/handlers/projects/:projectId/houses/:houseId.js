@@ -1,4 +1,5 @@
 'use strict';
+const fp = require('lodash/fp');
 const common = Include("/services/v1.0/common");
 const _ = require('lodash');
 const moment = require('moment');
@@ -603,44 +604,81 @@ module.exports = {
                     'config', 'houseKeeper', 'layout']
             );
 
+            const SavePrice = async(t, projectId, houseId, prices)=>{
+
+                const housePrices = await MySQL.HouseDevicePrice.findAll({
+                    where:{
+                        projectId: projectId,
+                        sourceId: houseId
+                    },
+                    attributes: ['id', 'type']
+                });
+
+                const bulkInsert = _.compact(fp.map(price=>{
+                    if(Typedef.IsPriceType(price.type)){
+                        const housePriceIndex = _.findKey(housePrices, housePrice=> {
+                            return housePrice.type === price.type;
+                        });
+                        const housePrice = housePrices[housePriceIndex];
+
+                        return _.assignIn({
+                            type: price.type,
+                            price: price.price,
+                            projectId: projectId,
+                            sourceId: houseId,
+                        }, housePrice ? {id: housePrice.id} : {});
+                    }
+                })(prices));
+
+                await MySQL.HouseDevicePrice.bulkCreate(bulkInsert, {transaction: t, updateOnDuplicate: true});
+            };
+
             try{
                 const t = await MySQL.Sequelize.transaction();
 
-                const newLocation = await common.AsyncUpsertGeoLocation(body.location, t);
-                body.location = MySQL.Plain( newLocation[0] );
+                if(body.location) {
+                    const newLocation = await common.AsyncUpsertGeoLocation(body.location, t);
+                    body.location = MySQL.Plain(newLocation[0]);
+                }
 
-                await MySQL.Houses.update(
-                    putBody,
-                    {
-                        where:{
-                            id: houseId,
-                            projectId: projectId,
-                        },
-                        transaction: t
-                    }
-                );
+                if(!_.isEmpty(putBody)) {
+                    await MySQL.Houses.update(
+                        putBody,
+                        {
+                            where: {
+                                id: houseId,
+                                projectId: projectId,
+                            },
+                            transaction: t
+                        }
+                    );
 
-                await MySQL.Building.update(
-                    putBody,
-                    {
-                        where:{
-                            id: houseIns.buildingId,
-                            projectId: projectId
-                        },
-                        transaction: t
-                    }
-                );
+                    await MySQL.Building.update(
+                        putBody,
+                        {
+                            where: {
+                                id: houseIns.buildingId,
+                                projectId: projectId
+                            },
+                            transaction: t
+                        }
+                    );
 
-                await MySQL.Layouts.update(
-                    putBody.layout,
-                    {
-                        where:{
-                            id: body.layout.id,
-                            sourceId: houseId
-                        },
-                        transaction: t
-                    }
-                );
+                    await MySQL.Layouts.update(
+                        putBody.layout,
+                        {
+                            where: {
+                                id: body.layout.id,
+                                sourceId: houseId
+                            },
+                            transaction: t
+                        }
+                    );
+                }
+
+                if(body.prices) {
+                    await SavePrice(t, projectId, houseId, body.prices);
+                }
 
                 await t.commit();
                 res.send(204);

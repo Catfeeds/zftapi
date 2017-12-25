@@ -80,6 +80,10 @@ const OrientationLiteral = {
     [Orientation.SW]: '西南',
 };
 
+const PriceType = {
+    ELECTRIC: 'ELECTRIC'
+};
+
 const IsHouseFormat = (status)=>{
     return HouseFormat[status];
 };
@@ -88,6 +92,9 @@ const IsRoomType = (index)=>{
 };
 const IsOrientation = (ori)=>{
     return Orientation[ori];
+};
+const IsPriceType = (type)=>{
+    return PriceType[type];
 };
 
 exports.HouseFormat = HouseFormat;
@@ -99,6 +106,9 @@ exports.Orientation = Orientation;
 exports.OrientationLiteral = OrientationLiteral;
 exports.RoomType = RoomType;
 
+exports.PriceType = PriceType;
+
 exports.IsHouseFormat = IsHouseFormat;
 exports.IsRoomType = IsRoomType;
 exports.IsOrientation = IsOrientation;
+exports.IsPriceType = IsPriceType;

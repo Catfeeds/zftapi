@@ -927,6 +927,7 @@ function SequelizeDefine()
     Houses.hasMany(HouseDevices, {as: 'devices', foreignKey: 'sourceId'});
     Rooms.hasMany(HouseDevices, {as: 'devices', foreignKey: 'sourceId'});
     HouseDevices.hasMany(HouseDevicePrice, {as: 'devicePrice', foreignKey: 'sourceId'});
+    Houses.hasMany(HouseDevicePrice, {as: 'prices', foreignKey: 'sourceId'});
 
     exports.HouseDevices = HouseDevices;
     exports.HouseDevicePrice = HouseDevicePrice;
