@@ -8,6 +8,7 @@ WORKDIR /app
 # Bundle APP files
 COPY config config/
 COPY libs libs/
+COPY auth auth/
 COPY services services/
 COPY transformers transformers/
 COPY package*.json ./
