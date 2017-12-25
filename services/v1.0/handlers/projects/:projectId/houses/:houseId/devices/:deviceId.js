@@ -55,6 +55,9 @@ module.exports = {
                 },
                 attributes: ['id', 'deviceId']
             });
+            if(!houseDevices || !houseDevices.length){
+                return res.send(404, ErrorCode.ack(ErrorCode.REQUESTUNMATCH));
+            }
 
             const index = _.findIndex(houseDevices, (houseDevice)=>{
                 return houseDevice.deviceId === deviceId

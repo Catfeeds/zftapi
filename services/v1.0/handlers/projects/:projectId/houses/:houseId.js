@@ -591,6 +591,10 @@ module.exports = {
                 }
             });
 
+            if(!houseIns){
+                return res.send(404, ErrorCode.ack(ErrorCode.REQUESTUNMATCH));
+            }
+
             const putBody = _.pick(body
                 , ['location', 'code', 'group', 'building', 'unit',
                     'roomNumber', 'totalFloor', 'currentFloor',
