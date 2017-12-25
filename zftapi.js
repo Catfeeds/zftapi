@@ -40,8 +40,6 @@ Server.use(passport.session());
 
 auth.init();
 
-Server.post("/login", auth.authenticate);
-
 Server.use(auth.guard);
 
 Include('/libs/enumServices').Load(

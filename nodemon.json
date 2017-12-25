@@ -14,6 +14,7 @@
     "watch": [
         "zftapi.js",
         "libs/",
+        "auth/",
         "services/",
         "transformers/",
         "test/"
