@@ -580,16 +580,9 @@ module.exports = {
         (async()=>{
             const body = req.body;
             const params = req.params;
-            const query = req.query;
 
             const projectId = params.projectId;
             const houseId = params.houseId;
-
-            if(!Util.ParameterCheck(query,
-                    ['houseFormat']
-                )){
-                return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED));
-            }
 
             const houseIns = await MySQL.Houses.findOne({
                 where:{
@@ -597,6 +590,10 @@ module.exports = {
                     projectId: projectId
                 }
             });
+
+            if(!houseIns){
+                return res.send(404, ErrorCode.ack(ErrorCode.REQUESTUNMATCH));
+            }
 
             const putBody = _.pick(body
                 , ['location', 'code', 'group', 'building', 'unit',
