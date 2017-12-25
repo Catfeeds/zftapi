@@ -19,7 +19,7 @@ const authenticate = (req, res, next) => {
 };
 
 const guard = (req, res, next) => {
-	if (req.url === '/v1.0/login') {
+	if (_.includes(['/v1.0/login', '/healthCheck'], req.url)) {
 		return next();
 	}
 	console.log('authenticated? ', req.isAuthenticated());
