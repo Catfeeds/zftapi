@@ -5,9 +5,10 @@ const LocalStrategy = require('passport-local').Strategy;
 
 const authenticate = (req, res, next) => {
 	passport.authenticate("local", function (err, user, info) {
-		console.log(`${user} is authentic.`);
+		console.log(`${user} is authenticated.`);
 		req.logIn(user, function (err) {
 			if (err) {
+				req.session.destroy();
 				return next(err);
 			}
 
@@ -28,15 +29,39 @@ const guard = (req, res, next) => {
 };
 
 const lookUpUser = (username, password, done) => {
-	console.log('done', username);
-	return done(null, {username, id: 123});
+	const Users = MySQL.Users;
+	const UserAuth = MySQL.UserAuth;
+	Users.findOne({
+		include: [{model: UserAuth, required: true}],
+		where: {
+			accountName: username
+		}
+	}).then(user => {
+		if (user.userauth.dataValues.password === password) {
+			done(null, {username, id: user.id});
+		} else {
+			done(null, false, {error: 'Incorrect username or password.'});
+		}
+	}).catch(
+		(err) => done(null, false, {error: 'Incorrect username or password.'})
+	);
 };
 
 const serialize = (user, done) => {
-	done(null, user.id);
+	console.log('serialize', user);
+	done(null, user.id)
 };
 const deserialize = (id, done) => {
-	done(null, {username: 'kpse', id});
+	console.log('deserialize', id);
+	const Users = MySQL.Users;
+	Users.findById(id)
+		.then(user => {
+			done(null, {username: user.dataValues.accountName, id});
+		})
+		.catch(err => {
+			console.log(`error in deserializing ${user}`);
+			done(err, null);
+		});
 };
 
 

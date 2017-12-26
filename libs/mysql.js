@@ -626,9 +626,30 @@ function SequelizeDefine()
 		timestamps: false,
 		freezeTableName: true
 	});
+
+	const UserAuth = sequelizeInstance.define('userauth', {
+		userId: {
+			type: Sequelize.BIGINT.UNSIGNED,     //用户ID
+			allowNull: false
+		},
+        password: {
+			type: Sequelize.STRING(32),     //账号
+			allowNull: false,
+		},
+		lastLoggedIn: {
+			type: Sequelize.BIGINT.UNSIGNED,    //上次登录时间
+			allowNull: true
+		}
+	},{
+		timestamps: true,
+		freezeTableName: true
+	});
+	UserAuth.belongsTo(Users);
+	Users.hasOne(UserAuth);
 	Contracts.belongsTo(Users);
 	exports.Contracts = Contracts;
 	exports.Users = Users;
+	exports.UserAuth = UserAuth;
 
 
 

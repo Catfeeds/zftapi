@@ -111,6 +111,17 @@ create table if not exists users
 		primary key (`id`)
 ) engine=innodb default charset=utf8;
 
+CREATE TABLE IF NOT EXISTS `userauth`
+(
+	`id` bigint NOT NULL auto_increment,
+	`userId` BIGINT UNSIGNED NOT NULL,
+	`password` VARCHAR(32) NOT NULL,
+	`lastLoggedIn` BIGINT UNSIGNED,
+	`createdAt` DATETIME NOT NULL,
+	`updatedAt` DATETIME NOT NULL,
+	PRIMARY KEY (`id`)
+) engine=innodb default charset=utf8;
+
 create table if not exists layouts
 (
 	`id` bigint(20) UNSIGNED NOT NULL,
@@ -3744,5 +3755,8 @@ INSERT INTO `settings` VALUES (121, null, '租金', 'name', '常规租金');
 INSERT INTO `settings` VALUES (123, null, '押金', 'name', '常规押金');
 INSERT INTO `settings` VALUES (124, null, '能源费', 'name', '电费');
 INSERT INTO `settings` VALUES (125, null, '能源费', 'name', '水费');
+
+INSERT INTO `users` (`id`, `accountName`, `name`, mobile, documentId, documentType, gender) VALUES (99, 'admin', '管理员', '13233334444', '0', 1, 'M');
+INSERT INTO `userauth` (`id`, `userId`, `password`, lastLoggedIn) VALUES (1, 99, '5f4dcc3b5aa765d61d8327deb882cf99', null);
 
 
