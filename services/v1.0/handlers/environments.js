@@ -2,34 +2,41 @@
 /**
  * Operations on /environments
  */
-const fp = require('lodash/fp');
+
 const _ = require('lodash');
-const moment = require('moment');
-const common = Include("/services/v1.0/common");
 
 module.exports = {
-	/**
-	 * summary: return environments belong to project
-	 * description: pass projectId to get the environments variables
+	get: (req, res) => {
 
-	 * parameters: projectId
-	 * produces: application/json
-	 * responses: 200, 400
-	 */
-	get: (req, res, next)=>{
-		/**
-		 * Get the data for response 200
-		 * For response `default` status 200 is used.
-		 */
-        (async()=>{
-            const environments = {
-                houseFormat: Typedef.HouseFormatLiteral,
-				projectId: 100,
-				roomType: Typedef.RoomType,
-				operationStatus: Typedef.OperationStatusLiteral,
-				orientation: Typedef.OrientationLiteral,
-            };
-            res.send(environments);
-        })();
+		const houseFormat = {
+			key: 'houseFormat',
+			value: Typedef.HouseFormatLiteral
+		};
+
+		const roomType = {
+			key: 'roomType',
+			value: Typedef.RoomType
+		};
+
+		const operationStatus = {
+			key: 'operationStatus',
+			value: Typedef.OperationStatusLiteral
+		};
+
+		const orientation = {
+			key: 'orientation',
+			value: Typedef.OrientationLiteral
+		};
+
+		const environments = [houseFormat, roomType, operationStatus, orientation];
+
+		const projectId = (req.isAuthenticated() && !_.isEmpty(req.user)) ?
+		[{
+			key: 'user',
+			value: _.omit(req.user, 'id')
+		}] : [];
+
+
+		res.send(_.compact(_.concat(environments, projectId)));
 	},
 };

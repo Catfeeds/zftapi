@@ -244,7 +244,9 @@ create table if not exists `projects`
 
 #project demo record
 INSERT INTO `zft`.`projects` (`id`, `pid`, `externalId`) VALUES ('1', '100', '5938bb4f4d3684627bcabd7f');
-INSERT INTO `zft`.`auth` (`id`, `projectId`, `username`, `password`, createdAt, updatedAt) VALUES (1, 100, 'admin100', '5f4dcc3b5aa765d61d8327deb882cf99',  NOW(),  NOW());
+INSERT INTO `zft`.`auth` (`id`, `projectId`, `username`, `password`, createdAt, updatedAt)
+VALUES (1, 100, 'admin100', '5f4dcc3b5aa765d61d8327deb882cf99',  NOW(),  NOW()),
+	(2, 101, 'admin101', '5f4dcc3b5aa765d61d8327deb882cf99',  NOW(),  NOW());
 
 INSERT INTO `divisions` VALUES (110000, '北京市', 1, 0, 39.90000, 116.40000, 1);
 INSERT INTO `divisions` VALUES (110100, '市辖区', 2, 110000, 0.00000, 0.00000, 0);
