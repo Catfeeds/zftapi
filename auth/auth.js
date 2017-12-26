@@ -24,21 +24,35 @@ const guard = (req, res, next) => {
 	if (_.includes(['/v1.0/login', '/v1.0/healthCheck'], req.url)) {
 		return next();
 	}
+
 	console.log('authenticated? ', req.isAuthenticated());
-	return req.isAuthenticated() ? next() : res.send(401);
+	if(!req.isAuthenticated()) {
+		return res.send(401);
+	}
+
+	const hasProjectId = /\/projects\/(\d+)/;
+	//assume non project resources are public
+	if (!hasProjectId.test(req.url)) {
+		return next();
+	}
+
+	const belongsToThisProject = _.get(req, 'user.projectId', -1) === parseInt(_.get(hasProjectId.exec(req.url), '[1]'))
+	if(belongsToThisProject) {
+		return next();
+	}
+
+	return res.send(401);
 };
 
 const lookUpUser = (username, password, done) => {
-	const Users = MySQL.Users;
-	const UserAuth = MySQL.UserAuth;
-	Users.findOne({
-		include: [{model: UserAuth, required: true}],
+	const Auth = MySQL.Auth;
+	Auth.findOne({
 		where: {
-			accountName: username
+			username
 		}
 	}).then(user => {
-		if (user.userauth.dataValues.password === password) {
-			done(null, {username, id: user.id});
+		if (user.dataValues.password === password) {
+			done(null, {username, id: user.id, projectId: user.projectId, level: user.level});
 		} else {
 			done(null, false, {error: 'Incorrect username or password.'});
 		}
@@ -53,10 +67,10 @@ const serialize = (user, done) => {
 };
 const deserialize = (id, done) => {
 	console.log('deserialize', id);
-	const Users = MySQL.Users;
-	Users.findById(id)
+	const Auth = MySQL.Auth;
+	Auth.findById(id)
 		.then(user => {
-			done(null, {username: user.dataValues.accountName, id});
+			done(null, {username: user.dataValues.username, id, projectId: user.projectId, level: user.level});
 		})
 		.catch(err => {
 			console.log(`error in deserializing ${user}`);

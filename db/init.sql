@@ -111,14 +111,19 @@ create table if not exists users
 		primary key (`id`)
 ) engine=innodb default charset=utf8;
 
-CREATE TABLE IF NOT EXISTS `userauth`
+CREATE TABLE IF NOT EXISTS `auth`
 (
 	`id` bigint NOT NULL auto_increment,
-	`userId` BIGINT UNSIGNED NOT NULL,
+	`projectId` bigint(20) UNSIGNED NOT NULL,
+	username varchar(32) not null,
+	`level` varchar(24) default 'admin' not null,
 	`password` VARCHAR(32) NOT NULL,
 	`lastLoggedIn` BIGINT UNSIGNED,
 	`createdAt` DATETIME NOT NULL,
 	`updatedAt` DATETIME NOT NULL,
+	`deletedAt` DATETIME,
+	constraint auth_username_unique
+		unique (username),
 	PRIMARY KEY (`id`)
 ) engine=innodb default charset=utf8;
 
@@ -210,7 +215,7 @@ create table if not exists `housesDevices`
 	`public` tinyint(1) NOT NULL DEFAULT 0,
 	`createdAt`  datetime NOT NULL ,
 	`updatedAt`  datetime NOT NULL ,
-	`deletedAt`  datetime NULL DEFAULT NULL ,
+	`deletedAt`  datetime,
 	PRIMARY KEY (`id`) USING BTREE,
 	INDEX `sourceId`(`sourceId`) USING BTREE
 ) ENGINE = InnoDB;
@@ -239,6 +244,7 @@ create table if not exists `projects`
 
 #project demo record
 INSERT INTO `zft`.`projects` (`id`, `pid`, `externalId`) VALUES ('1', '100', '5938bb4f4d3684627bcabd7f');
+INSERT INTO `zft`.`auth` (`id`, `projectId`, `username`, `password`, createdAt, updatedAt) VALUES (1, 100, 'admin100', '5f4dcc3b5aa765d61d8327deb882cf99',  NOW(),  NOW());
 
 INSERT INTO `divisions` VALUES (110000, '北京市', 1, 0, 39.90000, 116.40000, 1);
 INSERT INTO `divisions` VALUES (110100, '市辖区', 2, 110000, 0.00000, 0.00000, 0);
@@ -3756,7 +3762,5 @@ INSERT INTO `settings` VALUES (123, null, '押金', 'name', '常规押金');
 INSERT INTO `settings` VALUES (124, null, '能源费', 'name', '电费');
 INSERT INTO `settings` VALUES (125, null, '能源费', 'name', '水费');
 
-INSERT INTO `users` (`id`, `accountName`, `name`, mobile, documentId, documentType, gender) VALUES (99, 'admin', '管理员', '13233334444', '0', 1, 'M');
-INSERT INTO `userauth` (`id`, `userId`, `password`, lastLoggedIn) VALUES (1, 99, '5f4dcc3b5aa765d61d8327deb882cf99', null);
 
 

@@ -627,10 +627,24 @@ function SequelizeDefine()
 		freezeTableName: true
 	});
 
-	const UserAuth = sequelizeInstance.define('userauth', {
-		userId: {
-			type: Sequelize.BIGINT.UNSIGNED,     //用户ID
-			allowNull: false
+	Contracts.belongsTo(Users);
+	exports.Contracts = Contracts;
+	exports.Users = Users;
+	exports.GeoLocation = GeoLocation;
+
+	exports.Auth = sequelizeInstance.define('auth', {
+		level: {
+			type: Sequelize.STRING(24),     //账号
+			allowNull: false,
+			defaultValue: 'user',
+			validate: { //管理员，管家，财务
+				isIn: [['admin', 'manager', 'accountant']]
+			}
+		},
+	    username: {
+			type: Sequelize.STRING(32),     //账号
+			allowNull: false,
+			unique: true
 		},
         password: {
 			type: Sequelize.STRING(32),     //账号
@@ -642,18 +656,11 @@ function SequelizeDefine()
 		}
 	},{
 		timestamps: true,
+		paranoid: true,
 		freezeTableName: true
 	});
-	UserAuth.belongsTo(Users);
-	Users.hasOne(UserAuth);
-	Contracts.belongsTo(Users);
-	exports.Contracts = Contracts;
-	exports.Users = Users;
-	exports.UserAuth = UserAuth;
 
 
-
-	exports.GeoLocation = GeoLocation;
 
 	exports.Division = sequelizeInstance.define('division', {
         name: {
@@ -973,6 +980,9 @@ function SequelizeDefine()
         freezeTableName: true
     });
     exports.Projects = Projects;
+
+	exports.Projects.hasMany(exports.Auth);
+	exports.Auth.belongsTo(exports.Projects)
 }
 
 function EMDefine()
