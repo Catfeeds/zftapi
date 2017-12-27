@@ -1,6 +1,5 @@
 'use strict';
 
-const moment = require('moment');
 const _ = require('lodash');
 const fp = require('lodash/fp');
 
@@ -8,8 +7,6 @@ const fp = require('lodash/fp');
  * Operations on /rooms/{hid}
  */
 const translate = (models, pagingInfo) => {
-    console.log(models);
-    console.log(pagingInfo);
     const single = model => {
         const room = model.dataValues;
         const house = room.House.dataValues;
