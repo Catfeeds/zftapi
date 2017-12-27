@@ -4,10 +4,10 @@ const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 
 const authenticate = (req, res, next) => {
-	passport.authenticate("local", function (err, user, info) {
+	passport.authenticate("local", function (err, user) {
 		if(err) {
 			req.session.destroy();
-			return res.json({error: 'Incorrect username or password.'});
+			return res.json(ErrorCode.ack(ErrorCode. AUTHFAILED, {error: 'Incorrect username or password.'}));
 		}
 		console.log(`${user} is authenticated.`);
 		req.logIn(user, function (err) {
@@ -17,12 +17,17 @@ const authenticate = (req, res, next) => {
 			}
 
 			if (user.username) {
-				res.json({success: 'Welcome ' + user.username + "!"});
+				res.json(ErrorCode.ack(ErrorCode.OK, {success: 'Welcome ' + user.username + "!"}));
 				return next();
 			}
 		});
 	})(req, res, next);
 };
+
+const logOut = (req, res) => {
+	req.session.destroy();
+	res.json(ErrorCode.ack(ErrorCode.OK, {success: 'Logged out successfully'}));
+}
 
 const guard = (req, res, next) => {
 	if (_.includes(['/v1.0/login', '/v1.0/healthCheck'], req.url)) {
@@ -94,5 +99,6 @@ const init = () => {
 module.exports = {
 	authenticate,
 	guard,
-	init
+	init,
+	logOut
 }
