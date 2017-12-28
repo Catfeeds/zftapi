@@ -46,6 +46,7 @@ create table if not exists contracts
 	contractNumber varchar(50) default '' not null,
 	paymentPlan varchar(3) not null,
 	signUpTime bigint default '0' not null,
+	status varchar(20) default 'ongoing' not null,
 	`createdAt` DATETIME NOT NULL,
 	`updatedAt` DATETIME NOT NULL,
 	`deletedAt` DATETIME,

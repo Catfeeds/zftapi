@@ -580,7 +580,15 @@ function SequelizeDefine()
             type: Sequelize.BIGINT.UNSIGNED,    //签约时间
             allowNull: false,
             defaultValue: 0
-        }
+        },
+		status: {
+			type: Sequelize.STRING(20),   //状态
+			allowNull: false,
+			defaultValue: 'ongoing',
+			validate: { //执行中，已退租
+				isIn: [['ongoing', 'terminated']]
+			}
+		}
     },{
         timestamps: true,
 		paranoid: true,
@@ -621,7 +629,7 @@ function SequelizeDefine()
 			validate: {
 				isIn: [['M', 'F']]
 			}
-		},
+		}
 	},{
 		timestamps: false,
 		freezeTableName: true

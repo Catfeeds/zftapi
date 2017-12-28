@@ -3,6 +3,7 @@
  * Operations on /contracts
  */
 const fp = require('lodash/fp');
+const _ = require('lodash');
 const extractContract = require('../../../../../transformers/contractExtractor').extract;
 const extractUser = require('../../../../../transformers/userExtractor').extract;
 const generateBills = require('../../../../../transformers/billGenerator').generate;
@@ -39,8 +40,8 @@ module.exports = {
 
 		sequelize.transaction(t =>
 			extractUser(req)
-				.then(user => Users.create(user, {transaction: t}))
-				.then(dbUser => extractContract(req, dbUser))
+				.then(user => Users.findOrCreate({where: {accountName: user.accountName, id: user.id}, defaults: user, transaction: t}))
+				.then(dbUser => extractContract(req, _.get(dbUser, '[0]')))
 				.then(contract => Contracts.create(contract, {transaction: t}))
 				.then(contract => Promise.all(
 					fp.map(bill => createBill(contract, bill, t))(generateBills(contract)))
