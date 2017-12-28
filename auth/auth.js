@@ -34,7 +34,6 @@ const guard = (req, res, next) => {
 		return next();
 	}
 
-	console.log('authenticated? ', req.isAuthenticated());
 	if(!req.isAuthenticated()) {
 		return res.send(401);
 	}
@@ -66,24 +65,24 @@ const lookUpUser = (username, password, done) => {
 		done(new Error('Incorrect username or password.'))
 	}).catch(
 		(err) => {
-			console.log('lookUpUser', err)
 			done(err, false, {error: 'Incorrect username or password.'})
 		}
 	);
 };
 
 const serialize = (user, done) => {
-	console.log('serialize', user);
 	done(null, user.id)
 };
 const deserialize = (id, done) => {
-	console.log('deserialize', id);
 	const Auth = MySQL.Auth;
-	return Auth.findById(id)
-		.then(user => done(null, {username: user.username, id, projectId: user.projectId, level: user.level}))
+	Auth.findById(id)
+		.then(user => {
+			done(null, {username: user.username, id, projectId: user.projectId, level: user.level})
+			return null;
+		})
 		.catch(err => {
 			console.log(`error in deserializing ${err}`);
-			return done(null, null, { message: 'User does not exist' });
+			done(null, null, { message: 'User does not exist' });
 		});
 };
 
