@@ -74,10 +74,20 @@ module.exports = {
      * produces: application/json
      * responses: 200, 400
      */
-    put: function operateContract(req, res, next) {
-        /**
-         * Get the data for response 200
-         * For response `default` status 200 is used.
-         */
+    put: function operateContract(req, res) {
+		const Contracts = MySQL.Contracts;
+		const contractId = req.params.contractId;
+		const status = req.body.status;
+		Contracts.findById(contractId)
+			.then(contract => {
+				if (fp.isEmpty(contract)) {
+					res.send(404);
+					return;
+				}
+				return contract.update({
+					status
+				});
+			}).then(updated => res.send(updated))
+			.catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, err)));
     }
 };
