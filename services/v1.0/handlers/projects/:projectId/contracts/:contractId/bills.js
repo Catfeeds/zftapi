@@ -5,7 +5,7 @@
 const _ = require('lodash');
 const fp = require('lodash/fp');
 const moment = require('moment');
-const removeNullValues = require('../../../../../../../transformers/billGenerator').removeNullValues;
+const removeNullValues = require('../../../../../../../transformers/billItemsCleaner').clearUpFields;
 
 const translate = bills => fp.map(
 	bill => fp.defaults({house: {houseId: 999}, paymentHistory: [

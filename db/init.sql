@@ -3764,6 +3764,7 @@ INSERT INTO `settings` VALUES (121, null, '租金', 'name', '常规租金');
 INSERT INTO `settings` VALUES (123, null, '押金', 'name', '常规押金');
 INSERT INTO `settings` VALUES (124, null, '能源费', 'name', '电费');
 INSERT INTO `settings` VALUES (125, null, '能源费', 'name', '水费');
+INSERT INTO `settings` VALUES (200, null, '其他费用', 'name', '退费');
 
 
 

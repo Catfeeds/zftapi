@@ -84,6 +84,7 @@ module.exports = {
 					res.send(404);
 					return;
 				}
+				//TODO: support {status: terminated, rooms: {status: 'open'}, billFlow: {dueAmount: 9900, paymentMethod: cash, operator: 312}}
 				return contract.update({
 					status
 				});
