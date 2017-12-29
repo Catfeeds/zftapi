@@ -32,6 +32,11 @@ module.exports = {
 		const body = req.body;
 		const Auth = MySQL.Auth;
 		const projectId = req.params.projectId;
+
+		if(_.isUndefined(body.password)) {
+			return res.send(400, ErrorCode.ack(ErrorCode.PARAMETERERROR, {error: "please provide md5 encrypted password"}));
+		}
+
 		if(!access.allowToCreateCredentials(req)) {
 			return res.send(403, ErrorCode.ack(ErrorCode.PERMISSIONDENIED, {error: "only admin can create new login credentials"}));
 		}
