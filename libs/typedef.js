@@ -38,20 +38,22 @@ const HouseStatus = {
     CLOSED: 'CLOSED',
     DELETED: 'DELETED'
 };
+const ContractStatus = {
+	ONGOING: 'ONGOING',
+	TERMINATED: 'TERMINATED'
+};
+
 const OperationStatus = {
     IDLE: 'IDLE',
     INUSE: 'INUSE',
-    NEWFORCONF: 'NEWFORCONF',
-    SURRENDERCONF: 'SURRENDERCONF',
-    CLOSED: 'CLOSED',
+	PAUSED: 'PAUSED',
     DELETED: 'DELETED'
 };
 const OperationStatusLiteral = {
     [OperationStatus.IDLE]: '待租',
     [OperationStatus.INUSE]: '已租',
-    [OperationStatus.NEWFORCONF]: '新收配置',
-    [OperationStatus.SURRENDERCONF]: '退租配置',
-    [OperationStatus.CLOSED]: '关闭',
+    [OperationStatus.PAUSED]: '暂停',
+    [OperationStatus.DELETED]: '已删除',
 };
 const OperationReverseMapping = (status)=>{
     return _.find(OperationStatus, v=>{
@@ -97,18 +99,19 @@ const IsPriceType = (type)=>{
     return PriceType[type];
 };
 
-exports.HouseFormat = HouseFormat;
-exports.HouseFormatLiteral = HouseFormatLiteral;
-exports.HouseStatus = HouseStatus;
-exports.OperationStatus = OperationStatus;
-exports.OperationStatusLiteral = OperationStatusLiteral;
-exports.Orientation = Orientation;
-exports.OrientationLiteral = OrientationLiteral;
-exports.RoomType = RoomType;
-
-exports.PriceType = PriceType;
-
-exports.IsHouseFormat = IsHouseFormat;
-exports.IsRoomType = IsRoomType;
-exports.IsOrientation = IsOrientation;
-exports.IsPriceType = IsPriceType;
+module.exports = {
+	HouseFormat,
+	HouseFormatLiteral,
+	HouseStatus,
+	OperationStatus,
+	OperationStatusLiteral,
+	Orientation,
+	OrientationLiteral,
+	RoomType,
+	PriceType,
+	IsHouseFormat,
+	IsRoomType,
+	IsOrientation,
+	IsPriceType,
+	ContractStatus
+}

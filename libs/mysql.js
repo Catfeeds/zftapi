@@ -584,9 +584,9 @@ function SequelizeDefine()
 		status: {
 			type: Sequelize.STRING(20),   //状态
 			allowNull: false,
-			defaultValue: 'ongoing',
+			defaultValue: 'ONGOING',
 			validate: { //执行中，已退租
-				isIn: [['ongoing', 'terminated']]
+				isIn: [['ONGOING', 'TERMINATED']]
 			}
 		}
     },{

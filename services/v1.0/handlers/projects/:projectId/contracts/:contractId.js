@@ -79,14 +79,16 @@ module.exports = {
 		const Contracts = MySQL.Contracts;
 		const Rooms = MySQL.Rooms;
 		const contractId = req.params.contractId;
-		const status = _.get(req, 'body.status');
-		const roomStatus = _.get(req, 'body.room.status', 'IDLE');
+		const status = _.get(req, 'body.status', 'empty').toUpperCase();
+		const roomStatus = _.get(req, 'body.roomStatus', Typedef.OperationStatus.IDLE).toUpperCase();
 
-		if(status !== 'terminated') {
-			return res.send(400, ErrorCode.ack(ErrorCode.PARAMETERERROR, {status}));
+		if (status !== Typedef.ContractStatus.TERMINATED) {
+			return res.send(400, ErrorCode.ack(ErrorCode.PARAMETERERROR, {status, allowedStatus: [Typedef.ContractStatus.TERMINATED]}));
 		}
-		if((_.includes(['IDLE', 'CLOSED', 'SURRENDERCONF'], roomStatus) )) {
-			return res.send(400, ErrorCode.ack(ErrorCode.PARAMETERERROR, {room: body.room}));
+		const allowedStatus = [Typedef.OperationStatus.IDLE,
+			Typedef.OperationStatus.PAUSED];
+		if (!_.includes(allowedStatus, roomStatus)) {
+			return res.send(400, ErrorCode.ack(ErrorCode.PARAMETERERROR, {roomStatus, allowedStatus }));
 		}
 
 		const Sequelize = MySQL.Sequelize;
@@ -98,7 +100,7 @@ module.exports = {
 					return;
 				}
 				console.log('room', contract.dataValues.room);
-				//TODO: support {status: terminated, room: {status: 'open'}, billFlow: {dueAmount: 9900, paymentMethod: cash, operator: 312}}
+				//TODO: record a new flow {billFlow: {dueAmount: 9900, paymentMethod: cash, operator: 312}}
 
 				return Sequelize.transaction(t => {
 					return Promise.all([
@@ -106,9 +108,14 @@ module.exports = {
 							status
 						}, {transaction: t}),
 						Rooms.update({
-							status: roomStatus
-						},
-							{where: {id: contract.dataValues.room.id}, transaction: t})
+								status: roomStatus
+							},
+							{
+								where: {
+									id: contract.dataValues.room.id
+								},
+								transaction: t
+							})
 					])
 				})
 			}).then((updated, room) => res.send(updated))
