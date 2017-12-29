@@ -59,18 +59,22 @@ module.exports = {
             }));
 
             //
+            const deviceQuery = _.assignIn(
+                {
+                    project: externalId,
+                    _id: {$nin: deviceIds}
+                },
+                query.q ? {$or:[
+                    {title: new RegExp(query.q)},
+                    {sid: new RegExp(query.q)}
+                ]} : {}
+            );
             try {
                 const result = await Promise.all([
                     MongoDB.SensorAttribute
-                        .count({
-                            project: externalId,
-                            _id: {$nin: deviceIds}
-                        }),
+                        .count(deviceQuery),
                     MongoDB.SensorAttribute
-                        .find({
-                            project: externalId,
-                            _id: {$nin: deviceIds}
-                        })
+                        .find(deviceQuery)
                         .skip(pagingInfo.skip)
                         .limit(pagingInfo.size)
                         .select('_id title')
