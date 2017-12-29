@@ -34,6 +34,8 @@ module.exports = {
                 return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERERROR));
             }
 
+            const pagingInfo = Util.PagingInfo(query.index, query.size, true);
+
             const project = await MySQL.Projects.findOne({
                 where:{
                     pid: projectId
@@ -52,32 +54,51 @@ module.exports = {
                     projectId: projectId,
                     endDate: 0
                 },
+                distinct: 'deviceId',
                 attributes: ['deviceId']
             }));
 
             //
-            MongoDB.SensorAttribute
-                .find({
-                    project: externalId,
-                    _id:{$nin: deviceIds}
-                })
-                .select('_id title')
-                .then(
-                    devices=>{
-                        res.send(
-                            fp.map(device=>{
-                                return {
-                                    deviceId: device._id,
-                                    title: device.title,
-                                }
-                            })(devices)
-                        );
-                    },
-                    err=>{
-                        log.error(err, projectId);
-                        res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC));
+            try {
+                const result = await Promise.all([
+                    MongoDB.SensorAttribute
+                        .count({
+                            project: externalId,
+                            _id: {$nin: deviceIds}
+                        }),
+                    MongoDB.SensorAttribute
+                        .find({
+                            project: externalId,
+                            _id: {$nin: deviceIds}
+                        })
+                        .skip(pagingInfo.skip)
+                        .limit(pagingInfo.size)
+                        .select('_id title')
+                ]);
+                const count = result[0];
+                const devices = result[1];
+
+                res.send(
+                    {
+                        paging: {
+                            count: count,
+                            index: pagingInfo.index,
+                            size: pagingInfo.size
+                        },
+                        data: fp.map(device => {
+                            return {
+                                deviceId: device._id,
+                                title: device.title,
+                            }
+                        })(devices)
                     }
                 );
+            }
+            catch(err){
+                log.error(err, projectId);
+                res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC));
+            }
+
         })();
 
         // if(!Typedef.IsHouseFormat(houseFormat)){
