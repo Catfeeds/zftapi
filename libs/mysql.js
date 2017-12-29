@@ -595,6 +595,9 @@ function SequelizeDefine()
         freezeTableName: true
     });
 
+	Rooms.hasMany(Contracts);
+	Contracts.belongsTo(Rooms);
+
 	const Users = sequelizeInstance.define('users', {
 		accountName: {
 			type: Sequelize.STRING(32),     //账号
@@ -636,6 +639,7 @@ function SequelizeDefine()
 	});
 
 	Contracts.belongsTo(Users);
+
 	exports.Contracts = Contracts;
 	exports.Users = Users;
 	exports.GeoLocation = GeoLocation;

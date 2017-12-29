@@ -3,6 +3,7 @@
  * Operations on /contracts/:contractId
  */
 const fp = require('lodash/fp');
+const _ = require('lodash');
 
 module.exports = {
     /**
@@ -76,19 +77,41 @@ module.exports = {
      */
     put: function operateContract(req, res) {
 		const Contracts = MySQL.Contracts;
+		const Rooms = MySQL.Rooms;
 		const contractId = req.params.contractId;
-		const status = req.body.status;
-		Contracts.findById(contractId)
+		const status = _.get(req, 'body.status');
+		const roomStatus = _.get(req, 'body.room.status', 'IDLE');
+
+		if(status !== 'terminated') {
+			return res.send(400, ErrorCode.ack(ErrorCode.PARAMETERERROR, {status}));
+		}
+		if((_.includes(['IDLE', 'CLOSED', 'SURRENDERCONF'], roomStatus) )) {
+			return res.send(400, ErrorCode.ack(ErrorCode.PARAMETERERROR, {room: body.room}));
+		}
+
+		const Sequelize = MySQL.Sequelize;
+
+		Contracts.findById(contractId, {include: [{model: Rooms, required: true}]})
 			.then(contract => {
 				if (fp.isEmpty(contract)) {
 					res.send(404);
 					return;
 				}
-				//TODO: support {status: terminated, rooms: {status: 'open'}, billFlow: {dueAmount: 9900, paymentMethod: cash, operator: 312}}
-				return contract.update({
-					status
-				});
-			}).then(updated => res.send(updated))
+				console.log('room', contract.dataValues.room);
+				//TODO: support {status: terminated, room: {status: 'open'}, billFlow: {dueAmount: 9900, paymentMethod: cash, operator: 312}}
+
+				return Sequelize.transaction(t => {
+					return Promise.all([
+						contract.update({
+							status
+						}, {transaction: t}),
+						Rooms.update({
+							status: roomStatus
+						},
+							{where: {id: contract.dataValues.room.id}, transaction: t})
+					])
+				})
+			}).then((updated, room) => res.send(updated))
 			.catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, err)));
     }
 };
