@@ -1,15 +1,25 @@
 'use strict';
+import 'include-node';
 import {allowToCreateCredentials} from '../../auth/access'
 
 describe('Access', function () {
+	before(() => {
+		global.Typedef = Include('/libs/typedef');
+	})
 	it('should allow admin to create credentials', function () {
 		const req = {isAuthenticated: () => true, user: {level: 'admin'}};
 
 		allowToCreateCredentials(req).should.be.true;
 	});
 
-	it('should not allow other user to create credentials', function () {
+	it('should not allow manager to create credentials', function () {
 		const req = {isAuthenticated: () => true, user: {level: 'manager'}};
+
+		allowToCreateCredentials(req).should.not.be.true;
+	});
+
+	it('should not allow other user level to create credentials', function () {
+		const req = {isAuthenticated: () => true, user: {level: 'randomLevel'}};
 
 		allowToCreateCredentials(req).should.not.be.true;
 	});

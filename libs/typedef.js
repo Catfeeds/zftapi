@@ -43,6 +43,12 @@ const ContractStatus = {
 	TERMINATED: 'TERMINATED'
 };
 
+const CredentialLevels = {
+    MANAGER: 'MANAGER',
+    ADMIN: 'ADMIN',
+	ACCOUNTANT: 'ACCOUNTANT',
+    UNKNOWN: 'UNKNOWN'
+};
 const OperationStatus = {
     IDLE: 'IDLE',
     INUSE: 'INUSE',
@@ -113,5 +119,6 @@ module.exports = {
 	IsRoomType,
 	IsOrientation,
 	IsPriceType,
-	ContractStatus
+	ContractStatus,
+	CredentialLevels
 }
