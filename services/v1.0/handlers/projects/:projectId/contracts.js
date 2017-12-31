@@ -46,14 +46,15 @@ module.exports = {
 				.then(contract => Promise.all(
 					fp.map(bill => createBill(contract, bill, t))(generateBills(contract)))
 				)
-		).then(results => res.send(201, ErrorCode.ack(ErrorCode.OK, {req: req.body, res: results})))
+		).then(results => res.send(201, ErrorCode.ack(ErrorCode.OK, {})))
 			.catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, err)));
 
 	},
 	get: function getContracts(req, res) {
 		const Contracts = MySQL.Contracts;
 		const Users = MySQL.Users;
-		Contracts.findAll({include: [Users]})
+		const projectId = req.params.projectId;
+		Contracts.findAll({include: [Users], where: {projectId}})
 			.then(filterFields)
 			.then(contracts => res.send(contracts))
 			.catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, err)));
