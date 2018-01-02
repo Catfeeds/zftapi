@@ -8,7 +8,7 @@ describe('Contracts', function () {
 	before(() => {
 		global.Typedef = Include('/libs/typedef');
 		global.ErrorCode = Include('/libs/errorCode');
-		global.Util = Include('/libs/Util');
+		global.Util = Include('/libs/util');
 	});
 	it('should return all contracts from findAndCountAll', async function () {
 		const contract = {};
