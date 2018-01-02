@@ -78,7 +78,8 @@ describe('Environments', function () {
 			body: {
 				username: 'username',
 				level: 'MANAGER',
-				password: 'somepass'
+				password: 'somepass',
+				email: 'a@b.cn'
 			},
 			user: {
 				level: 'ADMIN'
@@ -99,20 +100,39 @@ describe('Environments', function () {
 		)
 	});
 
-	it('should return 400 if password is empty', function () {
+	it('should return 400 if password is empty', async function () {
 		const req = {
 			params: {
 				projectId: 100,
 			},
 			body: {
 				username: 'username',
-				level: 'level'
+				level: 'level',
+				email: 'a@b.com'
 			}
 		};
 		const resSpy = spy();
 
 		post(req, {send: resSpy}).then(() =>
 			resSpy.should.have.been.calledWith(400, ErrorCode.ack(ErrorCode.PARAMETERERROR, {error: "please provide md5 encrypted password"}))
+		);
+	});
+
+	it('should return 400 if email is empty', async function () {
+		const req = {
+			params: {
+				projectId: 100,
+			},
+			body: {
+				username: 'username',
+				level: 'level',
+				password: '123'
+			}
+		};
+		const resSpy = spy();
+
+		post(req, {send: resSpy}).then(() =>
+			resSpy.should.have.been.calledWith(400, ErrorCode.ack(ErrorCode.PARAMETERERROR, {error: "email is required"}))
 		);
 	});
 

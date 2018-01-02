@@ -664,7 +664,7 @@ function SequelizeDefine()
 		},
         email: {
 			type: Sequelize.STRING(255),     //email
-			allowNull: true,
+			allowNull: false,
             validate: {
 				isEmail: true
             }
