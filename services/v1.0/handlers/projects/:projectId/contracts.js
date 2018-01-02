@@ -14,7 +14,11 @@ const omitNulls = item => _.omitBy(item, _.isNull);
 const omitFields = item => _.omit(item, ['userId', 'createdAt', 'updatedAt']);
 
 const translate = (models, pagingInfo) => {
-	const single = _.flow(innerValues, omitNulls, omitFields);
+	const jsonProcess = (model) => fp.defaults(model)({
+		expenses: JSON.parse(model.expenses),
+		strategy: JSON.parse(model.strategy)
+	});
+	const single = _.flow(innerValues, omitNulls, omitFields, jsonProcess);
 	return {
 		paging: {
 			count: models.count,
@@ -86,6 +90,6 @@ module.exports = {
 			limit: pagingInfo.size
 		}).then(data => translate(data, pagingInfo))
 			.then(contracts => res.send(contracts))
-			.catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, err)));
+		.catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, err)));
 	}
 };

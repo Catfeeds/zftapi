@@ -11,7 +11,7 @@ describe('Contracts', function () {
 		global.Util = Include('/libs/util');
 	});
 	it('should return all contracts from findAndCountAll', async function () {
-		const contract = {};
+		const contract = {dataValues: {expenses: '[]', strategy: '{}'}};
 		const req = {
 			params: {
 				projectId: 100
@@ -33,7 +33,7 @@ describe('Contracts', function () {
 
 		await get(req, {send: resSpy}).then(() => {
 				resSpy.should.have.been.called;
-				resSpy.getCall(0).args[0].data.should.be.eql([contract]);
+				resSpy.getCall(0).args[0].data.should.be.eql([{expenses: [], strategy: {}}]);
 			}
 		)
 	});
@@ -50,7 +50,17 @@ describe('Contracts', function () {
 				async findAndCountAll() {
 					return {
 						count: 1,
-						rows: [{dataValues: {id: 1, createdAt: 2, updatedAt: 3, userId: 123, andMe: 'haha'}}]
+						rows: [{
+							dataValues: {
+								id: 1,
+								createdAt: 2,
+								updatedAt: 3,
+								userId: 123,
+								andMe: 'haha',
+								expenses: '[]',
+								strategy: '{}'
+							}
+						}]
 					};
 				}
 			}
@@ -59,7 +69,7 @@ describe('Contracts', function () {
 
 		await get(req, {send: resSpy}).then(() => {
 			resSpy.should.have.been.called;
-			resSpy.getCall(0).args[0].data.should.be.eql([{id: 1, andMe: 'haha'}]);
+			resSpy.getCall(0).args[0].data.should.be.eql([{id: 1, andMe: 'haha', expenses: [], strategy: {}}]);
 		})
 	});
 
@@ -75,7 +85,15 @@ describe('Contracts', function () {
 				async findAndCountAll() {
 					return {
 						count: 1,
-						rows: [{dataValues: {nullField1: null, nullField2: null, onlyMe: 'haha'}}]
+						rows: [{
+							dataValues: {
+								nullField1: null,
+								nullField2: null,
+								onlyMe: 'haha',
+								expenses: '[]',
+								strategy: '{}'
+							}
+						}]
 					};
 				}
 			}
@@ -84,7 +102,7 @@ describe('Contracts', function () {
 
 		await get(req, {send: resSpy}).then(() => {
 				resSpy.should.have.been.called;
-				resSpy.getCall(0).args[0].data.should.be.eql([{onlyMe: 'haha'}]);
+				resSpy.getCall(0).args[0].data[0].onlyMe.should.be.eql('haha');
 			}
 		)
 	});
