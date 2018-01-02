@@ -662,6 +662,17 @@ function SequelizeDefine()
 			type: Sequelize.STRING(32),     //账号
 			allowNull: false,
 		},
+        email: {
+			type: Sequelize.STRING(255),     //email
+			allowNull: true,
+            validate: {
+				isEmail: true
+            }
+		},
+        mobile: {
+			type: Sequelize.STRING(20),     //mobile phone
+			allowNull: true
+		},
 		lastLoggedIn: {
 			type: Sequelize.BIGINT.UNSIGNED,    //上次登录时间
 			allowNull: true

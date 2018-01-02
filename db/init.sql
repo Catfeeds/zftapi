@@ -120,6 +120,8 @@ CREATE TABLE IF NOT EXISTS `auth`
 	`level` varchar(24) default 'admin' not null,
 	`password` VARCHAR(32) NOT NULL,
 	`lastLoggedIn` BIGINT UNSIGNED,
+	`email` VARCHAR(255) NULL,
+	`mobile` VARCHAR(20) NULL,
 	`createdAt` DATETIME NOT NULL,
 	`updatedAt` DATETIME NOT NULL,
 	`deletedAt` DATETIME,

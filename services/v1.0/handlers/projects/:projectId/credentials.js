@@ -56,8 +56,8 @@ module.exports = {
 		if(!_.includes([Typedef.CredentialLevels.MANAGER, Typedef.CredentialLevels.ACCOUNTANT], level)) {
 			return res.send(403, ErrorCode.ack(ErrorCode.PERMISSIONDENIED, {error: "no allow to create admin level"}));
 		}
-		
-		return Auth.create({projectId, level, password, username})
+		const profile = fp.defaults(body)({projectId, level, password, username});
+		return Auth.create(profile)
 			.then(user =>
 				res.send(200, ErrorCode.ack(ErrorCode.OK, {username: user.username}))
 			).catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, err)));
