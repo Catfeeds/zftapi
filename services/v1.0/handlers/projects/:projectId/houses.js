@@ -459,6 +459,9 @@ async function Gethouses(params, query) {
         _.each(result, house=>{
             let houseDevices = [];
             const createDevices = (dev)=>{
+                if(!dev){
+                    return null;
+                }
                 const device = deviceMapping[dev.deviceId];
                 if(!device){
                     return null;
