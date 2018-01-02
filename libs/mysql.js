@@ -673,6 +673,14 @@ function SequelizeDefine()
 			type: Sequelize.STRING(20),     //mobile phone
 			allowNull: true
 		},
+        allowReceiveFrom: {
+			type: Sequelize.STRING(10),     //receive news via media
+			allowNull: false,
+            defaultValue: 'BOTH',
+            validation: {
+				isIn: [['EMAIL', 'MOBILE', 'BOTH', 'NONE']]
+            }
+		},
 		lastLoggedIn: {
 			type: Sequelize.BIGINT.UNSIGNED,    //上次登录时间
 			allowNull: true
