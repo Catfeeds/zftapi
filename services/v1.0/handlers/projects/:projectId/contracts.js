@@ -9,7 +9,21 @@ const extractUser = require('../../../../../transformers/userExtractor').extract
 const generateBills = require('../../../../../transformers/billGenerator').generate;
 const billItems = require('../../../../../transformers/billItemsGenerator').generate;
 
-const filterFields = fp.identity;
+const innerValues = item => item.dataValues;
+const omitNulls = item => _.omitBy(item, _.isNull);
+const omitFields = item => _.omit(item, ['userId', 'createdAt', 'updatedAt']);
+
+const translate = (models, pagingInfo) => {
+	const single = _.flow(innerValues, omitNulls, omitFields);
+	return {
+		paging: {
+			count: models.count,
+			index: pagingInfo.index,
+			size: pagingInfo.size
+		},
+		data: fp.map(single)(models.rows)
+	}
+};
 
 module.exports = {
 	/**
@@ -38,9 +52,13 @@ module.exports = {
 				)
 			);
 
-		sequelize.transaction(t =>
+		return sequelize.transaction(t =>
 			extractUser(req)
-				.then(user => Users.findOrCreate({where: {accountName: user.accountName, id: user.id}, defaults: user, transaction: t}))
+				.then(user => Users.findOrCreate({
+					where: {accountName: user.accountName, id: user.id},
+					defaults: user,
+					transaction: t
+				}))
 				.then(dbUser => extractContract(req, _.get(dbUser, '[0]')))
 				.then(contract => Contracts.create(contract, {transaction: t}))
 				.then(contract => Promise.all(
@@ -54,8 +72,19 @@ module.exports = {
 		const Contracts = MySQL.Contracts;
 		const Users = MySQL.Users;
 		const projectId = req.params.projectId;
-		Contracts.findAll({include: [Users], where: {projectId}})
-			.then(filterFields)
+		const status = _.get(req, 'params.status', Typedef.ContractStatus.ONGOING).toUpperCase();
+		const query = req.query;
+		const pagingInfo = Util.PagingInfo(query.index, query.size, true);
+
+		return Contracts.findAndCountAll({
+			include: [Users],
+			where: {
+				projectId,
+				status
+			},
+			offset: pagingInfo.skip,
+			limit: pagingInfo.size
+		}).then(data => translate(data, pagingInfo))
 			.then(contracts => res.send(contracts))
 			.catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, err)));
 	}

@@ -93,7 +93,7 @@ module.exports = {
 
 		const Sequelize = MySQL.Sequelize;
 
-		Contracts.findById(contractId, {include: [{model: Rooms, required: true}]})
+		return Contracts.findById(contractId, {include: [{model: Rooms, required: true}]})
 			.then(contract => {
 				if (fp.isEmpty(contract)) {
 					res.send(404);
