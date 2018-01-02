@@ -599,6 +599,10 @@ function SequelizeDefine()
 	Contracts.belongsTo(Rooms);
 
 	const Users = sequelizeInstance.define('users', {
+	    uid:{
+	        type: Sequelize.BIGINT.UNSIGNED,
+            primaryKey: true
+        },
 		accountName: {
 			type: Sequelize.STRING(32),     //账号
 			allowNull: false,

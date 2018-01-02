@@ -26,6 +26,7 @@
     "config": "^1.28.1",
     "flake-idgen": "^1.1.0",
     "got": "^8.0.1",
+    "grpc": "^1.1.2",
     "include-node": "^0.2.0",
     "lodash": "^4.17.4",
     "moment": "^2.19.2",
