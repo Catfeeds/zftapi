@@ -482,7 +482,7 @@ async function Gethouses(params, query) {
                     _.each(room.devices, dev=>{
                         roomDevices.push( createDevices(dev) );
                     });
-                    room.devices = roomDevices;
+                    room.devices = _.compact(roomDevices);
                 });
             } );
             houseDevices = _.compact(houseDevices);
