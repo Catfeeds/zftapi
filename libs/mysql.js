@@ -16,7 +16,7 @@ exports.Literal = (str)=>{
     return sequelizeInstance.literal(str);
 };
 
-exports.LoadEM = () => {
+exports.LoadZFT = () => {
     return new Promise((resolve, reject)=>{
         const read = JSON.parse(config.RDS.read);
         const write = JSON.parse(config.RDS.write);

@@ -49,7 +49,7 @@ Include('/libs/enumServices').Load(
 
 MongoDB(config.MONGODB).then(
 	() => {
-		MySQL.LoadEM().then(
+		MySQL.LoadZFT().then(
 			() => {
 
                 //加载RPC
