@@ -154,9 +154,10 @@ async function SaveSole(t, params, body) {
             roomArea: body.layout.roomArea,
             createdAt: createdAt,
         };
-
+        const roomId = SnowFlake.next();
         const room = {
-            id: SnowFlake.next(),
+            id: roomId,
+            name: `room${roomId.slice(0, 5)}`,
             houseId: house.id,
             roomArea: body.roomArea,
             status: Typedef.OperationStatus.IDLE,
