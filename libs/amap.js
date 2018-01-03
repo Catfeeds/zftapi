@@ -1,6 +1,7 @@
 const axios = require('axios');
 const _ = require('lodash');
 const got = require('got');
+const config = require('config');
 
 
 const URL = 'http://restapi.amap.com/v3/assistant/';
