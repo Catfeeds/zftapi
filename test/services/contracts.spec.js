@@ -2,7 +2,8 @@
 
 import {get} from '../../services/v1.0/handlers/projects/:projectId/contracts'
 import 'include-node'
-import {spy} from 'sinon'
+import {spy, stub} from 'sinon'
+import _ from 'lodash'
 
 describe('Contracts', function () {
 	before(() => {
@@ -103,6 +104,57 @@ describe('Contracts', function () {
 		await get(req, {send: resSpy}).then(() => {
 				resSpy.should.have.been.called;
 				resSpy.getCall(0).args[0].data[0].onlyMe.should.be.eql('haha');
+			}
+		)
+	});
+
+	it('should connect with houses if query with houseFormat', async function () {
+		const req = {
+			params: {
+				projectId: 100
+			},
+			query: {
+				houseFormat: 'SOLE'
+			}
+		};
+		const sequelizeFindSpy = stub().resolves([]);
+		const Users = {};
+		const Rooms = {};
+		const Houses = {};
+		global.MySQL = {
+			Contracts: {
+				findAndCountAll: sequelizeFindSpy
+			},
+			Users,
+			Rooms,
+			Houses
+		};
+
+		await get(req, {send: _.noop}).then(() => {
+				sequelizeFindSpy.should.have.been.called;
+				const modelOptions = sequelizeFindSpy.getCall(0).args[0];
+				console.log(modelOptions);
+				modelOptions.include.should.be.eql([
+					{
+						model: Users, required: true
+					},
+					{
+						model: Rooms,
+						required: true,
+						attributes: ['id'],
+						include: [
+							{
+								model: Houses,
+								as: 'House',
+								required: true,
+								attributes: ['id'],
+								where: {
+									houseFormat: 'SOLE'
+								}
+							}
+						]
+					}
+				])
 			}
 		)
 	});

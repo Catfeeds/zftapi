@@ -92,20 +92,41 @@ module.exports = {
 			.catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, {error: err.message})));
 
 	},
-	get: function getContracts(req, res) {
+	get: async function getContracts(req, res) {
 		const Contracts = MySQL.Contracts;
 		const Users = MySQL.Users;
+		const Rooms = MySQL.Rooms;
+		const Houses = MySQL.Houses;
 		const projectId = req.params.projectId;
 		const status = _.get(req, 'params.status', Typedef.ContractStatus.ONGOING).toUpperCase();
 		const query = req.query;
+		const houseFormat = query.houseFormat;
 		const pagingInfo = Util.PagingInfo(query.index, query.size, true);
 
+		const userConnection = {
+			model: Users, required: true
+		};
+		const houseConnection = {
+			model: Rooms,
+			required: true,
+			attributes: ['id'],
+			include: [
+				{
+					model: Houses,
+					as: 'House',
+					required: true,
+					attributes: ['id'],
+					where: {
+						houseFormat
+					}
+				}
+			]
+		};
+		const includeCondition = _.isEmpty(houseFormat) ?
+			[userConnection] : [userConnection, houseConnection];
 		return Contracts.findAndCountAll({
-			include: [Users],
-			where: {
-				projectId,
-				status
-			},
+			include: includeCondition,
+			where: {projectId, status},
 			offset: pagingInfo.skip,
 			limit: pagingInfo.size
 		}).then(data => translate(data, pagingInfo))
