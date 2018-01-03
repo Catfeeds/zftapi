@@ -14,7 +14,7 @@ module.exports = {
      * produces: application/json
      * responses: 200, 400
      */
-    get: function searchHouseFMT(req, res, next) {
+    get: (req, res, next)=>{
         /**
          * Get the data for response 200
          * For response `default` status 200 is used.
