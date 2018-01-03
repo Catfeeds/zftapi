@@ -47,6 +47,7 @@ module.exports = {
 		const Users = MySQL.Users;
 		const Bills = MySQL.Bills;
 		const BillFlows = MySQL.BillFlows;
+		const Rooms = MySQL.Rooms;
 
 		const sequelize = MySQL.Sequelize;
 
@@ -55,6 +56,23 @@ module.exports = {
 				fp.map(bill => BillFlows.create(bill, {transaction: t}))(billItems(contract, dbBill))
 				)
 			);
+
+		const occupyRoom = (contract) => {
+			return Rooms.update({
+				status: Typedef.OperationStatus.INUSE
+			}, {
+				returning: true,
+				where: {
+					id: contract.dataValues.roomId,
+					status: Typedef.OperationStatus.IDLE
+				}
+			}).then(result => {
+				console.log('update result', result);
+				if (result[1] === 0) {
+					throw new Error('room is unavailable')
+				}
+			})
+		};
 
 		return sequelize.transaction(t =>
 			extractUser(req)
@@ -65,9 +83,11 @@ module.exports = {
 				}))
 				.then(dbUser => extractContract(req, _.get(dbUser, '[0]')))
 				.then(contract => Contracts.create(contract, {transaction: t}))
-				.then(contract => Promise.all(
-					fp.map(bill => createBill(contract, bill, t))(generateBills(contract)))
-				)
+				.then(contract => {
+					const bills = fp.map(bill => createBill(contract, bill, t))(generateBills(contract));
+					const roomUpdate = occupyRoom(contract);
+					return Promise.all(_.concat(bills, [roomUpdate]));
+				})
 		).then(results => res.send(201, ErrorCode.ack(ErrorCode.OK, {})))
 			.catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, err)));
 
@@ -90,6 +110,6 @@ module.exports = {
 			limit: pagingInfo.size
 		}).then(data => translate(data, pagingInfo))
 			.then(contracts => res.send(contracts))
-		.catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, err)));
+			.catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, err)));
 	}
 };
