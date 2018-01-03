@@ -26,7 +26,7 @@ module.exports = {
 		})
 			.then(translate)
 			.then(items => res.send(items))
-			.catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, err)));
+			.catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, {error: err.message})));
 	},
 	post: async function createCredentials(req, res) {
 		const body = req.body;
@@ -66,6 +66,6 @@ module.exports = {
 		return Auth.create(profile)
 			.then(user =>
 				res.send(200, ErrorCode.ack(ErrorCode.OK, {username: user.username}))
-			).catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, err)));
+			).catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, {error: err.message})));
 	}
 };

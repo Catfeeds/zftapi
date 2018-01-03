@@ -89,7 +89,7 @@ module.exports = {
 					return Promise.all(_.concat(bills, [roomUpdate]));
 				})
 		).then(results => res.send(201, ErrorCode.ack(ErrorCode.OK, {})))
-			.catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, err)));
+			.catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, {error: err.message})));
 
 	},
 	get: function getContracts(req, res) {
@@ -110,6 +110,6 @@ module.exports = {
 			limit: pagingInfo.size
 		}).then(data => translate(data, pagingInfo))
 			.then(contracts => res.send(contracts))
-			.catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, err)));
+			.catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, {error: err.message})));
 	}
 };

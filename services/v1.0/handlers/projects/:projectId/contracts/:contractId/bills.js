@@ -36,6 +36,6 @@ module.exports = {
 			}
 		}).then(translate)
 			.then(bills => res.send(bills))
-			.catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, err)));
+			.catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, {error: err.message})));
 	}
 };

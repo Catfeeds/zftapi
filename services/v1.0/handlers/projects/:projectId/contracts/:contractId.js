@@ -51,7 +51,7 @@ module.exports = {
 				})
 
 			})
-			.catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, err)));
+			.catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, {error: err.message})));
     },
     /**
      * summary: reset the contract
@@ -119,6 +119,6 @@ module.exports = {
 					])
 				})
 			}).then((updated, room) => res.send(updated))
-			.catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, err)));
+			.catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, {error: err.message})));
     }
 };
