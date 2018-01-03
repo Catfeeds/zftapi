@@ -133,7 +133,6 @@ describe('Contracts', function () {
 		await get(req, {send: _.noop}).then(() => {
 				sequelizeFindSpy.should.have.been.called;
 				const modelOptions = sequelizeFindSpy.getCall(0).args[0];
-				console.log(modelOptions);
 				modelOptions.include.should.be.eql([
 					{
 						model: Users, required: true
