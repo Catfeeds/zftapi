@@ -6,7 +6,7 @@
 const _ = require('lodash');
 
 module.exports = {
-	get: (req, res) => {
+	get: async (req, res) => {
 
 		const houseFormat = {
 			key: 'houseFormat',
@@ -35,7 +35,6 @@ module.exports = {
 			key: 'user',
 			value: _.omit(req.user, 'id')
 		}] : [];
-
 
 		res.send(_.compact(_.concat(environments, projectId)));
 	},
