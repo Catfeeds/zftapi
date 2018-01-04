@@ -646,7 +646,7 @@ function SequelizeDefine()
 
 	exports.Auth = sequelizeInstance.define('auth', {
 		level: {
-			type: Sequelize.STRING(24),     //账号
+			type: Sequelize.STRING(24),     //权限
 			allowNull: false,
 			defaultValue: 'user',
 			validate: { //管理员，管家，财务
@@ -659,7 +659,7 @@ function SequelizeDefine()
 			unique: true
 		},
         password: {
-			type: Sequelize.STRING(32),     //账号
+			type: Sequelize.STRING(32),     //密码
 			allowNull: false,
 		},
         email: {
@@ -690,7 +690,6 @@ function SequelizeDefine()
 		paranoid: true,
 		freezeTableName: true
 	});
-
 
 
 	exports.Division = sequelizeInstance.define('division', {
@@ -1005,6 +1004,26 @@ function SequelizeDefine()
             type: Sequelize.STRING(32),
             allowNull: false
         },
+		logoUrl: {
+			type: Sequelize.STRING(255),     //logo image url
+			allowNull: true
+		},
+		name: {
+			type: Sequelize.STRING(32),     //公寓名称
+			allowNull: true,
+		},
+		address: {
+			type: Sequelize.STRING(255),     //公寓地址
+			allowNull: true,
+		},
+		description: {
+			type: Sequelize.TEXT,     //公寓介绍
+			allowNull: true
+		},
+		telephone: {
+			type: Sequelize.STRING(20),     //telephone number
+			allowNull: true
+		}
 
     },{
         timestamps: false,

@@ -243,6 +243,11 @@ create table if not exists `projects`
 	`id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
 	`pid` bigint(20) UNSIGNED NOT NULL,
 	`externalId` varchar(32) NOT NULL,
+	`name` varchar(32) NULL,
+	`logoUrl` varchar(255) NULL,
+	`address` varchar(255) NULL,
+	`description` TEXT,
+	`telephone` varchar(20) NULL,
 	PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB;
 
