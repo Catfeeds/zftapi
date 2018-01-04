@@ -660,6 +660,10 @@ function SequelizeDefine()
             type: Sequelize.BIGINT,
             defaultValue: 0
         },
+        locker: {
+	        type: Sequelize.INTEGER.UNSIGNED,
+            defaultValue: 0
+        }
     },{
         timestamps: true,
         paranoid: true,
@@ -667,7 +671,7 @@ function SequelizeDefine()
     });
 
 	Contracts.belongsTo(Users);
-	Users.hasOne(CashAccount, {as: 'cashAccount'});
+	Users.hasOne(CashAccount, {as: 'cashAccount', foreignKey: 'userId'});
 
 	exports.Contracts = Contracts;
 	exports.Users = Users;
@@ -899,6 +903,10 @@ function SequelizeDefine()
             type: Sequelize.BIGINT.UNSIGNED,     //充值订单号
             allowNull: false
         },
+        userId:{
+            type: Sequelize.BIGINT.UNSIGNED,
+            allowNull: false
+        },
         externalId:{
             type: Sequelize.STRING(64),     //外部订单号
             allowNull: false,
@@ -930,6 +938,7 @@ function SequelizeDefine()
         paranoid: true,
         freezeTableName: true
     });
+    exports.Topup = Topup;
 
 	exports.BillFlows.belongsTo(exports.Bills);
 	exports.Bills.hasMany(exports.BillFlows , {as: 'billItems'});
