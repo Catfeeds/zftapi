@@ -448,7 +448,7 @@ async function Gethouses(params, query) {
             .find({
                 key:{$in: deviceIds}
             })
-            .select("title key lasttotal lastupdate");
+            .select("title key lasttotal lastupdate devicetype");
 
         let deviceMapping ={};
         _.each(devices, dev=>{
@@ -472,6 +472,7 @@ async function Gethouses(params, query) {
                     deviceId: dev.deviceId,
                     title: device.title,
                     scale: device.lasttotal,
+                    type: device.devicetype,
                     updatedAt: lastupdate.unix(),
                     public: dev.public
                 };
