@@ -67,6 +67,11 @@ const OperationReverseMapping = (status)=>{
     });
 };
 
+const FundFlow = {
+    RECEIVE: 'receive',
+    PAY: 'pay'
+};
+
 const Orientation = {
     N: 'N',
     S: 'S',
@@ -120,5 +125,6 @@ module.exports = {
 	IsOrientation,
 	IsPriceType,
 	ContractStatus,
-	CredentialLevels
+	CredentialLevels,
+    FundFlow
 }
