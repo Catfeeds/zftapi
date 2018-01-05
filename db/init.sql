@@ -6,12 +6,12 @@ create table if not exists buildings
   `id` bigint(20) UNSIGNED NOT NULL,
   `projectId` bigint(20) UNSIGNED NOT NULL,
   `locationId` bigint(20) UNSIGNED NOT NULL,
-  `group` varchar(10) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '',
-  `building` varchar(10) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '',
-  `unit` varchar(10) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '',
+  `group` varchar(10) NOT NULL DEFAULT '',
+  `building` varchar(10) NOT NULL DEFAULT '',
+  `unit` varchar(10) NOT NULL DEFAULT '',
   `totalFloor` int(11) NOT NULL DEFAULT 0,
   `houseCountOnFloor` int(11) NOT NULL DEFAULT 0,
-  `config` text CHARACTER SET utf8 COLLATE utf8_general_ci NULL,
+  `config` text NULL,
   `createdAt` bigint(20) UNSIGNED NOT NULL DEFAULT 0,
   `deleteAt` bigint(20) NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`) USING BTREE
@@ -21,13 +21,13 @@ create table if not exists rooms
 (
   `id` bigint(20) UNSIGNED NOT NULL,
   `houseId` bigint(20) UNSIGNED NOT NULL,
-  `name` varchar(10) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '',
+  `name` varchar(10) NOT NULL DEFAULT '',
   `people` int(11) NOT NULL DEFAULT 0,
-  `type` varchar(8) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '',
+  `type` varchar(8) NOT NULL DEFAULT '',
   `roomArea` int(11) NOT NULL DEFAULT 0,
-  `orientation` varchar(2) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT 'N',
-  `config` text CHARACTER SET utf8 COLLATE utf8_general_ci NULL,
-  `status` varchar(10) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+  `orientation` varchar(2) NOT NULL DEFAULT 'N',
+  `config` text NULL,
+  `status` varchar(10) NOT NULL,
   `createdAt` bigint(20) UNSIGNED NOT NULL DEFAULT 0,
   `deleteAt` bigint(20) UNSIGNED NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`) USING BTREE
@@ -120,7 +120,7 @@ CREATE TABLE IF NOT EXISTS `auth`
 	`level` varchar(24) default 'ADMIN' not null,
 	`password` VARCHAR(32) NOT NULL,
 	`lastLoggedIn` BIGINT UNSIGNED,
-	`email` VARCHAR(255) NULL NOT NULL,
+	`email` VARCHAR(255) NULL NOT NULL default '',
 	`mobile` VARCHAR(20) NULL,
 	`allowReceiveFrom` VARCHAR(10) default 'BOTH' NOT NULL,
 	`createdAt` DATETIME NOT NULL,
@@ -246,11 +246,95 @@ create table if not exists `projects`
 	PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB;
 
+create table if not exists `topup`
+(
+	`id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+	`orderNo` bigint(20) UNSIGNED NOT NULL,
+	`userId` bigint(20) UNSIGNED NOT NULL,
+	`externalId` varchar(64) NOT NULL DEFAULT '',
+	`contractId` bigint(20) UNSIGNED NOT NULL,
+	`projectId` bigint(20) UNSIGNED NOT NULL,
+	`amount` bigint(20) UNSIGNED NOT NULL DEFAULT 0,
+	`fundChannelId` bigint(20) UNSIGNED NOT NULL,
+	`operator` bigint(20) UNSIGNED NULL DEFAULT NULL,
+	`createdAt` datetime(0) NULL,
+	`updatedAt` datetime(0) NULL,
+	`deletedAt` datetime(0) NULL DEFAULT NULL,
+	PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB;
+
+create table if not exists `cashAccount`
+(
+	`id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+	`userId` bigint(20) UNSIGNED NOT NULL,
+	`cash` bigint(20) NOT NULL DEFAULT 0,
+	`threshold` bigint(20) NOT NULL DEFAULT 0,
+	`locker` int(10) UNSIGNED NOT NULL DEFAULT 0,
+	`createdAt` datetime(0) NULL,
+	`updatedAt` datetime(0) NULL,
+	`deletedAt` datetime(0) NULL DEFAULT NULL,
+	PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB;
+
+create table if not exists `fundChannels`
+(
+	`id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+	`flow` varchar(8) NOT NULL DEFAULT 'receive',
+	`projectId` bigint(20) UNSIGNED NOT NULL,
+	`tag` varchar(8) NOT NULL,
+	`name` varchar(8) NOT NULL,
+	`status` varchar(8) NOT NULL DEFAULT 'PENDING',
+	`createdAt` datetime(0) NULL,
+	`updatedAt` datetime(0) NULL,
+	`deletedAt` datetime(0) NULL DEFAULT NULL,
+	PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB;
+
+create table if not exists `payChannels`
+(
+	`id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+	`fundChannelId` bigint(20) NOT NULL,
+	`documentId` text NULL,
+	`documentType` int(11) NULL DEFAULT 1,
+	`account` varchar(64) NOT NULL,
+	`subbranch` varchar(32) NULL DEFAULT '',
+	`locate` text NULL,
+	`reservedmobile` varchar(16) NOT NULL DEFAULT '',
+	`linkman` varchar(16) NOT NULL DEFAULT '',
+	`mobile` varchar(16) NOT NULL DEFAULT '',
+	`createdAt` datetime(0) NULL,
+	`updatedAt` datetime(0) NULL,
+	`deletedAt` datetime(0) NULL DEFAULT NULL,
+	PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB;
+
+create table if not exists `receiveChannels`
+(
+	`id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+	`fundChannelId` bigint(20) UNSIGNED NOT NULL,
+	`fee` int(11) NOT NULL,
+	`share` text NULL,
+	`setting` text NULL,
+	`createdAt` datetime(0) NULL,
+	`updatedAt` datetime(0) NULL,
+	`deletedAt` datetime(0) NULL DEFAULT NULL,
+	PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB;
+
 #project demo record
-INSERT INTO `zft`.`projects` (`id`, `pid`, `externalId`) VALUES ('1', '100', '5938bb4f4d3684627bcabd7f');
-INSERT INTO `zft`.`auth` (`id`, `projectId`, `username`, `password`, createdAt, updatedAt)
-VALUES (1, 100, 'admin100', '5f4dcc3b5aa765d61d8327deb882cf99',  NOW(),  NOW()),
-	(2, 101, 'admin101', '5f4dcc3b5aa765d61d8327deb882cf99',  NOW(),  NOW());
+INSERT INTO `zft`.`projects` (`pid`, `externalId`) VALUES ('100', '5938bb4f4d3684627bcabd7f');
+INSERT INTO `zft`.`auth` (`projectId`, `username`, `password`, createdAt, updatedAt)
+VALUES (100, 'admin100', '5f4dcc3b5aa765d61d8327deb882cf99',  NOW(),  NOW()),
+	(101, 'admin101', '5f4dcc3b5aa765d61d8327deb882cf99',  NOW(),  NOW());
+
+INSERT INTO `zft`.`fundChannels` (`flow`, `projectId`, `tag`, `name`, `status`, `createdAt`, `updatedAt`, `deletedAt`)
+VALUES ('receive', '100', 'manual', '现金', 'PASSED ', NOW(), NOW(), NULL),
+ ('receive', '100', 'alipay', '支付宝', 'PASSED ', NOW(), NOW(), NULL);
+
+INSERT INTO `zft`.`receiveChannels` (`fundChannelId`, `fee`, `share`, `setting`, `createdAt`, `updatedAt`, `deletedAt`)
+VALUES ( '1', '0', NULL, NULL, NOW(), NOW(), NULL);
+INSERT INTO `zft`.`receiveChannels` (`fundChannelId`, `fee`, `share`, `setting`, `createdAt`, `updatedAt`, `deletedAt`)
+VALUES ( '2', '6', NULL, NULL, NOW(), NOW(), NULL);
 
 INSERT INTO `divisions` VALUES (110000, '北京市', 1, 0, 39.90000, 116.40000, 1);
 INSERT INTO `divisions` VALUES (110100, '市辖区', 2, 110000, 0.00000, 0.00000, 0);

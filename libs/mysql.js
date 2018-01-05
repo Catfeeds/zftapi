@@ -972,7 +972,7 @@ function SequelizeDefine()
             type: Sequelize.STRING(8),
             allowNull: false
         },
-        status:{    //PENDING/PASSED/DELETED
+        status:{    //PENDING/PASSED/DELETED/PAUSE
             type: Sequelize.STRING(8),
             allowNull: false,
             defaultValue: 'PENDING'
