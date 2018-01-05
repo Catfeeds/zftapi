@@ -30,9 +30,9 @@ module.exports = {
 		const Projects = MySQL.Projects;
 
 		const pid = req.params.projectId;
-		const dbId = _.get(body, 'id', '');
+		const dbId = _.get(body, 'id');
 
-		if (_.isEmpty(dbId)) {
+		if (_.isUndefined(dbId)) {
 			return res.send(400, ErrorCode.ack(ErrorCode.PARAMETERERROR, {error: "please provide db id of this project"}));
 		}
 
