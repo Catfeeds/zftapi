@@ -577,11 +577,11 @@ module.exports = {
             if(!Util.ParameterCheck(body,
                     ['houseFormat']
                 )){
-                return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED));
+                return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED, {error: 'missing houseFormat params'}));
             }
 
             if(!Util.ParameterCheck(body.location, ['code', 'divisionId', 'name', 'district', 'address', 'latitude', 'longitude'])){
-                return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED));
+                return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED), {error: 'missing location params', location: body.location});
             }
 
             let formatPassed = false;
@@ -597,7 +597,7 @@ module.exports = {
                     break;
             }
             if(!formatPassed){
-                return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED));
+                return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED, {error: 'houseFormat check failed', houseFormat: body.houseFormat}));
             }
 
             try{
