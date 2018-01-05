@@ -38,7 +38,7 @@ module.exports = {
 	 * produces: application/json
 	 * responses: 200, 400, 401, 406
 	 */
-	post: function createContract(req, res) {
+	post: async function createContract(req, res) {
 		/**
 		 * Get the data for response 200
 		 * For response `default` status 200 is used.
@@ -69,7 +69,7 @@ module.exports = {
 			}).then(result => {
 				console.log('update result', result);
 				if (result[1] === 0) {
-					throw new Error('room is unavailable')
+					throw new Error(`room ${contract.dataValues.roomId} is unavailable`)
 				}
 			})
 		};

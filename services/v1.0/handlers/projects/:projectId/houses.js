@@ -157,7 +157,7 @@ async function SaveSole(t, params, body) {
         const roomId = SnowFlake.next();
         const room = {
             id: roomId,
-            name: `room${roomId.slice(0, 5)}`,
+            name: _.uniqueId('room'),
             houseId: house.id,
             roomArea: body.roomArea,
             status: Typedef.OperationStatus.IDLE,
