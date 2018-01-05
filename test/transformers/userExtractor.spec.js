@@ -3,7 +3,7 @@
 const extract = require('../../transformers/userExtractor').extract;
 
 describe('extractUser', () => {
-	it('should extract user from request', () => {
+	it('should extract user from request', async () => {
 		const user = {
 			name: 'Abraham',
 			accountName: 'accountName',
@@ -13,6 +13,9 @@ describe('extractUser', () => {
 			gender: 'M'
 		};
 		const req = {body: {user}};
-		return extract(req).should.eventually.eql(user);
+		await extract(req).then(data => {
+				data.should.be.eql(user);
+			}
+		)
 	});
 });
