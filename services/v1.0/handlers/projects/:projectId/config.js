@@ -3,12 +3,9 @@
  * Operations on /projects/{projectid}/config
  */
 
-const fp = require('lodash/fp');
-const _ = require('lodash');
+const omitNulls = require('../../../common').omitNulls;
 
-const translate = (items) => {
-	return fp.map(item => _.omitBy(item.dataValues, _.isNull))(items);
-};
+const translate = omitNulls;
 
 module.exports = {
 	get: function getConfig(req, res) {

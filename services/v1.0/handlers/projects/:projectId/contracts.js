@@ -8,9 +8,9 @@ const extractContract = require('../../../../../transformers/contractExtractor')
 const extractUser = require('../../../../../transformers/userExtractor').extract;
 const generateBills = require('../../../../../transformers/billGenerator').generate;
 const billItems = require('../../../../../transformers/billItemsGenerator').generate;
+const omitSingleNulls = require('../../../../../services/v1.0/common').omitSingleNulls;
+const innerValues = require('../../../../../services/v1.0/common').innerValues;
 
-const innerValues = item => item.dataValues;
-const omitNulls = item => _.omitBy(item, _.isNull);
 const omitFields = item => _.omit(item, ['userId', 'createdAt', 'updatedAt']);
 
 const translate = (models, pagingInfo) => {
@@ -18,7 +18,7 @@ const translate = (models, pagingInfo) => {
 		expenses: JSON.parse(model.expenses),
 		strategy: JSON.parse(model.strategy)
 	});
-	const single = _.flow(innerValues, omitNulls, omitFields, jsonProcess);
+	const single = _.flow(innerValues, omitSingleNulls, omitFields, jsonProcess);
 	return {
 		paging: {
 			count: models.count,

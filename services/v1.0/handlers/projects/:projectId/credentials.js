@@ -7,12 +7,12 @@ const fp = require('lodash/fp');
 const _ = require('lodash');
 
 const access = require('../../../../../auth/access');
+const omitSingleNulls = require('../../../common').omitSingleNulls;
+const innerValues = require('../../../common').innerValues;
 
 const translate = (items) => {
-	const innerValues = item => item.dataValues;
-	const omitNulls = item => _.omitBy(item, _.isNull);
 	const omitFields = item => _.omit(item, ['id', 'createdAt', 'updatedAt', 'password']);
-	return fp.map(_.flow(innerValues, omitNulls, omitFields))(items)
+	return fp.map(_.flow(innerValues, omitSingleNulls, omitFields))(items)
 };
 
 module.exports = {
@@ -52,7 +52,6 @@ module.exports = {
 
 		if(_.isEmpty(level)) {
 			return res.send(400, ErrorCode.ack(ErrorCode.PARAMETERERROR, {error: "level is required"}));
-
 		}
 
 		if(!access.allowToCreateCredentials(req)) {

@@ -1,4 +1,5 @@
 const _ = require('lodash');
+const fp = require('lodash/fp');
 const moment = require('moment');
 
 exports.UpsertGeoLocation = (location, t)=>{
@@ -97,3 +98,8 @@ exports.QueryEntire = (projectId, query, include, attributes)=>{
         );
     });
 };
+
+
+exports.omitSingleNulls = item => _.omitBy(item, _.isNull);
+exports.innerValues = item => item.dataValues;
+exports.omitNulls = fp.map(item => _.omitBy(exports.innerValues(item), _.isNull));
