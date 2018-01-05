@@ -79,7 +79,8 @@ function Load(server, apiPath) {
                     'delete': 'del',
                     'get': 'get',
                     'post': 'post',
-                    'put': 'put'
+                    'put': 'put',
+                    'patch': 'patch'
                 };
 
                 const methods = LoadMethod(file);
