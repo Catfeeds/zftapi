@@ -69,6 +69,27 @@ module.exports = {
 			}
 				break;
 			case 'prepaid':
+			{
+				MySQL.DevicePrePaid.findAndCountAll({
+					where:{
+						projectId: projectId,
+						contractId: contractId
+					},
+					offset: pagingInfo.skip,
+					limit: pagingInfo.size
+				}).then(
+					result=>{
+                        res.send({
+                            paging: {
+                                count: result.count,
+                                index: pagingInfo.index,
+                                size: pagingInfo.size
+                            },
+                            data: result.rows
+                        });
+					}
+				)
+			}
 				break;
 		}
 	}

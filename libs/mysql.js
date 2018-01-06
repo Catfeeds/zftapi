@@ -940,6 +940,51 @@ function SequelizeDefine()
     });
     exports.Topup = Topup;
 
+    const devicePrePaid = sequelizeInstance.define('devicePrePaid', {
+        id: {
+            type: Sequelize.BIGINT.UNSIGNED,
+            autoIncrement: true,
+            primaryKey: true
+        },
+        type:{
+            type: Sequelize.STRING(16),
+            allowNull: false
+        },
+        contractId:{
+            type: Sequelize.BIGINT.UNSIGNED,
+            allowNull: false
+        },
+        projectId:{
+            type: Sequelize.BIGINT.UNSIGNED,  //项目ID
+            allowNull: false
+        },
+        deviceId:{
+            type: Sequelize.STRING(32),
+            allowNull: false
+        },
+        amount: {
+            type: Sequelize.INTEGER,    //单位分
+            allowNull: false,
+            defaultValue: 0
+        },
+        scale: {
+            type: Sequelize.BIGINT,
+            allowNull: false
+        },
+        usage: {
+            type: Sequelize.BIGINT,
+            allowNull: false
+        },
+        createdAt:{
+            type: Sequelize.BIGINT.UNSIGNED,
+            allowNull: false
+        }
+    },{
+        timestamps: false,
+        freezeTableName: true
+    });
+    exports.DevicePrePaid = devicePrePaid;
+
 	exports.BillFlows.belongsTo(exports.Bills);
 	exports.Bills.hasMany(exports.BillFlows , {as: 'billItems'});
 
