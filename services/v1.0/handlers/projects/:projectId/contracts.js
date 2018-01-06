@@ -10,6 +10,8 @@ const generateBills = require('../../../../../transformers/billGenerator').gener
 const billItems = require('../../../../../transformers/billItemsGenerator').generate;
 const omitSingleNulls = require('../../../../../services/v1.0/common').omitSingleNulls;
 const innerValues = require('../../../../../services/v1.0/common').innerValues;
+const assignNewId = require('../../../../../services/v1.0/common').assignNewId;
+
 
 const omitFields = item => _.omit(item, ['userId', 'createdAt', 'updatedAt']);
 
@@ -51,13 +53,13 @@ module.exports = {
 
 		const sequelize = MySQL.Sequelize;
 
-		const createBill = (contract, bill, t) => Bills.create(bill, {transaction: t})
+		const createBill = (contract, bill, t) => Bills.create(assignNewId(bill), {transaction: t})
 			.then(dbBill => Promise.all(
-				fp.map(bill => BillFlows.create(bill, {transaction: t}))(billItems(contract, dbBill))
+				fp.map(billflow => BillFlows.create(assignNewId(billflow), {transaction: t}))(billItems(contract, dbBill))
 				)
 			);
 
-		const occupyRoom = (contract) => {
+		const occupyRoom = (contract, t) => {
 			return Rooms.update({
 				status: Typedef.OperationStatus.INUSE
 			}, {
@@ -65,9 +67,9 @@ module.exports = {
 				where: {
 					id: contract.dataValues.roomId,
 					status: Typedef.OperationStatus.IDLE
-				}
+				},
+				transaction: t
 			}).then(result => {
-				console.log('update result', result);
 				if (result[1] === 0) {
 					throw new Error(`room ${contract.dataValues.roomId} is unavailable`)
 				}
@@ -78,14 +80,14 @@ module.exports = {
 			extractUser(req)
 				.then(user => Users.findOrCreate({
 					where: {accountName: user.accountName, id: user.id},
-					defaults: user,
+					defaults: assignNewId(user),
 					transaction: t
 				}))
 				.then(dbUser => extractContract(req, _.get(dbUser, '[0]')))
-				.then(contract => Contracts.create(contract, {transaction: t}))
+				.then(contract => Contracts.create(assignNewId(contract), {transaction: t}))
 				.then(contract => {
 					const bills = fp.map(bill => createBill(contract, bill, t))(generateBills(contract));
-					const roomUpdate = occupyRoom(contract);
+					const roomUpdate = occupyRoom(contract, t);
 					return Promise.all(_.concat(bills, [roomUpdate]));
 				})
 		).then(results => res.send(201, ErrorCode.ack(ErrorCode.OK, {})))

@@ -88,7 +88,7 @@ module.exports = {
                                             projectId: projectId,
                                             amount: amount,
                                             fundChannelId: fundChannelId,
-                                            operator: req.user.userId
+                                            operator: req.user.id
                                         }, {transaction: t});
                                     }
                                 );

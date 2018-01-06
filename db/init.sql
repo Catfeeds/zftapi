@@ -35,7 +35,7 @@ create table if not exists rooms
 
 create table if not exists contracts
 (
-	`id` bigint auto_increment,
+	`id` bigint,
 	projectId bigint not null,
 	roomId bigint not null,
 	userId bigint not null,
@@ -55,7 +55,7 @@ create table if not exists contracts
 
 create table if not exists bills
 (
-	id bigint auto_increment,
+	id bigint,
 	flow varchar(10) default 'receive' not null,
 	entityType varchar(10) default 'tenant' not null,
 	contractId bigint,
@@ -75,7 +75,7 @@ create table if not exists bills
 
 create table if not exists billflows
 (
-	id bigint auto_increment,
+	id bigint,
 	projectId bigint not null,
 	billId bigint not null,
 	configId bigint not null,
@@ -100,7 +100,7 @@ create table if not exists billpayment
 
 create table if not exists users
 (
-	id bigint auto_increment,
+	id bigint,
 	accountName varchar(32) not null,
 	`name` varchar(24) not null,
 	mobile varchar(13) not null,
@@ -114,7 +114,7 @@ create table if not exists users
 
 CREATE TABLE IF NOT EXISTS `auth`
 (
-	`id` bigint NOT NULL auto_increment,
+	`id` bigint auto_increment,
 	`projectId` bigint(20) UNSIGNED NOT NULL,
 	username varchar(32) not null,
 	`level` varchar(24) default 'ADMIN' not null,

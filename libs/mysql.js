@@ -511,6 +511,11 @@ function SequelizeDefine()
 
 
     const Contracts = sequelizeInstance.define('contracts', {
+		id: {
+			type: Sequelize.BIGINT.UNSIGNED,     //合约ID
+			allowNull: false,
+			primaryKey: true
+		},
         roomId: {
             type: Sequelize.BIGINT.UNSIGNED,     //房源ID
             allowNull: false,
@@ -520,11 +525,6 @@ function SequelizeDefine()
 			type: Sequelize.BIGINT.UNSIGNED,
 			allowNull: false
 		},
-        userId: {
-            type: Sequelize.BIGINT.UNSIGNED,     //用户ID
-            allowNull: false,
-            defaultValue: 0
-        },
         from: {
             type: Sequelize.BIGINT.UNSIGNED,     //起租时间
             allowNull: false,
@@ -599,9 +599,10 @@ function SequelizeDefine()
 	Contracts.belongsTo(Rooms);
 
 	const Users = sequelizeInstance.define('users', {
-	    userId:{
+	    id: {
 	        type: Sequelize.BIGINT.UNSIGNED,
             allowNull: false,
+			primaryKey: true
         },
 		accountName: {
 			type: Sequelize.STRING(32),     //账号
@@ -643,7 +644,7 @@ function SequelizeDefine()
 	});
 
 	const CashAccount = sequelizeInstance.define('cashAccount', {
-	    id:{
+	    id: {
 	        type: Sequelize.BIGINT.UNSIGNED,
             autoIncrement: true,
             primaryKey: true,
@@ -726,6 +727,11 @@ function SequelizeDefine()
 	});
 
     exports.Bills = sequelizeInstance.define('bills', {
+		id: {
+			type: Sequelize.BIGINT.UNSIGNED,
+			allowNull: false,
+			primaryKey: true
+		},
         flow: { //资金流向(收入/支出)
             type: Sequelize.STRING(10),
             allowNull: false,
@@ -818,6 +824,11 @@ function SequelizeDefine()
     });
 
     exports.BillFlows = sequelizeInstance.define('billflows', {
+		id: {
+			type: Sequelize.BIGINT.UNSIGNED,
+			allowNull: false,
+			primaryKey: true
+		},
         billId: {
             type: Sequelize.BIGINT.UNSIGNED,    // 账单ID
             allowNull: false
