@@ -504,6 +504,25 @@ function SequelizeDefine()
             allowNull: false,
             defaultValue: ''
         },
+		valueRange: {
+			type: Sequelize.TEXT,   //付款方式
+			get: function(){
+				try{
+					return JSON.parse(this.getDataValue('valueRange'));
+				}
+				catch(e){
+					return [];
+				}
+			},
+			set : function (value) {
+				this.setDataValue('valueRange', JSON.stringify(value));
+			}
+        },
+        enabled: {
+            type: Sequelize.BOOLEAN,  //是否激活
+            allowNull: false,
+            defaultValue: true
+        }
     },{
         timestamps: false,
         freezeTableName: true

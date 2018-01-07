@@ -188,11 +188,13 @@ create table if not exists division
 
 create table if not exists `settings`
 (
-	id bigint not null auto_increment,
-	projectId bigint null,
+	`id` bigint not null,
+	`projectId` bigint null,
 	`group` varchar(128) default '' not null,
 	`key` varchar(255) default '' not null,
-	value varchar(255) default '' not null,
+	`value` varchar(255) null,
+	`valueRange` TEXT null,
+	`enabled` int(1) default 1 not null,
   primary key (`id`)
 ) engine=innodb default charset=utf8;
 
@@ -3852,11 +3854,46 @@ INSERT INTO `divisions` VALUES (810000, '香港特别行政区', 1, 0, 0.00000, 
 INSERT INTO `divisions` VALUES (820000, '澳门特别行政区', 1, 0, 0.00000, 0.00000, 0);
 
 
-INSERT INTO `settings` VALUES (121, null, '租金', 'name', '常规租金');
-INSERT INTO `settings` VALUES (123, null, '押金', 'name', '常规押金');
-INSERT INTO `settings` VALUES (124, null, '能源费', 'name', '电费');
-INSERT INTO `settings` VALUES (125, null, '能源费', 'name', '水费');
-INSERT INTO `settings` VALUES (200, null, '其他费用', 'name', '退费');
+INSERT INTO `settings` (`id`, `group`, `key`) VALUES
+(1012, '零散租期非整月', '不设置零散租金'),
+(1013, '零散租期非整月', '零散期前置'),
+(1014, '零散租期非整月', '零散期后置'),
+(1015, '零散租期非整月', '零散期前后置（灵活）'),
+(1021, '零散租期整月', '不设置零散租金'),
+(1022, '零散租期整月', '零散期前后置（月末）'),
+(1023, '零散租期整月', '零散期前后置（灵活）'),
+(1031, '付款方式', '1月一付'),
+(1032, '付款方式', '2月一付'),
+(1033, '付款方式', '3月一付'),
+(1034, '付款方式', '4月一付'),
+(1035, '付款方式', '半年一付'),
+(1036, '付款方式', '1年一付'),
+(1037, '付款方式', '一次付清'),
+(1041, '加收费用', '电费'),
+(1042, '加收费用', '煤气费'),
+(1043, '加收费用', '冷水费'),
+(1044, '加收费用', '热水费'),
+(1045, '加收费用', '网费'),
+(1046, '加收费用', '电视费'),
+(1047, '加收费用', '物业费'),
+(1048, '加收费用', '维修费'),
+(1049, '加收费用', '保洁费'),
+(1050, '加收费用', '保险费'),
+(1051, '加收费用', '服务费'),
+(1061, '零散租期非整月', '常规押金'),
+(1062, '零散租期非整月', '门卡押金'),
+(1063, '零散租期非整月', '钥匙押金'),
+(1064, '零散租期非整月', '家具押金'),
+(1065, '零散租期非整月', '家电押金');
+
+INSERT INTO `settings` (`id`, `group`, `key`, `value`) VALUES
+(1071, '默认显示押金', '常规押金', 123400);
+
+INSERT INTO `settings` (`id`, `group`, `key`, `value`, `valueRange`) VALUES
+(1081, '支付时间', '账单开始前提前', '0天', '["0天", "1天", "2天"]'),
+(1082, '支付时间', '账单开始后固定', '1号', '["1号", "2号", "3号"]'),
+(1083, '支付时间', '账单开始前固定', '1号', '["1号", "2号", "3号"]'),
+(1084, '支付时间', '账单开始前1个月固定', '1号', '["1号", "2号", "3号"]');
 
 
 
