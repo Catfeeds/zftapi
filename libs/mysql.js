@@ -1299,7 +1299,7 @@ function SequelizeDefine()
     exports.Projects = Projects;
 
 	exports.Projects.hasMany(exports.Auth);
-	exports.Auth.belongsTo(exports.Projects)
+	exports.Auth.belongsTo(exports.Projects);
 
 
 
@@ -1309,7 +1309,22 @@ function SequelizeDefine()
             autoIncrement: true,
             primaryKey: true
         },
-
+        deviceId:{
+            type: Sequelize.STRING(32),
+            allowNull: false
+        },
+        name: {
+            type: Sequelize.STRING(16),
+            allowNull: false
+        },
+        tag: {
+            type: Sequelize.STRING(16),
+            allowNull: false
+        },
+        type: {
+            type: Sequelize.STRING(16),
+            allowNull: false
+        }
     },{
         timestamps: true,
         paranoid: true,
