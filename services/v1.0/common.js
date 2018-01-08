@@ -28,10 +28,10 @@ exports.AsyncUpsertGeoLocation = async(location, t)=>{
 exports.QueryEntire = (projectId, query, include, attributes)=>{
     return new Promise((resolve, reject)=>{
         const where = _.assignIn({},
-            query.buildingId ? {'$Building.id$': query.buildingId} : {},
+            query.buildingId ? {'$building.id$': query.buildingId} : {},
             query.houseFormat ? {houseFormat: query.houseFormat} : {},
             query.houseStatus ? { 'status': query.houseStatus } : {},
-            query.roomStatus ? {'$Rooms.status$': query.roomStatus }: {},
+            query.roomStatus ? {'$rooms.status$': query.roomStatus }: {},
             query.layoutId ? {'layoutId': query.layoutId}: {},
             query.floor ? {'currentFloor': query.floor}: {},
             query.q ? {$or: [

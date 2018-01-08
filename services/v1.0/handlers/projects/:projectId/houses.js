@@ -338,18 +338,18 @@ async function Gethouses(params, query) {
     const divisionLocation = ()=>{
         if(query.locationId){
             // geoLocationIds = [query.locationId];
-            return {'$Building.Location.id$': query.locationId};
+            return {'$building.location.id$': query.locationId};
         }
         else if(query.divisionId){
             let where = {};
             if(Util.IsParentDivision(query.divisionId)){
                 return {
-                    '$Building.Location.divisionId': {$regexp: Util.ParentDivision(query.divisionId)}
+                    '$building.location.divisionId': {$regexp: Util.ParentDivision(query.divisionId)}
                 };
             }
             else{
                 return {
-                    '$Building.Location.divisionId': query.divisionId
+                    '$building.location.divisionId': query.divisionId
                 };
             }
         }
@@ -359,7 +359,7 @@ async function Gethouses(params, query) {
     try {
         const where = _.assignIn({
             },
-            query.buildingId ? {'$Building.id$': query.buildingId} : {},
+            query.buildingId ? {'$building.id$': query.buildingId} : {},
             divisionLocation() && {},
             query.houseFormat ? {houseFormat: query.houseFormat} : {},
             query.houseStatus ? { 'status': query.houseStatus } : {},
@@ -367,7 +367,7 @@ async function Gethouses(params, query) {
             query.layoutId ? {'layoutId': query.layoutId}: {},
             query.floor ? {'currentFloor': query.floor}: {},
             query.q ? {$or: [
-                {'$Building.Location.name$': {$regexp: query.q}},
+                {'$building.location.name$': {$regexp: query.q}},
                 {roomNumber: {$regexp: query.q}},
                 {code: {$regexp: query.q}},
             ]} : {},

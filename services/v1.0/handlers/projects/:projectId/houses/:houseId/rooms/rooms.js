@@ -122,7 +122,7 @@ module.exports = {
 			}],
 			where: {
 				$or: [
-					{'$house.Building.Location.name$': {$regexp: query.q}},
+					{'$house.building.location.name$': {$regexp: query.q}},
 					{'$house.roomNumber$': {$regexp: query.q}}
 				]
 			},
