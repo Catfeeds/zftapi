@@ -7,14 +7,15 @@ import _ from 'lodash'
 
 const room = {dataValues: {house: {dataValues: {building: {dataValues: {location: {dataValues: {}}}}}}}};
 const expectedRoom = {
-	"building": undefined,
-	"group": undefined,
-	"houseId": undefined,
-	"id": undefined,
-	"locationName": undefined,
-	"roomName": undefined,
-	"roomNumber": undefined,
-	"unit": undefined,
+	building: undefined,
+	group: undefined,
+	houseId: undefined,
+	id: undefined,
+	locationName: undefined,
+	roomName: undefined,
+	roomNumber: undefined,
+	unit: undefined,
+	status: undefined
 };
 describe('Contracts', function () {
 	before(() => {

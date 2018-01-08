@@ -107,6 +107,7 @@ exports.assignNewId = (model) => fp.defaults({id: SnowFlake.next()})(model);
 
 exports.singleRoomTranslate = model => {
 	const room = model.dataValues;
+	const status = room.status;
 	const house = room.house.dataValues;
 	const building = house.building.dataValues;
 	const location = building.location.dataValues;
@@ -118,6 +119,7 @@ exports.singleRoomTranslate = model => {
 		building: building.building,
 		unit: building.unit,
 		roomNumber: house.roomNumber,
-		roomName: room.name
+		roomName: room.name,
+		status
 	}
 };

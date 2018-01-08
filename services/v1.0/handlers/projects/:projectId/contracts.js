@@ -71,7 +71,7 @@ module.exports = {
 				},
 				transaction: t
 			}).then(result => {
-				if (result[1] === 0) {
+				if (result[1] > 10) {
 					throw new Error(`room ${contract.dataValues.roomId} is unavailable`)
 				}
 			})

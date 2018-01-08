@@ -2,6 +2,7 @@
 
 const _ = require('lodash');
 const fp = require('lodash/fp');
+const moment = require('moment');
 const singleRoomTranslate = require('../../../common').singleRoomTranslate;
 
 /**
@@ -17,6 +18,19 @@ const translate = (models, pagingInfo) => {
         data: fp.map(singleRoomTranslate)(models.rows)
     }
 };
+
+const currentLeasingStatus = (contracts) => {
+    const now = moment().unix();
+	const simplified = fp.map(c => _.pick(c, ['from', 'to', 'id']))(contracts);
+
+    const compactedContracts = fp.filter(c => !_.isUndefined(c.from))(simplified);
+    // PAUSE
+    if(fp.some(contract => (now > contract.from && _.isUndefined(contract.to)))(compactedContracts)) {
+        return Typedef.OperationStatus.PAUSED;
+    }
+	return fp.some(contract => (now > contract.from && contract.to > now))(compactedContracts) ?
+        Typedef.OperationStatus.INUSE : Typedef.OperationStatus.IDLE;
+}
 module.exports = {
     get: async (req, res) => {
         const params = req.params;
@@ -32,13 +46,12 @@ module.exports = {
         const Rooms = MySQL.Rooms;
         const Building = MySQL.Building;
         const GeoLocation = MySQL.GeoLocation;
-        
+        const Contracts = MySQL.Contracts;
+
         const houseCondition = _.assign(
             {projectId: params.projectId},
             query.houseFormat ? {houseFormat: query.houseFormat} : {}
         );
-
-        const status = _.get(query, 'status', Typedef.OperationStatus.IDLE).toUpperCase();
 
         const modelOption = {
             include: [{
@@ -55,13 +68,20 @@ module.exports = {
                         attributes: ['name']
                     }]
                 }]
+            }, {
+                model: Contracts,
+				attributes: ['id', 'from', 'to'],
+				required: false,
+                where: {
+                    status: Typedef.ContractStatus.ONGOING,
+                    //TODO: filter occupied rooms by default
+                }
             }],
             where: {
                 $or: [
                     {'$house.building.location.name$': {$regexp: query.q}},
                     {'$house.roomNumber$': {$regexp: query.q}}
-                ],
-				status
+                ]
             },
             attributes: ['id', 'name'],
             offset: pagingInfo.skip,
@@ -69,6 +89,16 @@ module.exports = {
         };
 
         return Rooms.findAndCountAll(modelOption)
+            .then(data => {
+				const rows = fp.map(single => {
+					const status = currentLeasingStatus(single.contracts);
+					return fp.merge(single)({dataValues: {status}});
+				})(data.rows);
+				console.log('res', rows[0]);
+				const res = fp.defaults(data)({rows});
+				console.log('res', res.rows[0]);
+				return res;
+            })
             .then(data => translate(data, pagingInfo))
             .then(data => res.send(data))
     }
