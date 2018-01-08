@@ -401,6 +401,19 @@ async function Gethouses(params, query) {
                         where:{
                             endDate: 0
                         }
+                    },
+                    {
+                        model: MySQL.Contracts,
+                        required: false,
+                        where:{
+                            status: Typedef.ContractStatus.ONGOING
+                        },
+                        order:['from asc'],
+                        include:[
+                            {
+                                model: MySQL.Users
+                            }
+                        ]
                     }
                 ]
             },
@@ -489,6 +502,26 @@ async function Gethouses(params, query) {
             } );
             houseDevices = _.compact(houseDevices);
 
+            const rooms = fp.map(room=>{
+
+                const getContract = ()=>{
+                    if( !room.contracts || !room.contracts.length ){
+                        return {};
+                    }
+                    else{
+                        const contract = room.contracts[0];
+                        return {
+                            signUpTime: contract.signUpTime,
+                            userId: contract.user.id,
+                            name: contract.user.name,
+                            rent: contract.strategy && contract.strategy.freq && contract.strategy.freq.rent
+                        }
+                    }
+                };
+
+                return _.assignIn( _.omit(room, 'contracts'), {contract: getContract()} );
+
+            })(house.rooms);
 
             data.push({
                 houseId: house.id,
@@ -498,7 +531,7 @@ async function Gethouses(params, query) {
                 location: house.building.location,
                 unit: house.building.unit,
                 roomNumber: house.roomNumber,
-                rooms: house.rooms,
+                rooms: rooms,
                 layout: house.layouts,
                 devices: houseDevices,
                 prices: fp.map(price=>{

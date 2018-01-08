@@ -126,40 +126,36 @@ module.exports = {
     },
 
     get: (req, res, next)=>{
-        const roomId = req.params.id;
+        const roomId = req.params.roomId;
         const projectId =req.params.projectId;
 
 
 
-        MySQL.Houses.findOne({
+        MySQL.Rooms.findOne({
             where:{
-                id: roomId,
-                projectId: projectId
-            }
+                id: roomId
+            },
+            include: [
+                {
+                    model: MySQL.HouseDevices,
+                    as: 'devices',
+                    required: false,
+                    attributes: ['deviceId', "public"],
+                    where:{
+                        endDate: 0
+                    }
+                }
+            ]
         }).then(
             room=>{
                 if(!room){
                     return res.send(404, ErrorCode.ack(ErrorCode.REQUESTUNMATCH));
                 }
 
-                MySQL.Layouts.findOne({
-                    where:{
-                        houseId: room.id
-                    }
-                }).then(
-                    layout=>{
-                        if(!layout){
-                            return res.send(404, ErrorCode.ack(ErrorCode.REQUESTUNMATCH));
-                        }
-
-                        let roomIns = MySQL.Plain(room);
-                        roomIns.layout = layout;
-                        res.send(roomIns);
-                    }
-                );
+                res.send(room);
             },
             err=>{
-                log.error(e, roomId);
+                log.error(err, roomId);
                 res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC));
             }
         );
