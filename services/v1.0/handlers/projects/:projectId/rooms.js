@@ -9,9 +9,9 @@ const fp = require('lodash/fp');
 const translate = (models, pagingInfo) => {
     const single = model => {
         const room = model.dataValues;
-        const house = room.House.dataValues;
-        const building = house.Building.dataValues;
-        const location = building.Location.dataValues;
+        const house = room.house.dataValues;
+        const building = house.building.dataValues;
+        const location = building.location.dataValues;
         return {
             id: room.id,
             houseId: house.id,
