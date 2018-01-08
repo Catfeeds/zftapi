@@ -132,7 +132,7 @@ module.exports = {
 			return {
 				model: Rooms,
 				required: true,
-				attributes: ['id'],
+				attributes: ['id', 'name'],
 				include: [houseInclude]
 			}
 		};
