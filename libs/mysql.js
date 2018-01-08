@@ -1303,7 +1303,7 @@ function SequelizeDefine()
 
 
 
-    const Devices = sequelizeInstance.define('projects', {
+    const Devices = sequelizeInstance.define('devices', {
         id: {
             type: Sequelize.BIGINT.UNSIGNED,
             autoIncrement: true,
@@ -1311,6 +1311,10 @@ function SequelizeDefine()
         },
         deviceId:{
             type: Sequelize.STRING(32),
+            allowNull: false
+        },
+        projectId:{
+            type: Sequelize.BIGINT.UNSIGNED,
             allowNull: false
         },
         name: {
@@ -1324,12 +1328,49 @@ function SequelizeDefine()
         type: {
             type: Sequelize.STRING(16),
             allowNull: false
+        },
+        freq: {
+            type: Sequelize.INTEGER,
+            allowNull: false
+        },
+        driver: {
+            type: Sequelize.STRING(128),
+            allowNull: false,
+            defaultValue: ''
         }
     },{
         timestamps: true,
         paranoid: true,
         freezeTableName: true
     });
+    const DevicesChannels = sequelizeInstance.define('devicesChannels', {
+        id: {
+            type: Sequelize.BIGINT.UNSIGNED,
+            autoIncrement: true,
+            primaryKey: true
+        },
+        deviceId:{
+            type: Sequelize.STRING(32),
+            allowNull: false
+        },
+        channelId:{
+            type: Sequelize.STRING(3),
+            allowNull: false
+        },
+        comi: {
+            type: Sequelize.DECIMAL(10,6),
+            allowNull: false
+        },
+        scale:{
+            type: Sequelize.BIGINT.UNSIGNED,
+            allowNull: false
+        }
+    },{
+        timestamps: true,
+        paranoid: true,
+        freezeTableName: true
+    });
+    Devices.hasMany(DevicesChannels, {as: 'channels', foreignKey: 'deviceId'});
 }
 
 function EMDefine()
