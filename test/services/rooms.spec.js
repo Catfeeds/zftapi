@@ -27,16 +27,16 @@ describe('Rooms', function () {
 							dataValues: {
 								id: 123,
 								name: 'roomName',
-								House: {
+								house: {
 									dataValues: {
 										id: 456,
 										roomNumber: 'roomNumber',
-										Building: {
+										building: {
 											dataValues: {
 												group: 'group1',
 												building: 'building1',
 												unit: 'unit1',
-												Location: {
+												location: {
 													dataValues: {
 														name: 'locationName'
 													}
