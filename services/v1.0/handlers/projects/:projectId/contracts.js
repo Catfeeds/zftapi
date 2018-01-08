@@ -11,16 +11,17 @@ const billItems = require('../../../../../transformers/billItemsGenerator').gene
 const omitSingleNulls = require('../../../../../services/v1.0/common').omitSingleNulls;
 const innerValues = require('../../../../../services/v1.0/common').innerValues;
 const assignNewId = require('../../../../../services/v1.0/common').assignNewId;
-
+const singleRoomTranslate = require('../../../common').singleRoomTranslate;
 
 const omitFields = item => _.omit(item, ['userId', 'createdAt', 'updatedAt']);
+const roomTranslate = item => fp.defaults(item)({room: singleRoomTranslate(item.room)});
 
 const translate = (models, pagingInfo) => {
 	const jsonProcess = (model) => fp.defaults(model)({
 		expenses: JSON.parse(model.expenses),
 		strategy: JSON.parse(model.strategy)
 	});
-	const single = _.flow(innerValues, omitSingleNulls, omitFields, jsonProcess);
+	const single = _.flow(innerValues, omitSingleNulls, omitFields, jsonProcess, roomTranslate);
 	return {
 		paging: {
 			count: models.count,
@@ -116,7 +117,7 @@ module.exports = {
 					model: Houses,
 					as: 'house',
 					required: true,
-					attributes: ['id'],
+					attributes: ['id', 'roomNumber'],
 					include: [{
 						model: Building, required: true, as: 'building',
 						attributes: ['building', 'unit'],

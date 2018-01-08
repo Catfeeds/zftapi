@@ -104,3 +104,20 @@ exports.omitSingleNulls = item => _.omitBy(item, _.isNull);
 exports.innerValues = item => item.dataValues;
 exports.omitNulls = fp.map(item => _.omitBy(exports.innerValues(item), _.isNull));
 exports.assignNewId = (model) => fp.defaults({id: SnowFlake.next()})(model);
+
+exports.singleRoomTranslate = model => {
+	const room = model.dataValues;
+	const house = room.house.dataValues;
+	const building = house.building.dataValues;
+	const location = building.location.dataValues;
+	return {
+		id: room.id,
+		houseId: house.id,
+		locationName: location.name,
+		group: building.group,
+		building: building.building,
+		unit: building.unit,
+		roomNumber: house.roomNumber,
+		roomName: room.name
+	}
+};

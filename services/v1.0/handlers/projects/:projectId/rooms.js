@@ -2,34 +2,19 @@
 
 const _ = require('lodash');
 const fp = require('lodash/fp');
+const singleRoomTranslate = require('../../../common').singleRoomTranslate;
 
 /**
  * Operations on /rooms/{hid}
  */
 const translate = (models, pagingInfo) => {
-    const single = model => {
-        const room = model.dataValues;
-        const house = room.house.dataValues;
-        const building = house.building.dataValues;
-        const location = building.location.dataValues;
-        return {
-            id: room.id,
-            houseId: house.id,
-            locationName: location.name,
-            group: building.group,
-            building: building.building,
-            unit: building.unit,
-            roomNumber: house.roomNumber,
-            roomName: room.name
-        }
-    };
     return {
         paging: {
             count: models.count,
             index: pagingInfo.index,
             size: pagingInfo.size
         },
-        data: fp.map(single)(models.rows)
+        data: fp.map(singleRoomTranslate)(models.rows)
     }
 };
 module.exports = {
@@ -47,7 +32,7 @@ module.exports = {
         const Rooms = MySQL.Rooms;
         const Building = MySQL.Building;
         const GeoLocation = MySQL.GeoLocation;
-
+        
         const houseCondition = _.assign(
             {projectId: params.projectId},
             query.houseFormat ? {houseFormat: query.houseFormat} : {}

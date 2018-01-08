@@ -5,6 +5,17 @@ import 'include-node'
 import {spy, stub} from 'sinon'
 import _ from 'lodash'
 
+const room = {dataValues: {house: {dataValues: {building: {dataValues: {location: {dataValues: {}}}}}}}};
+const expectedRoom = {
+	"building": undefined,
+	"group": undefined,
+	"houseId": undefined,
+	"id": undefined,
+	"locationName": undefined,
+	"roomName": undefined,
+	"roomNumber": undefined,
+	"unit": undefined,
+};
 describe('Contracts', function () {
 	before(() => {
 		global.Typedef = Include('/libs/typedef');
@@ -12,7 +23,7 @@ describe('Contracts', function () {
 		global.Util = Include('/libs/util');
 	});
 	it('should return all contracts from findAndCountAll', async function () {
-		const contract = {dataValues: {expenses: '[]', strategy: '{}'}};
+		const contract = {dataValues: {expenses: '[]', strategy: '{}', room}};
 		const req = {
 			params: {
 				projectId: 100
@@ -34,7 +45,7 @@ describe('Contracts', function () {
 
 		await get(req, {send: resSpy}).then(() => {
 				resSpy.should.have.been.called;
-				resSpy.getCall(0).args[0].data.should.be.eql([{expenses: [], strategy: {}}]);
+				resSpy.getCall(0).args[0].data.should.be.eql([{expenses: [], strategy: {}, room: expectedRoom}]);
 			}
 		)
 	});
@@ -59,7 +70,8 @@ describe('Contracts', function () {
 								userId: 123,
 								andMe: 'haha',
 								expenses: '[]',
-								strategy: '{}'
+								strategy: '{}',
+								room
 							}
 						}]
 					};
@@ -70,7 +82,13 @@ describe('Contracts', function () {
 
 		await get(req, {send: resSpy}).then(() => {
 			resSpy.should.have.been.called;
-			resSpy.getCall(0).args[0].data.should.be.eql([{id: 1, andMe: 'haha', expenses: [], strategy: {}}]);
+			resSpy.getCall(0).args[0].data.should.be.eql([{
+				id: 1,
+				andMe: 'haha',
+				expenses: [],
+				strategy: {},
+				room: expectedRoom
+			}]);
 		})
 	});
 
@@ -92,7 +110,8 @@ describe('Contracts', function () {
 								nullField2: null,
 								onlyMe: 'haha',
 								expenses: '[]',
-								strategy: '{}'
+								strategy: '{}',
+								room
 							}
 						}]
 					};
@@ -149,9 +168,7 @@ describe('Contracts', function () {
 						model: Houses,
 						required: true,
 						as: 'house',
-						attributes: [
-							'id'
-						],
+						attributes: ['id', 'roomNumber'],
 						where: {
 							houseFormat: 'SOLE'
 						},
