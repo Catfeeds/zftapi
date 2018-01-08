@@ -1261,16 +1261,7 @@ function SequelizeDefine()
     const Projects = sequelizeInstance.define('projects', {
         id: {
             type: Sequelize.BIGINT.UNSIGNED,
-            autoIncrement: true,
             primaryKey: true
-        },
-        pid: {
-            type: Sequelize.BIGINT.UNSIGNED,
-            allowNull: false
-        },
-        externalId: {
-            type: Sequelize.STRING(32),
-            allowNull: false
         },
 		logoUrl: {
 			type: Sequelize.STRING(255),     //logo image url
@@ -1301,6 +1292,21 @@ function SequelizeDefine()
 
 	exports.Projects.hasMany(exports.Auth);
 	exports.Auth.belongsTo(exports.Projects)
+
+
+
+    const Devices = sequelizeInstance.define('projects', {
+        id: {
+            type: Sequelize.BIGINT.UNSIGNED,
+            autoIncrement: true,
+            primaryKey: true
+        },
+        
+    },{
+        timestamps: true,
+        paranoid: true,
+        freezeTableName: true
+    });
 }
 
 function EMDefine()
