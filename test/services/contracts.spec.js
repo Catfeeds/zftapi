@@ -135,53 +135,45 @@ describe('Contracts', function () {
 		};
 
 		await get(req, {send: _.noop}).then(() => {
-				sequelizeFindSpy.should.have.been.called;
-				const modelOptions = sequelizeFindSpy.getCall(0).args[0];
-				modelOptions.include.should.be.eql([
-					{
-						model: Users, required: true
-					},
-					{
-						model: Rooms,
+			sequelizeFindSpy.should.have.been.called;
+			const modelOptions = sequelizeFindSpy.getCall(0).args[0];
+			modelOptions.include.should.be.eql([
+				{
+					model: Users, required: true
+				},
+				{
+					model: Rooms,
+					required: true,
+					attributes: ['id'],
+					include: [{
+						model: Houses,
 						required: true,
-						attributes: ['id'],
-						include: [
-							{
-								model: Houses,
-								required: true,
-								as: 'house',
+						as: 'house',
+						attributes: [
+							'id'
+						],
+						where: {
+							houseFormat: 'SOLE'
+						},
+						include: [{
+							as: 'building',
+							attributes: [
+								'building',
+								'unit'
+							],
+							include: [{
+								as: 'location',
 								attributes: [
-									'id'
+									'name'
 								],
-								where: {
-									houseFormat: 'SOLE'
-								},
-								include: [
-									{
-
-										as: 'building',
-										attributes: [
-											'building',
-											'unit'
-										],
-										include: [
-											{
-												as: 'location',
-												attributes: [
-													'name'
-												],
-												model: GeoLocation,
-												required: true
-											}
-										],
-										model: Building,
-										required: true
-									}
-								]
-							}]
-					}
-				])
-			}
-		)
+								model: GeoLocation,
+								required: true
+							}],
+							model: Building,
+							required: true
+						}]
+					}]
+				}])
+		})
 	});
 });
