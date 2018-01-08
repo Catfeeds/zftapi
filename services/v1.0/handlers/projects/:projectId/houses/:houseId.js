@@ -444,14 +444,14 @@ module.exports = {
                 subQuery: false,
                 include: [
                     {
-                        model: MySQL.Building, as: 'Building'
+                        model: MySQL.Building, as: 'building'
                         , include:[{
-                        model: MySQL.GeoLocation, as: 'Location'
+                        model: MySQL.GeoLocation, as: 'location'
                     }]
                         , attributes: ['group', 'building', 'unit']
                     },
-                    {model: MySQL.Layouts, as: 'Layouts', attributes: ["id", "name","bedRoom", "livingRoom", "bathRoom", "orientation", "roomArea", "remark"]},
-                    {model: MySQL.Rooms, as: 'Rooms', attributes:['config', 'name', 'people', 'type', 'roomArea', 'orientation']}
+                    {model: MySQL.Layouts, as: 'layouts', attributes: ["id", "name","bedRoom", "livingRoom", "bathRoom", "orientation", "roomArea", "remark"]},
+                    {model: MySQL.Rooms, as: 'rooms', attributes:['config', 'name', 'people', 'type', 'roomArea', 'orientation']}
                 ]
             });
             if(!houseIns){
@@ -460,15 +460,15 @@ module.exports = {
 
             res.send({
                 code: houseIns.code,
-                location: houseIns.Building.Location,
+                location: houseIns.building.location,
                 houseKeeper: houseIns.houseKeeper,
-                group: houseIns.Building.group,
-                building: houseIns.Building.building,
-                unit: houseIns.Building.unit,
+                group: houseIns.building.group,
+                building: houseIns.building.building,
+                unit: houseIns.building.unit,
                 roomNumber: houseIns.roomNumber,
                 currentFloor: houseIns.currentFloor,
-                totalFloor: houseIns.Building.totalFloor,
-                layout: houseIns.Layouts,
+                totalFloor: houseIns.building.totalFloor,
+                layout: houseIns.layouts,
                 config: houseIns.config
             });
         })();

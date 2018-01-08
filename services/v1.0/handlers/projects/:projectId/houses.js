@@ -106,11 +106,11 @@ async function SaveEntire(t, params, body){
             totalFloor: body.totalFloor,
             houseCountOnFloor: body.houseCountOnFloor || body.roomCountOnFloor,
             config: body.config,
-            Layouts: body.layouts || [],
+            layouts: body.layouts || [],
             createdAt: createdAt
         };
 
-        await MySQL.Building.create(buildingIns, {transaction: t, include:[{model: MySQL.Layouts, as: 'Layouts'}]});
+        await MySQL.Building.create(buildingIns, {transaction: t, include:[{model: MySQL.Layouts, as: 'layouts'}]});
 
         const houseRoomLayouts = createHouses(buildingId, buildingIns.houseCountOnFloor, buildingIns.totalFloor);
 
@@ -185,7 +185,7 @@ async function SaveSole(t, params, body) {
             createdAt: createdAt
         };
 
-        await MySQL.Building.create(buildingIns, {transaction: t, include:[{model: MySQL.Layouts, as: 'Layouts'}]});
+        await MySQL.Building.create(buildingIns, {transaction: t, include:[{model: MySQL.Layouts, as: 'layouts'}]});
 
         const houseRoomLayout = createHouse(buildingId);
 
@@ -273,7 +273,7 @@ async function SaveShare(t, params, body) {
             createdAt: createdAt
         };
 
-        await MySQL.Building.create(buildingIns, {transaction: t, include:[{model: MySQL.Layouts, as: 'Layouts'}]});
+        await MySQL.Building.create(buildingIns, {transaction: t, include:[{model: MySQL.Layouts, as: 'layouts'}]});
 
         const houseRoomLayout = createHouse(buildingId);
 
@@ -310,7 +310,7 @@ async function Gethouses(params, query) {
                     return {
                         $or: [
                             {'id': {$in: sourceIds}},
-                            {'$Rooms.id$': {$in: sourceIds}},
+                            {'$rooms.id$': {$in: sourceIds}},
                         ]
                     }
                 }
@@ -318,7 +318,7 @@ async function Gethouses(params, query) {
                     return {
                         $or: [
                             {'id': {$notIn: sourceIds}},
-                            {'$Rooms.id$': {$notIn: sourceIds}},
+                            {'$rooms.id$': {$notIn: sourceIds}},
                         ]
                     }
                 }
@@ -363,7 +363,7 @@ async function Gethouses(params, query) {
             divisionLocation() && {},
             query.houseFormat ? {houseFormat: query.houseFormat} : {},
             query.houseStatus ? { 'status': query.houseStatus } : {},
-            query.roomStatus ? {'$Rooms.status$': query.roomStatus }: {},
+            query.roomStatus ? {'$rooms.status$': query.roomStatus }: {},
             query.layoutId ? {'layoutId': query.layoutId}: {},
             query.floor ? {'currentFloor': query.floor}: {},
             query.q ? {$or: [
@@ -371,26 +371,26 @@ async function Gethouses(params, query) {
                 {roomNumber: {$regexp: query.q}},
                 {code: {$regexp: query.q}},
             ]} : {},
-            query.bedRoom ? {'$Layouts.bedRoom$': query.bedRoom} : {},
+            query.bedRoom ? {'$layouts.bedRoom$': query.bedRoom} : {},
             query.device ? await deviceFilter() : {},
         );
 
         const include = [
             {
-                model: MySQL.Building, as: 'Building'
+                model: MySQL.Building, as: 'building'
                 , include:[{
-                model: MySQL.GeoLocation, as: 'Location',
+                model: MySQL.GeoLocation, as: 'location',
             }]
                 , attributes: ['group', 'building', 'unit'],
             },
             {
                 model: MySQL.Layouts,
-                as: 'Layouts',
+                as: 'layouts',
                 attributes: ["name", "bedRoom", "livingRoom", "bathRoom", "orientation", "roomArea", "remark"],
             },
             {
                 model: MySQL.Rooms,
-                as: 'Rooms',
+                as: 'rooms',
                 attributes:['id', 'config', 'name', 'people', 'type', 'roomArea', 'orientation'],
                 include:[
                     {
@@ -438,7 +438,7 @@ async function Gethouses(params, query) {
                 deviceIds.push(new RegExp(dev.deviceId.substr(3)));
             };
             _.each(house.devices, dev=>{ getDeviceId(dev); });
-            _.each(house.Rooms, room=>{
+            _.each(house.rooms, room=>{
                 _.each(room.devices, dev=>{ getDeviceId(dev); });
             });
         });
@@ -479,7 +479,7 @@ async function Gethouses(params, query) {
             };
             _.each( house.devices, dev=>{
                 houseDevices.push(createDevices(dev));
-                _.each(house.Rooms, room=>{
+                _.each(house.rooms, room=>{
                     let roomDevices = [];
                     _.each(room.devices, dev=>{
                         roomDevices.push( createDevices(dev) );
@@ -493,12 +493,13 @@ async function Gethouses(params, query) {
             data.push({
                 houseId: house.id,
                 code: house.code,
-                group: house.Building.group,
-                building: house.Building.building,
-                unit: house.Building.unit,
+                group: house.building.group,
+                building: house.building.building,
+                location: house.building.location,
+                unit: house.building.unit,
                 roomNumber: house.roomNumber,
-                rooms: house.Rooms,
-                layout: house.Layouts,
+                rooms: house.rooms,
+                layout: house.layouts,
                 devices: houseDevices,
                 prices: fp.map(price=>{
                     return {

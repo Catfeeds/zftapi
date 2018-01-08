@@ -56,7 +56,7 @@ module.exports = {
                     {model: MySQL.GeoLocation, as:'Location'
                         , attributes: ['id', 'code', 'divisionId', 'district', 'name', 'address', 'longitude', 'latitude']
                     },
-                    {model: MySQL.Layouts, as: 'Layouts', attributes: ["id", "name","bedRoom", "livingRoom", "bathRoom", "orientation", "roomArea", "remark"]},
+                    {model: MySQL.Layouts, as: 'layouts', attributes: ["id", "name","bedRoom", "livingRoom", "bathRoom", "orientation", "roomArea", "remark"]},
                 ]
             });
             if(!building){
@@ -100,12 +100,12 @@ module.exports = {
                     buildingId: buildingId,
                     projectId: projectId,
                     deleteAt: 0,
-                    '$Rooms.status$':{$ne: Typedef.OperationStatus.IDLE}
+                    '$rooms.status$':{$ne: Typedef.OperationStatus.IDLE}
                 },
                 include:[
                     {
                         model: MySQL.Rooms,
-                        as: 'Rooms'
+                        as: 'rooms'
                     }
                 ]
             });
@@ -238,10 +238,10 @@ module.exports = {
                     buildingId: buildingId,
                     projectId: projectId,
                     currentFloor: {$in: disabledFloors},
-                    '$Rooms.status$': {$ne: Typedef.OperationStatus.IDLE}
+                    '$rooms.status$': {$ne: Typedef.OperationStatus.IDLE}
                 },
                 include:[
-                    {model: MySQL.Rooms, as: 'Rooms', require: false}
+                    {model: MySQL.Rooms, as: 'rooms', require: false}
                 ]
             });
             if(existsUnMatch){

@@ -12,9 +12,9 @@ const translate = (models, pagingInfo) => {
 	console.log(pagingInfo);
 	const single = model => {
 		const room = model.dataValues;
-		const house = room.House.dataValues;
-		const building = house.Building.dataValues;
-		const location = building.Location.dataValues;
+		const house = room.house.dataValues;
+		const building = house.building.dataValues;
+		const location = building.location.dataValues;
 		return {
 			id: room.id,
 			houseId: house.id,
@@ -107,23 +107,23 @@ module.exports = {
 		const modelOption = {
 			include: [{
 				model: Houses, required: true,
-				as: 'House',
+				as: 'house',
 				where: houseCondition,
 				attributes: ['id', 'roomNumber'],
 				include: [{
-					model: Building, required: true, as: 'Building',
+					model: Building, required: true, as: 'building',
 					attributes: ['group', 'building', 'unit'],
 					include: [{
 						model: GeoLocation, required: true,
-						as: 'Location',
+						as: 'location',
 						attributes: ['name']
 					}]
 				}]
 			}],
 			where: {
 				$or: [
-					{'$House.Building.Location.name$': {$regexp: query.q}},
-					{'$House.roomNumber$': {$regexp: query.q}}
+					{'$house.Building.Location.name$': {$regexp: query.q}},
+					{'$house.roomNumber$': {$regexp: query.q}}
 				]
 			},
 			attributes: ['id', 'name'],

@@ -115,7 +115,7 @@ module.exports = {
 			include: [
 				{
 					model: Houses,
-					as: 'House',
+					as: 'house',
 					required: true,
 					attributes: ['id'],
 					where: {

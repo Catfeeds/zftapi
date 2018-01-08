@@ -38,21 +38,21 @@ exports.QueryEntire = (projectId, query, include, attributes)=>{
                 {roomNumber: {$regexp: query.q}},
                 {code: {$regexp: query.q}},
             ]} : {},
-            query.bedRoom ? {'$Layouts.bedRoom$': query.bedRoom} : {}
+            query.bedRoom ? {'$layouts.bedRoom$': query.bedRoom} : {}
         );
 
         const queryInclude = _.union(
             [
                 {
-                    model: MySQL.Building, as: 'Building'
+                    model: MySQL.Building, as: 'building'
                     , include:[{
-                    model: MySQL.GeoLocation, as: 'Location'
+                    model: MySQL.GeoLocation, as: 'location'
                 }]
                 },
-                {model: MySQL.Layouts, as: 'Layouts'},
+                {model: MySQL.Layouts, as: 'layouts'},
                 {
                     model: MySQL.Rooms,
-                    as: 'Rooms',
+                    as: 'rooms',
                     include:[
                         {
                             model: MySQL.HouseDevices,

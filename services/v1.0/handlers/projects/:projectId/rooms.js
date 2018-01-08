@@ -58,23 +58,23 @@ module.exports = {
         const modelOption = {
             include: [{
                 model: Houses, required: true,
-                as: 'House',
+                as: 'house',
                 where: houseCondition,
                 attributes: ['id', 'roomNumber'],
                 include: [{
-                    model: Building, required: true, as: 'Building',
+                    model: Building, required: true, as: 'building',
                     attributes: ['group', 'building', 'unit'],
                     include: [{
                         model: GeoLocation, required: true,
-                        as: 'Location',
+                        as: 'location',
                         attributes: ['name']
                     }]
                 }]
             }],
             where: {
                 $or: [
-                    {'$House.Building.Location.name$': {$regexp: query.q}},
-                    {'$House.roomNumber$': {$regexp: query.q}}
+                    {'$house.building.location.name$': {$regexp: query.q}},
+                    {'$house.roomNumber$': {$regexp: query.q}}
                 ],
 				status
             },

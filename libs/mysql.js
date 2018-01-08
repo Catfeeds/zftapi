@@ -467,17 +467,17 @@ function SequelizeDefine()
         freezeTableName: true
     });
 
-    Houses.belongsTo(Building, {as: 'Building'});
-    Building.hasMany(Houses, {as: 'Houses', foreignKey:'buildingId'});
+    Houses.belongsTo(Building, {as: 'building'});
+    Building.hasMany(Houses, {as: 'houses', foreignKey:'buildingId'});
 
-    Houses.hasMany(Rooms, {as: 'Rooms', foreignKey: 'houseId'});
-    Rooms.belongsTo(Houses, {as: 'House'});
+    Houses.hasMany(Rooms, {as: 'rooms', foreignKey: 'houseId'});
+    Rooms.belongsTo(Houses, {as: 'house'});
 
-    Houses.hasOne(Layouts, {as: 'Layouts', foreignKey: 'sourceId'});
-    Building.hasMany(Layouts, {as: 'Layouts', foreignKey: 'sourceId'});
+    Houses.hasOne(Layouts, {as: 'layouts', foreignKey: 'sourceId'});
+    Building.hasMany(Layouts, {as: 'layouts', foreignKey: 'sourceId'});
 
-    GeoLocation.hasMany(Building, {as: 'Building', foreignKey: 'locationId'});
-    Building.belongsTo(GeoLocation, {as: 'Location'});
+    GeoLocation.hasMany(Building, {as: 'building', foreignKey: 'locationId'});
+    Building.belongsTo(GeoLocation, {as: 'location'});
 
 
     exports.Building = Building;
@@ -1301,7 +1301,7 @@ function SequelizeDefine()
             autoIncrement: true,
             primaryKey: true
         },
-        
+
     },{
         timestamps: true,
         paranoid: true,
