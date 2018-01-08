@@ -1263,6 +1263,14 @@ function SequelizeDefine()
             type: Sequelize.BIGINT.UNSIGNED,
             primaryKey: true
         },
+        pid: {
+            type: Sequelize.BIGINT.UNSIGNED,
+            allowNull: false
+        },
+        externalId: {
+            type: Sequelize.STRING(32),
+            allowNull: false
+        },
 		logoUrl: {
 			type: Sequelize.STRING(255),     //logo image url
 			allowNull: true
