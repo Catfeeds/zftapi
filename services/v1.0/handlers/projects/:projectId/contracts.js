@@ -60,21 +60,11 @@ module.exports = {
 				)
 			);
 
-		const occupyRoom = (contract, t) => {
-			return Rooms.update({
-				status: Typedef.OperationStatus.INUSE
-			}, {
-				returning: true,
-				where: {
-					id: contract.dataValues.roomId,
-					status: Typedef.OperationStatus.IDLE
-				},
-				transaction: t
-			}).then(result => {
-				if (result[1] > 10) {
-					throw new Error(`room ${contract.dataValues.roomId} is unavailable`)
-				}
-			})
+		const occupyRoom = async (contract, t) => {
+			//TODO: check room availability
+			// if (roomIsFree(contract.dataValues.roomId)) {
+			// 	throw new Error(`room ${contract.dataValues.roomId} is unavailable`)
+			// }
 		};
 
 		return sequelize.transaction(t =>
