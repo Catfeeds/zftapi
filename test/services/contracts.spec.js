@@ -118,16 +118,20 @@ describe('Contracts', function () {
 			}
 		};
 		const sequelizeFindSpy = stub().resolves([]);
-		const Users = {};
-		const Rooms = {};
-		const Houses = {};
+		const Users = {id: 100};
+		const Rooms = {id: 0};
+		const Houses = {id: 1};
+		const Building = {id: 2}
+		const GeoLocation = {id: 3};
 		global.MySQL = {
 			Contracts: {
 				findAndCountAll: sequelizeFindSpy
 			},
 			Users,
 			Rooms,
-			Houses
+			Houses,
+			Building,
+			GeoLocation
 		};
 
 		await get(req, {send: _.noop}).then(() => {
@@ -144,14 +148,37 @@ describe('Contracts', function () {
 						include: [
 							{
 								model: Houses,
-								as: 'house',
 								required: true,
-								attributes: ['id'],
+								as: 'house',
+								attributes: [
+									'id'
+								],
 								where: {
 									houseFormat: 'SOLE'
-								}
-							}
-						]
+								},
+								include: [
+									{
+
+										as: 'building',
+										attributes: [
+											'building',
+											'unit'
+										],
+										include: [
+											{
+												as: 'location',
+												attributes: [
+													'name'
+												],
+												model: GeoLocation,
+												required: true
+											}
+										],
+										model: Building,
+										required: true
+									}
+								]
+							}]
 					}
 				])
 			}

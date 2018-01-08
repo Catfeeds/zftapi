@@ -99,6 +99,8 @@ module.exports = {
 		const Users = MySQL.Users;
 		const Rooms = MySQL.Rooms;
 		const Houses = MySQL.Houses;
+		const Building = MySQL.Building;
+		const GeoLocation = MySQL.GeoLocation;
 		const projectId = req.params.projectId;
 		const status = _.get(req, 'params.status', Typedef.ContractStatus.ONGOING).toUpperCase();
 		const query = req.query;
@@ -108,26 +110,34 @@ module.exports = {
 		const userConnection = {
 			model: Users, required: true
 		};
-		const houseConnection = {
-			model: Rooms,
-			required: true,
-			attributes: ['id'],
-			include: [
+		const houseConnection = (houseFormat) => {
+			const houseInclude = _.assign({},
 				{
 					model: Houses,
 					as: 'house',
 					required: true,
 					attributes: ['id'],
-					where: {
-						houseFormat
-					}
-				}
-			]
+					include: [{
+						model: Building, required: true, as: 'building',
+						attributes: ['building', 'unit'],
+						include: [{
+							model: GeoLocation, required: true,
+							as: 'location',
+							attributes: ['name']
+						}]
+					}]
+				},
+				_.isEmpty(houseFormat) ? {} : {where: {houseFormat}}
+			);
+			return {
+				model: Rooms,
+				required: true,
+				attributes: ['id'],
+				include: [houseInclude]
+			}
 		};
-		const includeCondition = _.isEmpty(houseFormat) ?
-			[userConnection] : [userConnection, houseConnection];
 		return Contracts.findAndCountAll({
-			include: includeCondition,
+			include: [userConnection, houseConnection(houseFormat)],
 			where: {projectId, status},
 			offset: pagingInfo.skip,
 			limit: pagingInfo.size
