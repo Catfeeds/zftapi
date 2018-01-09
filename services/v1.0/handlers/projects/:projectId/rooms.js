@@ -4,6 +4,7 @@ const _ = require('lodash');
 const fp = require('lodash/fp');
 const moment = require('moment');
 const singleRoomTranslate = require('../../../common').singleRoomTranslate;
+const roomLeasingStatus = require('../../../common').roomLeasingStatus;
 
 /**
  * Operations on /rooms/{hid}
@@ -19,18 +20,6 @@ const translate = (models, pagingInfo) => {
     }
 };
 
-const currentLeasingStatus = (contracts) => {
-    const now = moment().unix();
-	const simplified = fp.map(c => _.pick(c, ['from', 'to', 'id']))(contracts);
-
-    const compactedContracts = fp.filter(c => !_.isUndefined(c.from))(simplified);
-    // PAUSE
-    if(fp.some(contract => (now > contract.from && _.isUndefined(contract.to)))(compactedContracts)) {
-        return Typedef.OperationStatus.PAUSED;
-    }
-	return fp.some(contract => (now > contract.from && contract.to > now))(compactedContracts) ?
-        Typedef.OperationStatus.INUSE : Typedef.OperationStatus.IDLE;
-}
 module.exports = {
     get: async (req, res) => {
         const params = req.params;
@@ -91,13 +80,10 @@ module.exports = {
         return Rooms.findAndCountAll(modelOption)
             .then(data => {
 				const rows = fp.map(single => {
-					const status = currentLeasingStatus(single.contracts);
+					const status = roomLeasingStatus(single.contracts);
 					return fp.merge(single)({dataValues: {status}});
 				})(data.rows);
-				console.log('res', rows[0]);
-				const res = fp.defaults(data)({rows});
-				console.log('res', res.rows[0]);
-				return res;
+				return fp.defaults(data)({rows});
             })
             .then(data => translate(data, pagingInfo))
             .then(data => res.send(data))

@@ -123,3 +123,16 @@ exports.singleRoomTranslate = model => {
 		status
 	}
 };
+
+exports.roomLeasingStatus = (contracts) => {
+	const now = moment().unix();
+	const simplified = fp.map(c => _.pick(c, ['from', 'to', 'id']))(contracts);
+
+	const compactedContracts = fp.filter(c => !_.isUndefined(c.from))(simplified);
+	// PAUSE
+	if(fp.some(contract => (now > contract.from && _.isUndefined(contract.to)))(compactedContracts)) {
+		return Typedef.OperationStatus.PAUSED;
+	}
+	return fp.some(contract => (now > contract.from && contract.to > now))(compactedContracts) ?
+		Typedef.OperationStatus.INUSE : Typedef.OperationStatus.IDLE;
+}

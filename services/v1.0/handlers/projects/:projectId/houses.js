@@ -505,8 +505,9 @@ async function Gethouses(params, query) {
             const rooms = fp.map(room=>{
 
                 const getContract = ()=>{
+					const status = common.roomLeasingStatus(room.contracts)
                     if( !room.contracts || !room.contracts.length ){
-                        return {};
+                        return {status};
                     }
                     else{
                         const contract = room.contracts[0];
@@ -514,12 +515,13 @@ async function Gethouses(params, query) {
                             signUpTime: contract.signUpTime,
                             userId: contract.user.id,
                             name: contract.user.name,
-                            rent: contract.strategy && contract.strategy.freq && contract.strategy.freq.rent
+                            rent: _.get(contract, 'strategy.freq.rent'),
+							status
                         }
                     }
                 };
 
-                return _.assignIn( _.omit(room, 'contracts'), {contract: getContract()} );
+                return _.assignIn( _.omit(room, 'contracts'), {contract: getContract()});
 
             })(house.rooms);
 
