@@ -2,7 +2,6 @@
 
 const _ = require('lodash');
 const fp = require('lodash/fp');
-const moment = require('moment');
 const singleRoomTranslate = require('../../../common').singleRoomTranslate;
 const roomLeasingStatus = require('../../../common').roomLeasingStatus;
 
@@ -36,6 +35,7 @@ module.exports = {
         const Building = MySQL.Building;
         const GeoLocation = MySQL.GeoLocation;
         const Contracts = MySQL.Contracts;
+        const SuspendingRooms = MySQL.SuspendingRooms;
 
         const houseCondition = _.assign(
             {projectId: params.projectId},
@@ -65,7 +65,11 @@ module.exports = {
                     status: Typedef.ContractStatus.ONGOING,
                     //TODO: filter occupied rooms by default
                 }
-            }],
+            }, {
+				model: SuspendingRooms,
+				attributes: ['id', 'from', 'to'],
+				required: false
+			}],
             where: {
                 $or: [
                     {'$house.building.location.name$': {$regexp: query.q}},
@@ -80,7 +84,8 @@ module.exports = {
         return Rooms.findAndCountAll(modelOption)
             .then(data => {
 				const rows = fp.map(single => {
-					const status = roomLeasingStatus(single.contracts);
+				    console.log('single', single);
+					const status = roomLeasingStatus(single.contracts, single.suspendingRooms);
 					return fp.merge(single)({dataValues: {status}});
 				})(data.rows);
 				return fp.defaults(data)({rows});

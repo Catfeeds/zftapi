@@ -348,11 +348,6 @@ function SequelizeDefine()
                 this.setDataValue('config', JSON.stringify(value));
             }
         },
-        status: {
-            type: Sequelize.STRING(10)  //房间状态
-            , allowNull: false
-            , defaultValue: 'open'
-        },
         createdAt: {
             type: Sequelize.BIGINT.UNSIGNED // 创建时间
             , allowNull: false
@@ -529,6 +524,41 @@ function SequelizeDefine()
     });
 
 
+    exports.SuspendingRooms = sequelizeInstance.define('suspendingRooms', {
+		id: {
+			type: Sequelize.BIGINT.UNSIGNED,     //id
+			allowNull: false,
+			primaryKey: true
+		},
+        roomId: {
+            type: Sequelize.BIGINT.UNSIGNED,     //room ID
+            allowNull: false,
+            defaultValue: 0
+        },
+		projectId: {    //项目ID
+			type: Sequelize.BIGINT.UNSIGNED,
+			allowNull: false
+		},
+        from: {
+            type: Sequelize.BIGINT.UNSIGNED,     //暂停开始时间
+            allowNull: false,
+            defaultValue: 0
+        },
+        to: {
+            type: Sequelize.BIGINT.UNSIGNED,     //结束时间
+        },
+        memo: {
+            type: Sequelize.TEXT   //备注
+        }
+    },{
+        timestamps: true,
+		paranoid: true,
+        freezeTableName: true
+    });
+
+	Rooms.hasMany(exports.SuspendingRooms);
+	exports.SuspendingRooms.belongsTo(Rooms);
+
     const Contracts = sequelizeInstance.define('contracts', {
 		id: {
 			type: Sequelize.BIGINT.UNSIGNED,     //合约ID
@@ -616,6 +646,7 @@ function SequelizeDefine()
 
 	Rooms.hasMany(Contracts);
 	Contracts.belongsTo(Rooms);
+
 
 	const Users = sequelizeInstance.define('users', {
 	    id: {

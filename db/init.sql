@@ -27,7 +27,6 @@ create table if not exists rooms
   `roomArea` int(11) NOT NULL DEFAULT 0,
   `orientation` varchar(2) NOT NULL DEFAULT 'N',
   `config` text NULL,
-  `status` varchar(10) NOT NULL,
   `createdAt` bigint(20) UNSIGNED NOT NULL DEFAULT 0,
   `deleteAt` bigint(20) UNSIGNED NOT NULL DEFAULT 0,
   PRIMARY KEY (`id`) USING BTREE
@@ -47,6 +46,20 @@ create table if not exists contracts
 	paymentPlan varchar(3) not null,
 	signUpTime bigint default '0' not null,
 	status varchar(20) default 'ongoing' not null,
+	`createdAt` DATETIME NOT NULL,
+	`updatedAt` DATETIME NOT NULL,
+	`deletedAt` DATETIME,
+  	primary key (`id`)
+) engine=innodb default charset=utf8;
+
+create table if not exists suspendingRooms
+(
+	`id` bigint not null,
+	projectId bigint not null,
+	roomId bigint not null,
+	`from` bigint not null,
+	`to` bigint null,
+	memo text null,
 	`createdAt` DATETIME NOT NULL,
 	`updatedAt` DATETIME NOT NULL,
 	`deletedAt` DATETIME,

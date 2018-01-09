@@ -4,41 +4,22 @@
  */
 const fp = require('lodash/fp');
 const _ = require('lodash');
+const moment = require('moment');
+const assignNewId = require('../../../../common').assignNewId;
 
 module.exports = {
-    /**
-     * summary: get contract
-     * description: pass contractid to get contract info
-
-     * path variables: contractId
-     * produces: application/json
-     * responses: 200, 400
-     */
-    get: function getContract(req, res, next) {
-        /**
-         * Get the data for response 200
-         * For response `default` status 200 is used.
-         */
-
-        const Contracts = MySQL.Contracts;
-	    Contracts.findById(req.params.contractId)
-		    .then(contract => {
-			    if (fp.isEmpty(contract)) {
-				    res.send(404);
-				    return;
-			    }
-			    res.send(contract);
-		    });
-    },
-    /**
-     * summary: delete contract
-     * description: delete contract
-
-     * parameters: contractid
-     * produces: application/json
-     * responses: 200, 400
-     */
-    delete: function (req, res) {
+	get: function getContract(req, res, next) {
+		const Contracts = MySQL.Contracts;
+		Contracts.findById(req.params.contractId)
+			.then(contract => {
+				if (fp.isEmpty(contract)) {
+					res.send(404);
+					return;
+				}
+				res.send(contract);
+			});
+	},
+	delete: function (req, res) {
 		const Contracts = MySQL.Contracts;
 		Contracts.findById(req.params.contractId)
 			.then(contract => {
@@ -52,43 +33,29 @@ module.exports = {
 
 			})
 			.catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, {error: err.message})));
-    },
-    /**
-     * summary: reset the contract
-     * description: reset the whole contract
-
-     * parameters: contractid, body
-     * produces: application/json
-     * responses: 200, 400, 401, 406
-     */
-    post: function resetContract(req, res, next) {
-        /**
-         * Get the data for response 200
-         * For response `default` status 200 is used.
-         */
-    },
-    /**
-     * summary: operate the contract
-     * description: pass contractid to operate contract,dependent on operation field
-
-     * parameters: contractid, operation, body
-     * produces: application/json
-     * responses: 200, 400
-     */
-    put: function operateContract(req, res) {
+	},
+	post: function resetContract(req, res, next) {
+	},
+	put: function operateContract(req, res) {
 		const Contracts = MySQL.Contracts;
 		const Rooms = MySQL.Rooms;
+		const SuspendingRooms = MySQL.SuspendingRooms;
 		const contractId = req.params.contractId;
-		const status = _.get(req, 'body.status', 'empty').toUpperCase();
+		const projectId = req.params.projectId;
+		const status = _.get(req, 'body.status', '').toUpperCase();
+		const endDate = _.get(req, 'body.endDate', moment().unix());
 		const roomStatus = _.get(req, 'body.roomStatus', Typedef.OperationStatus.IDLE).toUpperCase();
 
 		if (status !== Typedef.ContractStatus.TERMINATED) {
-			return res.send(400, ErrorCode.ack(ErrorCode.PARAMETERERROR, {status, allowedStatus: [Typedef.ContractStatus.TERMINATED]}));
+			return res.send(400, ErrorCode.ack(ErrorCode.PARAMETERERROR, {
+				status,
+				allowedStatus: [Typedef.ContractStatus.TERMINATED]
+			}));
 		}
 		const allowedStatus = [Typedef.OperationStatus.IDLE,
 			Typedef.OperationStatus.PAUSED];
 		if (!_.includes(allowedStatus, roomStatus)) {
-			return res.send(400, ErrorCode.ack(ErrorCode.PARAMETERERROR, {roomStatus, allowedStatus }));
+			return res.send(400, ErrorCode.ack(ErrorCode.PARAMETERERROR, {roomStatus, allowedStatus}));
 		}
 
 		const Sequelize = MySQL.Sequelize;
@@ -103,22 +70,22 @@ module.exports = {
 				//TODO: record a new flow {billFlow: {dueAmount: 9900, paymentMethod: cash, operator: 312}}
 
 				return Sequelize.transaction(t => {
-					return Promise.all([
-						contract.update({
-							status
-						}, {transaction: t}),
-						Rooms.update({
-								status: roomStatus
-							},
-							{
-								where: {
-									id: contract.dataValues.room.id
-								},
-								transaction: t
-							})
-					])
+					const contractUpdating = contract.update({
+						to: endDate,
+						status
+					}, {transaction: t});
+					const suspending = assignNewId({
+						projectId,
+						from: endDate + 1,
+						roomId: contract.dataValues.room.id
+					});
+					const operations = Typedef.OperationStatus.PAUSED === roomStatus ? [
+						contractUpdating,
+						SuspendingRooms.create(suspending, {transaction: t})
+					] : [contractUpdating];
+					return Promise.all(operations);
 				})
 			}).then((updated, room) => res.send(updated))
 			.catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, {error: err.message})));
-    }
+	}
 };
