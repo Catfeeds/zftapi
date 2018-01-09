@@ -38,15 +38,12 @@ module.exports = {
 
             const project = await MySQL.Projects.findOne({
                 where:{
-                    pid: projectId
+                    id: projectId
                 },
-                attributes: ['externalId']
             });
             if(!project){
                 return res.send(404, ErrorCode.ack(ErrorCode.PROJECTNOTEXISTS));
             }
-            const externalId = project.externalId;
-
             const deviceIds = fp.map(device=>{
                 return device.deviceId;
             })(await MySQL.HouseDevices.findAll({
@@ -61,12 +58,12 @@ module.exports = {
             //
             const deviceQuery = _.assignIn(
                 {
-                    project: externalId,
-                    _id: {$nin: deviceIds}
+                    deviceId: {$nin: deviceIds}
                 },
                 query.q ? {$or:[
-                    {title: new RegExp(query.q)},
-                    {sid: new RegExp(query.q)}
+                    {name: new RegExp(query.q)},
+                    {deviceType: new RegExp(query.q)},
+                    {tag: new RegExp(query.q)}
                 ]} : {}
             );
             try {

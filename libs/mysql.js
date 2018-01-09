@@ -1263,14 +1263,6 @@ function SequelizeDefine()
             type: Sequelize.BIGINT.UNSIGNED,
             primaryKey: true
         },
-        pid: {
-            type: Sequelize.BIGINT.UNSIGNED,
-            allowNull: false
-        },
-        externalId: {
-            type: Sequelize.STRING(32),
-            allowNull: false
-        },
 		logoUrl: {
 			type: Sequelize.STRING(255),     //logo image url
 			allowNull: true
@@ -1319,11 +1311,13 @@ function SequelizeDefine()
         },
         name: {
             type: Sequelize.STRING(16),
-            allowNull: false
+            allowNull: false,
+            defaultValue: '',
         },
         tag: {
             type: Sequelize.STRING(16),
-            allowNull: false
+            allowNull: false,
+            defaultValue: '',
         },
         type: {
             type: Sequelize.STRING(16),
@@ -1337,6 +1331,22 @@ function SequelizeDefine()
             type: Sequelize.STRING(128),
             allowNull: false,
             defaultValue: ''
+        },
+        status:{
+            type: Sequelize.TEXT,
+            get: function(){
+                let status;
+                try{
+                    status = JSON.parse(this.getDataValue('status'));
+                }
+                catch(e){
+                    status = {};
+                }
+                return status;
+            },
+            set : function (value) {
+                this.setDataValue('status', JSON.stringify(value));
+            }
         }
     },{
         timestamps: true,
@@ -1362,15 +1372,21 @@ function SequelizeDefine()
             allowNull: false
         },
         scale:{
+            type: Sequelize.BIGINT
+        },
+        updatedAt:{
             type: Sequelize.BIGINT.UNSIGNED,
-            allowNull: false
+            allowNull: false,
+            defaultValue: 0
         }
     },{
-        timestamps: true,
-        paranoid: true,
+        timestamps: false,
         freezeTableName: true
     });
     Devices.hasMany(DevicesChannels, {as: 'channels', foreignKey: 'deviceId'});
+
+    exports.Devices = Devices;
+    exports.DevicesChannels = DevicesChannels;
 }
 
 function EMDefine()
