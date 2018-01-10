@@ -46,9 +46,9 @@ Include('/libs/enumServices').Load(
     ['/services']
 );
 
-MySQL.LoadEM().then(
+MySQL.Load().then(
 	() => {
 		Server.listen(8000, function () {
-		console.log('App running on %s:%d', Server.address().address, Server.address().port);
+			console.log('App running on %s:%d', Server.address().address, Server.address().port);
 		});
 	});
