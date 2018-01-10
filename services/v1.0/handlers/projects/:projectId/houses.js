@@ -457,12 +457,13 @@ async function Gethouses(params, query) {
                         deviceId: device.device.deviceId,
                         public: device.public,
                         title: device.device.name,
-                        scale: fp.map(channel=>{
-                            return {
-                                channelId: channel.channelId,
-                                scale: common.scaleDown(channel.scale)
-                            }
-                        })(device.device.channels),
+                        // scale: fp.map(channel=>{
+                        //     return {
+                        //         channelId: channel.channelId,
+                        //         scale: common.scaleDown(channel.scale)
+                        //     }
+                        // })(device.device.channels),
+                        scale: device.device.channels && common.scaleDown(device.device.channels[0].scale),
                         type: device.device.type,
                         updatedAt: moment(device.device.updatedAt).unix(),
                     };
