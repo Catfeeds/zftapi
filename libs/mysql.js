@@ -1293,8 +1293,6 @@ function SequelizeDefine()
 	exports.Projects.hasMany(exports.Auth);
 	exports.Auth.belongsTo(exports.Projects);
 
-
-
     const Devices = sequelizeInstance.define('devices', {
         id: {
             type: Sequelize.BIGINT.UNSIGNED,
@@ -1310,12 +1308,12 @@ function SequelizeDefine()
             allowNull: false
         },
         name: {
-            type: Sequelize.STRING(16),
+            type: Sequelize.STRING(32),
             allowNull: false,
             defaultValue: '',
         },
         tag: {
-            type: Sequelize.STRING(16),
+            type: Sequelize.STRING(32),
             allowNull: false,
             defaultValue: '',
         },
@@ -1383,10 +1381,36 @@ function SequelizeDefine()
         timestamps: false,
         freezeTableName: true
     });
-    Devices.hasMany(DevicesChannels, {as: 'channels', foreignKey: 'deviceId'});
+    Devices.hasMany(DevicesChannels, {as: 'channels', foreignKey: 'deviceId', sourceKey: 'deviceId'});
+
+    HouseDevices.belongsTo(Devices, {as: 'device', foreignKey: 'deviceId', targetKey: 'deviceId'});
 
     exports.Devices = Devices;
     exports.DevicesChannels = DevicesChannels;
+
+    const DevicesData = sequelizeInstance.define('devicesData', {
+        id:{
+            type: Sequelize.BIGINT.UNSIGNED,
+            autoIncrement:true,
+            primaryKey: true
+        },
+        channelId:{
+            type: Sequelize.STRING(32),
+            primaryKey: true
+        },
+        reading: {
+            type: Sequelize.INTEGER.UNSIGNED,
+            allowNull: false
+        },
+        time: {
+            type: Sequelize.BIGINT.UNSIGNED,
+            allowNull: false
+        }
+    },{
+        timestamps: false,
+        freezeTableName: true
+    });
+    exports.DeviceData = DevicesData;
 }
 
 function EMDefine()

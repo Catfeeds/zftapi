@@ -12,7 +12,6 @@ require(appRootPath.path + '/libs/log')("zftAPI");
     global.ENV = require('process').env;
     global.Typedef = Include('/libs/typedef');
     global.MySQL = Include('/libs/mysql');
-    global.MongoDB = Include('/libs/mongodb');
     global.Util = Include('/libs/util');
     global.ErrorCode = Include('/libs/errorCode');
     global.Amap = Include('/libs/amap');
@@ -47,13 +46,9 @@ Include('/libs/enumServices').Load(
     ['/services']
 );
 
-MongoDB(config.MONGODB).then(
+MySQL.LoadEM().then(
 	() => {
-		MySQL.LoadEM().then(
-			() => {
-				Server.listen(8000, function () {
-					console.log('App running on %s:%d', Server.address().address, Server.address().port);
-				});
-			});
-
+		Server.listen(8000, function () {
+		console.log('App running on %s:%d', Server.address().address, Server.address().port);
+		});
 	});

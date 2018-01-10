@@ -3,6 +3,5 @@
     "read": "ZFT_EM_READ",
     "write": "ZFT_EM_WRITE"
   },
-  "MAP": "ZFT_AMAP_KEY",
-  "MONGODB": "ZFT_MONGO_URL"
+  "MAP": "ZFT_AMAP_KEY"
 }

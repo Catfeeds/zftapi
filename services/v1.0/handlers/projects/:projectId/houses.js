@@ -375,6 +375,29 @@ async function Gethouses(params, query) {
             query.device ? await deviceFilter() : {},
         );
 
+        const getIncludeHouseDevices =()=>{
+            return {
+                model: MySQL.HouseDevices,
+                as: 'devices',
+                required: false,
+                attributes: ['deviceId', "public"],
+                where:{
+                    endDate: 0
+                },
+                include:[
+                    {
+                        model: MySQL.Devices,
+                        as: 'device',
+                        include:[
+                            {
+                                model: MySQL.DevicesChannels,
+                                as: 'channels'
+                            }
+                        ]
+                    }
+                ]
+            };
+        };
         const include = [
             {
                 model: MySQL.Building, as: 'building'
@@ -393,44 +416,112 @@ async function Gethouses(params, query) {
                 as: 'rooms',
                 attributes:['id', 'config', 'name', 'people', 'type', 'roomArea', 'orientation'],
                 include:[
+                    getIncludeHouseDevices(),
                     {
-                        model: MySQL.HouseDevices,
-                        as: 'devices',
+                        model: MySQL.Contracts,
                         required: false,
-                        attributes: ['deviceId', "public"],
                         where:{
-                            endDate: 0
-                        }
+                            status: Typedef.ContractStatus.ONGOING
+                        },
+                        order:['from asc'],
+                        include:[
+                            {
+                                model: MySQL.Users
+                            }
+                        ]
                     }
                 ]
             },
-            {
-                model: MySQL.HouseDevices,
-                as: 'devices',
-                attributes: ['deviceId', "public"],
-                where:{
-                    endDate: 0
-                },
-                required: false
-            },
+            getIncludeHouseDevices(),
             {
                 model: MySQL.HouseDevicePrice,
                 as: 'prices',
             }
         ];
 
-        const count = await MySQL.Houses.count({
-            where: where,
-            include: include
-        });
-
-        const result = fp.map(house=>{return house.toJSON();})(await MySQL.Houses.findAll({
+        const result = await MySQL.Houses.findAndCountAll({
             where: where,
             subQuery: false,
             include: include,
             offset: pagingInfo.skip,
             limit: pagingInfo.size
-        }));
+        });
+
+        //
+        const houses = fp.map(row=>{
+            const house = row.toJSON();
+
+            const getDevices = (devices)=>{
+                return fp.map(device=>{
+                    return {
+                        deviceId: device.device.deviceId,
+                        public: device.public,
+                        title: device.device.name,
+                        scale: fp.map(channel=>{
+                            return {
+                                channelId: channel.channelId,
+                                scale: common.scaleDown(channel.scale)
+                            }
+                        })(device.device.channels),
+                        type: device.device.type,
+                        updatedAt: moment(device.device.updatedAt).unix(),
+                    };
+                })(devices);
+            };
+
+            const rooms = fp.map(room=>{
+                const getContract = ()=>{
+                    const status = common.roomLeasingStatus(room.contracts);
+                    if( !room.contracts || !room.contracts.length ){
+                        return {status};
+                    }
+                    else{
+                        const contract = room.contracts[0];
+                        return {
+                            signUpTime: contract.signUpTime,
+                            userId: contract.user.id,
+                            name: contract.user.name,
+                            rent: _.get(contract, 'strategy.freq.rent'),
+                            status
+                        }
+                    }
+                };
+                const devices = getDevices(room.devices);
+
+                return _.assignIn( _.omit(room, ['contracts','devices']), {contract: getContract(), devices: devices});
+
+            })(house.rooms);
+
+            return {
+                houseId: house.id,
+                code: house.code,
+                group: house.building.group,
+                building: house.building.building,
+                location: house.building.location,
+                unit: house.building.unit,
+                roomNumber: house.roomNumber,
+                rooms: rooms,
+                layout: house.layouts,
+                devices: getDevices(house.devices),
+                prices: fp.map(price=>{
+                    return {
+                        type: price.type,
+                        price: price.price
+                    }
+                })(house.prices)
+            }
+
+        })(result.rows);
+
+        return {
+            paging:{
+                count: result.count,
+                index: pagingInfo.index,
+                size: pagingInfo.size
+            },
+            data: houses
+        };
+
 
         let deviceIds = [];
         _.each(result, house=>{
