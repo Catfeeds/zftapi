@@ -48,5 +48,4 @@ module.exports = {
             }
         );
     }
->>>>>>> feature_prePaidBills
 };

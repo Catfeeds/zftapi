@@ -1,11 +1,7 @@
 {
   "RDS": {
     "read": "ZFT_MYSQL_READ",
-    "write": "ZFT_MYSQL_WRITE",
-    "EMRead": "EM_MYSQL_READ",
-    "EMWrite": "EM_MYSQL_WRITE"
+    "write": "ZFT_MYSQL_WRITE"
   },
-  "MAP": "ZFT_AMAP_KEY",
-  "MONGODB": "ZFT_MONGO_URL",
-  "RPC_FINANCE": "RPC_FINANCE"
+  "MAP": "ZFT_AMAP_KEY"
 }

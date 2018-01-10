@@ -47,17 +47,9 @@ Include('/libs/enumServices').Load(
     ['/services']
 );
 
-MongoDB(config.MONGODB).then(
+MySQL.Load().then(
 	() => {
-		MySQL.LoadZFT().then(
-			() => {
-
-                //加载RPC
-                Include('/proto/proto')();
-
-				Server.listen(8000, function () {
-					console.log('App running on %s:%d', Server.address().address, Server.address().port);
-				});
-			});
-
+		Server.listen(8000, function () {
+			console.log('App running on %s:%d', Server.address().address, Server.address().port);
+		});
 	});
