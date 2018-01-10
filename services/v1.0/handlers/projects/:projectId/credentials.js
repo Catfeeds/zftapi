@@ -26,7 +26,7 @@ module.exports = {
 		})
 			.then(translate)
 			.then(items => res.send(items))
-			.catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, err)));
+			.catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, {error: err.message})));
 	},
 	post: async function createCredentials(req, res) {
 		const body = req.body;
@@ -36,6 +36,7 @@ module.exports = {
 		const username = _.get(body, 'username', '');
 		const level = _.get(body, 'level', '').toUpperCase();
 		const password = _.get(body, 'password', '').toUpperCase();
+		const email = _.get(body, 'email', '').toUpperCase();
 
 		if(_.isEmpty(password)) {
 			return res.send(400, ErrorCode.ack(ErrorCode.PARAMETERERROR, {error: "please provide md5 encrypted password"}));
@@ -45,8 +46,13 @@ module.exports = {
 			return res.send(400, ErrorCode.ack(ErrorCode.PARAMETERERROR, {error: "username is required"}));
 		}
 
+		if(_.isEmpty(email)) {
+			return res.send(400, ErrorCode.ack(ErrorCode.PARAMETERERROR, {error: "email is required"}));
+		}
+
 		if(_.isEmpty(level)) {
 			return res.send(400, ErrorCode.ack(ErrorCode.PARAMETERERROR, {error: "level is required"}));
+
 		}
 
 		if(!access.allowToCreateCredentials(req)) {
@@ -56,10 +62,10 @@ module.exports = {
 		if(!_.includes([Typedef.CredentialLevels.MANAGER, Typedef.CredentialLevels.ACCOUNTANT], level)) {
 			return res.send(403, ErrorCode.ack(ErrorCode.PERMISSIONDENIED, {error: "no allow to create admin level"}));
 		}
-		
-		return Auth.create({projectId, level, password, username})
+		const profile = fp.defaults(body)({projectId, level, password, username, email});
+		return Auth.create(profile)
 			.then(user =>
 				res.send(200, ErrorCode.ack(ErrorCode.OK, {username: user.username}))
-			).catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, err)));
+			).catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, {error: err.message})));
 	}
 };

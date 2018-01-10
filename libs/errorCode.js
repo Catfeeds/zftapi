@@ -17,6 +17,7 @@ var ErrorCodeList = {
     'RETRYLATER':           90000008,   //稍后重试
     'NOTSUPPORT':           90000009,   //不支持该项服务
     'AUTHORITYDUMPLICATE':  90000010,   //权限重复
+    'LOCKDUMPLICATE':     90000011,   //锁冲突
 
     //业务错误
     'USERNOTEXISTS':        20000001,   //用户不存在
@@ -93,6 +94,7 @@ var ErrorMessageList = {
     'NOTSUPPORT': '不支持该项服务',
     'AUTHORITYDUMPLICATE': '权限重复',
     'PARAMETERERROR': '参数错误',
+    'LOCKDUMPLICATE': '锁冲突',
 
     'SENSORNOTEXISTS': '传感器不存在',
     'PARAMETERMISSED': '参数不全',

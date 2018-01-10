@@ -154,9 +154,10 @@ async function SaveSole(t, params, body) {
             roomArea: body.layout.roomArea,
             createdAt: createdAt,
         };
-
+        const roomId = SnowFlake.next();
         const room = {
-            id: SnowFlake.next(),
+            id: roomId,
+            name: `room${roomId.slice(0, 5)}`,
             houseId: house.id,
             roomArea: body.roomArea,
             status: Typedef.OperationStatus.IDLE,
@@ -447,7 +448,7 @@ async function Gethouses(params, query) {
             .find({
                 key:{$in: deviceIds}
             })
-            .select("title key lasttotal lastupdate");
+            .select("title key lasttotal lastupdate devicetype");
 
         let deviceMapping ={};
         _.each(devices, dev=>{
@@ -471,6 +472,7 @@ async function Gethouses(params, query) {
                     deviceId: dev.deviceId,
                     title: device.title,
                     scale: device.lasttotal,
+                    type: device.devicetype,
                     updatedAt: lastupdate.unix(),
                     public: dev.public
                 };
@@ -482,7 +484,7 @@ async function Gethouses(params, query) {
                     _.each(room.devices, dev=>{
                         roomDevices.push( createDevices(dev) );
                     });
-                    room.devices = roomDevices;
+                    room.devices = _.compact(roomDevices);
                 });
             } );
             houseDevices = _.compact(houseDevices);

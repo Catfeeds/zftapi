@@ -23,7 +23,7 @@ module.exports = {
 		})
 			.then(translate)
 			.then(items => res.send(items))
-			.catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, err)));
+			.catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, {error: err.message})));
 	},
 	post: function createConfig(req, res) {
 		const body = req.body;
@@ -31,6 +31,6 @@ module.exports = {
 		Settings.create(body)
 			.then(setting =>
 				res.send(200, ErrorCode.ack(ErrorCode.OK, {req: req.body, res: setting}))
-			).catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, err)));
+			).catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, {error: err.message})));
 	}
 };

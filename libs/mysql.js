@@ -642,15 +642,45 @@ function SequelizeDefine()
 		freezeTableName: true
 	});
 
+	const CashAccount = sequelizeInstance.define('cashAccount', {
+	    id:{
+	        type: Sequelize.BIGINT.UNSIGNED,
+            autoIncrement: true,
+            primaryKey: true,
+        },
+        userId:{
+            type: Sequelize.BIGINT.UNSIGNED,
+            allowNull: false,
+        },
+        cash: {
+            type: Sequelize.BIGINT,
+            defaultValue: 0
+        },
+        threshold: {
+            type: Sequelize.BIGINT,
+            defaultValue: 0
+        },
+        locker: {
+	        type: Sequelize.INTEGER.UNSIGNED,
+            defaultValue: 0
+        }
+    },{
+        timestamps: true,
+        paranoid: true,
+        freezeTableName: true
+    });
+
 	Contracts.belongsTo(Users);
+	Users.hasOne(CashAccount, {as: 'cashAccount', foreignKey: 'userId'});
 
 	exports.Contracts = Contracts;
 	exports.Users = Users;
 	exports.GeoLocation = GeoLocation;
+	exports.CashAccount = CashAccount;
 
 	exports.Auth = sequelizeInstance.define('auth', {
 		level: {
-			type: Sequelize.STRING(24),     //账号
+			type: Sequelize.STRING(24),     //权限
 			allowNull: false,
 			defaultValue: 'user',
 			validate: { //管理员，管家，财务
@@ -663,8 +693,27 @@ function SequelizeDefine()
 			unique: true
 		},
         password: {
-			type: Sequelize.STRING(32),     //账号
+			type: Sequelize.STRING(32),     //密码
 			allowNull: false,
+		},
+        email: {
+			type: Sequelize.STRING(255),     //email
+			allowNull: false,
+            validate: {
+				isEmail: true
+            }
+		},
+        mobile: {
+			type: Sequelize.STRING(20),     //mobile phone
+			allowNull: true
+		},
+        allowReceiveFrom: {
+			type: Sequelize.STRING(10),     //receive news via media
+			allowNull: false,
+            defaultValue: 'BOTH',
+            validation: {
+				isIn: [['EMAIL', 'MOBILE', 'BOTH', 'NONE']]
+            }
 		},
 		lastLoggedIn: {
 			type: Sequelize.BIGINT.UNSIGNED,    //上次登录时间
@@ -673,18 +722,6 @@ function SequelizeDefine()
 	},{
 		timestamps: true,
 		paranoid: true,
-		freezeTableName: true
-	});
-
-
-
-	exports.Division = sequelizeInstance.define('division', {
-        name: {
-			type: Sequelize.STRING,     //区划名称
-			allowNull: false
-		}
-	},{
-		timestamps: false,
 		freezeTableName: true
 	});
 
@@ -780,7 +817,6 @@ function SequelizeDefine()
         freezeTableName: true
     });
 
-
     exports.BillFlows = sequelizeInstance.define('billflows', {
         billId: {
             type: Sequelize.BIGINT.UNSIGNED,    // 账单ID
@@ -857,8 +893,269 @@ function SequelizeDefine()
         freezeTableName: true
     });
 
+    const Topup = sequelizeInstance.define('topup', {
+        id:{
+            type: Sequelize.BIGINT.UNSIGNED,
+            autoIncrement: true,
+            primaryKey: true
+        },
+        orderNo:{
+            type: Sequelize.BIGINT.UNSIGNED,     //充值订单号
+            allowNull: false
+        },
+        userId:{
+            type: Sequelize.BIGINT.UNSIGNED,
+            allowNull: false
+        },
+        externalId:{
+            type: Sequelize.STRING(64),     //外部订单号
+            allowNull: false,
+            defaultValue: ''
+        },
+        contractId: {
+            type: Sequelize.BIGINT.UNSIGNED,    //合同id
+            allowNull: false
+        },
+        projectId: {
+            type: Sequelize.BIGINT.UNSIGNED,  //项目ID
+            allowNull: false
+        },
+        amount: {
+            type: Sequelize.BIGINT.UNSIGNED,    //金额 单位：分
+            allowNull: false,
+            defaultValue: 0
+        },
+        fundChannelId: {
+            type: Sequelize.BIGINT.UNSIGNED,    //资金渠道
+            allowNull: false
+        },
+        operator: {
+            type: Sequelize.BIGINT.UNSIGNED,    // 经办人
+            allowNull: true
+        },
+    },{
+        timestamps: true,
+        paranoid: true,
+        freezeTableName: true
+    });
+    exports.Topup = Topup;
+
+    const devicePrePaid = sequelizeInstance.define('devicePrePaid', {
+        id: {
+            type: Sequelize.BIGINT.UNSIGNED,
+            autoIncrement: true,
+            primaryKey: true
+        },
+        type:{
+            type: Sequelize.STRING(16),
+            allowNull: false
+        },
+        contractId:{
+            type: Sequelize.BIGINT.UNSIGNED,
+            allowNull: false
+        },
+        projectId:{
+            type: Sequelize.BIGINT.UNSIGNED,  //项目ID
+            allowNull: false
+        },
+        deviceId:{
+            type: Sequelize.STRING(32),
+            allowNull: false
+        },
+        amount: {
+            type: Sequelize.INTEGER,    //单位分
+            allowNull: false,
+            defaultValue: 0
+        },
+        scale: {
+            type: Sequelize.BIGINT,
+            allowNull: false
+        },
+        usage: {
+            type: Sequelize.BIGINT,
+            allowNull: false
+        },
+        createdAt:{
+            type: Sequelize.BIGINT.UNSIGNED,
+            allowNull: false
+        }
+    },{
+        timestamps: false,
+        freezeTableName: true
+    });
+    exports.DevicePrePaid = devicePrePaid;
+
 	exports.BillFlows.belongsTo(exports.Bills);
 	exports.Bills.hasMany(exports.BillFlows , {as: 'billItems'});
+
+
+
+    //资金渠道
+    const FundChannels = sequelizeInstance.define('fundChannels', {
+        id: {
+            type: Sequelize.BIGINT.UNSIGNED,
+            autoIncrement: true,
+            primaryKey: true
+        },
+        flow: { //渠道流向(收入/支出)
+            type: Sequelize.STRING(8),
+            allowNull: false,
+            defaultValue: 'receive',
+            validate: {
+                isIn: [['pay', 'receive']]
+            }
+        },
+        projectId: {
+            type: Sequelize.BIGINT.UNSIGNED,  //项目ID
+            allowNull: false
+        },
+        tag:{   //渠道标识 alipay/wx/wx_pub/manual
+            type: Sequelize.STRING(8),
+            allowNull: false
+        },
+        name: { //渠道名称 支付宝/微信/微信公众号/人工充值
+            type: Sequelize.STRING(8),
+            allowNull: false
+        },
+        status:{    //PENDING/PASSED/DELETED/PAUSE
+            type: Sequelize.STRING(8),
+            allowNull: false,
+            defaultValue: 'PENDING'
+        }
+    },{
+        timestamps: true,
+        paranoid: true,
+        freezeTableName: true
+    });
+    const ReceiveChannels = sequelizeInstance.define('receiveChannels', {
+        id: {
+            type: Sequelize.BIGINT.UNSIGNED,
+            autoIncrement: true,
+            primaryKey: true
+        },
+        fundChannelId:{
+            type: Sequelize.BIGINT.UNSIGNED,
+            allowNull: false
+        },
+        fee:{   //渠道手续费
+            type: Sequelize.INTEGER,
+            allowNull: false,
+        },
+        share:{   //手续费分摊配置
+            type: Sequelize.TEXT,
+            get: function(){
+                let share;
+                try{
+                    share = JSON.parse(this.getDataValue('share'));
+                }
+                catch(e){
+                    share = {};
+                }
+                return share;
+            },
+            set : function (value) {
+                this.setDataValue('share', JSON.stringify(value));
+            }
+        },
+        setting:{   //渠道配置
+            type: Sequelize.TEXT,
+            get: function(){
+                let setting;
+                try{
+                    setting = JSON.parse(this.getDataValue('setting'));
+                }
+                catch(e){
+                    setting = {};
+                }
+                return setting;
+            },
+            set : function (value) {
+                this.setDataValue('setting', JSON.stringify(value));
+            }
+        },
+    },{
+        timestamps: true,
+        paranoid: true,
+        freezeTableName: true
+    });
+    const PayChannels = sequelizeInstance.define('payChannels', {
+        id: {
+            type: Sequelize.BIGINT.UNSIGNED,
+            autoIncrement: true,
+            primaryKey: true
+        },
+        fundChannelId:{
+            type: Sequelize.BIGINT.UNSIGNED,
+            allowNull: false
+        },
+        documentId: {
+            type: Sequelize.TEXT,   //证件号
+            allowNull: true
+        },
+        documentType: {
+            type: Sequelize.INTEGER,   //证件类型
+            allowNull: true,
+            defaultValue: 1,
+            validate: {
+                max: 8,                  // 1 '身份证', 2 '护照', 3 '港澳通行证', 4 '台胞证', 5 '居住证', 6 '临时居住证', 7 '营业执照', 8 '其他证件'
+                min: 1
+            }
+        },
+        account:{   //账户名(银行卡号)
+            type: Sequelize.STRING(64),
+            allowNull: false
+        },
+        subbranch: {    //渠道分支(支行)
+            type: Sequelize.STRING(32),
+            defaultValue: ''
+        },
+        locate: {   //渠道地理信息
+            type: Sequelize.TEXT,
+            get: function(){
+                let locate;
+                try{
+                    locate = JSON.parse(this.getDataValue('locate'));
+                }
+                catch(e){
+                    locate = {};
+                }
+
+                return locate;
+            },
+            set : function (value) {
+                this.setDataValue('locate', JSON.stringify(value));
+            }
+        },
+        reservedmobile: {   //预留手机
+            type: Sequelize.STRING(16),
+            allowNull: false,
+            defaultValue: ''
+        },
+        linkman: {  //联系人姓名
+            type: Sequelize.STRING(16),
+            allowNull: false,
+            defaultValue: ''
+        },
+        mobile: {   //联系人手机
+            type: Sequelize.STRING(16),
+            allowNull: false,
+            defaultValue: ''
+        },
+    },{
+        timestamps: true,
+        paranoid: true,
+        freezeTableName: true
+    });
+
+    // FundChannels.hasOne(ReceiveChannels, {as: 'recvInfo', foreignKey: 'fundChannelId'});
+    // FundChannels.hasOne(PayChannels, {as: 'payInfo', foreignKey: 'fundChannelId'});
+    ReceiveChannels.belongsTo(FundChannels, {as: 'fundChannel', foreignKey: 'fundChannelId'});
+    PayChannels.belongsTo(FundChannels, {as: 'fundChannel', foreignKey: 'fundChannelId'});
+
+    exports.FundChannels = FundChannels;
+    exports.ReceiveChannels = ReceiveChannels;
+    exports.PayChannels = PayChannels;
+
 
     exports.Divisions = sequelizeInstance.define('divisions', {
         id: {
@@ -990,6 +1287,26 @@ function SequelizeDefine()
             type: Sequelize.STRING(32),
             allowNull: false
         },
+		logoUrl: {
+			type: Sequelize.STRING(255),     //logo image url
+			allowNull: true
+		},
+		name: {
+			type: Sequelize.STRING(32),     //公寓名称
+			allowNull: true,
+		},
+		address: {
+			type: Sequelize.STRING(255),     //公寓地址
+			allowNull: true,
+		},
+		description: {
+			type: Sequelize.TEXT,     //公寓介绍
+			allowNull: true
+		},
+		telephone: {
+			type: Sequelize.STRING(20),     //telephone number
+			allowNull: true
+		}
 
     },{
         timestamps: false,

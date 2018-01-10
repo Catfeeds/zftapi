@@ -33,7 +33,7 @@ const translate = (models, pagingInfo) => {
     }
 };
 module.exports = {
-    get: (req, res) => {
+    get: async (req, res) => {
         const params = req.params;
         const query = req.query;
 
@@ -52,6 +52,8 @@ module.exports = {
             {projectId: params.projectId},
             query.houseFormat ? {houseFormat: query.houseFormat} : {}
         );
+
+        const status = _.get(query, 'status', Typedef.OperationStatus.IDLE).toUpperCase();
 
         const modelOption = {
             include: [{
@@ -73,14 +75,15 @@ module.exports = {
                 $or: [
                     {'$House.Building.Location.name$': {$regexp: query.q}},
                     {'$House.roomNumber$': {$regexp: query.q}}
-                ]
+                ],
+				status
             },
             attributes: ['id', 'name'],
             offset: pagingInfo.skip,
             limit: pagingInfo.size
         };
 
-        Rooms.findAndCountAll(modelOption)
+        return Rooms.findAndCountAll(modelOption)
             .then(data => translate(data, pagingInfo))
             .then(data => res.send(data))
     }

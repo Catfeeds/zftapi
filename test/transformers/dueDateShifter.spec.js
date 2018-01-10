@@ -110,7 +110,7 @@ describe('DueDateShifter', () => {
 			.should.eql(expectBillDate);
 	});
 
-	it('should give the same date back if the bill start date is not match with the billing cycles', () => {
+	it('should give the same date back if the bill start date does not match with the billing cycles', () => {
 		const startDate = moment('2017-12-11').unix();
 		const oneYearLater = moment('2018-12-10').unix();
 		const randomDate = moment('2018-03-01').unix();
