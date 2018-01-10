@@ -26,9 +26,9 @@ module.exports = {
 		const projectId = req.params.projectId;
 		const roomId = req.params.roomId;
 		const query = req.query;
-		const status = _.get(req, 'params.status', Typedef.ContractStatus.ONGOING).toUpperCase();
-
+		const status = _.get(req, 'query.status', Typedef.ContractStatus.ONGOING).toUpperCase();
 		const Contracts = MySQL.Contracts;
+		console.log(_.get(req, 'params.status'));
 
 		const pagingInfo = Util.PagingInfo(query.index, query.size, true);
 
