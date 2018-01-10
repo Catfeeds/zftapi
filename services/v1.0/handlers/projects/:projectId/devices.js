@@ -36,17 +36,6 @@ module.exports = {
 
             const pagingInfo = Util.PagingInfo(query.index, query.size, true);
 
-            const project = await MySQL.Projects.findOne({
-                where:{
-                    pid: projectId
-                },
-                attributes: ['externalId']
-            });
-            if(!project){
-                return res.send(404, ErrorCode.ack(ErrorCode.PROJECTNOTEXISTS));
-            }
-            const externalId = project.externalId;
-
             const deviceIds = fp.map(device=>{
                 return device.deviceId;
             })(await MySQL.HouseDevices.findAll({
@@ -61,40 +50,36 @@ module.exports = {
             //
             const deviceQuery = _.assignIn(
                 {
-                    project: externalId,
-                    _id: {$nin: deviceIds}
+                    deviceId: {$notIn: deviceIds}
                 },
                 query.q ? {$or:[
-                    {title: new RegExp(query.q)},
-                    {sid: new RegExp(query.q)}
+                    {name: new RegExp(query.q)},
+                    {type: new RegExp(query.q)},
+                    {tag: new RegExp(query.q)}
                 ]} : {}
             );
+
             try {
-                const result = await Promise.all([
-                    MongoDB.SensorAttribute
-                        .count(deviceQuery),
-                    MongoDB.SensorAttribute
-                        .find(deviceQuery)
-                        .skip(pagingInfo.skip)
-                        .limit(pagingInfo.size)
-                        .select('_id title')
-                ]);
-                const count = result[0];
-                const devices = result[1];
+                const result = await MySQL.Devices.findAndCountAll({
+                    where: deviceQuery,
+                    attributes: ['deviceId', 'name'],
+                    offset: pagingInfo.skip,
+                    limit: pagingInfo.size
+                });
 
                 res.send(
                     {
                         paging: {
-                            count: count,
+                            count: result.count,
                             index: pagingInfo.index,
                             size: pagingInfo.size
                         },
                         data: fp.map(device => {
                             return {
-                                deviceId: device._id,
-                                title: device.title,
+                                deviceId: device.deviceId,
+                                title: device.name,
                             }
-                        })(devices)
+                        })(result.rows)
                     }
                 );
             }

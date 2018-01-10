@@ -341,6 +341,45 @@ create table if not exists `receiveChannels`
 	PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB;
 
+create table if not exists `devices`
+(
+	`id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+	`deviceId` varchar(32) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+	`projectId` bigint(20) UNSIGNED NOT NULL,
+	`name` varchar(16) NOT NULL DEFAULT '',
+	`tag` varchar(16) NOT NULL DEFAULT '',
+	`type` varchar(16) NOT NULL,
+	`freq` int(11) NOT NULL,
+	`driver` varchar(128) NOT NULL DEFAULT '',
+	`status` text NULL,
+	`createdAt` datetime(0) NULL,
+	`updatedAt` datetime(0) NULL,
+	`deletedAt` datetime(0) NULL DEFAULT NULL,
+	PRIMARY KEY (`id`) USING BTREE,
+	UNIQUE INDEX `DEVICEID`(`deviceId`) USING BTREE
+) ENGINE = InnoDB;
+
+create table if not exists `devicesChannels`
+(
+	`id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+	`deviceId` varchar(32) NOT NULL,
+	`channelId` varchar(3) NOT NULL,
+	`comi` decimal(10, 6) NOT NULL,
+	`scale` bigint(20) NULL DEFAULT NULL,
+	`updatedAt` bigint(20) UNSIGNED NOT NULL DEFAULT 0,
+	PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB;
+
+create table if not exists `deviceData`
+(
+	`id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+	`channelId` varchar(32) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+	`reading` int(10) UNSIGNED NOT NULL,
+	`time` bigint(20) UNSIGNED NOT NULL,
+	PRIMARY KEY (`id`, `channelId`) USING BTREE,
+	INDEX `CHANNEL`(`channelId`) USING BTREE
+) ENGINE = InnoDB;
+
 #project demo record
 INSERT INTO `zft`.`projects` (`pid`, `externalId`) VALUES ('100', '5938bb4f4d3684627bcabd7f');
 INSERT INTO `zft`.`auth` (`projectId`, `username`, `password`, createdAt, updatedAt)

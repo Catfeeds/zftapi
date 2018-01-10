@@ -105,6 +105,9 @@ exports.innerValues = item => item.dataValues;
 exports.omitNulls = fp.map(item => _.omitBy(exports.innerValues(item), _.isNull));
 exports.assignNewId = (model) => fp.defaults({id: SnowFlake.next()})(model);
 
+exports.scaleUp = (v)=>{ return v * 10000 };
+exports.scaleDown = (v)=>{ return v / 10000 };
+
 exports.singleRoomTranslate = model => {
 	const room = model.dataValues;
 	const status = room.status;
@@ -136,4 +139,4 @@ exports.roomLeasingStatus = (contracts, suspension = []) => {
 	const compactedContracts = fp.filter(c => !_.isUndefined(c.from))(_.concat(simplified, lastSuspension));
 	return fp.some(contract => (now > contract.from && contract.to > now))(compactedContracts) ?
 		Typedef.OperationStatus.INUSE : Typedef.OperationStatus.IDLE;
-}
+};
