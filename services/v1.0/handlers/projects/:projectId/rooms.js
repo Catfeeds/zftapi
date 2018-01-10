@@ -84,7 +84,6 @@ module.exports = {
         return Rooms.findAndCountAll(modelOption)
             .then(data => {
 				const rows = fp.map(single => {
-				    console.log('single', single);
 					const status = roomLeasingStatus(single.contracts, single.suspendingRooms);
 					return fp.merge(single)({dataValues: {status}});
 				})(data.rows);

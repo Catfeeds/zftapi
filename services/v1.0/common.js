@@ -140,3 +140,8 @@ exports.roomLeasingStatus = (contracts, suspension = []) => {
 	return fp.some(contract => (now > contract.from && contract.to > now))(compactedContracts) ?
 		Typedef.OperationStatus.INUSE : Typedef.OperationStatus.IDLE;
 };
+
+exports.jsonProcess = (model) => fp.defaults(model)({
+	expenses: JSON.parse(model.expenses),
+	strategy: JSON.parse(model.strategy)
+});

@@ -12,15 +12,12 @@ const omitSingleNulls = require('../../../../../services/v1.0/common').omitSingl
 const innerValues = require('../../../../../services/v1.0/common').innerValues;
 const assignNewId = require('../../../../../services/v1.0/common').assignNewId;
 const singleRoomTranslate = require('../../../common').singleRoomTranslate;
+const jsonProcess = require('../../../common').jsonProcess;
 
 const omitFields = item => _.omit(item, ['userId', 'createdAt', 'updatedAt']);
 const roomTranslate = item => fp.defaults(item)({room: singleRoomTranslate(item.room)});
 
 const translate = (models, pagingInfo) => {
-	const jsonProcess = (model) => fp.defaults(model)({
-		expenses: JSON.parse(model.expenses),
-		strategy: JSON.parse(model.strategy)
-	});
 	const single = _.flow(innerValues, omitSingleNulls, omitFields, jsonProcess, roomTranslate);
 	return {
 		paging: {
@@ -50,7 +47,6 @@ module.exports = {
 		const Users = MySQL.Users;
 		const Bills = MySQL.Bills;
 		const BillFlows = MySQL.BillFlows;
-		const Rooms = MySQL.Rooms;
 
 		const sequelize = MySQL.Sequelize;
 
