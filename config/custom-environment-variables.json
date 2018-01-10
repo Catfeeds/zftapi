@@ -1,7 +1,7 @@
 {
   "RDS": {
-    "read": "ZFT_MYSQL_READ",
-    "write": "ZFT_MYSQL_WRITE"
+    "read": "ZFT_EM_READ",
+    "write": "ZFT_EM_WRITE"
   },
   "MAP": "ZFT_AMAP_KEY"
 }
