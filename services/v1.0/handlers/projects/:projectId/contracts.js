@@ -29,6 +29,13 @@ const translate = (models, pagingInfo) => {
 	}
 };
 
+const validateContract = async (contract) => {
+	if(contract.from >= contract.to) {
+		throw new Error(`Invalid contract time period : from ${contract.from} to ${contract.to}.`)
+	}
+	return contract;
+}
+
 module.exports = {
 	/**
 	 * summary: save contract
@@ -97,6 +104,7 @@ module.exports = {
 					transaction: t
 				}))
 				.then(dbUser => extractContract(req, _.get(dbUser, '[0]')))
+				.then(contract => validateContract(contract))
 				.then(contract => checkRoomAvailability(contract, t))
 				.then(contract => Contracts.create(assignNewId(contract), {transaction: t}))
 				.then(contract => Promise.all(

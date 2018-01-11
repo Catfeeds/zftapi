@@ -1,6 +1,6 @@
 'use strict';
 
-import {get} from '../../services/v1.0/handlers/projects/:projectId/contracts'
+import {get, post} from '../../services/v1.0/handlers/projects/:projectId/contracts'
 import 'include-node'
 import {spy, stub} from 'sinon'
 import _ from 'lodash'
@@ -22,6 +22,7 @@ describe('Contracts', function () {
 		global.Typedef = Include('/libs/typedef');
 		global.ErrorCode = Include('/libs/errorCode');
 		global.Util = Include('/libs/util');
+		global.SnowFlake = {next() {return 1}};
 	});
 	it('should return all contracts from findAndCountAll', async function () {
 		const contract = {dataValues: {expenses: '[]', strategy: '{}', room}};
@@ -193,5 +194,101 @@ describe('Contracts', function () {
 					}]
 				}])
 		})
+	});
+
+	it('should check room availability while creating contract', async function () {
+		const req = {
+			params: {
+				projectId: 100
+			},
+			body: {
+				from: 1000,
+				to: 2000,
+				user: {},
+				roomId: 321,
+			}
+		};
+		const sequelizeCountSpy = stub().resolves([]);
+		const Users = {id: 100, findOrCreate: async () => [{id: 1999}]};
+		const Rooms = {id: 0};
+		const Houses = {id: 1};
+		const Building = {id: 2}
+		const GeoLocation = {id: 3};
+		global.MySQL = {
+			Contracts: {
+				count: sequelizeCountSpy,
+				create: async () => ({})
+			},
+			Users,
+			Rooms,
+			Houses,
+			Building,
+			GeoLocation,
+			Sequelize: {
+				transaction: async func => func({})
+			}
+		};
+
+		await post(req, {send: _.noop}).then(() => {
+			sequelizeCountSpy.should.have.been.called;
+			const countingOption = sequelizeCountSpy.getCall(0).args[0];
+			countingOption.where.should.be.eql({
+				roomId: req.body.roomId,
+				$or: [{
+					from: {
+						$lte: req.body.from
+					},
+					to: {
+						$gte: req.body.from
+					}
+				},
+					{
+						from: {
+							$lte: req.body.to
+						},
+						to: {
+							$gte: req.body.to
+						}
+					}
+				]
+			})
+		})
+	});
+
+	it('should check from is less than to while creating contract', async function () {
+		const req = {
+			params: {
+				projectId: 100
+			},
+			body: {
+				from: 2000,
+				to: 1000,
+				user: {accountName: ''},
+			}
+		};
+
+		const Users = {id: 100, findOrCreate: async () => [{id: 1999}]};
+		const Rooms = {id: 0};
+		const Houses = {id: 1};
+		const Building = {id: 2};
+		const GeoLocation = {id: 3};
+		global.MySQL = {
+			Contracts: {},
+			Users,
+			Rooms,
+			Houses,
+			Building,
+			GeoLocation,
+			Sequelize: {
+				transaction: async func => func({})
+			}
+		};
+		const resSpy = spy();
+		await post(req, {send: resSpy}).then(() => {
+				resSpy.should.have.been.called;
+				resSpy.getCall(0).args[0].should.be.eql(500);
+				resSpy.getCall(0).args[1].result.should.be.eql({"error": "Invalid contract time period : from 2000 to 1000."});
+			}
+		)
 	});
 });
