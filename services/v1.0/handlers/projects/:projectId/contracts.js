@@ -56,11 +56,37 @@ module.exports = {
 				)
 			);
 
-		const occupyRoom = async (contract, t) => {
-			//TODO: check room availability
-			// if (roomIsFree(contract.dataValues.roomId)) {
-			// 	throw new Error(`room ${contract.dataValues.roomId} is unavailable`)
-			// }
+		const checkRoomAvailability = async (contract, t) => {
+			const roomId = contract.roomId;
+			return Contracts.count({
+				where: {
+					roomId,
+					$or: [{
+						from: {
+							$lte: contract.from
+						},
+						to: {
+							$gte: contract.from
+						}
+					},
+						{
+							from: {
+								$lte: contract.to
+							},
+							to: {
+								$gte: contract.to
+							}
+						}
+					]
+				},
+				transaction: t
+			}).then(result => {
+				console.log(result);
+				if (result > 0) {
+					throw new Error(`room ${contract.roomId} is unavailable`)
+				}
+				return contract;
+			})
 		};
 
 		return sequelize.transaction(t =>
@@ -71,12 +97,11 @@ module.exports = {
 					transaction: t
 				}))
 				.then(dbUser => extractContract(req, _.get(dbUser, '[0]')))
+				.then(contract => checkRoomAvailability(contract, t))
 				.then(contract => Contracts.create(assignNewId(contract), {transaction: t}))
-				.then(contract => {
-					const bills = fp.map(bill => createBill(contract, bill, t))(generateBills(contract));
-					const roomUpdate = occupyRoom(contract, t);
-					return Promise.all(_.concat(bills, [roomUpdate]));
-				})
+				.then(contract => Promise.all(
+					fp.map(bill => createBill(contract, bill, t))(generateBills(contract)))
+				)
 		).then(results => res.send(201, ErrorCode.ack(ErrorCode.OK, {})))
 			.catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, {error: err.message})));
 

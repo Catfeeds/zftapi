@@ -101,9 +101,12 @@ const generate = contract => {
 		metadata: {bond: amount}
 	});
 
-	return _.concat(recursiveBills(strategy.freq, from, to, standardBill),
-		paidOffBills(expenses, from, to), regularBills(expenses, from, to),
-		bondOf(contract).map(amount => bondBill(amount, from, to)));
+	return _.concat(
+		recursiveBills(strategy.freq, from, to, standardBill),
+		paidOffBills(expenses, from, to),
+		regularBills(expenses, from, to),
+		bondOf(contract).map(amount => bondBill(amount, from, to))
+	);
 };
 
 module.exports = {
