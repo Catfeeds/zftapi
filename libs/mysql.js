@@ -1048,8 +1048,8 @@ function SequelizeDefine()
 
 	exports.BillFlows.belongsTo(exports.Bills);
 	exports.Bills.hasMany(exports.BillFlows , {as: 'billItems'});
-
-
+	exports.Contracts.hasMany(exports.Bills);
+	exports.Bills.belongsTo(exports.Contracts);
 
     //资金渠道
     const FundChannels = sequelizeInstance.define('fundChannels', {

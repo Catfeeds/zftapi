@@ -13,6 +13,8 @@ const innerValues = require('../../../../../services/v1.0/common').innerValues;
 const assignNewId = require('../../../../../services/v1.0/common').assignNewId;
 const singleRoomTranslate = require('../../../common').singleRoomTranslate;
 const jsonProcess = require('../../../common').jsonProcess;
+const userConnection = require('../../../common').userConnection;
+const houseConnection = require('../../../common').houseConnection;
 
 const omitFields = item => _.omit(item, ['userId', 'createdAt', 'updatedAt']);
 const roomTranslate = item => fp.defaults(item)({room: singleRoomTranslate(item.room)});
@@ -127,37 +129,8 @@ module.exports = {
 		const houseFormat = query.houseFormat;
 		const pagingInfo = Util.PagingInfo(query.index, query.size, true);
 
-		const userConnection = {
-			model: Users, required: true
-		};
-		const houseConnection = (houseFormat) => {
-			const houseInclude = _.assign({},
-				{
-					model: Houses,
-					as: 'house',
-					required: true,
-					attributes: ['id', 'roomNumber'],
-					include: [{
-						model: Building, required: true, as: 'building',
-						attributes: ['building', 'unit'],
-						include: [{
-							model: GeoLocation, required: true,
-							as: 'location',
-							attributes: ['name']
-						}]
-					}]
-				},
-				_.isEmpty(houseFormat) ? {} : {where: {houseFormat}}
-			);
-			return {
-				model: Rooms,
-				required: true,
-				attributes: ['id', 'name'],
-				include: [houseInclude]
-			}
-		};
 		return Contracts.findAndCountAll({
-			include: [userConnection, houseConnection(houseFormat)],
+			include: [userConnection(Users), houseConnection(Houses, Building, GeoLocation, Rooms)(houseFormat)],
 			where: {projectId, status},
 			offset: pagingInfo.skip,
 			limit: pagingInfo.size

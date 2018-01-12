@@ -131,7 +131,7 @@ exports.roomLeasingStatus = (contracts, suspension = []) => {
 	const now = moment().unix();
 	const lastSuspension = _.compact([_.max(suspension, 'from')]);
 	// PAUSE
-	if(fp.some(suspendingRoom => (now > suspendingRoom.from && _.isEmpty(suspendingRoom.to)))(lastSuspension)) {
+	if (fp.some(suspendingRoom => (now > suspendingRoom.from && _.isEmpty(suspendingRoom.to)))(lastSuspension)) {
 		return Typedef.OperationStatus.PAUSED;
 	}
 
@@ -144,4 +144,39 @@ exports.roomLeasingStatus = (contracts, suspension = []) => {
 exports.jsonProcess = (model) => fp.defaults(model)({
 	expenses: JSON.parse(model.expenses),
 	strategy: JSON.parse(model.strategy)
+});
+
+exports.userConnection = (userModel) => ({
+	model: userModel, required: true
+});
+exports.houseConnection = (houseModel, buildingModel, locationModel, roomModel) => (houseFormat) => {
+	const houseInclude = _.assign({},
+		{
+			model: houseModel,
+			as: 'house',
+			required: true,
+			attributes: ['id', 'roomNumber'],
+			include: [{
+				model: buildingModel, required: true, as: 'building',
+				attributes: ['building', 'unit'],
+				include: [{
+					model: locationModel, required: true,
+					as: 'location',
+					attributes: ['name']
+				}]
+			}]
+		},
+		_.isEmpty(houseFormat) ? {} : {where: {houseFormat}}
+	);
+	return {
+		model: roomModel,
+		required: true,
+		attributes: ['id', 'name'],
+		include: [houseInclude]
+	}
+};
+exports.includeContracts = (contractModel, userModel, houseModel, buildingModel, locationModel, roomModel) => houseFormat => ({
+	include: [exports.userConnection(userModel), exports.houseConnection(houseModel, buildingModel, locationModel, roomModel)(houseFormat)],
+	model: contractModel,
+	required: true
 });

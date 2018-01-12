@@ -5,13 +5,25 @@
 const _ = require('lodash');
 const fp = require('lodash/fp');
 const moment = require('moment');
-const omitSingleNulls = require('../../../../../services/v1.0/common').omitSingleNulls;
-const innerValues = require('../../../../../services/v1.0/common').innerValues;
+const omitSingleNulls = require('../../../common').omitSingleNulls;
+const innerValues = require('../../../common').innerValues;
+const singleRoomTranslate = require('../../../common').singleRoomTranslate;
+const includeContracts = require('../../../common').includeContracts;
+
 
 const omitFields = item => _.omit(item, ['metadata', 'createdAt', 'updatedAt']);
+const formatRoom = item => fp.defaults(item)({room: singleRoomTranslate(item.contract.dataValues.room)});
+
+const formatUser = item => fp.defaults(item)({
+	user: _.pick(item.contract.user, ['accountName', 'name', 'id', 'mobile'])
+});
+
+const formatContract = item => fp.defaults(item)({
+	contract: _.pick(item.contract, ['id', 'from', 'to'])
+});
 
 const translate = (models, pagingInfo) => {
-	const single = _.flow(innerValues, omitSingleNulls, omitFields);
+	const single = _.flow(innerValues, omitSingleNulls, formatRoom, formatUser, formatContract, omitFields);
 	return {
 		paging: {
 			count: models.count,
@@ -41,7 +53,19 @@ module.exports = {
 		const Bills = MySQL.Bills;
 		const BillFlows = MySQL.BillFlows;
 
+		const Contracts = MySQL.Contracts;
+		const Users = MySQL.Users;
+		const Rooms = MySQL.Rooms;
+		const Houses = MySQL.Houses;
+		const Building = MySQL.Building;
+		const GeoLocation = MySQL.GeoLocation;
+		const contractFilter = includeContracts(Contracts, Users, Houses, Building, GeoLocation, Rooms);
+
 		const query = req.query;
+
+		const projectId = req.params.projectId;
+		const houseFormat = query.houseFormat;
+
 		const pagingInfo = Util.PagingInfo(query.index, query.size, true);
 
 		return Bills.findAndCountAll({
@@ -49,10 +73,10 @@ module.exports = {
 				model: BillFlows,
 				as: 'billItems',
 				attributes: ['configId', 'amount', 'createdAt', 'id']
-			}],
+			}, contractFilter(houseFormat)],
 			where: {
 				entityType: 'property',
-				projectId: req.params.projectId,
+				projectId,
 				startDate: {
 					$lt: moment().unix()
 				}
