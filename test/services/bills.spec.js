@@ -5,6 +5,8 @@ import 'include-node'
 import {spy, stub} from 'sinon'
 import _ from 'lodash'
 
+const stubRoom = {dataValues: {house: {dataValues: {building: {dataValues: {location: {dataValues: {}}}}}}}};
+
 describe('Bills', function () {
 	before(() => {
 		global.Typedef = Include('/libs/typedef');
@@ -12,7 +14,7 @@ describe('Bills', function () {
 		global.Util = Include('/libs/util');
 	});
 	it('should return all contracts from findAndCountAll', async function () {
-		const bill = {dataValues: {}};
+		const bill = {dataValues: {contract: {dataValues: {room: stubRoom}}}};
 		const req = {
 			params: {
 				projectId: 100
@@ -20,6 +22,13 @@ describe('Bills', function () {
 			query: {}
 
 		};
+		const Users = {id: 100};
+		const Rooms = {id: 0};
+		const Houses = {id: 1};
+		const Building = {id: 2};
+		const GeoLocation = {id: 3};
+		const BillFlows = {id: 4};
+		const Contracts = {id: 5};
 		global.MySQL = {
 			Bills: {
 				async findAndCountAll() {
@@ -29,13 +38,20 @@ describe('Bills', function () {
 					};
 				}
 			},
-			BillFlows: {}
+			Users,
+			Rooms,
+			Houses,
+			Building,
+			GeoLocation,
+			BillFlows,
+			Contracts
 		};
 		const resSpy = spy();
 
 		await get(req, {send: resSpy}).then(() => {
 				resSpy.should.have.been.called;
-				resSpy.getCall(0).args[0].data.should.be.eql([{}]);
+				resSpy.getCall(0).args[0].data[0].contract.should.be.eql({});
+				resSpy.getCall(0).args[0].data[0].user.should.be.eql({});
 			}
 		)
 	});
@@ -50,12 +66,24 @@ describe('Bills', function () {
 			}
 		};
 		const sequelizeFindSpy = stub().resolves([]);
-
+		const Users = {id: 100};
+		const Rooms = {id: 0};
+		const Houses = {id: 1};
+		const Building = {id: 2};
+		const GeoLocation = {id: 3};
+		const BillFlows = {id: 4};
+		const Contracts = {id: 5};
 		global.MySQL = {
 			Bills: {
 				findAndCountAll: sequelizeFindSpy
 			},
-			BillFlows: {}
+			Users,
+			Rooms,
+			Houses,
+			Building,
+			GeoLocation,
+			BillFlows,
+			Contracts
 		};
 
 		await get(req, {send: _.noop}).then(() => {
@@ -69,8 +97,61 @@ describe('Bills', function () {
 					"createdAt",
 					"id",
 				],
-				"model": global.MySQL.BillFlows
-			}])
+				"model": BillFlows
+			},
+				{
+					"include": [
+						{
+							"model": Users,
+							"required": true
+						},
+						{
+							"attributes": [
+								"id",
+								"name"
+							],
+							"include": [
+								{
+									"as": "house",
+									"attributes": [
+										"id",
+										"roomNumber"
+									],
+									"include": [
+										{
+											"as": "building",
+											"attributes": [
+												"building",
+												"unit"
+											],
+											"include": [
+												{
+													"as": "location",
+													"attributes": [
+														"name"
+													],
+													"model": GeoLocation,
+													"required": true
+												}
+											],
+											"model": Building,
+											"required": true
+										}
+									],
+									"model": Houses,
+									"required": true,
+									"where": {
+										"houseFormat": "SOLE"
+									}
+								}
+							],
+							"model": Rooms,
+							"required": true
+						}
+					],
+					"model": Contracts,
+					"required": true
+				}])
 		})
 	});
 });
