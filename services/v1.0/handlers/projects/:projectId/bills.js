@@ -43,7 +43,7 @@ module.exports = {
 
 		const query = req.query;
 		const pagingInfo = Util.PagingInfo(query.index, query.size, true);
-		console.log(res);
+
 		return Bills.findAndCountAll({
 			include: [{
 				model: BillFlows,
