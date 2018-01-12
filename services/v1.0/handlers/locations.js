@@ -1,7 +1,6 @@
 'use strict';
 const _ = require('lodash');
-const validator = require('validator');
-
+const fp = require('lodash/fp');
 /**
  * Operations on /houses/format
  */
@@ -32,20 +31,23 @@ module.exports = {
         };
         Amap.InputTips(query).then(
             data=>{
-                let returns = [];
-                data.map(d=>{
-                    d.divisionId = d.adcode;
+                res.send( fp.map(location=>{
 
-                    const location = d.location.split(',');
-                    d.code = d.id;
-                    d.longitude = location[0];
-                    d.latitude = location[1];
+                    if(!location.id || !location.id.length){
+                        return;
+                    }
 
-                    d = _.omit(d, ['adcode', 'location', 'typecode','id']);
-                    returns.push(d);
-                });
-
-                res.send(returns);
+                    const position = location.location.split(',');
+                    return {
+                        name: location.name,
+                        district: location.district,
+                        address: location.address,
+                        divisionId: location.adcode,
+                        code: location.id,
+                        longitude: position[0],
+                        latitude: position[1],
+                    };
+                })(data) );
             },
             err=>{
                 log.error(err, query);
