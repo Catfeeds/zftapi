@@ -51,12 +51,13 @@ module.exports = {
             const houseDevices = await MySQL.HouseDevices.findAll({
                 where:{
                     projectId: projectId,
-                    sourceId: houseId,
+                    deviceId: deviceId,
+                    endDate: 0
                 },
                 attributes: ['id', 'deviceId']
             });
-            if(!houseDevices || !houseDevices.length){
-                return res.send(404, ErrorCode.ack(ErrorCode.REQUESTUNMATCH));
+            if(houseDevices && houseDevices.length){
+                return res.send(403, ErrorCode.ack(ErrorCode.DUPLICATEREQUEST));
             }
 
             const index = _.findIndex(houseDevices, (houseDevice)=>{
