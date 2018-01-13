@@ -31,7 +31,7 @@ module.exports = {
         };
         Amap.InputTips(query).then(
             data=>{
-                res.send( fp.map(location=>{
+                res.send( _.compact(fp.map(location=>{
 
                     if(!location.id || !location.id.length){
                         return;
@@ -47,7 +47,7 @@ module.exports = {
                         longitude: position[0],
                         latitude: position[1],
                     };
-                })(data) );
+                })(data) ));
             },
             err=>{
                 log.error(err, query);
