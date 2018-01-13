@@ -20,8 +20,11 @@ module.exports = {
          * For response `default` status 200 is used.
          */
         const param = req.query;
+        const level = param.level;
 
-        let where = {};
+        let where = {
+            enable: 1
+        };
         if(param.cityId){
             if(!validator.isInt(param.cityId, {min:0, max: 999999})){
                 return res.send(442, ErrorCode.ack(ErrorCode.PARAMETERERROR, {cityId: param.cityId}));
@@ -34,10 +37,8 @@ module.exports = {
                 parent: param.cityId
             };
         }
-        else{
-            where = {
-                level: 0
-            };
+        if(level){
+            where.level = level;
         }
 
         MySQL.Divisions.findAll({
