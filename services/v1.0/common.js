@@ -142,8 +142,8 @@ exports.roomLeasingStatus = (contracts, suspension = []) => {
 };
 
 exports.jsonProcess = (model) => fp.defaults(model)({
-	expenses: JSON.parse(model.expenses),
-	strategy: JSON.parse(model.strategy)
+	expenses: model.expenses ? JSON.parse(model.expenses) : undefined,
+	strategy: model.strategy ? JSON.parse(model.strategy) : undefined
 });
 
 exports.userConnection = (userModel) => ({

@@ -6,11 +6,9 @@ const omitSingleNulls = require('../../../../../common').omitSingleNulls;
 const innerValues = require('../../../../../common').innerValues;
 const jsonProcess = require('../../../../../common').jsonProcess;
 
-const omitFields = item => _.omit(item, ['userId', 'createdAt', 'updatedAt']);
-
 const translate = (models, pagingInfo) => {
 
-	const single = _.flow(innerValues, omitSingleNulls, omitFields, jsonProcess);
+	const single = _.flow(innerValues, omitSingleNulls, jsonProcess);
 	return {
 		paging: {
 			count: models.count,
@@ -28,11 +26,14 @@ module.exports = {
 		const query = req.query;
 		const status = _.get(req, 'query.status', Typedef.ContractStatus.ONGOING).toUpperCase();
 		const Contracts = MySQL.Contracts;
+		const Users = MySQL.Users;
 		console.log(_.get(req, 'params.status'));
 
 		const pagingInfo = Util.PagingInfo(query.index, query.size, true);
 
 		Contracts.findAndCountAll({
+			include: [{model: Users, attributes: ['name', 'mobile']}],
+			attributes: ['from', 'to', 'status', 'strategy'],
 			where: {projectId, roomId, status},
 			offset: pagingInfo.skip,
 			limit: pagingInfo.size
