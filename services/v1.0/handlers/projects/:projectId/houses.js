@@ -452,22 +452,27 @@ async function Gethouses(params, query) {
             const house = row.toJSON();
 
             const getDevices = (devices)=>{
-                return fp.map(device=>{
-                    return {
-                        deviceId: device.device.deviceId,
-                        public: device.public,
-                        title: device.device.name,
-                        // scale: fp.map(channel=>{
-                        //     return {
-                        //         channelId: channel.channelId,
-                        //         scale: common.scaleDown(channel.scale)
-                        //     }
-                        // })(device.device.channels),
-                        scale: device.device.channels && common.scaleDown(device.device.channels[0].scale),
-                        type: device.device.type,
-                        updatedAt: moment(device.device.updatedAt).unix(),
-                    };
-                })(devices);
+                return _.compact(fp.map(device=>{
+                    if(!device || !device.device){
+                        return null;
+                    }
+                    else {
+                        return {
+                            deviceId: device.device.deviceId,
+                            public: device.public,
+                            title: device.device.name,
+                            // scale: fp.map(channel=>{
+                            //     return {
+                            //         channelId: channel.channelId,
+                            //         scale: common.scaleDown(channel.scale)
+                            //     }
+                            // })(device.device.channels),
+                            scale: device.device.channels && common.scaleDown(device.device.channels[0].scale),
+                            type: device.device.type,
+                            updatedAt: moment(device.device.updatedAt).unix(),
+                        };
+                    }
+                })(devices));
             };
 
             const rooms = fp.map(room=>{
