@@ -54,7 +54,7 @@ module.exports = {
 		const contractId = req.params.contractId;
 		const projectId = req.params.projectId;
 		const status = _.get(req, 'body.status', '').toUpperCase();
-		const endDate = _.get(req, 'body.endDate', moment().unix());
+		const endDate = _.get(req, 'body.endDate');
 		const roomStatus = _.get(req, 'body.roomStatus', Typedef.OperationStatus.IDLE).toUpperCase();
 
 		if (status !== Typedef.ContractStatus.TERMINATED) {
@@ -82,7 +82,7 @@ module.exports = {
 
 				return Sequelize.transaction(t => {
 					const contractUpdating = contract.update({
-						actualEndDate: endDate,
+						actualEndDate: _.isUndefined(endDate) ? Sequelize.col('to') : endDate,
 						status
 					}, {transaction: t});
 					const suspending = assignNewId({
