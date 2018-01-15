@@ -43,8 +43,6 @@ module.exports = {
 			})
 			.catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, {error: err.message})));
 	},
-	post: function resetContract(req, res, next) {
-	},
 	put: function operateContract(req, res) {
 		const Contracts = MySQL.Contracts;
 		const Rooms = MySQL.Rooms;
