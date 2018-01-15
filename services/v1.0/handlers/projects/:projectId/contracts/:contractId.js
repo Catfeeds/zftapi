@@ -6,17 +6,26 @@ const fp = require('lodash/fp');
 const _ = require('lodash');
 const moment = require('moment');
 const assignNewId = require('../../../../common').assignNewId;
+const omitSingleNulls = require('../../../../common').omitSingleNulls;
+const innerValues = require('../../../../common').innerValues;
+const jsonProcess = require('../../../../common').jsonProcess;
+
+const omitFields = item => _.omit(item, ['userId', 'createdAt', 'updatedAt']);
+const translate = contract => _.flow(innerValues, omitSingleNulls, omitFields, jsonProcess)(contract);
 
 module.exports = {
-	get: function getContract(req, res, next) {
+	get: function getContract(req, res) {
 		const Contracts = MySQL.Contracts;
-		Contracts.findById(req.params.contractId)
+		const Users = MySQL.Users;
+		Contracts.findById(req.params.contractId, {
+			include: {model: Users, attributes: ['id', 'name', 'accountName']}
+		})
 			.then(contract => {
 				if (fp.isEmpty(contract)) {
 					res.send(404);
 					return;
 				}
-				res.send(contract);
+				res.send(translate(contract));
 			});
 	},
 	delete: function (req, res) {
