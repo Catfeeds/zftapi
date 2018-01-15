@@ -347,11 +347,7 @@ function SequelizeDefine()
             set : function (value) {
                 this.setDataValue('config', JSON.stringify(value));
             }
-        },
-        status: {
-            type: Sequelize.STRING(10)  //房间状态
-            , allowNull: false
-        },
+        }
     },{
         timestamps: true,
         paranoid: true,
