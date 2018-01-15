@@ -41,6 +41,7 @@ create table if not exists contracts
 	userId bigint not null,
 	`from` bigint not null,
 	`to` bigint not null,
+	`actualEndDate` bigint null,
 	strategy text null,
 	expenses text null,
 	contractNumber varchar(50) default '' not null,

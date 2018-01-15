@@ -628,7 +628,11 @@ function SequelizeDefine()
 			validate: { //执行中，已退租
 				isIn: [['ONGOING', 'TERMINATED']]
 			}
-		}
+		},
+		actualEndDate: {
+			type: Sequelize.BIGINT.UNSIGNED,     //实际退租时间
+			allowNull: true
+        }
     },{
         timestamps: true,
 		paranoid: true,

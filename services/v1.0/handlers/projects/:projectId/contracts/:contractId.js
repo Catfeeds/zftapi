@@ -80,7 +80,7 @@ module.exports = {
 
 				return Sequelize.transaction(t => {
 					const contractUpdating = contract.update({
-						to: endDate,
+						actualEndDate: endDate,
 						status
 					}, {transaction: t});
 					const suspending = assignNewId({
