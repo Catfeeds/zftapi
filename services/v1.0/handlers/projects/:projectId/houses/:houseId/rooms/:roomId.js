@@ -74,24 +74,24 @@ module.exports = {
 
             const putBody = _.pick(body, ['name', 'type', 'roomArea', 'config', 'orientation', 'status']);
 
-            const room = await MySQL.Rooms.findOne({
-                where:{
-                    id: roomId
-                },
-                include:[
-                    {
-                        model: MySQL.Contracts,
-                        as: 'contracts',
-                        where:{
-                            from:
-                        }
-                    }
-                ]
-            });
-
-            if(!room){
-                return res.send(404, ErrorCode.ack(ErrorCode.REQUESTUNMATCH));
-            }
+            // const room = await MySQL.Rooms.findOne({
+            //     where:{
+            //         id: roomId
+            //     },
+            //     include:[
+            //         {
+            //             model: MySQL.Contracts,
+            //             as: 'contracts',
+            //             where:{
+            //                 from:
+            //             }
+            //         }
+            //     ]
+            // });
+            //
+            // if(!room){
+            //     return res.send(404, ErrorCode.ack(ErrorCode.REQUESTUNMATCH));
+            // }
 
 
 
