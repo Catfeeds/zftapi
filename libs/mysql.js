@@ -353,7 +353,7 @@ function SequelizeDefine()
             , allowNull: false
             , defaultValue: 0
         },
-        deleteAt: {
+        deletedAt: {
             type: Sequelize.BIGINT.UNSIGNED // 删除时间
             , allowNull: false
             , defaultValue: 0

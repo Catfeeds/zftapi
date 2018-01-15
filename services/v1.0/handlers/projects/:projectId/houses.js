@@ -484,7 +484,8 @@ async function Gethouses(params, query) {
                     else{
                         const contract = room.contracts[0];
                         return {
-                            signUpTime: contract.signUpTime,
+                            id: contract.id,
+                            to: contract.to,
                             userId: contract.user.id,
                             name: contract.user.name,
                             rent: _.get(contract, 'strategy.freq.rent'),
@@ -526,116 +527,6 @@ async function Gethouses(params, query) {
                 size: pagingInfo.size
             },
             data: houses
-        };
-
-
-        let deviceIds = [];
-        _.each(result, house=>{
-            const getDeviceId = (dev)=>{
-                deviceIds.push(new RegExp(dev.deviceId.substr(3)));
-            };
-            _.each(house.devices, dev=>{ getDeviceId(dev); });
-            _.each(house.rooms, room=>{
-                _.each(room.devices, dev=>{ getDeviceId(dev); });
-            });
-        });
-        deviceIds = _.uniq(deviceIds);
-
-        const devices = await MongoDB.Sensor
-            .find({
-                key:{$in: deviceIds}
-            })
-            .select("title key lasttotal lastupdate devicetype");
-
-        let deviceMapping ={};
-        _.each(devices, dev=>{
-            const deviceId = GUID.DeviceID(dev.key);
-            deviceMapping[`YTL${deviceId.addrid}`] = dev;
-        });
-
-        let data = [];
-        _.each(result, house=>{
-            let houseDevices = [];
-            const createDevices = (dev)=>{
-                if(!dev){
-                    return null;
-                }
-                const device = deviceMapping[dev.deviceId];
-                if(!device){
-                    return null;
-                }
-                const lastupdate = moment(device.lastupdate);
-                return {
-                    deviceId: dev.deviceId,
-                    title: device.title,
-                    scale: device.lasttotal,
-                    type: device.devicetype,
-                    updatedAt: lastupdate.unix(),
-                    public: dev.public
-                };
-            };
-            _.each( house.devices, dev=>{
-                houseDevices.push(createDevices(dev));
-                _.each(house.rooms, room=>{
-                    let roomDevices = [];
-                    _.each(room.devices, dev=>{
-                        roomDevices.push( createDevices(dev) );
-                    });
-                    room.devices = _.compact(roomDevices);
-                });
-            } );
-            houseDevices = _.compact(houseDevices);
-
-            const rooms = fp.map(room=>{
-
-                const getContract = ()=>{
-					const status = common.roomLeasingStatus(room.contracts)
-                    if( !room.contracts || !room.contracts.length ){
-                        return {status};
-                    }
-                    else{
-                        const contract = room.contracts[0];
-                        return {
-                            signUpTime: contract.signUpTime,
-                            userId: contract.user.id,
-                            name: contract.user.name,
-                            rent: _.get(contract, 'strategy.freq.rent'),
-							status
-                        }
-                    }
-                };
-
-                return _.assignIn( _.omit(room, 'contracts'), {contract: getContract()});
-
-            })(house.rooms);
-
-            data.push({
-                houseId: house.id,
-                code: house.code,
-                group: house.building.group,
-                building: house.building.building,
-                location: house.building.location,
-                unit: house.building.unit,
-                roomNumber: house.roomNumber,
-                rooms: rooms,
-                layout: house.layouts,
-                devices: houseDevices,
-                prices: fp.map(price=>{
-                    return {
-                        type: price.type,
-                        price: price.price
-                    }
-                })(house.prices)
-            });
-        });
-
-        return {
-            paging:{
-                count: count,
-                index: pagingInfo.index,
-                size: pagingInfo.size
-            },
-            data: data
         };
     }
     catch(e){

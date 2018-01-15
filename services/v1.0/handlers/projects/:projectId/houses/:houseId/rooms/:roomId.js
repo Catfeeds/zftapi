@@ -23,49 +23,33 @@ module.exports = {
 
         (async()=>{
             const projectId = req.params.projectId;
-            const id = req.params.id;
+            const houseID = req.params.houseId;
+            const id = req.params.roomId;
 
             try {
-                const houseIns = await MySQL.Houses.findOne({
-                    where:{
-                        id: id,
-                        projectId: projectId,
-                        deleteAt: 0
+                await MySQL.Rooms.update(
+                    {
+                        deletedAt: moment().unix()
                     },
-                    attributes:['id', 'parentId', 'houseFormat']
-                });
-                if( houseIns.parentId === 0 && houseIns.houseFormat !== Typedef.HouseFormat.SOLE ){
-                    return;
-                }
-
-                const t = await MySQL.Sequelize.transaction();
-
-                await MySQL.Houses.update(
-                    {deleteAt: moment().unix()},
                     {
-                        where: {
-                            id: id
-                        },
-                        transaction: t
+                        where:{
+                            id: id,
+                            houseId: houseID,
+                            deletedAt: 0
+                        }
                     }
                 );
-
-                await MySQL.Layouts.update(
-                    {deleteAt: moment().unix()},
-                    {
-                        where: {
-                            houseId: id,
-                        },
-                        transaction: t
-                    }
-                );
-
-                t.commit();
 
                 res.send();
             }
             catch(e){
-                log.error(e, projectId, id);
+                if(e.original.errno === 1065){
+                    res.send(404, ErrorCode.ack(ErrorCode.REQUESTUNMATCH));
+                }
+                else {
+                    log.error(e, projectId, houseID, id);
+                    res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC));
+                }
             }
         })();
     },
@@ -84,16 +68,32 @@ module.exports = {
          */
         (async()=>{
             const projectId = req.params.projectId;
-            const id = req.params.id;
+            const houseId = req.params.houseId;
+            const roomId = req.params.roomId;
             const body = req.body;
 
-            if( body.layout && !Util.ParameterCheck(body.layout,
-                    ['id']
-                )){
-                return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED));
+            const putBody = _.pick(body, ['name', 'type', 'roomArea', 'config', 'orientation', 'status']);
+
+            const room = await MySQL.Rooms.findOne({
+                where:{
+                    id: roomId
+                },
+                include:[
+                    {
+                        model: MySQL.Contracts,
+                        as: 'contracts',
+                        where:{
+                            from:
+                        }
+                    }
+                ]
+            });
+
+            if(!room){
+                return res.send(404, ErrorCode.ack(ErrorCode.REQUESTUNMATCH));
             }
 
-            const putBody = _.pick(body, ['name', 'type', 'desc', 'config', 'layout']);
+
 
             const t = await MySQL.Sequelize.transaction();
 
