@@ -77,8 +77,6 @@ module.exports = {
 					res.send(404);
 					return;
 				}
-				console.log('room', contract.dataValues.room);
-				//TODO: record a new flow {billFlow: {dueAmount: 9900, paymentMethod: cash, operator: 312}}
 
 				return Sequelize.transaction(t => {
 					const contractUpdating = contract.update({
@@ -96,7 +94,6 @@ module.exports = {
 					const finalBillPromise = Bills.create(newBill, {transaction: t});
 					const operatorId = req.isAuthenticated() && req.user.id;
 					const finalPayment = assignNewId(finalPaymentOf(fp.defaults(settlement)({billId: newBill.id, operatorId})));
-					console.log('finalPayment', finalPayment);
 					const finalPaymentPromise = BillPayment.create(finalPayment, {transaction: t});
 					const operations = Typedef.OperationStatus.PAUSED === roomStatus ? [
 						SuspendingRooms.create(suspending, {transaction: t})

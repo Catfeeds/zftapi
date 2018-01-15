@@ -18,10 +18,7 @@ module.exports = {
 				pid: projectId
 			}
 		})
-			.then(item => {
-				console.log(item);
-				return _.flow(innerValues, omitFields)(item)
-			})
+			.then(_.flow(innerValues, omitFields))
 			.then(items => res.send(items))
 			.catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, {error: err.message})));
 	},

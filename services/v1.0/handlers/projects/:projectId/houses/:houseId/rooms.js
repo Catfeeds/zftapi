@@ -8,8 +8,6 @@ const fp = require('lodash/fp');
  * Operations on /rooms/{hid}
  */
 const translate = (models, pagingInfo) => {
-	console.log(models);
-	console.log(pagingInfo);
 	const single = model => {
 		const room = model.dataValues;
 		const house = room.house.dataValues;
