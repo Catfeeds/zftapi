@@ -109,6 +109,26 @@ const generate = contract => {
 	);
 };
 
+const finalBill = (settlement) => {
+	const now = moment().unix();
+	return ({
+		flow: 'receive',
+		entityType: 'property',
+		projectId: settlement.projectId,
+		contractId: settlement.contractId,
+		source: 'contract',
+		type: 'final',
+		startDate: now,
+		endDate: now,
+		dueDate: now,
+		createdAt: now,
+		dueAmount: _.get(settlement, 'amount', 0),
+		remark: _.get(settlement, 'remark', ''),
+		metadata: settlement
+	});
+}
+
 module.exports = {
-	generate
+	generate,
+	finalBill
 };

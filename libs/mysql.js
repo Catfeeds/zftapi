@@ -818,7 +818,7 @@ function SequelizeDefine()
             allowNull: false,
 			validate: {
 				isIn: [['bond', 'deposit', 'rent', 'extra',
-                    'bond-refund', 'deposit-refund', 'rent-refund', 'extra-refund']]
+                    'bond-refund', 'deposit-refund', 'rent-refund', 'extra-refund', 'final']]
 			}
         },
         startDate: {

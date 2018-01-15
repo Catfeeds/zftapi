@@ -105,8 +105,9 @@ create table if not exists billpayment
 (
 	id bigint auto_increment,
 	projectId bigint not null,
-	billFlowsId bigint,
+	billId bigint,
 	paymentChannel varchar(20) not null,
+	amount bigint default 0 not null,
 	operator bigint not null,
 	createdAt bigint not null,
 	status varchar(20) default 'pending' null,
