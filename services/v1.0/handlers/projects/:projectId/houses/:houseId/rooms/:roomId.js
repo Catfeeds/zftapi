@@ -2,6 +2,7 @@
 
 const _ = require('lodash');
 const moment = require('moment');
+const common = Include("/services/v1.0/common");
 
 /**
  * Operations on /rooms/{hid}
@@ -27,15 +28,11 @@ module.exports = {
             const id = req.params.roomId;
 
             try {
-                await MySQL.Rooms.update(
-                    {
-                        deletedAt: moment().unix()
-                    },
+                await MySQL.Rooms.destroy(
                     {
                         where:{
                             id: id,
                             houseId: houseID,
-                            deletedAt: 0
                         }
                     }
                 );
@@ -72,55 +69,89 @@ module.exports = {
             const roomId = req.params.roomId;
             const body = req.body;
 
-            const putBody = _.pick(body, ['name', 'type', 'roomArea', 'config', 'orientation', 'status']);
+            const putBody = _.pick(body, ['name', 'type', 'roomArea', 'config', 'orientation', 'pause', 'reuse']);
 
-            // const room = await MySQL.Rooms.findOne({
-            //     where:{
-            //         id: roomId
-            //     },
-            //     include:[
-            //         {
-            //             model: MySQL.Contracts,
-            //             as: 'contracts',
-            //             where:{
-            //                 from:
-            //             }
-            //         }
-            //     ]
-            // });
-            //
-            // if(!room){
-            //     return res.send(404, ErrorCode.ack(ErrorCode.REQUESTUNMATCH));
-            // }
+            const room = await MySQL.Rooms.findOne({
+                where:{
+                    houseId: houseId,
+                    id: roomId
+                },
+                include:[
+                    {
+                        model: MySQL.SuspendingRooms,
+                        where:{
+                            projectId: projectId,
+                            to: 0
+                        },
+                        order:[ ['createdAt', 'desc'] ],
+                        limit: 1
+                    }
+                ]
+            });
+            if(!room){
+                return res.send(404, ErrorCode.ack(ErrorCode.REQUESTUNMATCH));
+            }
 
+            room.status = common.roomLeasingStatus([], room.suspendingRooms);
 
+            if( putBody.pause ) {
+                if (room.suspendingRooms.length) {
+                    return res.send(403, ErrorCode.ack(ErrorCode.STATUSUNMATCH));
+                }
+                else {
+                    putBody.status = Typedef.OperationStatus.PAUSED;
+                }
+            }
 
-            const t = await MySQL.Sequelize.transaction();
+            if( putBody.reuse ){
+                if(!room.suspendingRooms.length) {
+                    return res.send(403, ErrorCode.ack(ErrorCode.STATUSUNMATCH));
+                }
+                else{
+                    putBody.status = Typedef.OperationStatus.IDLE;
+                }
+            }
 
-            await MySQL.Rooms.update(
-                putBody,
-                {
-                    where:{
+            try {
+                const t = await MySQL.Sequelize.transaction();
+
+                await MySQL.Rooms.update(
+                    putBody,
+                    {
+                        where: {
+                            id: roomId,
+                            houseId: houseId
+                        },
+                        transaction: t
+                    }
+                );
+
+                if(putBody.status === Typedef.OperationStatus.PAUSED){
+                    await MySQL.SuspendingRooms.create({
+                        id: SnowFlake.next(),
                         projectId: projectId,
-                        id: id
-                    },
-                    transaction: t
+                        roomId: roomId,
+                        from: moment().unix(),
+                        to: 0
+                    }, {transaction: t})
                 }
-            );
-
-            await MySQL.Layouts.update(
-                putBody.layout,
-                {
-                    where:{
-                        id: putBody.layout.id
-                    },
-                    transaction: t
+                else if( putBody.status === Typedef.OperationStatus.IDLE){
+                    await MySQL.SuspendingRooms.destroy({
+                        where:{
+                            id: room.suspendingRooms[0].id
+                        },
+                        transaction: t
+                    });
                 }
-            );
 
-            t.commit();
+                await t.commit();
 
-            res.send(ErrorCode.ack(ErrorCode.OK));
+                res.send();
+            }
+            catch(e){
+                log.error(e, body, putBody);
+                res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC));
+            }
 
         })();
     },
@@ -128,8 +159,6 @@ module.exports = {
     get: (req, res, next)=>{
         const roomId = req.params.roomId;
         const projectId =req.params.projectId;
-
-
 
         MySQL.Rooms.findOne({
             where:{

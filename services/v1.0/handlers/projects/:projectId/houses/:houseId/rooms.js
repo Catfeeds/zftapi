@@ -64,7 +64,6 @@ module.exports = {
                 id: SnowFlake.next(),
                 houseId: houseId,
 				name: count.toString(),
-                createdAt: now.unix(),
             };
 
             await MySQL.Rooms.create(newRoom);

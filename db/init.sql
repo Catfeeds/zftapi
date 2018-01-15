@@ -27,8 +27,9 @@ create table if not exists rooms
   `roomArea` int(11) NOT NULL DEFAULT 0,
   `orientation` varchar(2) NOT NULL DEFAULT 'N',
   `config` text NULL,
-  `createdAt` bigint(20) UNSIGNED NOT NULL DEFAULT 0,
-  `deleteAt` bigint(20) UNSIGNED NOT NULL DEFAULT 0,
+  `createdAt` datetime(0) NULL,
+	`updatedAt` datetime(0) NULL,
+	`deletedAt` datetime(0) NULL DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
 

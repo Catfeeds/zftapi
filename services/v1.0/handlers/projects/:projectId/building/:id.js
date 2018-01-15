@@ -164,11 +164,7 @@ module.exports = {
                         transaction: t
                     }
                 );
-                await MySQL.Rooms.update(
-                    {
-                        deleteAt: deleteAt,
-                        status: Typedef.OperationStatus.DELETED
-                    },
+                await MySQL.Rooms.destroy(
                     {
                         where:{
                             houseId: {$in: houseIds}

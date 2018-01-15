@@ -55,6 +55,7 @@ var ErrorCodeList = {
     'FORMULAERROR':         20000030,   //公式错误
 
     'CONTRACTWORKING':      21000001,   //合同生效中
+    'STATUSUNMATCH':        21000002,   //状态不匹配
 
     'ORDERTYPENOTALLOWED':  30000001,  //业务类型不允许
     'ORDERNOTEXISTS':       30000002,  //账单不存在
@@ -136,6 +137,7 @@ var ErrorMessageList = {
     'FORMULAERROR': '公式错误',
 
     'CONTRACTWORKING': '合同生效中',
+    'STATUSUNMATCH': '状态不匹配',
 
     'DEVICENOTEXISTS': '仪表未找到',
     'SERIALCONFNOTEXISTS': '仪表对应的串口参数未配置',
