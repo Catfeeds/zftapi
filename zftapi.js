@@ -17,6 +17,7 @@ require(appRootPath.path + '/libs/log')("zftAPI");
     global.Amap = Include('/libs/amap');
     global.SnowFlake = Include('/libs/snowflake').Alloc(1, 1);
     global.GUID = Include('/libs/guid');
+    global.Message = Include('/libs/message');
 }
 
 let Server = Restify.createServer();

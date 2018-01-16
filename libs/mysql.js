@@ -1492,6 +1492,43 @@ function SequelizeDefine()
         freezeTableName: true
     });
     exports.DeviceData = DevicesData;
+
+    exports.EventQueue = sequelizeInstance.define('eventqueue',
+        {
+            id:{
+                type: Sequelize.BIGINT.UNSIGNED,
+                primaryKey: true
+            },
+            messageTypeId: {
+                type: Sequelize.BIGINT.UNSIGNED,
+                allowNull: false
+            },
+            timestamp: {
+                type: Sequelize.BIGINT.UNSIGNED,
+                allowNull: false
+            },
+            param: {
+                type: Sequelize.TEXT,
+                get: function(){
+                    var param;
+                    try{
+                        param = JSON.parse(this.getDataValue('param'));
+                    }
+                    catch(e){
+                        param = {};
+                    }
+
+                    return param;
+                },
+                set : function (value) {
+                    this.setDataValue('param', JSON.stringify(value));
+                }
+            }
+        }, {
+            timestamps: false,
+            freezeTableName: true
+        }
+    );
 }
 
 function EMDefine()
