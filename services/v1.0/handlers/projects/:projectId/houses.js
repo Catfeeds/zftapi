@@ -358,12 +358,12 @@ async function Gethouses(params, query) {
     const pagingInfo = Util.PagingInfo(query.index, query.size, true);
     try {
         const where = _.assignIn({
+                status:{$ne: Typedef.HouseStatus.DELETED}
             },
             query.buildingId ? {'$building.id$': query.buildingId} : {},
             divisionLocation() && {},
             query.houseFormat ? {houseFormat: query.houseFormat} : {},
-            query.houseStatus ? { 'status': query.houseStatus } : {},
-            // query.roomStatus ? {'$rooms.status$': query.roomStatus }: {},
+            // query.roomStatus ? {'$rooms.status$': query.status }: {},
             query.layoutId ? {'layoutId': query.layoutId}: {},
             query.floor ? {'currentFloor': query.floor}: {},
             query.q ? {$or: [
