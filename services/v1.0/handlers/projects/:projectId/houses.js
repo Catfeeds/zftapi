@@ -429,6 +429,13 @@ async function Gethouses(params, query) {
                                 model: MySQL.Users
                             }
                         ]
+                    },
+                    {
+                        model: MySQL.SuspendingRooms,
+                        where:{
+                            to: 0
+                        },
+                        attributes: ['id','from','to','memo']
                     }
                 ]
             },
@@ -477,9 +484,8 @@ async function Gethouses(params, query) {
 
             const rooms = fp.map(room=>{
                 const getContract = ()=>{
-                    const status = common.roomLeasingStatus(room.contracts);
                     if( !room.contracts || !room.contracts.length ){
-                        return {status};
+                        return {};
                     }
                     else{
                         const contract = room.contracts[0];
@@ -488,14 +494,13 @@ async function Gethouses(params, query) {
                             to: contract.to,
                             userId: contract.user.id,
                             name: contract.user.name,
-                            rent: _.get(contract, 'strategy.freq.rent'),
-                            status
+                            rent: _.get(contract, 'strategy.freq.rent')
                         }
                     }
                 };
                 const devices = getDevices(room.devices);
 
-                return _.assignIn( _.omit(room, ['contracts','devices']), {contract: getContract(), devices: devices});
+                return _.assignIn( _.omit(room, ['contracts','devices']), {contract: getContract(), devices: devices, status: common.roomLeasingStatus(room.contracts, room.suspendingRooms)});
 
             })(house.rooms);
 
