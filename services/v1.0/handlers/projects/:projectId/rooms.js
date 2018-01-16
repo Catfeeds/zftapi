@@ -70,6 +70,7 @@ module.exports = {
 				attributes: ['id', 'from', 'to'],
 				required: false
 			}],
+			distinct: true,
             where: {
                 $or: [
                     {'$house.building.location.name$': {$regexp: query.q}},

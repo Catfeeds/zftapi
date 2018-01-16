@@ -131,6 +131,7 @@ module.exports = {
 
 		return Contracts.findAndCountAll({
 			include: [userConnection(Users), houseConnection(Houses, Building, GeoLocation, Rooms)(houseFormat)],
+			distinct: true,
 			where: {projectId, status},
 			offset: pagingInfo.skip,
 			limit: pagingInfo.size

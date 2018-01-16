@@ -27,13 +27,13 @@ module.exports = {
 		const status = _.get(req, 'query.status', Typedef.ContractStatus.ONGOING).toUpperCase();
 		const Contracts = MySQL.Contracts;
 		const Users = MySQL.Users;
-		console.log(_.get(req, 'params.status'));
 
 		const pagingInfo = Util.PagingInfo(query.index, query.size, true);
 
 		Contracts.findAndCountAll({
 			include: [{model: Users, attributes: ['name', 'mobile']}],
 			attributes: ['from', 'to', 'status', 'strategy'],
+			distinct: true,
 			where: {projectId, roomId, status},
 			offset: pagingInfo.skip,
 			limit: pagingInfo.size
