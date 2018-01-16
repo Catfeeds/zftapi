@@ -112,7 +112,7 @@ const generate = contract => {
 const finalBill = (settlement) => {
 	const now = moment().unix();
 	return ({
-		flow: 'receive',
+		flow: _.get(settlement, 'flow', 'receive'),
 		entityType: 'property',
 		projectId: settlement.projectId,
 		contractId: settlement.contractId,
