@@ -64,8 +64,20 @@ module.exports = {
 
 		const query = req.query;
 
+		const Sequelize = MySQL.Sequelize;
+
 		const projectId = req.params.projectId;
 		const houseFormat = query.houseFormat;
+
+		const paymentsFilter = (flag => {
+			if (_.isUndefined(flag)) {
+				return undefined;
+			}
+			const billPaymentFilter = Sequelize.literal(`( select billId from billpayment where projectId = ${projectId} )`)
+			return flag === 'true' ?
+				{$in: billPaymentFilter}
+				: {$notIn: billPaymentFilter};
+		})(_.get(req, 'query.paid'));
 
 		const pagingInfo = Util.PagingInfo(query.index, query.size, true);
 
@@ -74,20 +86,22 @@ module.exports = {
 				model: BillFlows,
 				as: 'billItems',
 				attributes: ['configId', 'amount', 'createdAt', 'id']
-				},
-				{
-					model: BillPayment,
-					as: 'payments',
-					attributes: ['id', 'amount', 'paymentChannel', 'operator', 'paidAt', 'remark', 'status']
-				},
-				contractFilter(houseFormat)],
-			where: {
+			}, {
+				model: BillPayment,
+				required: false,
+				as: 'payments',
+				attributes: ['id', 'amount', 'paymentChannel', 'operator', 'paidAt', 'remark', 'status']
+			},
+				contractFilter(houseFormat)
+			],
+			distinct: true,
+			where: _.assignIn({
 				entityType: 'property',
 				projectId,
 				startDate: {
 					$lt: moment().unix()
-				}
-			},
+				},
+			}, paymentsFilter ? {id: paymentsFilter} : {}),
 			offset: pagingInfo.skip,
 			limit: pagingInfo.size
 		}).then(models => translate(models, pagingInfo))

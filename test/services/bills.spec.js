@@ -111,7 +111,8 @@ describe('Bills', function () {
 					"remark",
 					"status"
 				],
-				"model": BillPayment
+				"model": BillPayment,
+				required: false
 			},
 				{
 					"include": [
