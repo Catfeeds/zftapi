@@ -308,6 +308,7 @@ create table if not exists `fundChannels`
 	`id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
 	`flow` varchar(8) NOT NULL DEFAULT 'receive',
 	`projectId` bigint(20) UNSIGNED NOT NULL,
+	`category` varchar(10) NOT NULL,
 	`tag` varchar(8) NOT NULL,
 	`name` varchar(8) NOT NULL,
 	`status` varchar(8) NOT NULL DEFAULT 'PENDING',
@@ -401,6 +402,10 @@ INSERT INTO `zft`.`receiveChannels` (`fundChannelId`, `fee`, `share`, `setting`,
 VALUES ( '1', '0', NULL, NULL, NOW(), NOW(), NULL);
 INSERT INTO `zft`.`receiveChannels` (`fundChannelId`, `fee`, `share`, `setting`, `createdAt`, `updatedAt`, `deletedAt`)
 VALUES ( '2', '6', NULL, NULL, NOW(), NOW(), NULL);
+
+INSERT INTO `zft`.`fundChannels` (`flow`, `projectId`, `category`, `tag`, `name`, `status`, `createdAt`, `updatedAt`, `deletedAt`) VALUES ('receive', '100', 'offline', 'cash', '现金', 'PASSED ', '2018-01-03 22:23:01', '2018-01-03 22:23:03', NULL);
+INSERT INTO `zft`.`fundChannels` (`flow`, `projectId`, `category`, `tag`, `name`, `status`, `createdAt`, `updatedAt`, `deletedAt`) VALUES ('receive', '100', 'online', 'alipay', '支付宝', 'PASSED ', '2018-01-03 22:31:59', '2018-01-03 22:32:02', NULL);
+INSERT INTO `zft`.`fundChannels` (`flow`, `projectId`, `category`, `tag`, `name`, `status`, `createdAt`, `updatedAt`, `deletedAt`) VALUES ('pay', '100', 'online', 'icbc', '工商银行', 'PASSED', '2018-01-03 22:33:12', '2018-01-03 22:33:15', NULL);
 
 INSERT INTO `divisions` VALUES (110000, '北京市', 1, 0, 39.90000, 116.40000, 1);
 INSERT INTO `divisions` VALUES (110100, '市辖区', 2, 110000, 0.00000, 0.00000, 0);

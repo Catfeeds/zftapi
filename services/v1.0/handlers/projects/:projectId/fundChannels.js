@@ -23,16 +23,20 @@ module.exports = {
         const query = req.query;
 
         if(!Util.ParameterCheck(query,
-                ['flow', 'tag']
+                ['flow', 'category']
             )){
             return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED));
+        }
+
+        if(!_.includes(Typedef.FundChannelCategory, query.category)){
+            return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED, 'category'));
         }
 
         const where = _.assignIn({
                 projectId: projectId,
                 flow: query.flow
             },
-            _.isArray(query.tag) ? {tag: {$in: query.tag}} : {tag: query.tag}
+            _.isArray(query.category) ? {category: {$in: query.category}} : {category: query.category}
         );
 
         MySQL.FundChannels.findAll({

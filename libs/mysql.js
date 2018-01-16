@@ -1071,6 +1071,10 @@ function SequelizeDefine()
             type: Sequelize.BIGINT.UNSIGNED,  //项目ID
             allowNull: false
         },
+        category:{
+            type: Sequelize.STRING(10),
+            allowNull: false
+        },
         tag:{   //渠道标识 alipay/wx/wx_pub/manual
             type: Sequelize.STRING(8),
             allowNull: false

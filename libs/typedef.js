@@ -97,6 +97,11 @@ const PriceType = {
     ELECTRIC: 'ELECTRIC'
 };
 
+const FundChannelCategory = {
+    'ONLINE': 'online',
+    'OFFLINE': 'offline'
+};
+
 const IsHouseFormat = (status)=>{
     return HouseFormat[status];
 };
@@ -126,5 +131,6 @@ module.exports = {
 	IsPriceType,
 	ContractStatus,
 	CredentialLevels,
-    FundFlow
-}
+    FundFlow,
+    FundChannelCategory
+};
