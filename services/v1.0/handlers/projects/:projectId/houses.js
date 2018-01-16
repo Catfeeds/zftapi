@@ -382,7 +382,8 @@ async function Gethouses(params, query) {
                 required: false,
                 attributes: ['deviceId', "public"],
                 where:{
-                    endDate: 0
+                    endDate: 0,
+                    public: true
                 },
                 include:[
                     {
