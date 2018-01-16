@@ -375,7 +375,7 @@ async function Gethouses(params, query) {
             query.device ? await deviceFilter() : {},
         );
 
-        const getIncludeHouseDevices =()=>{
+        const getIncludeHouseDevices =(isPublic)=>{
             return {
                 model: MySQL.HouseDevices,
                 as: 'devices',
@@ -383,7 +383,7 @@ async function Gethouses(params, query) {
                 attributes: ['deviceId', "public"],
                 where:{
                     endDate: 0,
-                    public: true
+                    public: isPublic
                 },
                 include:[
                     {
@@ -417,7 +417,7 @@ async function Gethouses(params, query) {
                 as: 'rooms',
                 attributes:['id', 'config', 'name', 'people', 'type', 'roomArea', 'orientation'],
                 include:[
-                    getIncludeHouseDevices(),
+                    getIncludeHouseDevices(false),
                     {
                         model: MySQL.Contracts,
                         required: false,
@@ -441,7 +441,7 @@ async function Gethouses(params, query) {
                     }
                 ]
             },
-            getIncludeHouseDevices(),
+            getIncludeHouseDevices(true),
             {
                 model: MySQL.HouseDevicePrice,
                 as: 'prices',
