@@ -37,7 +37,7 @@ module.exports = {
                         return;
                     }
 
-                    const position = location.location.split(',');
+                    const position = location.location && location.location.split(',') || [0,0];
                     return {
                         name: location.name,
                         district: location.district,
