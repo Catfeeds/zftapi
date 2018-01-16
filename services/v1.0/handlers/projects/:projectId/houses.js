@@ -363,7 +363,7 @@ async function Gethouses(params, query) {
             divisionLocation() && {},
             query.houseFormat ? {houseFormat: query.houseFormat} : {},
             query.houseStatus ? { 'status': query.houseStatus } : {},
-            query.roomStatus ? {'$rooms.status$': query.roomStatus }: {},
+            // query.roomStatus ? {'$rooms.status$': query.roomStatus }: {},
             query.layoutId ? {'layoutId': query.layoutId}: {},
             query.floor ? {'currentFloor': query.floor}: {},
             query.q ? {$or: [
@@ -432,6 +432,7 @@ async function Gethouses(params, query) {
                     },
                     {
                         model: MySQL.SuspendingRooms,
+                        required: false,
                         where:{
                             to: 0
                         },
