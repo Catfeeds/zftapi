@@ -103,7 +103,7 @@ create table if not exists billflows
 
 create table if not exists billpayment
 (
-	id bigint auto_increment,
+	id bigint,
 	projectId bigint not null,
 	billId bigint,
 	paymentChannel varchar(20) not null,
