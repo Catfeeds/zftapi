@@ -501,17 +501,33 @@ module.exports = {
             if(!isExists){
                 return res.send(400, ErrorCode.ack(ErrorCode.REQUESTUNMATCH));
             }
-            const unFreeRooms = await MySQL.Rooms.count({
+
+            const now = moment().unix();
+            const rooms = await MySQL.Rooms.findAll({
                 where:{
-                    houseId: houseId,
-                    $or:[
-                        {deleteAt: {$ne: 0}},
-                        {status: {$ne: Typedef.OperationStatus.IDLE}}
-                    ]
-                }
+                    houseId: houseId
+                },
+                include:[
+                    {
+                        model: MySQL.Contracts,
+                        as: 'contracts',
+                        where:{
+                            to:{$or:[
+                                {$eq: 0},
+                                {$gte: now}
+                            ]}
+                        },
+                        required: false
+                    }
+                ]
             });
-            if(unFreeRooms){
-                return res.send(400, ErrorCode.ack(ErrorCode.REQUESTUNMATCH));
+
+            const isRoomInUse = _.compact(fp.map(room=>{
+                return common.roomLeasingStatus(room.contracts) !== Typedef.OperationStatus.IDLE ? room.id : null
+            })(rooms));
+
+            if(isRoomInUse.length){
+                return res.send(400, ErrorCode.ack(ErrorCode.CONTRACTWORKING));
             }
 
             try {
