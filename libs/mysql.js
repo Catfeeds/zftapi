@@ -931,10 +931,13 @@ function SequelizeDefine()
 			type: Sequelize.BIGINT.UNSIGNED,    // 经办人
 			allowNull: true
 		},
-		createdAt: {
-			type: Sequelize.BIGINT.UNSIGNED,    // 创建时间
+		paidAt: {
+			type: Sequelize.BIGINT.UNSIGNED,    // 支付发生时间
 			allowNull: false,
 			defaultValue: 0
+		},
+		remark: {
+			type: Sequelize.TEXT    // 备注
 		},
 		status: {
 			type: Sequelize.STRING(10),    //状态
@@ -945,7 +948,8 @@ function SequelizeDefine()
 			}
 		}
 	}, {
-		timestamps: false,
+		timestamps: true,
+		paranoid: true,
 		freezeTableName: true
 	});
 

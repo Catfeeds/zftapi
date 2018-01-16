@@ -23,8 +23,9 @@ module.exports = {
       operator,
       amount: _.get(req, 'body.amount', 0),
       paymentChannel: _.get(req, 'body.paymentChannel', 'cash'),
-      createdAt: now,
-      status: 'pending'
+      paidAt: _.get(req, 'body.paidAt', now),
+      remark: _.get(req, 'body.remark', ''),
+      status: 'pending',
     };
 
     return Bills.findById(billId).then(bill => {

@@ -78,7 +78,7 @@ module.exports = {
 				{
 					model: BillPayment,
 					as: 'payments',
-					attributes: ['id', 'amount', 'paymentChannel', 'operator', 'createdAt', 'status']
+					attributes: ['id', 'amount', 'paymentChannel', 'operator', 'paidAt', 'remark', 'status']
 				},
 				contractFilter(houseFormat)],
 			where: {

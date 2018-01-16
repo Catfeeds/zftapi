@@ -107,7 +107,8 @@ describe('Bills', function () {
 					"amount",
 					"paymentChannel",
 					"operator",
-					"createdAt",
+					"paidAt",
+					"remark",
 					"status"
 				],
 				"model": BillPayment

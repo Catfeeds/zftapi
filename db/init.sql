@@ -109,8 +109,12 @@ create table if not exists billpayment
 	paymentChannel varchar(20) not null,
 	amount bigint default 0 not null,
 	operator bigint not null,
-	createdAt bigint not null,
+	paidAt bigint not null,
+	remark text,
 	status varchar(20) default 'pending' null,
+	`createdAt` DATETIME NOT NULL,
+    `updatedAt` DATETIME NOT NULL,
+    `deletedAt` DATETIME,
 	primary key (`id`)
 ) engine=innodb default charset=utf8;
 
