@@ -388,6 +388,15 @@ create table if not exists `deviceData`
 	INDEX `CHANNEL`(`channelId`) USING BTREE
 ) ENGINE = InnoDB;
 
+create table if not exists `eventQueue`
+(
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `messageTypeId` bigint(20) UNSIGNED NOT NULL,
+  `timestamp` bigint(20) UNSIGNED NOT NULL,
+  `param` text NULL,
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB;
+
 #project demo record
 INSERT INTO `zft`.`projects` (`pid`, `externalId`) VALUES ('100', '5938bb4f4d3684627bcabd7f');
 INSERT INTO `zft`.`auth` (`projectId`, `username`, `password`, createdAt, updatedAt)
