@@ -52,6 +52,7 @@ module.exports = {
 	get: async function (req, res) {
 		const Bills = MySQL.Bills;
 		const BillFlows = MySQL.BillFlows;
+		const BillPayment = MySQL.BillPayment;
 
 		const Contracts = MySQL.Contracts;
 		const Users = MySQL.Users;
@@ -73,7 +74,13 @@ module.exports = {
 				model: BillFlows,
 				as: 'billItems',
 				attributes: ['configId', 'amount', 'createdAt', 'id']
-			}, contractFilter(houseFormat)],
+				},
+				{
+					model: BillPayment,
+					as: 'payments',
+					attributes: ['id', 'amount', 'paymentChannel', 'operator', 'createdAt', 'status']
+				},
+				contractFilter(houseFormat)],
 			where: {
 				entityType: 'property',
 				projectId,

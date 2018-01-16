@@ -2,6 +2,7 @@
 
 const moment = require('moment');
 const _ = require('lodash');
+const fp = require('lodash/fp');
 const assignNewId = require('../../../../../common').assignNewId;
 /**
  * Operations on /bills/{billid}/payments
@@ -10,6 +11,7 @@ module.exports = {
 
   post: async function createPayment(req, res) {
     const BillPayment = MySQL.BillPayment;
+    const Bills = MySQL.Bills;
     const projectId = req.params.projectId;
     const billId = req.params.billId;
 
@@ -25,7 +27,12 @@ module.exports = {
       status: 'pending'
     };
 
-    return BillPayment.create(assignNewId(payment))
+    return Bills.findById(billId).then(bill => {
+      if (fp.isEmpty(bill)) {
+        return res.send(404);
+      }
+      return bill;
+    }).then(() => BillPayment.create(assignNewId(payment)))
       .then(() => res.send(201, ErrorCode.ack(ErrorCode.OK, {})))
       .catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, {error: err.message})));
   }

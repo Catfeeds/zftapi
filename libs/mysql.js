@@ -905,37 +905,37 @@ function SequelizeDefine()
         freezeTableName: true
     });
 
-    exports.BillPayment = sequelizeInstance.define('billpayment', {
-        billId: {
-            type: Sequelize.BIGINT.UNSIGNED,    // 账单ID
-            allowNull: false
-        },
-        projectId: {
-            type: Sequelize.BIGINT.UNSIGNED,  //项目ID
-            allowNull: false
-        },
+	exports.BillPayment = sequelizeInstance.define('billpayment', {
+		billId: {
+			type: Sequelize.BIGINT.UNSIGNED,    // 账单ID
+			allowNull: false
+		},
+		projectId: {
+			type: Sequelize.BIGINT.UNSIGNED,  //项目ID
+			allowNull: false
+		},
 		amount: {
 			type: Sequelize.BIGINT.UNSIGNED,    //金额 单位：分
 			allowNull: false,
 			defaultValue: 0
 		},
-        paymentChannel: {
-            type: Sequelize.STRING(20),    // 支付渠道
-            allowNull: false,
-            defaultValue: 'cash',
+		paymentChannel: {
+			type: Sequelize.STRING(20),    // 支付渠道
+			allowNull: false,
+			defaultValue: 'cash',
 			validate: {
 				isIn: [['cash', 'wechat', 'alipay']]
 			}
-        },
-        operator: {
-            type: Sequelize.BIGINT.UNSIGNED,    // 经办人
-            allowNull: true
-        },
-        createdAt: {
-            type: Sequelize.BIGINT.UNSIGNED,    // 创建时间
-            allowNull: false,
-            defaultValue: 0
-        },
+		},
+		operator: {
+			type: Sequelize.BIGINT.UNSIGNED,    // 经办人
+			allowNull: true
+		},
+		createdAt: {
+			type: Sequelize.BIGINT.UNSIGNED,    // 创建时间
+			allowNull: false,
+			defaultValue: 0
+		},
 		status: {
 			type: Sequelize.STRING(10),    //状态
 			allowNull: false,
@@ -944,10 +944,10 @@ function SequelizeDefine()
 				isIn: [['pending', 'approved', 'declined']]
 			}
 		}
-    },{
-        timestamps: false,
-        freezeTableName: true
-    });
+	}, {
+		timestamps: false,
+		freezeTableName: true
+	});
 
     const Topup = sequelizeInstance.define('topup', {
         id:{
@@ -1043,6 +1043,8 @@ function SequelizeDefine()
 
 	exports.BillFlows.belongsTo(exports.Bills);
 	exports.Bills.hasMany(exports.BillFlows , {as: 'billItems'});
+	exports.BillPayment.belongsTo(exports.Bills);
+	exports.Bills.hasMany(exports.BillPayment , {as: 'payments'});
 	exports.Contracts.hasMany(exports.Bills);
 	exports.Bills.belongsTo(exports.Contracts);
 

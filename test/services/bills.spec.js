@@ -66,6 +66,7 @@ describe('Bills', function () {
 			}
 		};
 		const sequelizeFindSpy = stub().resolves([]);
+		const BillPayment = {id: 111};
 		const Users = {id: 100};
 		const Rooms = {id: 0};
 		const Houses = {id: 1};
@@ -83,6 +84,7 @@ describe('Bills', function () {
 			Building,
 			GeoLocation,
 			BillFlows,
+			BillPayment,
 			Contracts
 		};
 
@@ -98,6 +100,17 @@ describe('Bills', function () {
 					"id",
 				],
 				"model": BillFlows
+			}, {
+				"as": "payments",
+				"attributes": [
+					"id",
+					"amount",
+					"paymentChannel",
+					"operator",
+					"createdAt",
+					"status"
+				],
+				"model": BillPayment
 			},
 				{
 					"include": [
