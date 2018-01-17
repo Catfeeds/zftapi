@@ -22,8 +22,10 @@ const formatContract = item => fp.defaults(item)({
 	contract: _.pick(item.contract, ['id', 'from', 'to'])
 });
 
+const pickUpFirstPayment = bill => fp.defaults(bill)({payments: _.take(bill.payments)})
+
 const translate = (models, pagingInfo) => {
-	const single = _.flow(innerValues, omitSingleNulls, formatRoom, formatUser, formatContract, omitFields);
+	const single = _.flow(innerValues, omitSingleNulls, formatRoom, formatUser, formatContract, omitFields, pickUpFirstPayment);
 	return {
 		paging: {
 			count: models.count,
