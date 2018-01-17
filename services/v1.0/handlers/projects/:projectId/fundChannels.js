@@ -36,7 +36,7 @@ module.exports = {
                 projectId: projectId,
                 flow: query.flow
             },
-            _.isArray(query.category) ? {category: {$in: query.category}} : {category: query.category}
+            query.category === Typedef.FundChannelCategory.ALL ? {} : {category: query.category}
         );
 
         MySQL.FundChannels.findAll({

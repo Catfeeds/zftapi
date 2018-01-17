@@ -98,6 +98,7 @@ const PriceType = {
 };
 
 const FundChannelCategory = {
+    "ALL": 'all',
     'ONLINE': 'online',
     'OFFLINE': 'offline'
 };
