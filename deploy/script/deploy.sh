@@ -13,7 +13,7 @@ function start () {
 }
 function test_deploy() {
   docker rm -f test_api_deploy
-  docker run -e AMAPKEY -e ZFT_AMAP_KEY -e ZFT_EM_READ -e ZFT_EM_WRITE -d \
+  docker run -e ZFT_AMAP_KEY -e ZFT_EM_READ -e ZFT_EM_WRITE -d \
   	--name=test_api_deploy -p 8090:8000 $REPO:$IMAGE_VERSION
 }
 
