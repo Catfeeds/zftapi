@@ -43,8 +43,8 @@ class MessageQueue {
             _.each(_this.callback, function (callback) {
                 if(callback){
                     validCallback.push(callback);
-                    if(callback.Match(message)) {
-                        callback.Do(message);
+                    if(callback.match(message)) {
+                        callback.do(message);
                     }
                 }
             });

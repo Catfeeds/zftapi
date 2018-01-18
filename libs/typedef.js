@@ -95,6 +95,9 @@ const PriceType = {
 const DriverCommand = {
     'EMC_ON': 'EMC_ON',
     'EMC_OFF': 'EMC_OFF',
+    'EMC_STATUS': 'EMC_STATUS',
+    'EMC_SWITCH': 'EMC_SWITCH',
+    'EMC_SYNC': 'EMC_SYNC',
 };
 
 const IsHouseFormat = (status)=>{
