@@ -12,7 +12,7 @@ exports.UpsertGeoLocation = (location, t)=>{
     })
 };
 
-exports.AsyncUpsertGeoLocation = async(location, t)=>{
+exports.AsyncUpsertGeoLocation = async (location, t) => {
     location.code = location.id || location.code;
     location = _.omit(location, 'id');
 

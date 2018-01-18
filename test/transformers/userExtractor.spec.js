@@ -14,8 +14,8 @@ describe('extractUser', () => {
 		};
 		const req = {body: {user}};
 		await extract(req).then(data => {
-				data.should.be.eql(user);
-			}
-		)
+			data.should.be.eql(user);
+		}
+		);
 	});
 });

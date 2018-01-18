@@ -4,7 +4,7 @@ const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 
 const authenticate = (req, res, next) => {
-	passport.authenticate("local", function (err, user) {
+	passport.authenticate('local', function (err, user) {
 		if(err) {
 			req.session.destroy();
 			return res.json(ErrorCode.ack(ErrorCode. AUTHFAILED, {error: 'Incorrect username or password.'}));

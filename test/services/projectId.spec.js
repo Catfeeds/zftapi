@@ -1,9 +1,9 @@
 'use strict';
 
-import {get, put} from '../../services/v1.0/handlers/projects/:projectId'
-import 'include-node'
-import _ from 'lodash'
-import {spy, match} from 'sinon'
+import {get, put} from '../../services/v1.0/handlers/projects/:projectId';
+import 'include-node';
+import _ from 'lodash';
+import {spy, match} from 'sinon';
 
 describe('Project', function () {
 	before(() => {
@@ -14,7 +14,7 @@ describe('Project', function () {
 			dataValues: {
 				name: 'myName'
 			}
-		}
+		};
 		const req = {
 			params: {
 				projectId: 100
@@ -76,7 +76,7 @@ describe('Project', function () {
 
 		await put(req, {send: resSpy}).then(() => {
 			resSpy.getCall(0).args[0].should.be.eql(400);
-			resSpy.getCall(0).args[1].result.should.be.eql({error: "please provide db id of this project"});
+			resSpy.getCall(0).args[1].result.should.be.eql({error: 'please provide db id of this project'});
 		});
 	});
 });

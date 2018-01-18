@@ -19,7 +19,7 @@ describe('Bill items generator', () => {
 			expenses: [],
 			from: startDate,
 			to: oneYearLater,
-			paymentPlan: "-00",
+			paymentPlan: '-00',
 			projectId: 1,
 			id: 2,
 		};
@@ -41,10 +41,10 @@ describe('Bill items generator', () => {
 			}
 		};
 		_.omit(generate(contract, bill)[0], 'createdAt').should.be.eql({
-			"amount": 100,
-			"billId": 999,
-			"configId": 123,
-			"projectId": 1
+			'amount': 100,
+			'billId': 999,
+			'configId': 123,
+			'projectId': 1
 		});
 	});
 	it('should generate standard billItems with extra expense', () => {
@@ -64,7 +64,7 @@ describe('Bill items generator', () => {
 			}],
 			from: startDate,
 			to: oneYearLater,
-			paymentPlan: "-00",
+			paymentPlan: '-00',
 			projectId: 1,
 			id: 2,
 		};
@@ -99,16 +99,16 @@ describe('Bill items generator', () => {
 		const standardBill = items[0];
 		const withRentExpense = items[1];
 		_.omit(standardBill[0], 'createdAt').should.be.eql({
-			"amount": 100,
-			"billId": 999,
-			"configId": 121,
-			"projectId": 1
+			'amount': 100,
+			'billId': 999,
+			'configId': 121,
+			'projectId': 1
 		});
 		_.omit(withRentExpense[0], 'createdAt').should.be.eql({
-			"amount": 200,
-			"billId": 999,
-			"configId": 112,
-			"projectId": 1
+			'amount': 200,
+			'billId': 999,
+			'configId': 112,
+			'projectId': 1
 		});
 	});
 
@@ -129,7 +129,7 @@ describe('Bill items generator', () => {
 			}],
 			from: startDate,
 			to: oneYearLater,
-			paymentPlan: "-00",
+			paymentPlan: '-00',
 			projectId: 1,
 			id: 2,
 		};
@@ -154,10 +154,10 @@ describe('Bill items generator', () => {
 		};
 		const billItems = generate(contract, bill);
 		_.omit(billItems[0], 'createdAt').should.be.eql({
-			"amount": 200,
-			"billId": 999,
-			"configId": 311,
-			"projectId": 1
+			'amount': 200,
+			'billId': 999,
+			'configId': 311,
+			'projectId': 1
 		});
 	});
 });

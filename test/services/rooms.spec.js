@@ -1,9 +1,9 @@
 'use strict';
 
-import {get} from '../../services/v1.0/handlers/projects/:projectId/rooms'
-import 'include-node'
-import {spy} from 'sinon'
-import moment from 'moment'
+import {get} from '../../services/v1.0/handlers/projects/:projectId/rooms';
+import 'include-node';
+import {spy} from 'sinon';
+import moment from 'moment';
 
 describe('Rooms', function () {
 	before(() => {
@@ -55,20 +55,20 @@ describe('Rooms', function () {
 		const resSpy = spy();
 
 		await get(req, {send: resSpy}).then(() => {
-				resSpy.should.have.been.called;
-				resSpy.getCall(0).args[0].data.should.be.eql([{
-					id: 123,
-					houseId: 456,
-					locationName: 'locationName',
-					group: 'group1',
-					building: 'building1',
-					unit: 'unit1',
-					roomNumber: 'roomNumber',
-					roomName: 'roomName',
-					status: Typedef.OperationStatus.IDLE
-				}]);
-			}
-		)
+			resSpy.should.have.been.called;
+			resSpy.getCall(0).args[0].data.should.be.eql([{
+				id: 123,
+				houseId: 456,
+				locationName: 'locationName',
+				group: 'group1',
+				building: 'building1',
+				unit: 'unit1',
+				roomNumber: 'roomNumber',
+				roomName: 'roomName',
+				status: Typedef.OperationStatus.IDLE
+			}]);
+		}
+		);
 	});
 
 	it('should calculate status base on all contracts', async function () {
@@ -119,20 +119,20 @@ describe('Rooms', function () {
 		const resSpy = spy();
 
 		await get(req, {send: resSpy}).then(() => {
-				resSpy.should.have.been.called;
-				resSpy.getCall(0).args[0].data.should.be.eql([{
-					id: 123,
-					houseId: 456,
-					locationName: 'locationName',
-					group: 'group1',
-					building: 'building1',
-					unit: 'unit1',
-					roomNumber: 'roomNumber',
-					roomName: 'roomName',
-					status: Typedef.OperationStatus.INUSE
-				}]);
-			}
-		)
+			resSpy.should.have.been.called;
+			resSpy.getCall(0).args[0].data.should.be.eql([{
+				id: 123,
+				houseId: 456,
+				locationName: 'locationName',
+				group: 'group1',
+				building: 'building1',
+				unit: 'unit1',
+				roomNumber: 'roomNumber',
+				roomName: 'roomName',
+				status: Typedef.OperationStatus.INUSE
+			}]);
+		}
+		);
 	});
 	it('should be `PAUSE` status if the `to` field is undefined', async function () {
 
@@ -182,20 +182,20 @@ describe('Rooms', function () {
 		const resSpy = spy();
 
 		await get(req, {send: resSpy}).then(() => {
-				resSpy.should.have.been.called;
-				resSpy.getCall(0).args[0].data.should.be.eql([{
-					id: 123,
-					houseId: 456,
-					locationName: 'locationName',
-					group: 'group1',
-					building: 'building1',
-					unit: 'unit1',
-					roomNumber: 'roomNumber',
-					roomName: 'roomName',
-					status: Typedef.OperationStatus.PAUSED
-				}]);
-			}
-		)
+			resSpy.should.have.been.called;
+			resSpy.getCall(0).args[0].data.should.be.eql([{
+				id: 123,
+				houseId: 456,
+				locationName: 'locationName',
+				group: 'group1',
+				building: 'building1',
+				unit: 'unit1',
+				roomNumber: 'roomNumber',
+				roomName: 'roomName',
+				status: Typedef.OperationStatus.PAUSED
+			}]);
+		}
+		);
 	});
 	it('should be `IDLE` status if the suspension `to` field passes', async function () {
 
@@ -246,20 +246,20 @@ describe('Rooms', function () {
 		const resSpy = spy();
 
 		await get(req, {send: resSpy}).then(() => {
-				resSpy.should.have.been.called;
-				resSpy.getCall(0).args[0].data.should.be.eql([{
-					id: 123,
-					houseId: 456,
-					locationName: 'locationName',
-					group: 'group1',
-					building: 'building1',
-					unit: 'unit1',
-					roomNumber: 'roomNumber',
-					roomName: 'roomName',
-					status: Typedef.OperationStatus.PAUSED
-				}]);
-			}
-		)
+			resSpy.should.have.been.called;
+			resSpy.getCall(0).args[0].data.should.be.eql([{
+				id: 123,
+				houseId: 456,
+				locationName: 'locationName',
+				group: 'group1',
+				building: 'building1',
+				unit: 'unit1',
+				roomNumber: 'roomNumber',
+				roomName: 'roomName',
+				status: Typedef.OperationStatus.PAUSED
+			}]);
+		}
+		);
 	});
 	it('should be `IDLE` status if there is no contracts', async function () {
 
@@ -307,19 +307,19 @@ describe('Rooms', function () {
 		const resSpy = spy();
 
 		await get(req, {send: resSpy}).then(() => {
-				resSpy.should.have.been.called;
-				resSpy.getCall(0).args[0].data.should.be.eql([{
-					id: 123,
-					houseId: 456,
-					locationName: 'locationName',
-					group: 'group1',
-					building: 'building1',
-					unit: 'unit1',
-					roomNumber: 'roomNumber',
-					roomName: 'roomName',
-					status: Typedef.OperationStatus.IDLE
-				}]);
-			}
-		)
+			resSpy.should.have.been.called;
+			resSpy.getCall(0).args[0].data.should.be.eql([{
+				id: 123,
+				houseId: 456,
+				locationName: 'locationName',
+				group: 'group1',
+				building: 'building1',
+				unit: 'unit1',
+				roomNumber: 'roomNumber',
+				roomName: 'roomName',
+				status: Typedef.OperationStatus.IDLE
+			}]);
+		}
+		);
 	});
 });

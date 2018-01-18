@@ -8,4 +8,4 @@ const allowToCreateCredentials = (req) =>
 
 module.exports = {
 	allowToCreateCredentials
-}
+};

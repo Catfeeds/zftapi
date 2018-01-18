@@ -32,7 +32,7 @@ describe('Extract contract', () => {
 				signUpTime: 3000,
 				projectId: 123
 			});
-		})
+		});
 	});
 
 	it('should use project from requests rather than body', async () => {
@@ -65,7 +65,7 @@ describe('Extract contract', () => {
 				signUpTime: 3000,
 				projectId: 321
 			});
-		})
+		});
 	});
 
 	it('should use user id from user object rather than body', async () => {
@@ -83,8 +83,8 @@ describe('Extract contract', () => {
 			data.should.be.eql({
 				userId: 999,
 				projectId: 321
-			})
-		})
+			});
+		});
 
 	});
 });

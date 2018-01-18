@@ -1,8 +1,8 @@
 'use strict';
 
-import {get, post} from '../../services/v1.0/handlers/projects/:projectId/credentials'
-import 'include-node'
-import {spy, match} from 'sinon'
+import {get, post} from '../../services/v1.0/handlers/projects/:projectId/credentials';
+import 'include-node';
+import {spy, match} from 'sinon';
 
 describe('Environments', function () {
 	before(() => {
@@ -26,7 +26,7 @@ describe('Environments', function () {
 
 		await get(req, {send: resSpy}).then(() =>
 			resSpy.should.have.been.calledWith([])
-		)
+		);
 	});
 
 	it('should omit id, createdAt, updatedAt, password fields', async function () {
@@ -46,7 +46,7 @@ describe('Environments', function () {
 
 		await get(req, {send: resSpy}).then(() =>
 			resSpy.should.have.been.calledWith([{onlyMe: 'haha'}])
-		)
+		);
 	});
 
 	it('should omit null value fields', async function () {
@@ -66,7 +66,7 @@ describe('Environments', function () {
 
 		await get(req, {send: resSpy}).then(() =>
 			resSpy.should.have.been.calledWith([{onlyMe: 'haha'}])
-		)
+		);
 	});
 
 	it('should create auth if information are correct', async function () {
@@ -97,7 +97,7 @@ describe('Environments', function () {
 
 		await post(req, {send: resSpy}).then(() =>
 			resSpy.should.have.been.calledWith(200, ErrorCode.ack(ErrorCode.OK, {username: req.body.username}))
-		)
+		);
 	});
 
 	it('should return 400 if password is empty', async function () {
@@ -114,7 +114,7 @@ describe('Environments', function () {
 		const resSpy = spy();
 
 		post(req, {send: resSpy}).then(() =>
-			resSpy.should.have.been.calledWith(400, ErrorCode.ack(ErrorCode.PARAMETERERROR, {error: "please provide md5 encrypted password"}))
+			resSpy.should.have.been.calledWith(400, ErrorCode.ack(ErrorCode.PARAMETERERROR, {error: 'please provide md5 encrypted password'}))
 		);
 	});
 
@@ -132,7 +132,7 @@ describe('Environments', function () {
 		const resSpy = spy();
 
 		post(req, {send: resSpy}).then(() =>
-			resSpy.should.have.been.calledWith(400, ErrorCode.ack(ErrorCode.PARAMETERERROR, {error: "email is required"}))
+			resSpy.should.have.been.calledWith(400, ErrorCode.ack(ErrorCode.PARAMETERERROR, {error: 'email is required'}))
 		);
 	});
 

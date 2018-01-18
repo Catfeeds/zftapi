@@ -21,12 +21,12 @@ describe('Bill generator', () => {
 				{
 					configId: 111,
 					rent: 2600,
-					pattern: "paidOff"
+					pattern: 'paidOff'
 				}
 			],
 			from: startDate,
 			to: oneYearLater,
-			paymentPlan: "-00",
+			paymentPlan: '-00',
 			projectId: 1,
 			contractId: 2,
 
@@ -48,7 +48,7 @@ describe('Bill generator', () => {
 			expenses: [],
 			from: startDate,
 			to: oneYearLater,
-			paymentPlan: "-00",
+			paymentPlan: '-00',
 			projectId: 1,
 			id: 2,
 
@@ -94,7 +94,7 @@ describe('Bill generator', () => {
 			}],
 			from: startDate,
 			to: oneYearLater,
-			paymentPlan: "-00",
+			paymentPlan: '-00',
 			projectId: 1,
 			id: 2
 		});
@@ -135,7 +135,7 @@ describe('Bill generator', () => {
 			}],
 			from: startDate,
 			to: oneYearLater,
-			paymentPlan: "-00",
+			paymentPlan: '-00',
 			projectId: 1,
 			id: 2
 		});
@@ -158,7 +158,7 @@ describe('Bill generator', () => {
 				rent: 12000,
 				pattern: '1'
 			},
-      index: 1
+			index: 1
 		});
 	});
 
@@ -175,7 +175,7 @@ describe('Bill generator', () => {
 			expenses: [],
 			from: startDate,
 			to: oneYearLater,
-			paymentPlan: "-00",
+			paymentPlan: '-00',
 			projectId: 1,
 			id: 2,
 
@@ -200,9 +200,9 @@ describe('Bill generator', () => {
 				expenses: [],
 				months: 12
 			},
-      index: 1
+			index: 1
 		});
-	})
+	});
 
 	it('should combine withRent expenses into standard bills', () => {
 		const startDate = moment().unix();
@@ -222,7 +222,7 @@ describe('Bill generator', () => {
 			}],
 			from: startDate,
 			to: oneYearLater,
-			paymentPlan: "-00",
+			paymentPlan: '-00',
 			projectId: 1,
 			id: 2
 		});
@@ -250,7 +250,7 @@ describe('Bill generator', () => {
 				}],
 				months: 1
 			},
-      index: 1
+			index: 1
 		});
 	});
 
@@ -271,7 +271,7 @@ describe('Bill generator', () => {
 			}],
 			from: startDate,
 			to: oneYearLater,
-			paymentPlan: "-00",
+			paymentPlan: '-00',
 			projectId: 1,
 			id: 2
 		});
@@ -299,7 +299,7 @@ describe('Bill generator', () => {
 				}],
 				months: 12
 			},
-      index: 1
+			index: 1
 		});
 	});
 
@@ -317,7 +317,7 @@ describe('Bill generator', () => {
 			expenses: [],
 			from: startDate,
 			to: oneYearLater,
-			paymentPlan: "-00",
+			paymentPlan: '-00',
 			projectId: 1,
 			id: 2,
 

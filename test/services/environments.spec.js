@@ -1,14 +1,14 @@
 'use strict';
 
-import {get} from '../../services/v1.0/handlers/environments'
-import 'include-node'
-import _ from 'lodash'
-import {spy, match} from 'sinon'
+import {get} from '../../services/v1.0/handlers/environments';
+import 'include-node';
+import _ from 'lodash';
+import {spy, match} from 'sinon';
 
 describe('Environments', function () {
 	before(() => {
 		global.Typedef = Include('/libs/typedef');
-	})
+	});
 	it('should return constants of zft project', async function () {
 		const req = {isAuthenticated: () => true};
 		const resSpy = spy();

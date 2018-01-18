@@ -1,9 +1,9 @@
 'use strict';
 
-import {get} from '../../services/v1.0/handlers/projects/:projectId/bills'
-import 'include-node'
-import {spy, stub} from 'sinon'
-import _ from 'lodash'
+import {get} from '../../services/v1.0/handlers/projects/:projectId/bills';
+import 'include-node';
+import {spy, stub} from 'sinon';
+import _ from 'lodash';
 
 const stubRoom = {dataValues: {house: {dataValues: {building: {dataValues: {location: {dataValues: {}}}}}}}};
 
@@ -49,11 +49,11 @@ describe('Bills', function () {
 		const resSpy = spy();
 
 		await get(req, {send: resSpy}).then(() => {
-				resSpy.should.have.been.called;
-				resSpy.getCall(0).args[0].data[0].contract.should.be.eql({});
-				resSpy.getCall(0).args[0].data[0].user.should.be.eql({});
-			}
-		)
+			resSpy.should.have.been.called;
+			resSpy.getCall(0).args[0].data[0].contract.should.be.eql({});
+			resSpy.getCall(0).args[0].data[0].user.should.be.eql({});
+		}
+		);
 	});
 
 	it('should connect with houses if query with houseFormat', async function () {
@@ -92,81 +92,81 @@ describe('Bills', function () {
 			sequelizeFindSpy.should.have.been.called;
 			const modelOptions = sequelizeFindSpy.getCall(0).args[0];
 			modelOptions.include.should.be.eql([{
-				"as": "billItems",
-				"attributes": [
-					"configId",
-					"amount",
-					"createdAt",
-					"id",
+				'as': 'billItems',
+				'attributes': [
+					'configId',
+					'amount',
+					'createdAt',
+					'id',
 				],
-				"model": BillFlows
+				'model': BillFlows
 			}, {
-				"as": "payments",
-				"attributes": [
-					"id",
-					"amount",
-					"paymentChannel",
-					"operator",
-					"paidAt",
-					"remark",
-					"status"
+				'as': 'payments',
+				'attributes': [
+					'id',
+					'amount',
+					'paymentChannel',
+					'operator',
+					'paidAt',
+					'remark',
+					'status'
 				],
-				"model": BillPayment,
+				'model': BillPayment,
 				required: false
 			},
-				{
-					"include": [
-						{
-							"model": Users,
-							"required": true
-						},
-						{
-							"attributes": [
-								"id",
-								"name"
-							],
-							"include": [
-								{
-									"as": "house",
-									"attributes": [
-										"id",
-										"roomNumber"
-									],
-									"include": [
-										{
-											"as": "building",
-											"attributes": [
-												"building",
-												"unit"
-											],
-											"include": [
-												{
-													"as": "location",
-													"attributes": [
-														"name"
-													],
-													"model": GeoLocation,
-													"required": true
-												}
-											],
-											"model": Building,
-											"required": true
-										}
-									],
-									"model": Houses,
-									"required": true,
-									"where": {
-										"houseFormat": "SOLE"
+			{
+				'include': [
+					{
+						'model': Users,
+						'required': true
+					},
+					{
+						'attributes': [
+							'id',
+							'name'
+						],
+						'include': [
+							{
+								'as': 'house',
+								'attributes': [
+									'id',
+									'roomNumber'
+								],
+								'include': [
+									{
+										'as': 'building',
+										'attributes': [
+											'building',
+											'unit'
+										],
+										'include': [
+											{
+												'as': 'location',
+												'attributes': [
+													'name'
+												],
+												'model': GeoLocation,
+												'required': true
+											}
+										],
+										'model': Building,
+										'required': true
 									}
+								],
+								'model': Houses,
+								'required': true,
+								'where': {
+									'houseFormat': 'SOLE'
 								}
-							],
-							"model": Rooms,
-							"required": true
-						}
-					],
-					"model": Contracts,
-					"required": true
-				}])
-		})
+							}
+						],
+						'model': Rooms,
+						'required': true
+					}
+				],
+				'model': Contracts,
+				'required': true
+			}]);
+		});
 	});
 });

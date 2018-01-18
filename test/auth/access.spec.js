@@ -1,11 +1,11 @@
 'use strict';
 import 'include-node';
-import {allowToCreateCredentials} from '../../auth/access'
+import {allowToCreateCredentials} from '../../auth/access';
 
 describe('Access', function () {
 	before(() => {
 		global.Typedef = Include('/libs/typedef');
-	})
+	});
 	it('should allow admin to create credentials', function () {
 		const req = {isAuthenticated: () => true, user: {level: 'admin'}};
 
