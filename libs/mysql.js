@@ -862,6 +862,10 @@ function SequelizeDefine()
             set : function (value) {
                 this.setDataValue('metadata', JSON.stringify(value));
             }
+        },
+        index: {
+			type: Sequelize.INTEGER.UNSIGNED,    //账单期数
+			allowNull: true,
         }
     },{
         timestamps: false,
