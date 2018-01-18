@@ -47,10 +47,10 @@ const generate = contract => {
 		metadata: expense
 	});
 
-	const recursiveBills = (expense, from, to, singleBill) => billCycles(from, to, expense.pattern).map(m =>
-		singleBill(expense, m.start, m.end));
+	const recursiveBills = (expense, from, to, singleBill) => _.map(billCycles(from, to, expense.pattern), (m, index) =>
+		singleBill(expense, m.start, m.end, index + 1));
 
-	const regularBill = (expense, from, to) => ({
+	const regularBill = (expense, from, to, index) => ({
 		flow: 'receive',
 		entityType: 'property',
 		projectId: contract.projectId,
@@ -62,9 +62,10 @@ const generate = contract => {
 		dueDate: dueAt(expense.pattern, paymentPlan, from),
 		createdAt: moment().unix(),
 		dueAmount: expenseAmount(expense, from, to),
-		metadata: expense
+		metadata: expense,
+		index
 	});
-	const standardBill = (freq, from, to) => {
+	const standardBill = (freq, from, to, index) => {
 		const months = billPace(freq.pattern, from, to);
 		return {
 			flow: 'receive',
@@ -82,7 +83,8 @@ const generate = contract => {
 				freq,
 				expenses: fp.filter(e => e.pattern === 'withRent')(expenses),
 				months
-			}
+			},
+			index
 		};
 	};
 
