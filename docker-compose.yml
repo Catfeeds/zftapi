@@ -11,6 +11,11 @@ services:
           - "33061:3306"
         volumes:
           - "./db:/db"
+    redis:
+        image: registry.docker-cn.com/library/redis:4
+        restart: always
+        ports:
+          - 6379:6379
     api:
         build:
           context: .
@@ -26,5 +31,10 @@ services:
           - ZFT_AMAP_KEY
           - ZFT_EM_READ=[{"host":"db","port":3306,"username":"root","password":"example","database":"zft"}]
           - ZFT_EM_WRITE={"host":"db","port":3306,"username":"root","password":"example","database":"zft"}
+          - REDIS_HOST
+          - REDIS_PORT
+          - REDIS_PASSWD
+          - ENV
         depends_on:
           - db
+          - redis

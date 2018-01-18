@@ -17,6 +17,6 @@ class SnowFlake
     }
 }
 
-exports.Alloc = (dataCenter, worker)=>{
+exports.alloc = (dataCenter, worker)=>{
     return new SnowFlake(dataCenter, worker);
 };

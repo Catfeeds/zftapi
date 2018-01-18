@@ -3,5 +3,9 @@
     "read": "ZFT_EM_READ",
     "write": "ZFT_EM_WRITE"
   },
-  "MAP": "ZFT_AMAP_KEY"
+  "MAP": "ZFT_AMAP_KEY",
+  "REDIS_HOST": "REDIS_HOST",
+  "REDIS_PORT": "REDIS_PORT",
+  "REDIS_PASSWD": "REDIS_PASSWD",
+  "ENV": "ENV"
 }

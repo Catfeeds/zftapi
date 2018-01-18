@@ -1533,6 +1533,9 @@ function SequelizeDefine()
             freezeTableName: true
         }
     );
+
+	exports.Projects.hasMany(exports.Auth);
+	exports.Auth.belongsTo(exports.Projects);
 }
 
 function EMDefine()

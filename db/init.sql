@@ -398,6 +398,51 @@ create table if not exists `eventQueue`
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB;
 
+create table if not exists `devicePrePaid`
+(
+  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `type` varchar(16) NOT NULL,
+  `contractId` bigint(20) UNSIGNED NOT NULL,
+  `projectId` bigint(20) UNSIGNED NOT NULL,
+  `deviceId` varchar(32) NOT NULL,
+  `amount` int(11) NOT NULL DEFAULT 0,
+  `scale` bigint(20) NOT NULL,
+  `usage` bigint(20) NOT NULL,
+  `share` int(11) NOT NULL DEFAULT 100,
+  `createdAt` bigint(20) UNSIGNED NOT NULL,
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB;
+
+create table if not exists `topup`
+(
+  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `orderNo` bigint(20) UNSIGNED NOT NULL,
+  `userId` bigint(20) UNSIGNED NOT NULL,
+  `externalId` varchar(64) NOT NULL DEFAULT '',
+  `contractId` bigint(20) UNSIGNED NOT NULL,
+  `projectId` bigint(20) UNSIGNED NOT NULL,
+  `amount` bigint(20) UNSIGNED NOT NULL DEFAULT 0,
+  `fundChannelId` bigint(20) UNSIGNED NOT NULL,
+  `operator` bigint(20) UNSIGNED NULL DEFAULT NULL,
+  `createdAt` datetime(0) NULL,
+  `updatedAt` datetime(0) NULL,
+  `deletedAt` datetime(0) NULL DEFAULT NULL,
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB;
+
+create table if not exists `cashAccount`
+(
+  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `userId` bigint(20) UNSIGNED NOT NULL,
+  `cash` bigint(20) NULL DEFAULT 0,
+  `threshold` bigint(20) NULL DEFAULT 0,
+  `locker` int(10) UNSIGNED NULL DEFAULT 0,
+  `createdAt` datetime(0) NULL,
+  `updatedAt` datetime(0) NULL,
+  `deletedAt` datetime(0) NULL DEFAULT NULL,
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB;
+
 #project demo record
 INSERT INTO `zft`.`projects` (`pid`, `externalId`) VALUES ('100', '5938bb4f4d3684627bcabd7f');
 INSERT INTO `zft`.`auth` (`projectId`, `username`, `password`, createdAt, updatedAt)

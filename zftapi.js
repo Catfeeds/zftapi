@@ -15,7 +15,7 @@ require(appRootPath.path + '/libs/log')("zftAPI");
     global.Util = Include('/libs/util');
     global.ErrorCode = Include('/libs/errorCode');
     global.Amap = Include('/libs/amap');
-    global.SnowFlake = Include('/libs/snowflake').Alloc(1, 1);
+    global.SnowFlake = Include('/libs/snowflake').alloc(1, 1);
     global.GUID = Include('/libs/guid');
     global.Message = Include('/libs/message');
 }
@@ -24,7 +24,6 @@ let Server = Restify.createServer();
 
 Server.use(Restify.plugins.bodyParser());
 Server.use(Restify.plugins.queryParser());
-
 
 Server.use(sessions({
 	// cookie name dictates the key name added to the request object
@@ -49,6 +48,8 @@ Include('/libs/enumServices').Load(
 
 MySQL.Load().then(
 	() => {
+        Include('/libs/moduleLoader');
+
 		Server.listen(8000, function () {
 			console.log('App running on %s:%d', Server.address().address, Server.address().port);
 		});
