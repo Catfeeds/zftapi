@@ -92,6 +92,11 @@ const PriceType = {
     ELECTRIC: 'ELECTRIC'
 };
 
+const DriverCommand = {
+    'EMC_ON': 'EMC_ON',
+    'EMC_OFF': 'EMC_OFF',
+};
+
 const IsHouseFormat = (status)=>{
     return HouseFormat[status];
 };
@@ -120,5 +125,6 @@ module.exports = {
 	IsOrientation,
 	IsPriceType,
 	ContractStatus,
-	CredentialLevels
-}
+	CredentialLevels,
+    DriverCommand
+};

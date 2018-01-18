@@ -9,21 +9,21 @@ const CONSUMBER_TOPIC = 'TOAPI';
 
 class CollectorMessageQueue{
     constructor(){
-        const productorName = `${PRODUCTOR_TOPIC}-${ENV.NODE_ENV}`;
+        const productorName = `${PRODUCTOR_TOPIC}_${ENV.ENV}`;
         this.productor = messageQueue.alloc(
             productorName
-            , config.MSGQUEUE_HOST
-            , config.MSGQUEUE_PORT
-            , config.MSGQUEUE_PASSWD
+            , config.REDIS_HOST
+            , config.REDIS_PORT
+            , config.REDIS_PASSWD
             );
         this.productor.bind(productorName);
 
-        const consumerName = `${CONSUMBER_TOPIC}-${ENV.NODE_ENV}`;
+        const consumerName = `${CONSUMBER_TOPIC}_${ENV.ENV}`;
         this.consumer = messageQueue.alloc(
             consumerName
-            , config.MSGQUEUE_HOST
-            , config.MSGQUEUE_PORT
-            , config.MSGQUEUE_PASSWD
+            , config.REDIS_HOST
+            , config.REDIS_PORT
+            , config.REDIS_PASSWD
         );
         this.consumer.listen(consumerName);
     }

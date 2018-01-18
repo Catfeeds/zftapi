@@ -51,9 +51,9 @@ services:
           - ZFT_MONGO_URL=mongodb://mongo:27017/local
           - ZFT_EM_READ=[{"host":"db","port":3306,"username":"root","password":"example","database":"zft"}]
           - ZFT_EM_WRITE={"host":"db","port":3306,"username":"root","password":"example","database":"zft"}
-          - MSGQUEUE_HOST
-          - MSGQUEUE_PORT
-          - MSGQUEUE_PASSWD
+          - REDIS_HOST
+          - REDIS_PORT
+          - REDIS_PASSWD
         depends_on:
           - db
           - mongo

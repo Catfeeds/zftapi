@@ -347,24 +347,10 @@ function SequelizeDefine()
             set : function (value) {
                 this.setDataValue('config', JSON.stringify(value));
             }
-        },
-        status: {
-            type: Sequelize.STRING(10)  //房间状态
-            , allowNull: false
-            , defaultValue: 'open'
-        },
-        createdAt: {
-            type: Sequelize.BIGINT.UNSIGNED // 创建时间
-            , allowNull: false
-            , defaultValue: 0
-        },
-        deleteAt: {
-            type: Sequelize.BIGINT.UNSIGNED // 删除时间
-            , allowNull: false
-            , defaultValue: 0
-        },
+        }
     },{
-        timestamps: false,
+        timestamps: true,
+        paranoid: true,
         freezeTableName: true
     });
 
@@ -995,6 +981,103 @@ function SequelizeDefine()
 
 	exports.Projects.hasMany(exports.Auth);
 	exports.Auth.belongsTo(exports.Projects)
+
+    const Devices = sequelizeInstance.define('devices', {
+        id: {
+            type: Sequelize.BIGINT.UNSIGNED,
+            autoIncrement: true,
+            primaryKey: true
+        },
+        deviceId:{
+            type: Sequelize.STRING(32),
+            allowNull: false
+        },
+        projectId:{
+            type: Sequelize.BIGINT.UNSIGNED,
+            allowNull: false
+        },
+        name: {
+            type: Sequelize.STRING(32),
+            allowNull: false,
+            defaultValue: '',
+        },
+        tag: {
+            type: Sequelize.STRING(32),
+            allowNull: false,
+            defaultValue: '',
+        },
+        type: {
+            type: Sequelize.STRING(16),
+            allowNull: false
+        },
+        freq: {
+            type: Sequelize.INTEGER,
+            allowNull: false
+        },
+        driver: {
+            type: Sequelize.STRING(128),
+            allowNull: false,
+            defaultValue: ''
+        },
+        status:{
+            type: Sequelize.TEXT,
+            get: function(){
+                let status;
+                try{
+                    status = JSON.parse(this.getDataValue('status'));
+                }
+                catch(e){
+                    status = {};
+                }
+                return status;
+            },
+            set : function (value) {
+                this.setDataValue('status', JSON.stringify(value));
+            }
+        }
+    },{
+        timestamps: true,
+        paranoid: true,
+        freezeTableName: true
+    });
+    const DevicesChannels = sequelizeInstance.define('devicesChannels', {
+        id: {
+            type: Sequelize.BIGINT.UNSIGNED,
+            autoIncrement: true,
+            primaryKey: true
+        },
+        deviceId:{
+            type: Sequelize.STRING(32),
+            allowNull: false
+        },
+        channelId:{
+            type: Sequelize.STRING(3),
+            allowNull: false
+        },
+        comi: {
+            type: Sequelize.DECIMAL(10,6),
+            allowNull: false
+        },
+        scale:{
+            type: Sequelize.BIGINT,
+            allowNull: true,
+            defaultValue: null
+        },
+        updatedAt:{
+            type: Sequelize.BIGINT.UNSIGNED,
+            allowNull: false,
+            defaultValue: 0
+        }
+    },{
+        timestamps: false,
+        freezeTableName: true
+    });
+
+    HouseDevices.belongsTo(Devices, {as: 'device', foreignKey: 'deviceId', targetKey: 'deviceId'});
+    Devices.hasMany(DevicesChannels, {as: 'channels', foreignKey: 'deviceId'});
+
+    exports.Devices = Devices;
+    exports.DevicesChannels = DevicesChannels;
 }
 
 function EMDefine()
