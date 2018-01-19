@@ -29,6 +29,20 @@ exports.ParameterCheck = function(parameter, checklist)
     return true;
 };
 
+exports.TopDistrict = (districtCode)=>{
+    if(districtCode.length % 2 !== 0){
+        throw Error(ErrorCode.PARAMETERERROR);
+    }
+
+    const prefix = districtCode.length - 2;
+    const prefixDistrict = districtCode.substr(0, prefix);
+    if(districtCode.substr(prefix) !== '00'){
+        return districtCode;
+    }
+
+    return exports.TopDistrict(prefixDistrict);
+};
+
 exports.ParentDivisionId = (divisionId)=>{
     return exports.ParentDivision(divisionId)+'00';
 };

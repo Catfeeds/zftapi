@@ -7,24 +7,25 @@ function BuildDivisionTree(divisions, inDivision)
     let tree = {};
     divisions.map(division=>{
         const divisionId = division.id.toString();
-        const parentDivision = Util.ParentDivisionId(divisionId);
-        if(divisionId === parentDivision){
-            tree[divisionId] = {
-                divisionId: divisionId,
-                name: division.title,
-                divisions:{}
-            };
-        }
-        else{
+        // const parentDivision = Util.ParentDivisionId(divisionId);
+        // if(divisionId === parentDivision){
+        //     tree[divisionId] = {
+        //         districtCode: divisionId,
+        //         name: division.title,
+        //         districts:{}
+        //     };
+        // }
+        // else{
             let divisionInfo = {
-                divisionId: divisionId,
+                districtCode: divisionId,
                 name: division.title
             };
             if(inDivision[divisionId]){
                 divisionInfo.communities = inDivision[divisionId];
             }
-            tree[parentDivision].divisions[divisionId] = divisionInfo;
-        }
+            // tree[parentDivision].districts[divisionId] = divisionInfo;
+            tree[divisionId] = divisionInfo;
+        // }
     });
 
     return tree;
@@ -47,73 +48,54 @@ module.exports = {
             }
             const houseFormat = query.houseFormat;
             const projectId = param.projectId;
-
+            const getRootDistricts = (districtCode)=>{
+                const parentDistrictCode = Util.ParentDistrict(districtCode);
+                if(parentDistrictCode === districtCode){
+                    return districtCode;
+                }
+                return getRootDistricts(parentDistrictCode);
+            };
+            const districtsCode = query.districtsCode ? Util.TopDistrict(query.districtsCode.toString()) : null;
 
             // let sql;
-            const replacements = {
+            const replacements = _.assign({
                 houseFormat: houseFormat,
                 projectId: projectId
-            };
-            //
-            // switch(houseFormat){
-            //     case Typedef.HouseFormat.ENTIRE:
-            //         sql = `select distinct(geoLocation) from ${MySQL.Entire.name} where projectId=:projectId `;
-            //         break;
-            //     case Typedef.HouseFormat.SOLE:
-            //     case Typedef.HouseFormat.SHARE:
-            //         sql = `select distinct(geoLocation) from ${MySQL.Soles.name} where projectId=:projectId and houseFormat=:houseFormat `;
-            //         break;
-            // }
-
-
+            }, districtsCode ? {districtsCode: districtsCode} : {});
 
             try {
-                const sql = `select distinct(bu.locationId),bu.id as buildingId from ${MySQL.Houses.name} as h 
-                    inner join buildings as bu on h.buildingId=bu.id 
-                     where h.houseFormat=:houseFormat and h.projectId=:projectId`;
+                const sql = `select distinct(bu.locationId),bu.id as buildingId,l.divisionId,l.name from ${MySQL.Houses.name} as h
+                    inner join buildings as bu on h.buildingId=bu.id
+                    inner join location as l on bu.locationId=l.id
+                     where h.houseFormat=:houseFormat and h.projectId=:projectId 
+                     ${districtsCode ? ` and l.divisionId LIKE '${districtsCode}%' ` : ""}
+                     `;
                 const locations = await MySQL.Exec(sql, replacements);
-                let geoLocationIds = [];
-                let locationBuilding = {};
-                locations.map(r=>{
-                    geoLocationIds.push(r.locationId);
-                    locationBuilding[r.locationId] = r.buildingId;
-                });
 
-                if(!locations.length){
-                    return res.send([]);
+                if(_.includes([Typedef.HouseFormat.SOLE, Typedef.HouseFormat.SHARE], houseFormat)){
+                    let locationMapping = {};
+                    locations.map(loc => {
+                        locationMapping[loc.locationId] = {
+                            locationId: loc.locationId,
+                            name: loc.name
+                        };
+                    });
+
+                    res.send(_.toArray(locationMapping));
+                }
+                else{
+                    let buildingMapping = {};
+                    locations.map(loc => {
+                        buildingMapping[loc.buildingId] = {
+                            buildingId: loc.buildingid,
+                            locationId: loc.locationId,
+                            name: loc.name
+                        };
+                    });
+
+                    res.send(_.toArray(buildingMapping));
                 }
 
-                const geoLocations = await MySQL.GeoLocation.findAll({
-                    where: {
-                        id: {$in: geoLocationIds}
-                    },
-                    attributes: ['id', 'divisionId', 'name']
-                });
-                let divisionIds = [];
-                let inDivision = {};
-                geoLocations.map(loc => {
-                    const parentDivision = Util.ParentDivisionId(loc.divisionId.toString());
-                    divisionIds.push(parentDivision);
-                    divisionIds.push(loc.divisionId);
-                    if (!inDivision[loc.divisionId]) {
-                        inDivision[loc.divisionId] = [];
-                    }
-                    inDivision[loc.divisionId].push({
-                        geoLocationId: loc.id,
-                        buildingId: locationBuilding[loc.id],
-                        name: loc.name
-                    });
-                });
-                divisionIds = _.uniq(divisionIds);
-
-                const divisions = await MySQL.Divisions.findAll({
-                    where: {
-                        id: {$in: divisionIds}
-                    },
-                    attributes: ['id', 'title']
-                });
-
-                res.send( BuildDivisionTree(divisions, inDivision) );
             }
             catch(e){
                 log.error(e, projectId, houseFormat);
