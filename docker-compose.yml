@@ -31,8 +31,8 @@ services:
           - ZFT_AMAP_KEY
           - ZFT_EM_READ=[{"host":"db","port":3306,"username":"root","password":"example","database":"zft"}]
           - ZFT_EM_WRITE={"host":"db","port":3306,"username":"root","password":"example","database":"zft"}
-          - REDIS_HOST
-          - REDIS_PORT
+          - REDIS_HOST=redis
+          - REDIS_PORT=6379
           - REDIS_PASSWD
           - ENV
         depends_on:

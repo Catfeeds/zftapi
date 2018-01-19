@@ -178,7 +178,10 @@ exports.houseConnection = (houseModel, buildingModel, locationModel, roomModel) 
 exports.includeContracts = (contractModel, userModel, houseModel, buildingModel, locationModel, roomModel) => houseFormat => ({
 	include: [exports.userConnection(userModel), exports.houseConnection(houseModel, buildingModel, locationModel, roomModel)(houseFormat)],
 	model: contractModel,
-	required: true
+	required: true,
+	where: {
+		status: Typedef.ContractStatus.ONGOING
+	}
 });
 
 exports.DeviceStatus = (device)=>{

@@ -3,7 +3,7 @@
 const {get} = require('../../services/v1.0/handlers/projects/:projectId/bills');
 require('include-node');
 const {spy, stub} = require('sinon');
-const _  = require('lodash');
+const fp  = require('lodash/fp');
 
 const stubRoom = {dataValues: {house: {dataValues: {building: {dataValues: {location: {dataValues: {}}}}}}}};
 
@@ -88,7 +88,7 @@ describe('Bills', function () {
 			Contracts
 		};
 
-		await get(req, {send: _.noop}).then(() => {
+		await get(req, {send: fp.noop}).then(() => {
 			sequelizeFindSpy.should.have.been.called;
 			const modelOptions = sequelizeFindSpy.getCall(0).args[0];
 			modelOptions.include.should.be.eql([{
@@ -164,8 +164,11 @@ describe('Bills', function () {
 						'required': true
 					}
 				],
-				'model': Contracts,
-				'required': true
+				model: Contracts,
+				required: true,
+				where: {
+					status: 'ONGOING'
+				}
 			}]);
 		});
 	});

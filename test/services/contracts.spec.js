@@ -234,6 +234,7 @@ describe('Contracts', function () {
 			const countingOption = sequelizeCountSpy.getCall(0).args[0];
 			countingOption.where.should.be.eql({
 				roomId: req.body.roomId,
+				status: "ONGOING",
 				$or: [{
 					from: {
 						$lte: req.body.from

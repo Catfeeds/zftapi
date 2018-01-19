@@ -3,7 +3,6 @@
  * Operations on /contracts
  */
 const fp = require('lodash/fp');
-const _ = require('lodash');
 const extractContract = require('../../../../../transformers/contractExtractor').extract;
 const extractUser = require('../../../../../transformers/userExtractor').extract;
 const generateBills = require('../../../../../transformers/billGenerator').generate;
@@ -16,11 +15,11 @@ const jsonProcess = require('../../../common').jsonProcess;
 const userConnection = require('../../../common').userConnection;
 const houseConnection = require('../../../common').houseConnection;
 
-const omitFields = item => _.omit(item, ['userId', 'createdAt', 'updatedAt']);
+const omitFields = (item) => fp.omit(['userId', 'createdAt', 'updatedAt'])(item);
 const roomTranslate = item => fp.defaults(item)({room: singleRoomTranslate(item.room)});
 
 const translate = (models, pagingInfo) => {
-	const single = _.flow(innerValues, omitSingleNulls, omitFields, jsonProcess, roomTranslate);
+	const single = fp.pipe(innerValues, omitSingleNulls, omitFields, jsonProcess, roomTranslate);
 	return {
 		paging: {
 			count: models.count,
@@ -106,7 +105,7 @@ module.exports = {
 					defaults: assignNewId(user),
 					transaction: t
 				}))
-				.then(dbUser => extractContract(req, _.get(dbUser, '[0]')))
+				.then(dbUser => extractContract(req, fp.get('[0]', dbUser)))
 				.then(contract => validateContract(contract))
 				.then(contract => checkRoomAvailability(contract, t))
 				.then(contract => Contracts.create(assignNewId(contract), {transaction: t}))
@@ -125,7 +124,7 @@ module.exports = {
 		const Building = MySQL.Building;
 		const GeoLocation = MySQL.GeoLocation;
 		const projectId = req.params.projectId;
-		const status = _.get(req, 'params.status', Typedef.ContractStatus.ONGOING).toUpperCase();
+		const status = fp.getOr(Typedef.ContractStatus.ONGOING, 'params.status', req).toUpperCase();
 		const query = req.query;
 		const houseFormat = query.houseFormat;
 		const pagingInfo = Util.PagingInfo(query.index, query.size, true);
