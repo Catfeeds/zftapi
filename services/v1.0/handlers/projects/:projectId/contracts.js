@@ -70,6 +70,7 @@ module.exports = {
 			return Contracts.count({
 				where: {
 					roomId,
+					status: Typedef.ContractStatus.ONGOING,
 					$or: [{
 						from: {
 							$lte: contract.from
