@@ -180,3 +180,17 @@ exports.includeContracts = (contractModel, userModel, houseModel, buildingModel,
 	model: contractModel,
 	required: true
 });
+
+exports.DeviceStatus = (device)=>{
+    if(!device || !device.freq || !device.updatedAt){
+        return  Typedef.DeviceStatus.OFFLINE;
+    }
+    const updatedAt = moment(device.updatedAt).unix();
+    const now = moment().unix();
+    if( updatedAt + device.freq < now ){
+        return Typedef.DeviceStatus.OFFLINE;
+    }
+    else{
+        return Typedef.DeviceStatus.ONLINE;
+    }
+};

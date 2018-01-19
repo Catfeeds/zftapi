@@ -479,6 +479,7 @@ async function Gethouses(params, query) {
                             scale: device.device.channels && common.scaleDown(device.device.channels[0].scale),
                             type: device.device.type,
                             updatedAt: moment(device.device.updatedAt).unix(),
+                            status: common.DeviceStatus(device.device)
                         };
                     }
                 })(devices));
@@ -500,9 +501,22 @@ async function Gethouses(params, query) {
                         }
                     }
                 };
+                const getSuspending = ()=>{
+                    if( !room.suspendingRooms || !room.suspendingRooms.length ){
+                        return {};
+                    }
+                    else{
+                        return room.suspendingRooms[0];
+                    }
+                };
                 const devices = getDevices(room.devices);
 
-                return _.assignIn( _.omit(room, ['contracts','devices']), {contract: getContract(), devices: devices, status: common.roomLeasingStatus(room.contracts, room.suspendingRooms)});
+                return _.assignIn( _.omit(room, ['contracts','devices']), {
+                    contract: getContract()
+                    , suspending: getSuspending()
+                    , devices: devices
+                    , status: common.roomLeasingStatus(room.contracts, room.suspendingRooms)}
+                    );
 
             })(house.rooms);
 

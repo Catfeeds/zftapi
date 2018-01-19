@@ -111,6 +111,11 @@ const DriverCommand = {
     'EMC_SYNC': 'EMC_SYNC',
 };
 
+const DeviceStatus = {
+    "ONLINE": "ONLINE",
+    "OFFLINE": "OFFLINE"
+};
+
 const IsHouseFormat = (status)=>{
     return HouseFormat[status];
 };
@@ -143,4 +148,5 @@ module.exports = {
     FundFlow,
     FundChannelCategory,
     DriverCommand,
+    DeviceStatus
 };
