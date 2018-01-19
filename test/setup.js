@@ -1,7 +1,4 @@
 'use strict';
-require('babel-core/register');
-require('babel-polyfill');
-
 const chai = require('chai');
 chai.should();
 

@@ -1,9 +1,9 @@
 'use strict';
 
-import {get} from '../../services/v1.0/handlers/projects/:projectId/rooms';
-import 'include-node';
-import {spy} from 'sinon';
-import moment from 'moment';
+const {get} = require('../../services/v1.0/handlers/projects/:projectId/rooms');
+require('include-node');
+const {spy} = require( 'sinon');
+const moment = require('moment');
 
 describe('Rooms', function () {
 	before(() => {

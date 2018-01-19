@@ -1,9 +1,8 @@
 'use strict';
 
-import {get, put} from '../../services/v1.0/handlers/projects/:projectId';
-import 'include-node';
-import _ from 'lodash';
-import {spy, match} from 'sinon';
+const {get, put} = require('../../services/v1.0/handlers/projects/:projectId');
+require('include-node');
+const {spy} = require('sinon');
 
 describe('Project', function () {
 	before(() => {

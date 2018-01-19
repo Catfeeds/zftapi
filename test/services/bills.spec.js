@@ -1,9 +1,9 @@
 'use strict';
 
-import {get} from '../../services/v1.0/handlers/projects/:projectId/bills';
-import 'include-node';
-import {spy, stub} from 'sinon';
-import _ from 'lodash';
+const {get} = require('../../services/v1.0/handlers/projects/:projectId/bills');
+require('include-node');
+const {spy, stub} = require('sinon');
+const _  = require('lodash');
 
 const stubRoom = {dataValues: {house: {dataValues: {building: {dataValues: {location: {dataValues: {}}}}}}}};
 

@@ -1,9 +1,9 @@
 'use strict';
 
-import {get} from '../../services/v1.0/handlers/environments';
-import 'include-node';
-import _ from 'lodash';
-import {spy, match} from 'sinon';
+const {get} = require('../../services/v1.0/handlers/environments');
+require('include-node');
+const _ = require('lodash');
+const {spy, match} = require('sinon');
 
 describe('Environments', function () {
 	before(() => {

@@ -1,8 +1,8 @@
 'use strict';
 
-import {get, post} from '../../services/v1.0/handlers/projects/:projectId/credentials';
-import 'include-node';
-import {spy, match} from 'sinon';
+const {get, post} = require('../../services/v1.0/handlers/projects/:projectId/credentials');
+require('include-node');
+const {spy, match} = require('sinon');
 
 describe('Environments', function () {
 	before(() => {

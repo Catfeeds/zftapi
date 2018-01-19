@@ -1,6 +1,6 @@
 'use strict';
-import 'include-node';
-import {allowToCreateCredentials} from '../../auth/access';
+require('include-node');
+const {allowToCreateCredentials} = require('../../auth/access');
 
 describe('Access', function () {
 	before(() => {
