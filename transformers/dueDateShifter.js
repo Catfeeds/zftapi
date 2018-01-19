@@ -1,6 +1,5 @@
 'use strict';
 const fp = require('lodash/fp');
-const _ = require('lodash');
 const moment = require('moment');
 const billCycles = require('./billScheduler').billCycles;
 
@@ -18,7 +17,7 @@ const shiftByPlan = (cycle, benchmark, paymentPlan) => {
 			moment(`${moment.unix(benchmark).format('YYYY-MM')}-${dayInMonth}`),
 			moment(`${moment.unix(benchmark).add(1, 'month').format('YYYY-MM')}-${dayInMonth}`)];
 		const dateInCycle = fp.find(inCycle(cycle))(candidateMonths);
-		return _.isUndefined(dateInCycle) ? benchmark : dateInCycle.unix();
+		return fp.isUndefined(dateInCycle) ? benchmark : dateInCycle.unix();
 	}
 
 	const patternFixedBeforeBill = /^F(\d{2})$/;
@@ -30,7 +29,7 @@ const shiftByPlan = (cycle, benchmark, paymentPlan) => {
 			moment(`${moment.unix(benchmark).subtract(1, 'month').format('YYYY-MM')}-${dayInMonth}`)
 			];
 		const dateInCycle = fp.find(beforeCycle(cycle))(candidateMonths);
-		return _.isUndefined(dateInCycle) ? benchmark : dateInCycle.unix();
+		return fp.isUndefined(dateInCycle) ? benchmark : dateInCycle.unix();
 	}
 
 	const patternFixedBeforeOneMonth = /^M(\d{2})$/;
@@ -43,14 +42,14 @@ const shiftByPlan = (cycle, benchmark, paymentPlan) => {
 };
 
 const givenDateInRange = (date, cycle) => date.isBetween(moment.unix(cycle.start), moment.unix(cycle.end), null, '[)')
-const inCycle = _.curryRight(givenDateInRange);
-const inRange = _.curry(givenDateInRange);
+const inCycle = fp.curryRight(givenDateInRange);
+const inRange = fp.curry(givenDateInRange);
 const beforeCycle = (cycle) => (date) => date.isSameOrBefore(moment.unix(cycle.start));
 
 const dueDateShifter = (leaseStart, leaseEnd) => (pattern, paymentPlan, from) => {
-	const restCycles = _.drop(billCycles(leaseStart, leaseEnd, pattern));
+	const restCycles = fp.drop(1, billCycles(leaseStart, leaseEnd, pattern));
 	const firstCycle = fp.find(inRange(moment.unix(from)))(restCycles);
-	return _.isUndefined(firstCycle) ? from : shiftByPlan(firstCycle, from, paymentPlan);
+	return fp.isUndefined(firstCycle) ? from : shiftByPlan(firstCycle, from, paymentPlan);
 };
 
 module.exports = {

@@ -32,7 +32,7 @@
     "lodash-fp/consistent-compose": "off",
     "lodash-fp/consistent-name": [
       "error",
-      "_"
+      "fp"
     ],
     "lodash-fp/no-argumentless-calls": "error",
     "lodash-fp/no-chain": "error",
