@@ -2,7 +2,7 @@
 
 const {get} = require('../../services/v1.0/handlers/projects/:projectId/rooms');
 require('include-node');
-const {spy} = require( 'sinon');
+const {spy} = require('sinon');
 const moment = require('moment');
 
 describe('Rooms', function () {
@@ -10,8 +10,8 @@ describe('Rooms', function () {
 		global.Typedef = Include('/libs/typedef');
 		global.Util = Include('/libs/util');
 	});
-	it('should return all rooms from findAndCountAll', async function () {
 
+	it('should return all rooms from findAndCountAll', async function () {
 		const req = {
 			params: {
 				projectId: 100
@@ -72,7 +72,6 @@ describe('Rooms', function () {
 	});
 
 	it('should calculate status base on all contracts', async function () {
-
 		const req = {
 			params: {
 				projectId: 100
@@ -135,7 +134,6 @@ describe('Rooms', function () {
 		);
 	});
 	it('should be `PAUSE` status if the `to` field is undefined', async function () {
-
 		const req = {
 			params: {
 				projectId: 100
@@ -198,7 +196,6 @@ describe('Rooms', function () {
 		);
 	});
 	it('should be `IDLE` status if the suspension `to` field passes', async function () {
-
 		const req = {
 			params: {
 				projectId: 100
@@ -262,7 +259,6 @@ describe('Rooms', function () {
 		);
 	});
 	it('should be `IDLE` status if there is no contracts', async function () {
-
 		const req = {
 			params: {
 				projectId: 100
@@ -270,7 +266,6 @@ describe('Rooms', function () {
 			query: {houseFormat: 'SHARE', q: 'q'}
 
 		};
-		const before = moment().subtract(1, 'year').unix();
 		global.MySQL = {
 			Rooms: {
 				async findAndCountAll() {

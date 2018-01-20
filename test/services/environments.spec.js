@@ -2,8 +2,7 @@
 
 const {get} = require('../../services/v1.0/handlers/environments');
 require('include-node');
-const _ = require('lodash');
-const {spy, match} = require('sinon');
+const {spy} = require('sinon');
 
 describe('Environments', function () {
 	before(() => {

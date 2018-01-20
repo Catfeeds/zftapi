@@ -3,7 +3,7 @@
 const {get, post} = require('../../services/v1.0/handlers/projects/:projectId/contracts');
 require('include-node');
 const {spy, stub} = require('sinon');
-const _ = require('lodash');
+const fp = require('lodash/fp');
 
 const room = {dataValues: {house: {dataValues: {building: {dataValues: {location: {dataValues: {}}}}}}}};
 const expectedRoom = {
@@ -22,7 +22,7 @@ describe('Contracts', function () {
 		global.Typedef = Include('/libs/typedef');
 		global.ErrorCode = Include('/libs/errorCode');
 		global.Util = Include('/libs/util');
-		global.SnowFlake = {next() {return 1;}};
+		global.SnowFlake = {next: fp.constant(1)};
 	});
 	it('should return all contracts from findAndCountAll', async function () {
 		const contract = {dataValues: {expenses: '[]', strategy: '{}', room}};
@@ -157,7 +157,7 @@ describe('Contracts', function () {
 			CashAccount
 		};
 
-		await get(req, {send: _.noop}).then(() => {
+		await get(req, {send: fp.noop}).then(() => {
 			sequelizeFindSpy.should.have.been.called;
 			const modelOptions = sequelizeFindSpy.getCall(0).args[0];
 			modelOptions.include.should.be.eql([
@@ -242,12 +242,12 @@ describe('Contracts', function () {
 			}
 		};
 
-		await post(req, {send: _.noop}).then(() => {
+		await post(req, {send: fp.noop}).then(() => {
 			sequelizeCountSpy.should.have.been.called;
 			const countingOption = sequelizeCountSpy.getCall(0).args[0];
 			countingOption.where.should.be.eql({
 				roomId: req.body.roomId,
-				status: "ONGOING",
+				status: 'ONGOING',
 				$or: [{
 					from: {
 						$lte: req.body.from

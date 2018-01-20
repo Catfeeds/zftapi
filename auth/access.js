@@ -1,10 +1,11 @@
 'use strict';
-const _ = require('lodash');
+
+const fp = require('lodash/fp');
 
 const allowToCreateCredentials = (req) =>
-	!_.isUndefined(req.isAuthenticated)
+	!fp.isUndefined(req.isAuthenticated)
 		&& req.isAuthenticated()
-		&& _.get(req, 'user.level', Typedef.CredentialLevels.UNKNOWN).toUpperCase() === Typedef.CredentialLevels.ADMIN;
+		&& fp.getOr(Typedef.CredentialLevels.UNKNOWN)('user.level')(req).toUpperCase() === Typedef.CredentialLevels.ADMIN;
 
 module.exports = {
 	allowToCreateCredentials

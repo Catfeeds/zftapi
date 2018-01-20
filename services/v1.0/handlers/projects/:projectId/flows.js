@@ -1,6 +1,5 @@
 'use strict';
 
-const _ = require('lodash');
 const fp = require('lodash/fp');
 const omitSingleNulls = require('../../../common').omitSingleNulls;
 const innerValues = require('../../../common').innerValues;
@@ -8,20 +7,20 @@ const includeContracts = require('../../../common').includeContracts;
 const singleRoomTranslate = require('../../../common').singleRoomTranslate;
 
 
-const omitFields = item => _.omit(item, ['billId', 'bill', 'createdAt', 'updatedAt']);
+const omitFields = item => fp.omit(['billId', 'bill', 'createdAt', 'updatedAt'])(item);
 const assignCategory = item => fp.defaults(item)({category: item.bill.type});
 const formatRoom = item => fp.defaults(item)({room: singleRoomTranslate(item.bill.contract.dataValues.room)});
 
 const formatUser = item => fp.defaults(item)({
-	user: _.pick(item.bill.contract.user, ['accountName', 'name', 'id', 'mobile'])
+	user: fp.pick(['accountName', 'name', 'id', 'mobile'])(item.bill.contract.user)
 });
 const formatContract = item => fp.defaults(item)({
-	contract: _.pick(item.bill.contract, ['id', 'from', 'to'])
+	contract: fp.pick(['id', 'from', 'to'])(item.bill.contract)
 });
 
 
 const translate = (models, pagingInfo) => {
-	const single = _.flow(innerValues, omitSingleNulls, formatRoom, formatUser, formatContract, assignCategory, omitFields);
+	const single = fp.pipe(innerValues, omitSingleNulls, formatRoom, formatUser, formatContract, assignCategory, omitFields);
 	return {
 		paging: {
 			count: models.count,
@@ -29,7 +28,7 @@ const translate = (models, pagingInfo) => {
 			size: pagingInfo.size
 		},
 		data: fp.map(single)(models.rows)
-	}
+	};
 };
 
 
@@ -68,4 +67,4 @@ module.exports = {
 			.then(bills => res.send(bills))
 			.catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, {error: err.message})));
 	}
-}
+};

@@ -1,6 +1,6 @@
 'use strict';
 const moment = require('moment');
-const _ = require('lodash');
+const fp = require('lodash/fp');
 
 const generate = require('../../transformers/billItemsGenerator').generate;
 
@@ -40,7 +40,7 @@ describe('Bill items generator', () => {
 				bond: 100
 			}
 		};
-		_.omit(generate(contract, bill)[0], 'createdAt').should.be.eql({
+		fp.omit('createdAt')(generate(contract, bill)[0]).should.be.eql({
 			'amount': 100,
 			'billId': 999,
 			'configId': 123,
@@ -95,16 +95,16 @@ describe('Bill items generator', () => {
 			}
 		};
 		const billItems = generate(contract, bill);
-		const items = _.partition(billItems, i => i.configId === 121);
+		const items = fp.partition(i => i.configId === 121)(billItems);
 		const standardBill = items[0];
 		const withRentExpense = items[1];
-		_.omit(standardBill[0], 'createdAt').should.be.eql({
+		fp.omit('createdAt')(generate(standardBill[0], bill)[0]).should.be.eql({
 			'amount': 100,
 			'billId': 999,
 			'configId': 121,
 			'projectId': 1
 		});
-		_.omit(withRentExpense[0], 'createdAt').should.be.eql({
+		fp.omit('createdAt')(withRentExpense[0]).should.be.eql({
 			'amount': 200,
 			'billId': 999,
 			'configId': 112,
@@ -153,7 +153,7 @@ describe('Bill items generator', () => {
 			}
 		};
 		const billItems = generate(contract, bill);
-		_.omit(billItems[0], 'createdAt').should.be.eql({
+		fp.omit('createdAt')(billItems[0]).should.be.eql({
 			'amount': 200,
 			'billId': 999,
 			'configId': 311,

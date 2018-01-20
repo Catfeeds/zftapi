@@ -2,7 +2,7 @@
 
 const {get, post} = require('../../services/v1.0/handlers/projects/:projectId/credentials');
 require('include-node');
-const {spy, match} = require('sinon');
+const {spy} = require('sinon');
 
 describe('Environments', function () {
 	before(() => {
@@ -87,9 +87,7 @@ describe('Environments', function () {
 		};
 		global.MySQL = {
 			Auth: {
-				async create(body) {
-					return body;
-				}
+				create: async body => body
 			}
 		};
 

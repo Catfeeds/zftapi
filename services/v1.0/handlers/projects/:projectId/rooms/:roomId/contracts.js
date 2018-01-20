@@ -1,14 +1,13 @@
 'use strict';
 
 const fp = require('lodash/fp');
-const _ = require('lodash');
 const omitSingleNulls = require('../../../../../common').omitSingleNulls;
 const innerValues = require('../../../../../common').innerValues;
 const jsonProcess = require('../../../../../common').jsonProcess;
 
 const translate = (models, pagingInfo) => {
 
-	const single = _.flow(innerValues, omitSingleNulls, jsonProcess);
+	const single = fp.pipe(innerValues, omitSingleNulls, jsonProcess);
 	return {
 		paging: {
 			count: models.count,
@@ -16,7 +15,7 @@ const translate = (models, pagingInfo) => {
 			size: pagingInfo.size
 		},
 		data: fp.map(single)(models.rows)
-	}
+	};
 };
 
 module.exports = {
@@ -24,7 +23,7 @@ module.exports = {
 		const projectId = req.params.projectId;
 		const roomId = req.params.roomId;
 		const query = req.query;
-		const status = _.get(req, 'query.status', Typedef.ContractStatus.ONGOING).toUpperCase();
+		const status = fp.getOr('query.status')(Typedef.ContractStatus.ONGOING)(req).toUpperCase();
 		const Contracts = MySQL.Contracts;
 		const Users = MySQL.Users;
 
@@ -41,4 +40,4 @@ module.exports = {
 			.then(contracts => res.send(contracts))
 			.catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, {error: err.message})));
 	}
-}
+};

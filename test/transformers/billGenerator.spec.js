@@ -1,9 +1,7 @@
 'use strict';
 const moment = require('moment');
-const _ = require('lodash');
 const fp = require('lodash/fp');
 const generate = require('../../transformers/billGenerator').generate;
-
 
 describe('Bill generator', () => {
 	it('should generate bills base on contract', () => {
@@ -53,7 +51,7 @@ describe('Bill generator', () => {
 			id: 2,
 
 		});
-		_.omit(bills[0], 'createdAt').should.be.eql({
+		fp.omit('createdAt')(bills[0]).should.be.eql({
 			flow: 'receive',
 			entityType: 'property',
 			projectId: 1,
@@ -99,7 +97,7 @@ describe('Bill generator', () => {
 			id: 2
 		});
 		const paidOffBill = fp.filter(b => b.type === 'extra')(bills);
-		_.omit(paidOffBill[0], 'createdAt').should.be.eql({
+		fp.omit('createdAt')(paidOffBill[0]).should.be.eql({
 			flow: 'receive',
 			entityType: 'property',
 			projectId: 1,
@@ -142,7 +140,7 @@ describe('Bill generator', () => {
 
 		const regularBill = fp.filter(b => b.type === 'extra')(bills);
 		regularBill.should.have.length(12);
-		_.omit(regularBill[0], 'createdAt').should.be.eql({
+		fp.omit('createdAt')(regularBill[0]).should.be.eql({
 			flow: 'receive',
 			entityType: 'property',
 			projectId: 1,
@@ -181,7 +179,7 @@ describe('Bill generator', () => {
 
 		});
 		bills.should.have.length(1);
-		_.omit(bills[0], 'createdAt').should.be.eql({
+		fp.omit('createdAt')(bills[0]).should.be.eql({
 			flow: 'receive',
 			entityType: 'property',
 			projectId: 1,
@@ -227,7 +225,7 @@ describe('Bill generator', () => {
 			id: 2
 		});
 		bills.should.have.length(12);
-		_.omit(bills[0], 'createdAt').should.be.eql({
+		fp.omit('createdAt')(bills[0]).should.be.eql({
 			flow: 'receive',
 			entityType: 'property',
 			projectId: 1,
@@ -276,7 +274,7 @@ describe('Bill generator', () => {
 			id: 2
 		});
 		bills.should.have.length(1);
-		_.omit(bills[0], 'createdAt').should.be.eql({
+		fp.omit('createdAt')(bills[0]).should.be.eql({
 			flow: 'receive',
 			entityType: 'property',
 			projectId: 1,
@@ -324,7 +322,7 @@ describe('Bill generator', () => {
 		});
 		bills.should.have.length(2);
 		const bondBill = fp.filter(b => b.type === 'bond')(bills);
-		_.omit(bondBill[0], 'createdAt').should.be.eql({
+		fp.omit('createdAt')(bondBill[0]).should.be.eql({
 			flow: 'receive',
 			entityType: 'property',
 			projectId: 1,
