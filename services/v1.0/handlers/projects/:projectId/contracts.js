@@ -12,10 +12,9 @@ const innerValues = require('../../../../../services/v1.0/common').innerValues;
 const assignNewId = require('../../../../../services/v1.0/common').assignNewId;
 const singleRoomTranslate = require('../../../common').singleRoomTranslate;
 const jsonProcess = require('../../../common').jsonProcess;
-const userConnection = require('../../../common').userConnection;
 const houseConnection = require('../../../common').houseConnection;
 
-const omitFields = (item) => fp.omit(['userId', 'createdAt', 'updatedAt'])(item);
+const omitFields = fp.omit(['userId', 'createdAt', 'updatedAt']);
 const roomTranslate = item => fp.defaults(item)({room: singleRoomTranslate(item.room)});
 
 const translate = (models, pagingInfo) => {
@@ -31,7 +30,7 @@ const translate = (models, pagingInfo) => {
 };
 
 const validateContract = async (contract) => {
-	if(contract.from >= contract.to) {
+	if (contract.from >= contract.to) {
 		throw new Error(`Invalid contract time period : from ${contract.from} to ${contract.to}.`)
 	}
 	return contract;
@@ -123,6 +122,7 @@ module.exports = {
 		const Houses = MySQL.Houses;
 		const Building = MySQL.Building;
 		const GeoLocation = MySQL.GeoLocation;
+		const CashAccount = MySQL.CashAccount;
 		const projectId = req.params.projectId;
 		const status = fp.getOr(Typedef.ContractStatus.ONGOING, 'params.status', req).toUpperCase();
 		const query = req.query;
@@ -130,7 +130,12 @@ module.exports = {
 		const pagingInfo = Util.PagingInfo(query.index, query.size, true);
 
 		return Contracts.findAndCountAll({
-			include: [userConnection(Users), houseConnection(Houses, Building, GeoLocation, Rooms)(houseFormat)],
+			include: [{
+				model: Users,
+				required: true,
+				include: [{model: CashAccount, as: 'cashAccount', attributes: [['cash', 'balance']]}]
+			},
+				houseConnection(Houses, Building, GeoLocation, Rooms)(houseFormat)],
 			distinct: true,
 			where: {projectId, status},
 			offset: pagingInfo.skip,

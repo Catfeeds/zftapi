@@ -291,19 +291,6 @@ create table if not exists `topup`
 	PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB;
 
-create table if not exists `cashAccount`
-(
-	`id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
-	`userId` bigint(20) UNSIGNED NOT NULL,
-	`cash` bigint(20) NOT NULL DEFAULT 0,
-	`threshold` bigint(20) NOT NULL DEFAULT 0,
-	`locker` int(10) UNSIGNED NOT NULL DEFAULT 0,
-	`createdAt` datetime(0) NULL,
-	`updatedAt` datetime(0) NULL,
-	`deletedAt` datetime(0) NULL DEFAULT NULL,
-	PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB;
-
 create table if not exists `fundChannels`
 (
 	`id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -432,15 +419,15 @@ create table if not exists `topup`
 
 create table if not exists `cashAccount`
 (
-  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `id` bigint(20) UNSIGNED NOT NULL,
   `userId` bigint(20) UNSIGNED NOT NULL,
   `cash` bigint(20) NULL DEFAULT 0,
   `threshold` bigint(20) NULL DEFAULT 0,
   `locker` int(10) UNSIGNED NULL DEFAULT 0,
-  `createdAt` datetime(0) NULL,
-  `updatedAt` datetime(0) NULL,
-  `deletedAt` datetime(0) NULL DEFAULT NULL,
-  PRIMARY KEY (`id`) USING BTREE
+  `createdAt` datetime(0) NOT NULL,
+  `updatedAt` datetime(0) NOT NULL,
+  `deletedAt` datetime(0) NULL,
+  PRIMARY KEY (`id`)
 ) ENGINE = InnoDB;
 
 #project demo record

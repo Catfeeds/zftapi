@@ -140,6 +140,7 @@ describe('Contracts', function () {
 		};
 		const sequelizeFindSpy = stub().resolves([]);
 		const Users = {id: 100};
+		const CashAccount = {id: 101};
 		const Rooms = {id: 0};
 		const Houses = {id: 1};
 		const Building = {id: 2};
@@ -152,7 +153,8 @@ describe('Contracts', function () {
 			Rooms,
 			Houses,
 			Building,
-			GeoLocation
+			GeoLocation,
+			CashAccount
 		};
 
 		await get(req, {send: _.noop}).then(() => {
@@ -160,8 +162,19 @@ describe('Contracts', function () {
 			const modelOptions = sequelizeFindSpy.getCall(0).args[0];
 			modelOptions.include.should.be.eql([
 				{
-					model: Users, required: true
-				},
+					model: Users, required: true,
+					include: [
+						{
+							as: 'cashAccount',
+							attributes: [
+								[
+									'cash',
+									'balance'
+								]
+							],
+							model: CashAccount
+						}
+					]},
 				{
 					model: Rooms,
 					required: true,
