@@ -1054,6 +1054,7 @@ function SequelizeDefine()
 	exports.Bills.hasMany(exports.BillFlows , {as: 'billItems'});
 	exports.BillPayment.belongsTo(exports.Bills);
 	exports.Bills.hasMany(exports.BillPayment , {as: 'payments'});
+	exports.BillPayment.belongsTo(exports.Auth, {foreignKey: 'operator'});
 	exports.Contracts.hasMany(exports.Bills);
 	exports.Bills.belongsTo(exports.Contracts);
 

@@ -7,7 +7,7 @@ const includeContracts = require('../../../common').includeContracts;
 const singleRoomTranslate = require('../../../common').singleRoomTranslate;
 
 
-const omitFields = item => fp.omit(['billId', 'bill', 'createdAt', 'updatedAt'])(item);
+const omitFields = fp.omit(['billId', 'bill', 'auth', 'createdAt', 'updatedAt']);
 const assignCategory = item => fp.defaults(item)({category: item.bill.type});
 const formatRoom = item => fp.defaults(item)({room: singleRoomTranslate(item.bill.contract.dataValues.room)});
 
@@ -18,9 +18,13 @@ const formatContract = item => fp.defaults(item)({
 	contract: fp.pick(['id', 'from', 'to'])(item.bill.contract)
 });
 
+const formatOperator = item => fp.defaults(item)({
+	operator: item.auth
+});
+
 
 const translate = (models, pagingInfo) => {
-	const single = fp.pipe(innerValues, omitSingleNulls, formatRoom, formatUser, formatContract, assignCategory, omitFields);
+	const single = fp.pipe(innerValues, omitSingleNulls, formatRoom, formatOperator, formatUser, formatContract, assignCategory, omitFields);
 	return {
 		paging: {
 			count: models.count,
@@ -42,6 +46,7 @@ module.exports = {
 		const Houses = MySQL.Houses;
 		const Building = MySQL.Building;
 		const GeoLocation = MySQL.GeoLocation;
+		const Auth = MySQL.Auth;
 		const contractFilter = includeContracts(Contracts, Users, Houses, Building, GeoLocation, Rooms);
 
 		const query = req.query;
@@ -56,6 +61,9 @@ module.exports = {
 				include: [contractFilter(houseFormat)],
 				attributes: ['id', 'type'],
 				required: true
+			}, {
+				model: Auth,
+				attributes: ['id', 'username']
 			}],
 			where: {
 				projectId
