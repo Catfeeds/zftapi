@@ -1,21 +1,20 @@
 'use strict';
 const moment = require('moment');
-const _ = require('lodash');
 const fp = require('lodash/fp');
 
 const scheduler = require('./billScheduler');
 const dueDateShifter = require('./dueDateShifter').dueDateShifter;
 
-const expensesReduce = expenses => _.sumBy(fp.filter(e => e.pattern === 'withRent')(expenses), 'rent');
+const expensesReduce = expenses => fp.sumBy('rent', fp.filter(e => e.pattern === 'withRent')(expenses));
 
 const dueAmountOf = (strategy, expenses) => strategy.freq.rent + expensesReduce(expenses);
 
-const expenseAmount = (expense, from, to) => _.get(expense, 'rent') * billPace(expense.pattern, from, to);
+const expenseAmount = (expense, from, to) => fp.get('rent')(expense) * billPace(expense.pattern, from, to);
 
 const billPace = scheduler.billPace;
 const billCycles = scheduler.billCycles;
 
-const bondOf = contract => _.compact([_.get(contract, 'strategy.bond')]);
+const bondOf = contract => fp.compact([fp.get('strategy.bond')(contract)]);
 
 const generate = contract => {
 	const from = contract.from;
@@ -25,12 +24,14 @@ const generate = contract => {
 	const expenses = contract.expenses;
 	const dueAt = dueDateShifter(from, to);
 
-	const paidOffBills = (expenses, from, to) =>
-		fp.map(expense => paidOffBill(expense, from, to))
-		(fp.filter(e => _.includes(['paidOff'], e.pattern))(expenses));
-	const regularBills = (expenses, from, to) => _.flatten(
-		fp.map(expense => recursiveBills(expense, from, to, regularBill))
-		(fp.filter(e => _.includes(['1', '2', '3', '6', '12'], e.pattern))(expenses)));
+	const paidOffBills = (expenses, from, to) => fp.map(expense => paidOffBill(expense, from, to))(
+		fp.filter(e => fp.includes(e.pattern)(['paidOff']))(expenses)
+	);
+	const regularBills = (expenses, from, to) => fp.flatten(
+		fp.map(expense => recursiveBills(expense, from, to, regularBill))(
+			fp.filter(e => fp.includes(e.pattern)(['1', '2', '3', '6', '12']))(expenses)
+		)
+	);
 
 	const paidOffBill = (expense, from, to) => ({
 		flow: 'receive',
@@ -46,9 +47,9 @@ const generate = contract => {
 		dueAmount: expenseAmount(expense, from, to),
 		metadata: expense
 	});
-
-	const recursiveBills = (expense, from, to, singleBill) => _.map(billCycles(from, to, expense.pattern), (m, index) =>
-		singleBill(expense, m.start, m.end, index + 1));
+	const map = fp.map.convert({cap: false});
+	const recursiveBills = (expense, from, to, singleBill) => map((m, index) =>
+		singleBill(expense, m.start, m.end, index + 1))(billCycles(from, to, expense.pattern));
 
 	const regularBill = (expense, from, to, index) => ({
 		flow: 'receive',
@@ -103,18 +104,18 @@ const generate = contract => {
 		metadata: {bond: amount}
 	});
 
-	return _.concat(
+	return fp.reduce(fp.concat)([])([
 		recursiveBills(strategy.freq, from, to, standardBill),
 		paidOffBills(expenses, from, to),
 		regularBills(expenses, from, to),
 		bondOf(contract).map(amount => bondBill(amount, from, to))
-	);
+	]);
 };
 
 const finalBill = (settlement) => {
 	const now = moment().unix();
 	return ({
-		flow: _.get(settlement, 'flow', 'receive'),
+		flow: fp.getOr('receive', 'flow', settlement),
 		entityType: 'property',
 		projectId: settlement.projectId,
 		contractId: settlement.contractId,
@@ -124,11 +125,11 @@ const finalBill = (settlement) => {
 		endDate: now,
 		dueDate: now,
 		createdAt: now,
-		dueAmount: _.get(settlement, 'amount', 0),
-		remark: _.get(settlement, 'remark', ''),
+		dueAmount: fp.getOr(0, 'amount', settlement),
+		remark: fp.getOr('', 'remark', settlement),
 		metadata: settlement
 	});
-}
+};
 
 module.exports = {
 	generate,
