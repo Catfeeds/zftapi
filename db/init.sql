@@ -417,7 +417,7 @@ create table if not exists `cashAccount`
 (
   `id` bigint(20) UNSIGNED NOT NULL,
   `userId` bigint(20) UNSIGNED NOT NULL,
-  `cash` bigint(20) NULL DEFAULT 0,
+  `balance` bigint(20) NULL DEFAULT 0,
   `threshold` bigint(20) NULL DEFAULT 0,
   `locker` int(10) UNSIGNED NULL DEFAULT 0,
   `createdAt` datetime(0) NOT NULL,

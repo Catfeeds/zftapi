@@ -165,12 +165,7 @@ describe('Contracts', function () {
 					include: [
 						{
 							as: 'cashAccount',
-							attributes: [
-								[
-									'cash',
-									'balance'
-								]
-							],
+							attributes: ['balance'],
 							model: CashAccount
 						}
 					]

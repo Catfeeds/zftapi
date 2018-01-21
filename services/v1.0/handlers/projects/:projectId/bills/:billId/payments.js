@@ -46,7 +46,7 @@ module.exports = {
 			throw new Error(`Bill ${billId} already has payment ${fp.get('payments[0].id')(bill)}.`);
 		})
 			.then(() => Sequelize.transaction(t =>
-				Flows.create(assignNewId({projectId}), {transaction: t})
+				Flows.create(assignNewId({projectId, category: 'rent'}), {transaction: t})
 					.then(flow =>
 						BillPayment.create(fp.defaults({flowId: flow.id})(assignNewId(payment)), {transaction: t}))
 			)).then(results => res.send(201, ErrorCode.ack(ErrorCode.OK, results)))

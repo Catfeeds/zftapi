@@ -1,8 +1,6 @@
 'use strict';
 const fp = require('lodash/fp');
-const common = Include("/services/v1.0/common");
-const _ = require('lodash');
-const moment = require('moment');
+const assignNewId = Include("/services/v1.0/common").assignNewId;
 /**
  * Operations on /fundChannels/{fundChannelId}
  */
@@ -65,7 +63,7 @@ module.exports = {
                             MySQL.Sequelize.transaction(t=>{
                                 return MySQL.CashAccount.update(
                                     {
-                                        cash: MySQL.Literal(`cash+${amount}`),
+										balance: MySQL.Literal(`balance+${amount}`),
                                         locker: resetLock ? 0 : MySQL.Literal(`locker+1`)
                                     },
                                     {
@@ -74,24 +72,25 @@ module.exports = {
                                         },
                                         transaction: t
                                     }
-                                ).then(
-                                    result=>{
-                                        if(!result || !result[0]){
-                                            //save failed
-                                            throw new Error(ErrorCode.LOCKDUMPLICATE);
-                                        }
-
-                                        return MySQL.Topup.create({
-                                            orderNo: SnowFlake.next(),
-                                            userId: userId,
-                                            contractId: contractId,
-                                            projectId: projectId,
-                                            amount: amount,
-                                            fundChannelId: fundChannelId,
-                                            operator: req.user.id
-                                        }, {transaction: t});
-                                    }
-                                );
+								).then(result => {
+									if (!result || !result[0]) {
+										//save failed
+										throw new Error(ErrorCode.LOCKDUMPLICATE);
+									}
+								}).then(
+									() => MySQL.Flows.create(assignNewId({projectId, category: 'topup'}), {transaction: t})
+								).then(flow => {
+									return MySQL.Topup.create(assignNewId({
+										orderNo: SnowFlake.next(),
+										flowId: flow.id,
+										userId,
+										contractId,
+										projectId,
+										amount,
+										fundChannelId,
+										operator: req.user.id
+									}), {transaction: t});
+								})
                             }).then(
                                 result=>{
                                     res.send(200);

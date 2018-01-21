@@ -697,7 +697,7 @@ function SequelizeDefine()
             type: Sequelize.BIGINT.UNSIGNED,
             allowNull: false,
         },
-        cash: {
+        balance: {
             type: Sequelize.BIGINT,
             defaultValue: 0
         },
@@ -1064,6 +1064,14 @@ function SequelizeDefine()
 		projectId:{
 			type: Sequelize.BIGINT.UNSIGNED,  //项目ID
 			allowNull: false
+		},
+        category:{
+			type: Sequelize.STRING,  //项目ID
+			allowNull: false,
+            defaultValue: 'rent',
+			validate: {
+				isIn: [['rent', 'final', 'topup']]
+			}
 		}
 	},{
 		timestamps: true,

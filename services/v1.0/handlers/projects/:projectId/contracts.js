@@ -140,7 +140,7 @@ module.exports = {
 			include: [{
 				model: Users,
 				required: true,
-				include: [{model: CashAccount, as: 'cashAccount', attributes: [['cash', 'balance']]}]
+				include: [{model: CashAccount, as: 'cashAccount', attributes: ['balance']}]
 			}, houseConnection(Houses, Building, GeoLocation, Rooms)(houseFormat)],
 			distinct: true,
 			where: {projectId, status},
