@@ -918,6 +918,10 @@ function SequelizeDefine()
 			type: Sequelize.BIGINT.UNSIGNED,  //项目ID
 			allowNull: false
 		},
+        flowId: {
+			type: Sequelize.BIGINT.UNSIGNED,  //项目ID
+			allowNull: false
+		},
 		amount: {
 			type: Sequelize.BIGINT.UNSIGNED,    //金额 单位：分
 			allowNull: false,
@@ -960,7 +964,6 @@ function SequelizeDefine()
     const Topup = sequelizeInstance.define('topup', {
         id:{
             type: Sequelize.BIGINT.UNSIGNED,
-            autoIncrement: true,
             primaryKey: true
         },
         orderNo:{
@@ -968,6 +971,10 @@ function SequelizeDefine()
             allowNull: false
         },
         userId:{
+            type: Sequelize.BIGINT.UNSIGNED,
+            allowNull: false
+        },
+        flowId:{
             type: Sequelize.BIGINT.UNSIGNED,
             allowNull: false
         },
@@ -1049,9 +1056,26 @@ function SequelizeDefine()
     });
     exports.DevicePrePaid = devicePrePaid;
 
+	exports.Flows = sequelizeInstance.define('flows', {
+		id: {
+			type: Sequelize.BIGINT.UNSIGNED,
+			primaryKey: true
+		},
+		projectId:{
+			type: Sequelize.BIGINT.UNSIGNED,  //项目ID
+			allowNull: false
+		}
+	},{
+		timestamps: true,
+		paranoid: true,
+		freezeTableName: true
+	});
+
 	exports.BillFlows.belongsTo(exports.Bills);
 	exports.Bills.hasMany(exports.BillFlows , {as: 'billItems'});
 	exports.BillPayment.belongsTo(exports.Bills);
+	exports.BillPayment.belongsTo(exports.Flows);
+	exports.Topup.belongsTo(exports.Flows);
 	exports.Bills.hasMany(exports.BillPayment , {as: 'payments'});
 	exports.BillPayment.belongsTo(exports.Auth, {foreignKey: 'operator'});
 	exports.Contracts.hasMany(exports.Bills);

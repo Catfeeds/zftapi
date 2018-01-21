@@ -88,7 +88,7 @@ module.exports = {
 				},
 				transaction: t
 			}).then(result => {
-				console.log(result);
+				console.log(`rooms under contract ${contract.id}`, result);
 				if (result > 0) {
 					throw new Error(`room ${contract.roomId} is unavailable`);
 				}

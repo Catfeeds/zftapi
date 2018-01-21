@@ -34,8 +34,14 @@ describe('Payment', function () {
 			BillPayment: {
 				create: createStub
 			},
+			Flows: {
+				create: async () => ({id: 123})
+			},
 			Bills: {
 				findById: findByIdStub
+			},
+			Sequelize: {
+				transaction: async func => func({})
 			}
 		};
 

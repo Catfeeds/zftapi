@@ -11,6 +11,7 @@ module.exports = {
 	post: async function createPayment(req, res) {
 		const BillPayment = MySQL.BillPayment;
 		const Bills = MySQL.Bills;
+		const Flows = MySQL.Flows;
 		const projectId = req.params.projectId;
 		const billId = req.params.billId;
 
@@ -26,6 +27,7 @@ module.exports = {
 			remark: fp.getOr('')('body.remark')(req),
 			status: 'pending',
 		};
+		const Sequelize = MySQL.Sequelize;
 
 		return Bills.findById(billId, {include: [{model: BillPayment, as: 'payments'}]}).then(bill => {
 			if (fp.isEmpty(bill)) {
@@ -43,8 +45,11 @@ module.exports = {
 			}
 			throw new Error(`Bill ${billId} already has payment ${fp.get('payments[0].id')(bill)}.`);
 		})
-			.then(() => BillPayment.create(assignNewId(payment)))
-			.then(() => res.send(201, ErrorCode.ack(ErrorCode.OK, {})))
+			.then(() => Sequelize.transaction(t =>
+				Flows.create(assignNewId({projectId}), {transaction: t})
+					.then(flow =>
+						BillPayment.create(fp.defaults({flowId: flow.id})(assignNewId(payment)), {transaction: t}))
+			)).then(results => res.send(201, ErrorCode.ack(ErrorCode.OK, results)))
 			.catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, {error: err.message})));
 	}
 };

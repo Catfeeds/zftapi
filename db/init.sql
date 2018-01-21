@@ -105,6 +105,7 @@ create table if not exists billflows
 create table if not exists billpayment
 (
 	id bigint,
+	`flowId` bigint(20) UNSIGNED NOT NULL,
 	projectId bigint not null,
 	billId bigint,
 	paymentChannel varchar(20) not null,
@@ -274,22 +275,6 @@ create table if not exists `projects`
 	PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB;
 
-create table if not exists `topup`
-(
-	`id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
-	`orderNo` bigint(20) UNSIGNED NOT NULL,
-	`userId` bigint(20) UNSIGNED NOT NULL,
-	`externalId` varchar(64) NOT NULL DEFAULT '',
-	`contractId` bigint(20) UNSIGNED NOT NULL,
-	`projectId` bigint(20) UNSIGNED NOT NULL,
-	`amount` bigint(20) UNSIGNED NOT NULL DEFAULT 0,
-	`fundChannelId` bigint(20) UNSIGNED NOT NULL,
-	`operator` bigint(20) UNSIGNED NULL DEFAULT NULL,
-	`createdAt` datetime(0) NULL,
-	`updatedAt` datetime(0) NULL,
-	`deletedAt` datetime(0) NULL DEFAULT NULL,
-	PRIMARY KEY (`id`) USING BTREE
-) ENGINE = InnoDB;
 
 create table if not exists `fundChannels`
 (
@@ -402,12 +387,13 @@ create table if not exists `devicePrePaid`
 
 create table if not exists `topup`
 (
-  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `id` bigint(20) UNSIGNED NOT NULL,
   `orderNo` bigint(20) UNSIGNED NOT NULL,
   `userId` bigint(20) UNSIGNED NOT NULL,
   `externalId` varchar(64) NOT NULL DEFAULT '',
   `contractId` bigint(20) UNSIGNED NOT NULL,
   `projectId` bigint(20) UNSIGNED NOT NULL,
+  `flowId` bigint(20) UNSIGNED NOT NULL,
   `amount` bigint(20) UNSIGNED NOT NULL DEFAULT 0,
   `fundChannelId` bigint(20) UNSIGNED NOT NULL,
   `operator` bigint(20) UNSIGNED NULL DEFAULT NULL,
@@ -415,6 +401,16 @@ create table if not exists `topup`
   `updatedAt` datetime(0) NULL,
   `deletedAt` datetime(0) NULL DEFAULT NULL,
   PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB;
+
+create table if not exists `flows`
+(
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `projectId` bigint(20) UNSIGNED NOT NULL,
+  `createdAt` datetime(0) NULL,
+  `updatedAt` datetime(0) NULL,
+  `deletedAt` datetime(0) NULL DEFAULT NULL,
+  PRIMARY KEY (`id`)
 ) ENGINE = InnoDB;
 
 create table if not exists `cashAccount`
