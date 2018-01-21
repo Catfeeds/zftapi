@@ -10,8 +10,8 @@ const jsonProcess = require('../../../../common').jsonProcess;
 const finalBillOf = require('../../../../../../transformers/billGenerator').finalBill;
 const finalPaymentOf = require('../../../../../../transformers/paymentGenerator').finalPayment;
 
-const omitFields = item => _.omit(item, ['userId', 'createdAt', 'updatedAt']);
-const translate = contract => _.flow(innerValues, omitSingleNulls, omitFields, jsonProcess)(contract);
+const omitFields = fp.omit(['userId', 'createdAt', 'updatedAt']);
+const translate = contract => fp.pipe(innerValues, omitSingleNulls, omitFields, jsonProcess)(contract);
 
 module.exports = {
 	get: function getContract(req, res) {
@@ -50,9 +50,16 @@ module.exports = {
 		const BillPayment = MySQL.BillPayment;
 		const contractId = req.params.contractId;
 		const projectId = req.params.projectId;
-		const status = _.get(req, 'body.status', '').toUpperCase();
-		const endDate = _.get(req, 'body.endDate');
-		const roomStatus = _.get(req, 'body.roomStatus', Typedef.OperationStatus.IDLE).toUpperCase();
+		const status = fp.getOr('')('body.status')(req).toUpperCase();
+		const endDate = fp.get('body.endDate')(req);
+		const roomStatus = fp.getOr(Typedef.OperationStatus.IDLE)('body.roomStatus')(req).toUpperCase();
+
+		if (status !== Typedef.ContractStatus.TERMINATED) {
+			return res.send(400, ErrorCode.ack(ErrorCode.PARAMETERERROR, {
+				status,
+				allowedStatus: [Typedef.ContractStatus.TERMINATED]
+			}));
+		}
 
 		if (status !== Typedef.ContractStatus.TERMINATED) {
 			return res.send(400, ErrorCode.ack(ErrorCode.PARAMETERERROR, {
@@ -62,7 +69,7 @@ module.exports = {
 		}
 		const allowedStatus = [Typedef.OperationStatus.IDLE,
 			Typedef.OperationStatus.PAUSED];
-		if (!_.includes(allowedStatus, roomStatus)) {
+		if (!fp.includes(roomStatus)(allowedStatus)) {
 			return res.send(400, ErrorCode.ack(ErrorCode.PARAMETERERROR, {roomStatus, allowedStatus}));
 		}
 
@@ -76,17 +83,18 @@ module.exports = {
 				}
 
 				return Sequelize.transaction(t => {
+					const actualEndDate = fp.isUndefined(endDate) ? contract.to : endDate;
 					const contractUpdating = contract.update({
-						actualEndDate: _.isUndefined(endDate) ? Sequelize.col('to') : endDate,
+						actualEndDate,
 						status
 					}, {transaction: t});
 					const suspending = assignNewId({
 						projectId,
-						from: endDate + 1,
+						from: actualEndDate + 1,
 						roomId: contract.dataValues.room.id
 					});
 
-					const settlement = fp.defaults(_.get(req, 'body.transaction'))({projectId, contractId});
+					const settlement = fp.defaults(fp.get('body.transaction')(req))({projectId, contractId});
 					const newBill = assignNewId(finalBillOf(settlement));
 					const finalBillPromise = Bills.create(newBill, {transaction: t});
 					const operatorId = req.isAuthenticated() && req.user.id;
@@ -98,9 +106,13 @@ module.exports = {
 					const operations = Typedef.OperationStatus.PAUSED === roomStatus ? [
 						SuspendingRooms.create(suspending, {transaction: t})
 					] : [];
-					return Promise.all(_.concat(operations, [contractUpdating, finalBillPromise, finalPaymentPromise]));
+					let iterable = fp.reduce(fp.concat)([])([
+						operations, [contractUpdating, finalBillPromise, finalPaymentPromise]
+					]);
+					console.log(iterable);
+					return Promise.all(iterable);
 				});
-			}).then(updated => res.send(updated))
+			}).then(updated => res.send(fp.get('[1]')(updated)))
 			.catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, {error: err.message})));
 	}
 };

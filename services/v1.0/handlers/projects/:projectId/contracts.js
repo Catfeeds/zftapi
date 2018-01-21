@@ -58,10 +58,9 @@ module.exports = {
 		const sequelize = MySQL.Sequelize;
 
 		const createBill = (contract, bill, t) => Bills.create(assignNewId(bill), {transaction: t})
-			.then(dbBill => Promise.all(
-					fp.map(billflow => BillFlows.create(assignNewId(billflow), {transaction: t}))(billItems(contract, dbBill))
-				)
-			);
+			.then(dbBill =>
+				Promise.all(fp.map(billflow =>
+					BillFlows.create(assignNewId(billflow), {transaction: t}))(billItems(contract, dbBill))));
 
 		const checkRoomAvailability = async (contract, t) => {
 			const roomId = contract.roomId;
