@@ -45,11 +45,11 @@ describe('Contracts', function () {
 		};
 		const resSpy = spy();
 
-		await get(req, {send: resSpy}).then(() => {
-			resSpy.should.have.been.called;
-			resSpy.getCall(0).args[0].data.should.be.eql([{expenses: [], strategy: {}, room: expectedRoom}]);
-		}
-		);
+		await get(req, {send: resSpy})
+			.then(() => {
+				resSpy.should.have.been.called;
+				resSpy.getCall(0).args[0].data.should.be.eql([{expenses: [], strategy: {}, room: expectedRoom}]);
+			});
 	});
 
 	it('should omit createdAt, updatedAt, userId fields', async function () {
@@ -125,8 +125,7 @@ describe('Contracts', function () {
 		await get(req, {send: resSpy}).then(() => {
 			resSpy.should.have.been.called;
 			resSpy.getCall(0).args[0].data[0].onlyMe.should.be.eql('haha');
-		}
-		);
+		});
 	});
 
 	it('should connect with houses if query with houseFormat', async function () {
@@ -174,7 +173,8 @@ describe('Contracts', function () {
 							],
 							model: CashAccount
 						}
-					]},
+					]
+				},
 				{
 					model: Rooms,
 					required: true,
@@ -223,15 +223,17 @@ describe('Contracts', function () {
 		};
 		const sequelizeCountSpy = stub().resolves([]);
 		const Users = {id: 100, findOrCreate: async () => [{id: 1999}]};
-		const Rooms = {id: 0};
+		const CashAccount = {findOrCreate: async () => ([{id: 321, userId: 1999}])};
 		const Houses = {id: 1};
 		const Building = {id: 2};
 		const GeoLocation = {id: 3};
+		const Rooms = {id: 4};
 		global.MySQL = {
 			Contracts: {
 				count: sequelizeCountSpy,
 				create: async () => ({})
 			},
+			CashAccount,
 			Users,
 			Rooms,
 			Houses,
@@ -255,16 +257,14 @@ describe('Contracts', function () {
 					to: {
 						$gte: req.body.from
 					}
-				},
-				{
+				}, {
 					from: {
 						$lte: req.body.to
 					},
 					to: {
 						$gte: req.body.to
 					}
-				}
-				]
+				}]
 			});
 		});
 	});
@@ -282,12 +282,14 @@ describe('Contracts', function () {
 		};
 
 		const Users = {id: 100, findOrCreate: async () => [{id: 1999}]};
+		const CashAccount = {findOrCreate: async () => ([{id: 321, userId: 1999}])};
 		const Rooms = {id: 0};
 		const Houses = {id: 1};
 		const Building = {id: 2};
 		const GeoLocation = {id: 3};
 		global.MySQL = {
 			Contracts: {},
+			CashAccount,
 			Users,
 			Rooms,
 			Houses,
@@ -302,7 +304,6 @@ describe('Contracts', function () {
 			resSpy.should.have.been.called;
 			resSpy.getCall(0).args[0].should.be.eql(500);
 			resSpy.getCall(0).args[1].result.should.be.eql({'error': 'Invalid contract time period : from 2000 to 1000.'});
-		}
-		);
+		});
 	});
 });

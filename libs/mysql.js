@@ -691,8 +691,7 @@ function SequelizeDefine()
 	const CashAccount = sequelizeInstance.define('cashAccount', {
 	    id: {
 	        type: Sequelize.BIGINT.UNSIGNED,
-            autoIncrement: true,
-            primaryKey: true,
+            primaryKey: true
         },
         userId:{
             type: Sequelize.BIGINT.UNSIGNED,

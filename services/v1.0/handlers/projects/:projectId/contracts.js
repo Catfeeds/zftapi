@@ -54,6 +54,7 @@ module.exports = {
 		const Users = MySQL.Users;
 		const Bills = MySQL.Bills;
 		const BillFlows = MySQL.BillFlows;
+		const CashAccount = MySQL.CashAccount;
 
 		const sequelize = MySQL.Sequelize;
 
@@ -102,7 +103,15 @@ module.exports = {
 					defaults: assignNewId(user),
 					transaction: t
 				}))
-				.then(dbUser => extractContract(req, fp.get('[0]', dbUser)))
+				.then(dbUsers => {
+					const user = fp.head(dbUsers);
+					return CashAccount.findOrCreate({
+						where: {userId: user.id},
+						defaults: assignNewId({userId: user.id}),
+						transaction: t
+					}).then(() => user)
+				})
+				.then(dbUser => extractContract(req, dbUser))
 				.then(contract => validateContract(contract))
 				.then(contract => checkRoomAvailability(contract, t))
 				.then(contract => Contracts.create(assignNewId(contract), {transaction: t}))
