@@ -22,7 +22,6 @@ const formatOperator = item => fp.defaults(item)({
 	operator: item.auth
 });
 
-
 const translate = (models, pagingInfo) => {
 	const single = fp.pipe(innerValues, omitSingleNulls, formatRoom, formatOperator, formatUser, formatContract, assignCategory, omitFields);
 	return {
@@ -34,7 +33,6 @@ const translate = (models, pagingInfo) => {
 		data: fp.map(single)(models.rows)
 	};
 };
-
 
 module.exports = {
 	get: async (req, res) => {
@@ -58,7 +56,7 @@ module.exports = {
 		BillPayment.findAndCountAll({
 			include: [{
 				model: Bills,
-				include: [contractFilter(houseFormat)],
+				include: [contractFilter(houseFormat, {})],
 				attributes: ['id', 'type'],
 				required: true
 			}, {

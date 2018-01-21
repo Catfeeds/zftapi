@@ -178,14 +178,16 @@ exports.houseConnection = (houseModel, buildingModel, locationModel, roomModel) 
 		include: [houseInclude]
 	};
 };
-exports.includeContracts = (contractModel, userModel, houseModel, buildingModel, locationModel, roomModel) => houseFormat => ({
-	include: [exports.userConnection(userModel), exports.houseConnection(houseModel, buildingModel, locationModel, roomModel)(houseFormat)],
-	model: contractModel,
-	required: true,
-	where: {
-		status: Typedef.ContractStatus.ONGOING
-	}
-});
+
+exports.includeContracts = (contractModel, userModel, houseModel, buildingModel, locationModel, roomModel) =>
+	(houseFormat, contractCondition) => fp.defaults({
+		include: [exports.userConnection(userModel), exports.houseConnection(houseModel, buildingModel, locationModel, roomModel)(houseFormat)],
+		model: contractModel
+	})(fp.isUndefined(contractCondition) ? {
+		where: {
+			status: Typedef.ContractStatus.ONGOING
+		}
+	} : contractCondition);
 
 exports.DeviceStatus = (device)=>{
     if(!device || !device.freq || !device.updatedAt){

@@ -106,11 +106,9 @@ module.exports = {
 					const operations = Typedef.OperationStatus.PAUSED === roomStatus ? [
 						SuspendingRooms.create(suspending, {transaction: t})
 					] : [];
-					let iterable = fp.reduce(fp.concat)([])([
+					return Promise.all(fp.reduce(fp.concat)([])([
 						operations, [contractUpdating, finalBillPromise, finalPaymentPromise]
-					]);
-					console.log(iterable);
-					return Promise.all(iterable);
+					]));
 				});
 			}).then(updated => res.send(fp.get('[1]')(updated)))
 			.catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, {error: err.message})));

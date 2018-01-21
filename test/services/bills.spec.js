@@ -165,7 +165,6 @@ describe('Bills', function () {
 					}
 				],
 				model: Contracts,
-				required: true,
 				where: {
 					status: 'ONGOING'
 				}
