@@ -1082,10 +1082,19 @@ function SequelizeDefine()
 	exports.BillFlows.belongsTo(exports.Bills);
 	exports.Bills.hasMany(exports.BillFlows , {as: 'billItems'});
 	exports.BillPayment.belongsTo(exports.Bills);
+
 	exports.BillPayment.belongsTo(exports.Flows);
+	exports.Flows.hasOne(exports.BillPayment);
 	exports.Topup.belongsTo(exports.Flows);
+	exports.Topup.belongsTo(exports.Contracts);
+	exports.Flows.hasOne(exports.Topup);
+
+	exports.Topup.belongsTo(exports.Users);
+
 	exports.Bills.hasMany(exports.BillPayment , {as: 'payments'});
 	exports.BillPayment.belongsTo(exports.Auth, {foreignKey: 'operator'});
+	exports.Topup.belongsTo(exports.Auth, {as: 'operatorInfo', foreignKey: 'operator'});
+
 	exports.Contracts.hasMany(exports.Bills);
 	exports.Bills.belongsTo(exports.Contracts);
 

@@ -103,7 +103,7 @@ exports.QueryEntire = (projectId, query, include, attributes)=>{
 
 
 exports.omitSingleNulls = fp.omitBy(fp.isNull);
-exports.innerValues = item => item.dataValues;
+exports.innerValues = fp.getOr({})('dataValues');
 exports.omitNulls = fp.map(item => fp.omitBy(fp.isNull)(exports.innerValues(item)));
 exports.assignNewId = (model) => fp.defaults({id: SnowFlake.next()})(model);
 

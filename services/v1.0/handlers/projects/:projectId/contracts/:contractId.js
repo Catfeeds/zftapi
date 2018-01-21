@@ -47,6 +47,7 @@ module.exports = {
 		const Rooms = MySQL.Rooms;
 		const SuspendingRooms = MySQL.SuspendingRooms;
 		const Bills = MySQL.Bills;
+		const Flows = MySQL.Flows;
 		const BillPayment = MySQL.BillPayment;
 		const contractId = req.params.contractId;
 		const projectId = req.params.projectId;
@@ -98,17 +99,24 @@ module.exports = {
 					const newBill = assignNewId(finalBillOf(settlement));
 					const finalBillPromise = Bills.create(newBill, {transaction: t});
 					const operatorId = req.isAuthenticated() && req.user.id;
+
+					const finalFlow = assignNewId({projectId, category: 'final'});
+					const finalFlowPromise = Flows.create(finalFlow, {transaction: t});
+
 					const finalPayment = assignNewId(finalPaymentOf(fp.defaults(settlement)({
 						billId: newBill.id,
-						operatorId
+						operatorId,
+						flowId: finalFlow.id
 					})));
 					const finalPaymentPromise = BillPayment.create(finalPayment, {transaction: t});
+
 					const operations = Typedef.OperationStatus.PAUSED === roomStatus ? [
 						SuspendingRooms.create(suspending, {transaction: t})
 					] : [];
-					return Promise.all(fp.reduce(fp.concat)([])([
-						operations, [contractUpdating, finalBillPromise, finalPaymentPromise]
-					]));
+
+					return Promise.all(fp.concat(
+						operations, [contractUpdating, finalBillPromise, finalPaymentPromise, finalFlowPromise]
+					));
 				});
 			}).then(updated => res.send(fp.get('[1]')(updated)))
 			.catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, {error: err.message})));
