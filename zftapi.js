@@ -1,23 +1,22 @@
 require('include-node');
 const appRootPath = require('app-root-path');
 const Restify = require('restify');
-const config = require('config');
 const passport = require('passport');
-const sessions = require("client-sessions");
-const auth = require("./auth/auth");
+const sessions = require('client-sessions');
+const auth = require('./auth/auth');
 
-require(appRootPath.path + '/libs/log')("zftAPI");
+require(appRootPath.path + '/libs/log')('zftAPI');
 
 {
-    global.ENV = require('process').env;
-    global.Typedef = Include('/libs/typedef');
-    global.MySQL = Include('/libs/mysql');
-    global.Util = Include('/libs/util');
-    global.ErrorCode = Include('/libs/errorCode');
-    global.Amap = Include('/libs/amap');
-    global.SnowFlake = Include('/libs/snowflake').alloc(1, 1);
-    global.GUID = Include('/libs/guid');
-    global.Message = Include('/libs/message');
+	global.ENV = require('process').env;
+	global.Typedef = Include('/libs/typedef');
+	global.MySQL = Include('/libs/mysql');
+	global.Util = Include('/libs/util');
+	global.ErrorCode = Include('/libs/errorCode');
+	global.Amap = Include('/libs/amap');
+	global.SnowFlake = Include('/libs/snowflake').alloc(1, 1);
+	global.GUID = Include('/libs/guid');
+	global.Message = Include('/libs/message');
 }
 
 let Server = Restify.createServer();
@@ -42,13 +41,13 @@ auth.init();
 Server.use(auth.guard);
 
 Include('/libs/enumServices').Load(
-    Server,
-    ['/services']
+	Server,
+	['/services']
 );
 
 MySQL.Load().then(
 	() => {
-        Include('/libs/moduleLoader');
+		Include('/libs/moduleLoader');
 
 		Server.listen(8000, function () {
 			console.log('App running on %s:%d', Server.address().address, Server.address().port);

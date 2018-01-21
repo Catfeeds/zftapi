@@ -1,3 +1,5 @@
+'use strict';
+
 const _ = require('lodash');
 const fp = require('lodash/fp');
 const moment = require('moment');
@@ -9,7 +11,7 @@ exports.UpsertGeoLocation = (location, t)=>{
         },
         transaction: t,
         defaults:location
-    })
+    });
 };
 
 exports.AsyncUpsertGeoLocation = async (location, t) => {
@@ -22,7 +24,7 @@ exports.AsyncUpsertGeoLocation = async (location, t) => {
         },
         transaction: t,
         defaults:location
-    })
+    });
 };
 
 exports.QueryEntire = (projectId, query, include, attributes)=>{
@@ -89,7 +91,7 @@ exports.QueryEntire = (projectId, query, include, attributes)=>{
                 resolve({
                     count: count,
                     data: result[1]
-                })
+                });
             },
             err=>{
                 log.error(err, projectId, query, include, attributes);
@@ -100,13 +102,17 @@ exports.QueryEntire = (projectId, query, include, attributes)=>{
 };
 
 
-exports.omitSingleNulls = item => _.omitBy(item, _.isNull);
+exports.omitSingleNulls = fp.omitBy(fp.isNull);
 exports.innerValues = item => item.dataValues;
-exports.omitNulls = fp.map(item => _.omitBy(exports.innerValues(item), _.isNull));
+exports.omitNulls = fp.map(item => fp.omitBy(fp.isNull)(exports.innerValues(item)));
 exports.assignNewId = (model) => fp.defaults({id: SnowFlake.next()})(model);
 
-exports.scaleUp = (v)=>{ return v * 10000 };
-exports.scaleDown = (v)=>{ return v / 10000 };
+exports.scaleUp = (v) => {
+	return v * 10000;
+};
+exports.scaleDown = (v) => {
+	return v / 10000;
+};
 
 exports.singleRoomTranslate = model => {
 	const room = model.dataValues;
@@ -124,19 +130,19 @@ exports.singleRoomTranslate = model => {
 		roomNumber: house.roomNumber,
 		roomName: room.name,
 		status
-	}
+	};
 };
 
 exports.roomLeasingStatus = (contracts, suspension = []) => {
 	const now = moment().unix();
-	const lastSuspension = _.compact([_.max(suspension, 'from')]);
+	const lastSuspension = fp.compact([fp.max(suspension, 'from')]);
 	// PAUSE
-	if (fp.some(suspendingRoom => (now > suspendingRoom.from && _.isEmpty(suspendingRoom.to)))(lastSuspension)) {
+	if (fp.some(suspendingRoom => (now > suspendingRoom.from && fp.isEmpty(suspendingRoom.to)))(lastSuspension)) {
 		return Typedef.OperationStatus.PAUSED;
 	}
 
-	const simplified = fp.map(c => _.pick(c, ['from', 'to', 'id']))(contracts);
-	const compactedContracts = fp.filter(c => !_.isUndefined(c.from))(_.concat(simplified, lastSuspension));
+	const simplified = fp.map(fp.pick(['from', 'to', 'id']))(contracts);
+	const compactedContracts = fp.filter(c => !fp.isUndefined(c.from))(fp.concat(simplified, lastSuspension));
 	return fp.some(contract => (now > contract.from && contract.to > now))(compactedContracts) ?
 		Typedef.OperationStatus.INUSE : Typedef.OperationStatus.IDLE;
 };
@@ -150,8 +156,7 @@ exports.userConnection = (userModel) => ({
 	model: userModel, required: true
 });
 exports.houseConnection = (houseModel, buildingModel, locationModel, roomModel) => (houseFormat) => {
-	const houseInclude = _.assign({},
-		{
+	const houseInclude = fp.defaults({
 			model: houseModel,
 			as: 'house',
 			required: true,
@@ -165,15 +170,13 @@ exports.houseConnection = (houseModel, buildingModel, locationModel, roomModel) 
 					attributes: ['name']
 				}]
 			}]
-		},
-		_.isEmpty(houseFormat) ? {} : {where: {houseFormat}}
-	);
+		})(fp.isEmpty(houseFormat) ? {} : {where: {houseFormat}});
 	return {
 		model: roomModel,
 		required: true,
 		attributes: ['id', 'name'],
 		include: [houseInclude]
-	}
+	};
 };
 exports.includeContracts = (contractModel, userModel, houseModel, buildingModel, locationModel, roomModel) => houseFormat => ({
 	include: [exports.userConnection(userModel), exports.houseConnection(houseModel, buildingModel, locationModel, roomModel)(houseFormat)],

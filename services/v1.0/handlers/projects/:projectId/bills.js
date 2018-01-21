@@ -2,7 +2,6 @@
 /**
  * Operations on /bills
  */
-const _ = require('lodash');
 const fp = require('lodash/fp');
 const moment = require('moment');
 const omitSingleNulls = require('../../../common').omitSingleNulls;
@@ -11,21 +10,21 @@ const singleRoomTranslate = require('../../../common').singleRoomTranslate;
 const includeContracts = require('../../../common').includeContracts;
 
 
-const omitFields = item => _.omit(item, ['metadata', 'createdAt', 'updatedAt']);
+const omitFields = fp.omit(['metadata', 'createdAt', 'updatedAt']);
 const formatRoom = item => fp.defaults(item)({room: singleRoomTranslate(item.contract.dataValues.room)});
 
 const formatUser = item => fp.defaults(item)({
-	user: _.pick(item.contract.user, ['accountName', 'name', 'id', 'mobile'])
+	user: fp.pick(['accountName', 'name', 'id', 'mobile'])(item.contract.user)
 });
 
 const formatContract = item => fp.defaults(item)({
-	contract: _.pick(item.contract, ['id', 'from', 'to'])
+	contract: fp.pick(['id', 'from', 'to'])(item.contract)
 });
 
-const pickUpFirstPayment = bill => fp.defaults(bill)({payments: _.take(bill.payments)})
+const pickUpFirstPayment = bill => fp.defaults(bill)({payments: fp.take(1)(bill.payments)});
 
 const translate = (models, pagingInfo) => {
-	const single = _.flow(innerValues, omitSingleNulls, formatRoom, formatUser, formatContract, omitFields, pickUpFirstPayment);
+	const single = fp.pipe(innerValues, omitSingleNulls, formatRoom, formatUser, formatContract, omitFields, pickUpFirstPayment);
 	return {
 		paging: {
 			count: models.count,
@@ -33,24 +32,10 @@ const translate = (models, pagingInfo) => {
 			size: pagingInfo.size
 		},
 		data: fp.map(single)(models.rows)
-	}
+	};
 };
 
 module.exports = {
-	/**
-	 * summary: create bill info
-	 * description: save contract information
-
-	 * parameters: body
-	 * produces: application/json
-	 * responses: 200, 400
-	 */
-	post: function createBills(req, res, next) {
-		/**
-		 * Get the data for response 200
-		 * For response `default` status 200 is used.
-		 */
-	},
 	get: async function (req, res) {
 		const Bills = MySQL.Bills;
 		const BillFlows = MySQL.BillFlows;
@@ -72,14 +57,14 @@ module.exports = {
 		const houseFormat = query.houseFormat;
 
 		const paymentsFilter = (flag => {
-			if (_.isUndefined(flag)) {
+			if (fp.isUndefined(flag)) {
 				return undefined;
 			}
-			const billPaymentFilter = Sequelize.literal(`( select billId from billpayment where projectId = ${projectId} )`)
+			const billPaymentFilter = Sequelize.literal(`( select billId from billpayment where projectId = ${projectId} )`);
 			return flag === 'true' ?
 				{$in: billPaymentFilter}
 				: {$notIn: billPaymentFilter};
-		})(_.get(req, 'query.paid'));
+		})(fp.get('query.paid')(req));
 
 		const pagingInfo = Util.PagingInfo(query.index, query.size, true);
 
@@ -93,17 +78,15 @@ module.exports = {
 				required: false,
 				as: 'payments',
 				attributes: ['id', 'amount', 'paymentChannel', 'operator', 'paidAt', 'remark', 'status']
-			},
-				contractFilter(houseFormat)
-			],
+			}, contractFilter(houseFormat)],
 			distinct: true,
-			where: _.assignIn({
+			where: fp.defaults({
 				entityType: 'property',
 				projectId,
 				startDate: {
 					$lt: moment().unix()
 				},
-			}, paymentsFilter ? {id: paymentsFilter} : {}),
+			})(paymentsFilter ? {id: paymentsFilter} : {}),
 			offset: pagingInfo.skip,
 			limit: pagingInfo.size
 		}).then(models => translate(models, pagingInfo))

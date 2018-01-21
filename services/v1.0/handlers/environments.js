@@ -3,7 +3,7 @@
  * Operations on /environments
  */
 
-const _ = require('lodash');
+const fp = require('lodash/fp');
 
 module.exports = {
 	get: async (req, res) => {
@@ -30,12 +30,12 @@ module.exports = {
 
 		const environments = [houseFormat, roomType, operationStatus, orientation];
 
-		const projectId = (req.isAuthenticated() && !_.isEmpty(req.user)) ?
-		[{
-			key: 'user',
-			value: _.omit(req.user, 'id')
-		}] : [];
+		const projectId = (req.isAuthenticated() && !fp.isEmpty(req.user)) ?
+			[{
+				key: 'user',
+				value: fp.omit('id')(req.user)
+			}] : [];
 
-		res.send(_.compact(_.concat(environments, projectId)));
+		res.send(fp.compact(fp.concat(environments, projectId)));
 	},
 };

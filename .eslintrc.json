@@ -13,12 +13,15 @@
     "babel"
   ],
   "rules": {
+    "no-console": [
+      "off"
+    ],
     "indent": [
       "warn",
       "tab"
     ],
     "linebreak-style": [
-      "error",
+      "warn",
       "unix"
     ],
     "quotes": [

@@ -26,15 +26,15 @@ const translate = (models, pagingInfo) => {
 			size: pagingInfo.size
 		},
 		data: fp.map(single)(models.rows)
-	}
+	};
 };
 
 const validateContract = async (contract) => {
 	if (contract.from >= contract.to) {
-		throw new Error(`Invalid contract time period : from ${contract.from} to ${contract.to}.`)
+		throw new Error(`Invalid contract time period : from ${contract.from} to ${contract.to}.`);
 	}
 	return contract;
-}
+};
 
 module.exports = {
 	/**
@@ -59,7 +59,7 @@ module.exports = {
 
 		const createBill = (contract, bill, t) => Bills.create(assignNewId(bill), {transaction: t})
 			.then(dbBill => Promise.all(
-				fp.map(billflow => BillFlows.create(assignNewId(billflow), {transaction: t}))(billItems(contract, dbBill))
+					fp.map(billflow => BillFlows.create(assignNewId(billflow), {transaction: t}))(billItems(contract, dbBill))
 				)
 			);
 
@@ -76,25 +76,24 @@ module.exports = {
 						to: {
 							$gte: contract.from
 						}
-					},
-						{
-							from: {
-								$lte: contract.to
-							},
-							to: {
-								$gte: contract.to
-							}
+					}, {
+						from: {
+							$lte: contract.to
+						},
+						to: {
+							$gte: contract.to
 						}
+					}
 					]
 				},
 				transaction: t
 			}).then(result => {
 				console.log(result);
 				if (result > 0) {
-					throw new Error(`room ${contract.roomId} is unavailable`)
+					throw new Error(`room ${contract.roomId} is unavailable`);
 				}
 				return contract;
-			})
+			});
 		};
 
 		return sequelize.transaction(t =>
@@ -111,7 +110,7 @@ module.exports = {
 				.then(contract => Promise.all(
 					fp.map(bill => createBill(contract, bill, t))(generateBills(contract)))
 				)
-		).then(results => res.send(201, ErrorCode.ack(ErrorCode.OK, {})))
+		).then(() => res.send(201, ErrorCode.ack(ErrorCode.OK, {})))
 			.catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, {error: err.message})));
 
 	},
@@ -134,8 +133,7 @@ module.exports = {
 				model: Users,
 				required: true,
 				include: [{model: CashAccount, as: 'cashAccount', attributes: [['cash', 'balance']]}]
-			},
-				houseConnection(Houses, Building, GeoLocation, Rooms)(houseFormat)],
+			}, houseConnection(Houses, Building, GeoLocation, Rooms)(houseFormat)],
 			distinct: true,
 			where: {projectId, status},
 			offset: pagingInfo.skip,

@@ -3,8 +3,6 @@
  * Operations on /contracts/:contractId
  */
 const fp = require('lodash/fp');
-const _ = require('lodash');
-const moment = require('moment');
 const assignNewId = require('../../../../common').assignNewId;
 const omitSingleNulls = require('../../../../common').omitSingleNulls;
 const innerValues = require('../../../../common').innerValues;
@@ -40,8 +38,7 @@ module.exports = {
 				}
 				contract.destroy().then(() => {
 					res.send(204);
-				})
-
+				});
 			})
 			.catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, {error: err.message})));
 	},
@@ -93,14 +90,17 @@ module.exports = {
 					const newBill = assignNewId(finalBillOf(settlement));
 					const finalBillPromise = Bills.create(newBill, {transaction: t});
 					const operatorId = req.isAuthenticated() && req.user.id;
-					const finalPayment = assignNewId(finalPaymentOf(fp.defaults(settlement)({billId: newBill.id, operatorId})));
+					const finalPayment = assignNewId(finalPaymentOf(fp.defaults(settlement)({
+						billId: newBill.id,
+						operatorId
+					})));
 					const finalPaymentPromise = BillPayment.create(finalPayment, {transaction: t});
 					const operations = Typedef.OperationStatus.PAUSED === roomStatus ? [
 						SuspendingRooms.create(suspending, {transaction: t})
 					] : [];
 					return Promise.all(_.concat(operations, [contractUpdating, finalBillPromise, finalPaymentPromise]));
-				})
-			}).then((updated, room) => res.send(updated))
+				});
+			}).then(updated => res.send(updated))
 			.catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, {error: err.message})));
 	}
 };
