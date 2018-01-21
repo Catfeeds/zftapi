@@ -18,18 +18,13 @@ function EntireCheck(body) {
             ['location', 'enabledFloors', 'houseCountOnFloor', 'totalFloor']
         );
 }
-function SoleCheck(body) {
+function SoleShareCheck(body) {
     return Util.ParameterCheck(body,
             ['location', 'roomNumber', 'currentFloor', 'totalFloor']
         )
     && (_.isObject(body.layout) && !_.isArray(body.layout));
 }
-function ShareCheck(body) {
-    return Util.ParameterCheck(body,
-        ['location', 'roomNumber', 'currentFloor', 'totalFloor']
-    )
-    && (_.isObject(body.layout) && !_.isArray(body.layout));
-}
+
 
 async function SaveEntire(t, params, body){
     const projectId = params.projectId;
@@ -622,14 +617,56 @@ module.exports = {
                     formatPassed = EntireCheck(body);
                     break;
                 case Typedef.HouseFormat.SOLE:
-                    formatPassed = SoleCheck(body);
-                    break;
                 case Typedef.HouseFormat.SHARE:
-                    formatPassed = ShareCheck(body);
+                    formatPassed = SoleShareCheck(body);
                     break;
             }
             if(!formatPassed){
                 return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED, {error: 'houseFormat check failed', houseFormat: body.houseFormat}));
+            }
+
+
+            const isExists = async()=>{
+                try {
+                    const count = await MySQL.Houses.count({
+                        where: {
+                            roomNumber: body.roomNumber
+                        },
+                        include: [
+                            {
+                                model: MySQL.Building,
+                                as: 'building',
+                                where: _.assign(
+                                    {}
+                                    , body.group ? {group: body.group} : {}
+                                    , body.building ? {building: body.building} : {}
+                                    , body.unit ? {unit: body.unit} : {}
+                                ),
+                                include: [
+                                    {
+                                        model: MySQL.GeoLocation,
+                                        as: 'location',
+                                        where: {
+                                            code: body.location.code
+                                        }
+                                    }
+                                ]
+                            }
+                        ]
+                    });
+                    return count;
+                }
+                catch(e){
+                    log.error(e);
+                }
+            };
+
+            const houseFormat = body.houseFormat;
+            if(_.includes([Typedef.HouseFormat.SOLE, Typedef.HouseFormat.SHARE], houseFormat)){
+                const houseCount = await isExists();
+                if(houseCount){
+                    return res.send(403, ErrorCode.ack(ErrorCode.HOUSEEXISTS));
+                }
             }
 
             try{
@@ -649,20 +686,7 @@ module.exports = {
                 else{
                     body.location.id = location.id;
                 }
-                // else {
-                //
-                //     const entireExists = await MySQL.Houses.count({
-                //         where: {
-                //             geoLocation: location.id
-                //         }
-                //     });
-                //
-                //     if (entireExists) {
-                //         return res.send(400, ErrorCode.ack(ErrorCode.DUPLICATEREQUEST));
-                //     }
-                // }
 
-                const houseFormat = body.houseFormat;
                 let ack;
                 switch(houseFormat){
                     case Typedef.HouseFormat.ENTIRE:
