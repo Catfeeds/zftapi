@@ -407,6 +407,7 @@ create table if not exists `flows`
 (
   `id` bigint(20) UNSIGNED NOT NULL,
   `projectId` bigint(20) UNSIGNED NOT NULL,
+  `category` varchar(20) default 'rent' NOT NULL,
   `createdAt` datetime(0) NULL,
   `updatedAt` datetime(0) NULL,
   `deletedAt` datetime(0) NULL DEFAULT NULL,
