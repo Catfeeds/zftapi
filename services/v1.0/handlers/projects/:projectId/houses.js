@@ -356,7 +356,7 @@ async function Gethouses(params, query) {
                 status:{$ne: Typedef.HouseStatus.DELETED}
             },
             query.buildingId ? {'$building.id$': query.buildingId} : {},
-            divisionLocation() && {},
+            divisionLocation() || {},
             query.houseFormat ? {houseFormat: query.houseFormat} : {},
             // query.roomStatus ? {'$rooms.status$': query.status }: {},
             query.layoutId ? {'layoutId': query.layoutId}: {},
