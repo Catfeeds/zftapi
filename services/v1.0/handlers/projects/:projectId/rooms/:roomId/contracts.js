@@ -23,7 +23,7 @@ module.exports = {
 		const projectId = req.params.projectId;
 		const roomId = req.params.roomId;
 		const query = req.query;
-		const status = fp.getOr('query.status')(Typedef.ContractStatus.ONGOING)(req).toUpperCase();
+		const status = fp.getOr(Typedef.ContractStatus.ONGOING)('query.status')(req).toUpperCase();
 		const Contracts = MySQL.Contracts;
 		const Users = MySQL.Users;
 
