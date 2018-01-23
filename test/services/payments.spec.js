@@ -19,7 +19,8 @@ describe('Payment', function () {
 			},
 			query: {},
 			body: {
-				amount: 1000
+				amount: 1000,
+				fundChannelId: 1
 			}
 
 		};
@@ -62,7 +63,8 @@ describe('Payment', function () {
 			},
 			query: {},
 			body: {
-				amount: 9000
+				amount: 9000,
+				fundChannelId: 1
 			}
 
 		};
@@ -101,7 +103,8 @@ describe('Payment', function () {
 			},
 			query: {},
 			body: {
-				amount: 1000
+				amount: 1000,
+				fundChannelId: 1
 			}
 
 		};

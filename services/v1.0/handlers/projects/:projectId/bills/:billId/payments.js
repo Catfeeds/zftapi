@@ -22,11 +22,16 @@ module.exports = {
 			projectId,
 			operator,
 			amount: fp.getOr(0)('body.amount')(req),
-			paymentChannel: fp.getOr('cash')('body.paymentChannel')(req),
+			fundChannelId: fp.get('body.fundChannelId')(req),
 			paidAt: fp.getOr(now)('body.paidAt')(req),
 			remark: fp.getOr('')('body.remark')(req),
 			status: 'pending',
 		};
+
+		if (fp.isUndefined(payment.fundChannelId)) {
+			return res.send(400, ErrorCode.ack(ErrorCode.PARAMETERERROR, {error: 'please provide fundChannelId'}));
+		}
+
 		const Sequelize = MySQL.Sequelize;
 
 		return Bills.findById(billId, {include: [{model: BillPayment, as: 'payments'}]}).then(bill => {

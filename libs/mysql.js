@@ -927,13 +927,9 @@ function SequelizeDefine()
 			allowNull: false,
 			defaultValue: 0
 		},
-		paymentChannel: {
-			type: Sequelize.STRING(20),    // 支付渠道
-			allowNull: false,
-			defaultValue: 'cash',
-			validate: {
-				isIn: [['cash', 'wechat', 'alipay']]
-			}
+		fundChannelId: {
+			type: Sequelize.BIGINT.UNSIGNED,    //资金渠道
+			allowNull: false
 		},
 		operator: {
 			type: Sequelize.BIGINT.UNSIGNED,    // 经办人

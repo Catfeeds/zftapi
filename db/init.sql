@@ -106,9 +106,9 @@ create table if not exists billpayment
 (
 	id bigint,
 	`flowId` bigint(20) UNSIGNED NOT NULL,
-	projectId bigint not null,
-	billId bigint,
-	paymentChannel varchar(20) not null,
+	projectId bigint(20) not null,
+	billId bigint(20),
+	fundChannelId bigint(20) not null,
 	amount bigint default 0 not null,
 	operator bigint not null,
 	paidAt bigint not null,

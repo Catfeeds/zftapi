@@ -105,7 +105,7 @@ describe('Bills', function () {
 				'attributes': [
 					'id',
 					'amount',
-					'paymentChannel',
+					'fundChannelId',
 					'operator',
 					'paidAt',
 					'remark',
