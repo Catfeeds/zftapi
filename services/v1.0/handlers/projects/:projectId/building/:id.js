@@ -53,10 +53,15 @@ module.exports = {
                     deleteAt: 0
                 },
                 include:[
-                    {model: MySQL.GeoLocation, as:'Location'
+                    {
+                        model: MySQL.GeoLocation
+                        , as:'location'
                         , attributes: ['id', 'code', 'divisionId', 'district', 'name', 'address', 'longitude', 'latitude']
                     },
-                    {model: MySQL.Layouts, as: 'layouts', attributes: ["id", "name","bedRoom", "livingRoom", "bathRoom", "orientation", "roomArea", "remark"]},
+                    {
+                        model: MySQL.Layouts
+                        , as: 'layouts'
+                        , attributes: ["id", "name","bedRoom", "livingRoom", "bathRoom", "orientation", "roomArea", "remark"]},
                 ]
             });
             if(!building){
@@ -66,7 +71,7 @@ module.exports = {
             let enabledFloors = await getEnabledFloors(id, projectId);
 
             let retBuilding = {
-                location: building.Location,
+                location: building.location,
                 building: {
                     totalFloor: building.totalFloor,
                     houseCountOnFloor: building.houseCountOnFloor,

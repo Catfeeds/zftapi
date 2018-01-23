@@ -523,6 +523,7 @@ async function Gethouses(params, query) {
                 location: house.building.location,
                 unit: house.building.unit,
                 roomNumber: house.roomNumber,
+                currentFloor: house.currentFloor,
                 rooms: rooms,
                 layout: house.layouts,
                 devices: getDevices(house.devices),
