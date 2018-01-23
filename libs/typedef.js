@@ -102,6 +102,10 @@ const FundChannelCategory = {
     'ONLINE': 'online',
     'OFFLINE': 'offline'
 };
+const FundChannelStatus = {
+    'PASSED': 'PASSED',
+    'PENDING': 'PENDING'
+};
 
 const DriverCommand = {
     'EMC_ON': 'EMC_ON',
@@ -147,6 +151,7 @@ module.exports = {
 	CredentialLevels,
     FundFlow,
     FundChannelCategory,
+    FundChannelStatus,
     DriverCommand,
     DeviceStatus
 };

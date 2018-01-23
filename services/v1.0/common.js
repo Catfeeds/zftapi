@@ -202,3 +202,41 @@ exports.DeviceStatus = (device)=>{
         return Typedef.DeviceStatus.ONLINE;
     }
 };
+
+exports.PayBills = async (bills, projectId, fundChannelId, userId, orderNo)=>{
+    const payBills = fp.map(bill=>{
+        return {
+            id: exports.assignNewId().id,
+            projectId: projectId,
+            billId: bill.id,
+            orderNo: orderNo ? orderNo : exports.assignNewId().id,
+            flowId: exports.assignNewId().id,
+            paymentChannel: fundChannelId,
+            amount: bill.dueAmount,
+            operator: userId,
+            paidAt: moment().unix(),
+        };
+    })(bills);
+
+    const flows = fp.map(bill=>{
+        return {
+            id: bill.flowId,
+            projectId: projectId,
+            category: 'rent'
+        };
+    })(payBills);
+
+    try{
+        const t = await MySQL.Sequelize.transaction();
+
+        await MySQL.BillPayment.bulkCreate(payBills, {transaction: t});
+        await MySQL.Flows.bulkCreate(flows, {transaction: t});
+
+        await t.commit();
+        return '';
+    }
+    catch(e){
+        log.error(e, fundChannelId, userId, payBills, flows);
+        return ErrorCode.ack(ErrorCode.DATABASEEXEC);
+    }
+};

@@ -68,7 +68,8 @@ module.exports = {
                                     },
                                     {
                                         where:{
-                                            locker: cashAccount.locker
+                                            locker: cashAccount.locker,
+                                            userId: userId
                                         },
                                         transaction: t
                                     }
