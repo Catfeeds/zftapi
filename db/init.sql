@@ -109,7 +109,6 @@ create table if not exists billpayment
 	projectId bigint(20) not null,
 	billId bigint(20),
 	orderNo bigint,
-	flowId bigint,
 	fundChannelId bigint(20) not null,
 	amount bigint default 0 not null,
 	operator bigint not null,
