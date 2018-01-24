@@ -3,7 +3,6 @@
 const _ = require('lodash');
 const fp = require('lodash/fp');
 const moment = require('moment');
-const SnowFlake = require('../../libs/snowflake').alloc(1, 1);
 
 exports.UpsertGeoLocation = (location, t)=>{
     return MySQL.GeoLocation.findOrCreate({
@@ -106,8 +105,8 @@ exports.QueryEntire = (projectId, query, include, attributes)=>{
 exports.omitSingleNulls = fp.omitBy(fp.isNull);
 exports.innerValues = fp.getOr({})('dataValues');
 exports.omitNulls = fp.map(item => fp.omitBy(fp.isNull)(exports.innerValues(item)));
-exports.assignFieldId = field => fp.defaults({[field]: SnowFlake.next()});
-exports.assignNewId = exports.assignFieldId('id');
+exports.assignFieldId = field => item => fp.defaults({[field]: SnowFlake.next()})(item);
+exports.assignNewId = item => exports.assignFieldId('id')(item);
 
 exports.scaleUp = (v) => {
 	return v * 10000;
