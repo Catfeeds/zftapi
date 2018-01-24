@@ -918,8 +918,12 @@ function SequelizeDefine()
 			type: Sequelize.BIGINT.UNSIGNED,  //项目ID
 			allowNull: false
 		},
+        orderNo:{
+            type: Sequelize.BIGINT.UNSIGNED,  //订单号
+            allowNull: false
+        },
         flowId: {
-			type: Sequelize.BIGINT.UNSIGNED,  //项目ID
+			type: Sequelize.BIGINT.UNSIGNED,  //流水ID
 			allowNull: false
 		},
 		amount: {
@@ -1574,6 +1578,25 @@ function SequelizeDefine()
 
 	exports.Projects.hasMany(exports.Auth);
 	exports.Auth.belongsTo(exports.Projects);
+
+    exports.WXUser = sequelizeInstance.define('wxUser', {
+        id:{
+            type: Sequelize.BIGINT.UNSIGNED,
+            primaryKey: true
+        },
+        openId: {
+            type: Sequelize.STRING(64),
+            allowNull: false
+        },
+        platformId: Sequelize.STRING(64),
+        userId: {
+            type: Sequelize.BIGINT.UNSIGNED,
+            allowNull: false
+        }
+    },{
+        timestamps: false,
+        freezeTableName: true
+    });
 }
 
 function EMDefine()
