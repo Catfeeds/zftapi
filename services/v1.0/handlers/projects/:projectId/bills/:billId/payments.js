@@ -3,6 +3,7 @@
 const fp = require('lodash/fp');
 const moment = require('moment');
 const assignNewId = require('../../../../../common').assignNewId;
+const assignFieldId = require('../../../../../common').assignFieldId;
 /**
  * Operations on /bills/{billid}/payments
  */
@@ -52,7 +53,7 @@ module.exports = {
 		}).then(() => Sequelize.transaction(t =>
 			Flows.create(assignNewId({projectId, category: 'rent'}), {transaction: t})
 				.then(flow =>
-					BillPayment.create(fp.defaults({flowId: flow.id})(assignNewId(payment)), {transaction: t}))
+					BillPayment.create(fp.defaults({flowId: flow.id})(assignFieldId('orderNo')(assignNewId(payment))), {transaction: t}))
 		)).then(results => res.send(201, ErrorCode.ack(ErrorCode.OK, results)))
 			.catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, {error: err.message})));
 	}

@@ -67,6 +67,12 @@ module.exports = {
 		const query = req.query;
 		const projectId = req.params.projectId;
 		const houseFormat = query.houseFormat;
+		const from = query.from;
+		const to = query.to;
+
+		if (to < from) {
+			return res.send(400, ErrorCode.ack(ErrorCode.PARAMETERERROR, {error: 'please provide valid from / to timestamp.'}));
+		}
 
 		const pagingInfo = Util.PagingInfo(query.index, query.size, true);
 		const operatorConnection = {
