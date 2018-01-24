@@ -427,6 +427,15 @@ create table if not exists `cashAccount`
   PRIMARY KEY (`id`)
 ) ENGINE = InnoDB;
 
+create table if not exists `wxUser`
+(
+  `id` bigint auto_increment,
+  `openId` varchar(64) NOT NULL,
+  `platformId` varchar(64) NULL DEFAULT NULL,
+  `userId` varchar(128) NULL DEFAULT NULL,
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB;
+
 #project demo record
 INSERT INTO `zft`.`projects` (`pid`, `externalId`) VALUES ('100', '5938bb4f4d3684627bcabd7f');
 INSERT INTO `zft`.`auth` (`projectId`, `username`, `password`, createdAt, updatedAt)

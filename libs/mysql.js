@@ -1601,33 +1601,51 @@ function SequelizeDefine()
         timestamps: false,
         freezeTableName: true
     });
+
+
+    exports.WXUser = sequelizeInstance.define('wxUser', {
+        id:{
+            type: Sequelize.BIGINT.UNSIGNED,
+            primaryKey: true
+        },
+        openId: {
+            type: Sequelize.STRING(64),
+            allowNull: false
+        },
+        platformId: Sequelize.STRING(64),
+        userId: {
+            type: Sequelize.BIGINT.UNSIGNED,
+            allowNull: false
+        }
+    },{
+        timestamps: false,
+        freezeTableName: true
+    });
+
+    exports.ServiceCharge = sequelizeInstance.define('serviceCharge', {
+        projectId: {
+            type: Sequelize.BIGINT.UNSIGNED,  //项目ID
+            allowNull: false,
+            primaryKey: true
+        },
+        userShare: {
+            type: Sequelize.BOOLEAN,    //用户分摊服务费
+            allowNull: false,
+            defaultValue: 0
+        },
+        projectShare: {
+            type: Sequelize.BOOLEAN,    //项目分摊服务费
+            allowNull: false,
+            defaultValue: 50
+        }
+    },{
+        timestamps: true,
+        paranoid: true,
+        freezeTableName: true
+    });
+
+    exports.ServiceCharge.belongsTo(Projects, {as: 'serviceCharge', foreignKey: 'id'});
 }
-
-function EMDefine()
-{
-    let EM = {};
-
-}
-
-exports.GenerateFundID = function(uid)
-{
-    var now = moment();
-    var timePrefix = now.format('YYYYMMDDHHmmss');   //14位时间
-    var suffix = UUID.v4(uid+timePrefix).replace(/-/g, '');
-
-    return timePrefix + suffix;
-};
-
-//获取数据表名称
-exports.DataCollectionName = function (time)
-{
-    return "daily" + time.format("YYYYMM");
-};
-//获取计费日志表名称
-exports.PaymentTableName = function (time)
-{
-    return "paymentlog"+ time.format("YYYYMM");
-};
 
 /*
  * 数组转换成 SQL 语句 IN 适用的
