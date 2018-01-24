@@ -1623,20 +1623,38 @@ function SequelizeDefine()
     });
 
     exports.ServiceCharge = sequelizeInstance.define('serviceCharge', {
+        id:{
+            type: Sequelize.BIGINT.UNSIGNED,
+            primaryKey: true,
+            autoIncrement: true
+        },
         projectId: {
             type: Sequelize.BIGINT.UNSIGNED,  //项目ID
             allowNull: false,
-            primaryKey: true
         },
-        userShare: {
-            type: Sequelize.BOOLEAN,    //用户分摊服务费
-            allowNull: false,
-            defaultValue: 0
+        fundChannelId:{
+            type: Sequelize.BIGINT.UNSIGNED,    //渠道ID
+            allowNull: false
         },
-        projectShare: {
-            type: Sequelize.BOOLEAN,    //项目分摊服务费
-            allowNull: false,
-            defaultValue: 50
+        type:{
+            type: Sequelize.STRING(16),
+            allowNull: false
+        },
+        strategy: {
+            type: Sequelize.TEXT,   //付款方式
+            get: function(){
+                let strategy;
+                try{
+                    strategy = JSON.parse(this.getDataValue('strategy'));
+                }
+                catch(e){
+                    strategy = {};
+                }
+                return strategy;
+            },
+            set : function (value) {
+                this.setDataValue('strategy', JSON.stringify(value));
+            }
         }
     },{
         timestamps: true,

@@ -120,6 +120,10 @@ const DeviceStatus = {
     "OFFLINE": "OFFLINE"
 };
 
+const ServiceChargeType = {
+    "SHARE": 'SHARE',
+};
+
 const IsHouseFormat = (status)=>{
     return HouseFormat[status];
 };
@@ -153,5 +157,6 @@ module.exports = {
     FundChannelCategory,
     FundChannelStatus,
     DriverCommand,
-    DeviceStatus
+    DeviceStatus,
+    ServiceChargeType
 };

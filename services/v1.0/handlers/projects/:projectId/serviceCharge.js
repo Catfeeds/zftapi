@@ -24,32 +24,72 @@ module.exports = {
 
 		})();
 	},
-	post: (req, res)=>{
+	patch: (req, res)=>{
         (async()=>{
 
             const projectId = req.params.projectId;
             const body = req.body;
 
             if(!Util.ParameterCheck(body,
-                    ['userShare', 'projectShare']
+                    ['fundChannelId', 'type', 'strategy']
                 )){
                 return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED));
             }
 
-            if(body.userShare + body.projectShare !== 100){
-            	return res.send(403, ErrorCode.ack(ErrorCode.PARAMETERERROR, 'sum of share should be 100%'));
-			}
+            const checkShare = ()=>{
+            	if(body.type !== Typedef.ServiceChargeType.SHARE){
+            		return true;
+				}
+
+                const strategy = body.strategy;
+                if(!Util.ParameterCheck(strategy,
+                        ['user', 'project']
+                    )){
+                    return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED, {message: 'parameter user or project is required'}));
+                }
+
+                if(strategy.user + strategy.project !== 100){
+                    return res.send(403, ErrorCode.ack(ErrorCode.PARAMETERERROR, 'the sum percent of user + project should be equals 100%'));
+                }
+			};
+
+            checkShare();
 
             try {
-            	await MySQL.ServiceCharge.upsert(
-					{
+            	const isExists = await MySQL.FundChannels.count({
+					where:{
+						id: body.fundChannelId
+					}
+				});
+            	if(!isExists){
+            		return res.send(404, ErrorCode.ack(ErrorCode.CHANNELNOTEXISTS));
+				}
+
+            	const result = await MySQL.ServiceCharge.findOrCreate({
+                    where:{
                         projectId: projectId,
-                        userShare: body.userShare,
-                        projectShare: body.projectShare
-					},
-					{
-						projectId: projectId
-					});
+                        fundChannelId: body.fundChannelId,
+                        type: body.type,
+                    },
+                    defaults:{
+                        projectId: projectId,
+                        fundChannelId: body.fundChannelId,
+                        type: body.type,
+                        strategy: body.strategy
+                    }
+                });
+            	if(!result[1]){
+            	    await MySQL.ServiceCharge.update(
+                        {
+                            strategy: body.strategy
+                        },
+                        {
+                            where:{
+                                id: result[0].id
+                            }
+                        }
+                    );
+                }
 
                 res.send(201);
             }
