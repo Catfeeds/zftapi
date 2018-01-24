@@ -128,60 +128,55 @@ describe('Flows', function () {
 						model: BillPayment
 					},
 					{
-						include: [
-							{
-								model: Users,
-								required: true
-							},
-							{
-								include: [
-									{
-										model: Users,
-										required: true
-									},
-									{
-										attributes: [
-											'id',
-											'name'
-										],
-										include: [
-											{
-												as: 'house',
-												attributes: [
-													'id',
-													'roomNumber'
-												],
-												include: [
-													{
-														as: 'building',
-														attributes: [
-															'building',
-															'unit'
-														],
-														include: [
-															{
-																as: 'location',
-																attributes: [
-																	'name'
-																],
-																model: GeoLocation,
-																required: true
-															}
-														],
-														model: Building,
-														required: true
-													}
-												],
-												model: Houses,
-												required: true
-											}
-										],
-										model: Rooms,
-										required: true
-									}
-								],
-								model: Contracts
-							},
+						include: [{
+							include: [
+								{
+									model: Users,
+									required: true
+								},
+								{
+									attributes: [
+										'id',
+										'name'
+									],
+									include: [
+										{
+											as: 'house',
+											attributes: [
+												'id',
+												'roomNumber'
+											],
+											include: [
+												{
+													as: 'building',
+													attributes: [
+														'building',
+														'unit'
+													],
+													include: [
+														{
+															as: 'location',
+															attributes: [
+																'name'
+															],
+															model: GeoLocation,
+															required: true
+														}
+													],
+													model: Building,
+													required: true
+												}
+											],
+											model: Houses,
+											required: true
+										}
+									],
+									model: Rooms,
+									required: true
+								}
+							],
+							model: Contracts
+						},
 							{
 								as: 'operatorInfo',
 								attributes: [
@@ -251,35 +246,6 @@ describe('Flows', function () {
 											"type": "rent",
 										},
 										contract: {
-											"strategy": {
-												"freq": {
-													"rent": 3600,
-													"pattern": "6"
-												},
-												"bond": 222600
-											},
-											"expenses": [
-												{
-													"configId": 2,
-													"rent": 9000,
-													"pattern": "withRent"
-												},
-												{
-													"configId": 3,
-													"rent": 20,
-													"pattern": "1"
-												},
-												{
-													"configId": 111,
-													"rent": 100,
-													"pattern": "paidOff"
-												},
-												{
-													"configId": 112,
-													"rent": 45000,
-													"pattern": "paidOff"
-												}
-											],
 											"user": {
 												"id": 1,
 												"accountName": "f1",
@@ -379,6 +345,154 @@ describe('Flows', function () {
 					"unit": "1单元",
 				},
 				"status": "pending",
+				"user": {
+					"accountName": "f1",
+					"name": "www",
+					"id": 1,
+					"mobile": ""
+				}
+			});
+		});
+	});
+
+	it('should convert topup to flows', async function () {
+		const req = {
+			params: {
+				projectId: 100
+			},
+			query: {}
+		};
+		global.MySQL = {
+			Flows: {
+				async findAndCountAll() {
+					return {
+						count: 1,
+						rows: [{
+							topup: {
+								dataValues: {
+									"id": "6361765825690603521",
+									"orderNo": "6361765825690603520",
+									"userId": 1,
+									"flowId": 6361765825669632000,
+									"externalId": "",
+									"contractId": "6361765640847626240",
+									"projectId": 100,
+									"amount": 123,
+									"fundChannelId": 1,
+									"operator": 1,
+									"createdAt": "2018-01-24T03:06:08.000Z",
+									"updatedAt": "2018-01-24T03:06:08.000Z",
+									"deletedAt": null,
+									contract: {
+										user: {
+											"id": 1,
+											"accountName": "f1",
+											"name": "www",
+											"mobile": "",
+											"documentId": "",
+											"documentType": 1,
+											"gender": "M"
+										},
+										room: {
+											dataValues: {
+												"config": {},
+												"id": "6361497057362055170",
+												"name": "1",
+												"status": "IDLE",
+												house: {
+													dataValues: {
+														"config": {},
+														"id": "6361497057362055168",
+														"roomNumber": "2301",
+														building: {
+															dataValues: {
+																"config": {},
+																"building": "一幢",
+																"unit": "1单元",
+																"group": "某",
+																location: {
+																	dataValues: {
+																		"name": "新帝朗郡"
+																	}
+																}
+
+															}
+														}
+
+													}
+												}
+											}
+										},
+										"id": "6361497126945558528",
+										"roomId": "6361497057362055170",
+										"projectId": 100,
+										"from": 1513599462,
+										"to": 1545135462,
+										"contractNumber": "",
+										"paymentPlan": "F02",
+										"signUpTime": 1513599462,
+										"status": "ONGOING",
+										"actualEndDate": null,
+										"createdAt": "2018-01-24T03:06:08.000Z",
+										"updatedAt": "2018-01-24T03:06:08.000Z",
+										"deletedAt": null,
+										"userId": 1
+									},
+									operatorInfo: {
+										"id": 1,
+										"username": "admin100"
+									}
+								}
+							},
+							dataValues: {
+								"id": 6361765825669632000,
+								"projectId": 100,
+								"category": "topup",
+								"createdAt": "2018-01-24T03:06:08.000Z",
+								"updatedAt": "2018-01-24T03:06:08.000Z",
+								"deletedAt": null
+							},
+							billpayment: null
+						}]
+					};
+				}
+			}
+		};
+		const resSpy = spy();
+
+		await get(req, {send: resSpy}).then(() => {
+			resSpy.should.have.been.called;
+			resSpy.getCall(0).args[0].data[0].should.be.eql({
+				"amount": 123,
+				"category": "topup",
+				"contract": {
+					"id": "6361497126945558528",
+					"from": 1513599462,
+					"to": 1545135462,
+					"status": "ONGOING",
+					"actualEndDate": null
+				},
+				"externalId": "",
+				"fundChannelId": 1,
+				"id": 6361765825669632000,
+				"orderNo": "6361765825690603520",
+				"operator": {
+					"id": 1,
+					"username": "admin100"
+				},
+				"paidAt": 1516763168,
+				"projectId": 100,
+				"room": {
+					"building": "一幢",
+					"group": "某",
+					"houseId": "6361497057362055168",
+					"id": "6361497057362055170",
+					"locationName": "新帝朗郡",
+					"roomName": "1",
+					"roomNumber": "2301",
+					"status": "IDLE",
+					"unit": "1单元",
+				},
 				"user": {
 					"accountName": "f1",
 					"name": "www",

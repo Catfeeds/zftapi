@@ -1,10 +1,10 @@
 'use strict';
 
 const fp = require('lodash/fp');
+const moment = require('moment');
 const omitSingleNulls = require('../../../common').omitSingleNulls;
 const innerValues = require('../../../common').innerValues;
 const includeContracts = require('../../../common').includeContracts;
-const userConnection = require('../../../common').userConnection;
 const singleRoomTranslate = require('../../../common').singleRoomTranslate;
 
 
@@ -13,6 +13,8 @@ const omitFields = fp.omit([
 	'billpayment', 'operatorInfo', 'flowId', 'createdAt', 'updatedAt',
 	'contractId'
 ]);
+
+const formatTime = time => item => fp.defaults(item)({paidAt: moment(fp.get(time)(item)).unix()});
 
 const formatRoom = room => item => fp.defaults(item)({room: singleRoomTranslate(fp.get(room)(item))});
 
@@ -30,7 +32,7 @@ const translate = (models, pagingInfo) => {
 	const singleBillPayment = fp.pipe(innerValues, omitSingleNulls, formatRoom('bill.contract.room'),
 		formatOperator('auth'), formatUser('bill.contract.user'), formatContract('bill.contract'), omitFields);
 	const singleTopUp = fp.pipe(innerValues, omitSingleNulls, formatRoom('contract.room'),
-		formatUser('user'), formatContract('contract'), formatOperator('operatorInfo'), omitFields);
+		formatUser('contract.user'), formatContract('contract'), formatOperator('operatorInfo'), formatTime('createdAt'), omitFields);
 
 	const single = (item) => fp.pipe(omitSingleNulls, omitFields)(
 		fp.defaults(
@@ -82,7 +84,7 @@ module.exports = {
 				}, operatorConnection]
 			}, {
 				model: Topup,
-				include: [userConnection(Users), contractFilter(houseFormat, {}), fp.merge({
+				include: [contractFilter(houseFormat, {}), fp.merge({
 					as: 'operatorInfo'
 				}, operatorConnection)]
 			}],
