@@ -27,9 +27,9 @@ const formatContract = contract => item => fp.defaults(item)({
 const formatOperator = operator => item => fp.defaults(item)({operator: fp.get(operator)(item)});
 
 const translate = (models, pagingInfo) => {
-	const singleBillPayment = fp.pipe(innerValues, omitSingleNulls, formatRoom('bill.contract.dataValues.room'),
+	const singleBillPayment = fp.pipe(innerValues, omitSingleNulls, formatRoom('bill.contract.room'),
 		formatOperator('auth'), formatUser('bill.contract.user'), formatContract('bill.contract'), omitFields);
-	const singleTopUp = fp.pipe(innerValues, omitSingleNulls, formatRoom('contract.dataValues.room'),
+	const singleTopUp = fp.pipe(innerValues, omitSingleNulls, formatRoom('contract.room'),
 		formatUser('user'), formatContract('contract'), formatOperator('operatorInfo'), omitFields);
 
 	const single = (item) => fp.pipe(omitSingleNulls, omitFields)(
@@ -71,7 +71,7 @@ module.exports = {
 			model: Auth,
 			attributes: ['id', 'username']
 		};
-		Flows.findAndCountAll({
+		return Flows.findAndCountAll({
 			include: [{
 				model: BillPayment,
 				include: [{
@@ -92,8 +92,9 @@ module.exports = {
 			distinct: true,
 			offset: pagingInfo.skip,
 			limit: pagingInfo.size
-		}).then(models => translate(models, pagingInfo))
-			.then(bills => res.send(bills))
+		})
+			.then(models => translate(models, pagingInfo))
+			.then(flows => res.send(flows))
 			.catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, {error: err.message})));
 	}
 };
