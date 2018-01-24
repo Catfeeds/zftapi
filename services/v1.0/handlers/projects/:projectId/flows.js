@@ -14,34 +14,23 @@ const omitFields = fp.omit([
 	'contractId'
 ]);
 
-const formatRoom = item => fp.defaults(item)({room: singleRoomTranslate(item.bill.contract.dataValues.room)});
-const formatTopupRoom = item => fp.defaults(item)({room: singleRoomTranslate(item.contract.dataValues.room)});
+const formatRoom = room => item => fp.defaults(item)({room: singleRoomTranslate(fp.get(room)(item))});
 
-const formatUser = item => fp.defaults(item)({
-	user: fp.pick(['accountName', 'name', 'id', 'mobile'])(item.bill.contract.user)
-});
-const formatTopupUser = item => fp.defaults(item)({
-	user: fp.pick(['accountName', 'name', 'id', 'mobile'])(item.user)
-});
-const formatContract = item => fp.defaults(item)({
-	contract: fp.pick(['id', 'from', 'to', 'status', 'actualEndDate'])(item.bill.contract)
+const formatUser = user => item => fp.defaults(item)({
+	user: fp.pick(['accountName', 'name', 'id', 'mobile'])(fp.get(user)(item))
 });
 
-const formatTopupContract = item => fp.defaults(item)({
-	contract: fp.pick(['id', 'from', 'to', 'status', 'actualEndDate'])(item.contract)
+const formatContract = contract => item => fp.defaults(item)({
+	contract: fp.pick(['id', 'from', 'to', 'status', 'actualEndDate'])(fp.get(contract)(item))
 });
 
-const formatOperator = item => fp.defaults(item)({
-	operator: item.auth
-});
-
-const formatTopupOperator = item => fp.defaults(item)({
-	operator: item.operatorInfo
-});
+const formatOperator = operator => item => fp.defaults(item)({operator: fp.get(operator)(item)});
 
 const translate = (models, pagingInfo) => {
-	const singleBillPayment = fp.pipe(innerValues, omitSingleNulls, formatRoom, formatOperator, formatUser, formatContract, omitFields);
-	const singleTopUp = fp.pipe(innerValues, omitSingleNulls, formatTopupRoom, formatTopupUser, formatTopupContract, formatTopupOperator, omitFields);
+	const singleBillPayment = fp.pipe(innerValues, omitSingleNulls, formatRoom('bill.contract.dataValues.room'),
+		formatOperator('auth'), formatUser('bill.contract.user'), formatContract('bill.contract'), omitFields);
+	const singleTopUp = fp.pipe(innerValues, omitSingleNulls, formatRoom('contract.dataValues.room'),
+		formatUser('user'), formatContract('contract'), formatOperator('operatorInfo'), omitFields);
 
 	const single = (item) => fp.pipe(omitSingleNulls, omitFields)(
 		fp.defaults(
@@ -105,6 +94,6 @@ module.exports = {
 			limit: pagingInfo.size
 		}).then(models => translate(models, pagingInfo))
 			.then(bills => res.send(bills))
-		// .catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, {error: err.message})));
+			.catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, {error: err.message})));
 	}
 };

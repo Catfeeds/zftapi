@@ -109,7 +109,7 @@ module.exports = {
 						where: {userId: user.id},
 						defaults: assignNewId({userId: user.id}),
 						transaction: t
-					}).then(() => user)
+					}).then(() => user);
 				})
 				.then(dbUser => extractContract(req, dbUser))
 				.then(contract => validateContract(contract))
@@ -131,7 +131,7 @@ module.exports = {
 		const GeoLocation = MySQL.GeoLocation;
 		const CashAccount = MySQL.CashAccount;
 		const projectId = req.params.projectId;
-		const status = fp.getOr(Typedef.ContractStatus.ONGOING, 'params.status', req).toUpperCase();
+		const status = fp.getOr(Typedef.ContractStatus.ONGOING)('params.status')(req).toUpperCase();
 		const query = req.query;
 		const houseFormat = query.houseFormat;
 		const pagingInfo = Util.PagingInfo(query.index, query.size, true);
