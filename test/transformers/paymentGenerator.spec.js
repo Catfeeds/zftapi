@@ -1,10 +1,10 @@
 'use strict';
 const fp = require('lodash/fp');
-const { fn } = require('moment');
+const {fn} = require('moment');
 const finalPayment = require('../../transformers/paymentGenerator').finalPayment;
 const sinon = require('sinon');
 
-const sandbox = sinon.sandbox.create()
+const sandbox = sinon.sandbox.create();
 
 describe('Payment generator', () => {
 	before(() => {
@@ -22,17 +22,16 @@ describe('Payment generator', () => {
 			flowId: 123
 		});
 		payment.should.be.eql({
-				amount: 101,
-				billId: 321,
-				flowId: 123,
-				fundChannelId: 199,
-				id: 9999,
-				operator: 19,
-				orderNo: 9999,
-				paidAt: 2018,
-				projectId: 100,
-				status: 'approved'
-			}
-		);
+			amount: 101,
+			billId: 321,
+			flowId: 123,
+			fundChannelId: 199,
+			id: 9999,
+			operator: 19,
+			orderNo: 9999,
+			paidAt: 2018,
+			projectId: 100,
+			status: 'approved'
+		});
 	});
 });
