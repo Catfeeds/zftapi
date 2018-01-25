@@ -36,16 +36,20 @@ module.exports = {
                 return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED));
             }
 
-            const checkShare = ()=>{
-            	if(body.type !== Typedef.ServiceChargeType.SHARE){
+            const checkTopup = ()=>{
+            	if(body.type !== Typedef.ServiceChargeType.TOPUP){
             		return true;
 				}
 
                 const strategy = body.strategy;
                 if(!Util.ParameterCheck(strategy,
-                        ['user', 'project']
+                        ['user', 'project', 'fee']
                     )){
                     return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED, {message: 'parameter user or project is required'}));
+                }
+
+                if(!strategy.fee){
+                    return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED));
                 }
 
                 if(strategy.user + strategy.project !== 100){
@@ -53,7 +57,7 @@ module.exports = {
                 }
 			};
 
-            checkShare();
+            checkTopup();
 
             try {
             	const isExists = await MySQL.FundChannels.count({

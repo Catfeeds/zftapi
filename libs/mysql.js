@@ -931,13 +931,9 @@ function SequelizeDefine()
 			allowNull: false,
 			defaultValue: 0
 		},
-		paymentChannel: {
-			type: Sequelize.STRING(20),    // 支付渠道
-			allowNull: false,
-			defaultValue: 'cash',
-			validate: {
-				isIn: [['cash', 'wechat', 'alipay']]
-			}
+		fundChannelId: {
+            type: Sequelize.BIGINT.UNSIGNED,    //金额 单位：分
+            allowNull: false,
 		},
 		operator: {
 			type: Sequelize.BIGINT.UNSIGNED,    // 经办人
@@ -1662,7 +1658,47 @@ function SequelizeDefine()
         freezeTableName: true
     });
 
-    exports.ServiceCharge.belongsTo(Projects, {as: 'serviceCharge', foreignKey: 'id'});
+    // exports.ServiceCharge.belongsTo(Projects, {as: 'serviceCharge', foreignKey: 'id'});
+    exports.FundChannels.hasMany(exports.ServiceCharge, {as: 'serviceCharge', foreignKey: 'fundChannelId'})
+
+    exports.FundChannelFlow = sequelizeInstance.define('fundChannelFlow', {
+        id:{
+            type: Sequelize.BIGINT.UNSIGNED,
+            primaryKey: true,
+        },
+        category:{
+            type: Sequelize.STRING(16),
+            allowNull: false
+        },
+        orderNo:{
+            type: Sequelize.BIGINT.UNSIGNED,
+            allowNull: false
+        },
+        projectId: {
+            type: Sequelize.BIGINT.UNSIGNED,  //项目ID
+            allowNull: false,
+        },
+        fundChannelId:{
+            type: Sequelize.BIGINT.UNSIGNED,    //渠道ID
+            allowNull: false
+        },
+        from: {
+            type: Sequelize.BIGINT.UNSIGNED,    //资金来源
+            allowNull: false
+        },
+        to: {
+            type: Sequelize.BIGINT.UNSIGNED,    //资金去向
+            allowNull: false
+        },
+        amount: {
+            type: Sequelize.BIGINT,          //金额
+            allowNull: false
+        }
+    },{
+        timestamps: true,
+        paranoid: true,
+        freezeTableName: true
+    });
 }
 
 /*

@@ -121,8 +121,17 @@ const DeviceStatus = {
 };
 
 const ServiceChargeType = {
-    "SHARE": 'SHARE',
+    "TOPUP": 'TOPUP',
 };
+
+const FundChannelFlowCategory = {
+    TOPUP: 'TOPUP',
+    BILL: 'BILL',
+    CHARGETOPUP: 'CHARGETOPUP',
+    SERVICECHARGE: 'SERVICECHARGE'
+};
+
+const PlatformId = 1;
 
 const IsHouseFormat = (status)=>{
     return HouseFormat[status];
@@ -158,5 +167,7 @@ module.exports = {
     FundChannelStatus,
     DriverCommand,
     DeviceStatus,
-    ServiceChargeType
+    ServiceChargeType,
+    FundChannelFlowCategory,
+    PlatformId
 };

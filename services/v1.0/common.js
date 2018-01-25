@@ -3,6 +3,7 @@
 const _ = require('lodash');
 const fp = require('lodash/fp');
 const moment = require('moment');
+const bigDecimal = require('bigdecimal');
 
 exports.UpsertGeoLocation = (location, t)=>{
     return MySQL.GeoLocation.findOrCreate({
@@ -203,7 +204,7 @@ exports.DeviceStatus = (device)=>{
     }
 };
 
-exports.PayBills = async (bills, projectId, fundChannelId, userId, orderNo)=>{
+exports.payBills = async (serviceCharge, bills, projectId, fundChannel, userId, orderNo)=>{
     const payBills = fp.map(bill=>{
         return {
             id: exports.assignNewId().id,
@@ -211,7 +212,7 @@ exports.PayBills = async (bills, projectId, fundChannelId, userId, orderNo)=>{
             billId: bill.id,
             orderNo: orderNo ? orderNo : exports.assignNewId().id,
             flowId: exports.assignNewId().id,
-            paymentChannel: fundChannelId,
+            fundChannelId: fundChannel.id,
             amount: bill.dueAmount,
             operator: userId,
             paidAt: moment().unix(),
@@ -232,11 +233,202 @@ exports.PayBills = async (bills, projectId, fundChannelId, userId, orderNo)=>{
         await MySQL.BillPayment.bulkCreate(payBills, {transaction: t});
         await MySQL.Flows.bulkCreate(flows, {transaction: t});
 
+        await exports.logFlows(serviceCharge, orderNo, projectId, userId, fundChannel, t, Typedef.FundChannelFlowCategory.BILL);
+
         await t.commit();
-        return '';
+        return ErrorCode.ack(ErrorCode.OK);
     }
     catch(e){
         log.error(e, fundChannelId, userId, payBills, flows);
+        return ErrorCode.ack(ErrorCode.DATABASEEXEC);
+    }
+};
+
+exports.serviceCharge = (fundChannel, amount)=>{
+    //
+
+    let chargeObj = {
+        amount: amount
+    };
+
+    _.each(fundChannel.serviceCharge, serviceCharge=>{
+        switch(serviceCharge.type){
+            case Typedef.ServiceChargeType.TOPUP:
+            {
+                const CalcShare = (fee, percent)=>{
+                    if(fee && percent){
+                        if(amount === 1){
+                            return;
+                        }
+
+                        const balance = (
+                            new bigDecimal.BigDecimal(amount.toString())
+                        ).multiply(
+                            new bigDecimal.BigDecimal(fee.toString())
+                        ).divide(
+                            new bigDecimal.BigDecimal('1000')
+                        ).multiply(
+                            new bigDecimal.BigDecimal(percent.toString())
+                        ).divide(
+                            new bigDecimal.BigDecimal('100')
+                        ).intValue();
+
+                        //calculate the share percent
+                        return balance;
+                    }
+                    return 0;
+                };
+
+                if(!serviceCharge.strategy){
+                    return;
+                }
+
+                chargeObj.share = {
+                    user: CalcShare(serviceCharge.strategy.fee, serviceCharge.strategy.user),
+                    project: CalcShare(serviceCharge.strategy.fee, serviceCharge.strategy.project),
+                };
+
+                chargeObj.amountForBill = chargeObj.amount + chargeObj.share.user;
+            }
+                break;
+        }
+    });
+
+    if(fundChannel.fee){
+        chargeObj.fee = (
+            new bigDecimal.BigDecimal(amount.toString())
+        ).multiply(
+            new bigDecimal.BigDecimal(fundChannel.fee.toString())
+        ).divide(
+            new bigDecimal.BigDecimal('1000')
+        ).intValue()
+    }
+
+    return chargeObj;
+};
+
+exports.shareFlows = (serviceCharge, orderNo, projectId, userId, fundChannel)=>{
+    return _.compact([
+        serviceCharge.share && serviceCharge.share.user ? {
+            id: exports.assignNewId().id,
+            category: Typedef.FundChannelFlowCategory.CHARGETOPUP,
+            orderNo: orderNo,
+            projectId: projectId,
+            fundChannelId: fundChannel.id,
+            from: userId,
+            to: Typedef.PlatformId,
+            amount: serviceCharge.share.user
+        } : null,
+        serviceCharge.share && serviceCharge.share.project ? {
+            id: exports.assignNewId().id,
+            category: Typedef.FundChannelFlowCategory.CHARGETOPUP,
+            orderNo: orderNo,
+            projectId: projectId,
+            fundChannelId: fundChannel.id,
+            from: projectId,
+            to: Typedef.PlatformId,
+            amount: serviceCharge.share.project
+        } : null,
+    ]);
+};
+exports.platformFlows = (serviceCharge, orderNo, projectId, userId, fundChannel)=>{
+    return _.compact([
+        fundChannel.fee ? {
+            id: exports.assignNewId().id,
+            category: Typedef.FundChannelFlowCategory.SERVICECHARGE,
+            orderNo: orderNo,
+            projectId: projectId,
+            fundChannelId: fundChannel.id,
+            from: Typedef.PlatformId,
+            to: 0,
+            amount: serviceCharge.fee
+        } : null
+    ]);
+};
+exports.topupFlows = (serviceCharge, orderNo, projectId, userId, fundChannel, category)=>{
+    const getAmount = ()=>{
+        switch (category){
+            case Typedef.FundChannelFlowCategory.BILL:
+                return serviceCharge.amountForBill || serviceCharge.amount;
+                break;
+            default:
+                return serviceCharge.amount;
+                break;
+        }
+    };
+
+    return [
+        {
+            id: exports.assignNewId().id,
+            category: Typedef.FundChannelFlowCategory.TOPUP,
+            orderNo: orderNo,
+            projectId: projectId,
+            fundChannelId: fundChannel.id,
+            from: 0,
+            to: userId,
+            amount: getAmount()
+        }
+    ];
+};
+
+exports.logFlows = async(serviceCharge, orderNo, projectId, userId, fundChannel, t, category)=>{
+
+    const bulkFlows = _.compact(_.concat([]
+        , exports.topupFlows(serviceCharge, orderNo, projectId, userId, fundChannel, category)
+        , exports.shareFlows(serviceCharge, orderNo, projectId, userId, fundChannel)
+        , exports.platformFlows(serviceCharge, orderNo, projectId, userId, fundChannel)
+    ));
+
+    return await MySQL.FundChannelFlow.bulkCreate(bulkFlows, {transaction: t});
+};
+
+exports.topUp = async(fundChannel, projectId, userId, operatorId, contractId, amount)=>{
+
+    if(!fundChannel){
+        return ErrorCode.ack(ErrorCode.CHANNELNOTEXISTS);
+    }
+
+    const fundChannelId = fundChannel.id;
+    const serviceCharge = exports.serviceCharge(fundChannel, amount);
+    const assignNewId = exports.assignNewId;
+
+    log.info(fundChannel, serviceCharge, projectId, userId, contractId, amount);
+
+    const received = amount - (serviceCharge && serviceCharge.share && serviceCharge.share.user || 0);
+    try{
+        const t = await MySQL.Sequelize.transaction();
+
+        const result = await Util.PayWithOwed(userId, received, t);
+
+        if(result.code !== ErrorCode.OK){
+            throw new Error(result.code);
+        }
+
+        const flow = await MySQL.Flows.create(assignNewId({projectId, category: 'topup'}), {transaction: t});
+
+        const orderNo = assignNewId().id;
+
+        const topUp = assignNewId({
+            orderNo: orderNo,
+            flowId: flow.id,
+            userId,
+            contractId,
+            projectId,
+            amount,
+            fundChannelId,
+            operator: operatorId
+        });
+        await MySQL.Topup.create(topUp, {transaction: t});
+
+        await exports.logFlows(serviceCharge, orderNo, projectId
+            , userId, fundChannel, t, Typedef.FundChannelFlowCategory.TOPUP);
+
+        await t.commit();
+
+        return result.result;
+    }
+    catch(e){
+        log.error(e, serviceCharge, projectId, userId, contractId, amount);
         return ErrorCode.ack(ErrorCode.DATABASEEXEC);
     }
 };

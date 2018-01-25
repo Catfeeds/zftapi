@@ -9,105 +9,34 @@ const assignNewId = common.assignNewId;
  * Operations on /fundChannels/{fundChannelId}
  */
 
-async function pingppExtra(channel, userId) {
-    switch (channel.tag){
-        case 'wx':
-        case 'wx_pub': {
-            try {
-                const wxUser = await MySQL.WXUser.findOne({
-                    where: {
-                        userId: userId
-                    }
-                });
-
-                return {
-                    open_id: wxUser.openId
-                }
-            }
-            catch(e){
-                log.error(e, channel, userId);
-            }
-
-        }
-            break;
-        default:
-            return {};
-    }
-}
-
-async function Pay(projectId, fundChannel, contractId, bills, userId, amount) {
+async function Pay(serviceCharge, projectId, fundChannel, contractId, bills, userId) {
+    const orderNo = assignNewId().id;
     if(fundChannel.setting && fundChannel.setting.appid && fundChannel.setting.key){
         //online
-        const pingXX = require('pingpp')(fundChannel.setting.key);
 
-        const billIds = fp.map(bill=>{
-            return bill.id;
-        })(bills);
-
-        const orderNo = assignNewId().id;
-        const chargesObj = {
-            amount: amount,
-            order_no: orderNo,
-            channel: fundChannel.tag,
-            client_ip: "127.0.0.1",
-            subject: "subject",
-            body: "body",
-            currency: 'cny',
-            app: {
-                id: fundChannel.setting.appid
-            },
-            // extra: await pingppExtra(fundChannel.tag, userId),
-            metadata: {
-                fundChannelId: fundChannel.id,
-                orderNo: orderNo,
-                projectId: projectId,
-                contractId: contractId,
-                userId: userId,
-                billIds: billIds
-            }
+        const metadata = {
+            fundChannelId: fundChannel.id,
+            orderNo: orderNo,
+            projectId: projectId,
+            contractId: contractId,
+            userId: userId,
+            billIds: fp.map(bill=>{
+                return bill.id;
+            })(bills)
         };
-        const charge = await pingXX.charges.create(chargesObj);
 
-        return charge;
+        try {
+            const result = await Util.charge(fundChannel, serviceCharge.amountForBill, orderNo, 'subject', 'body', metadata);
+            return result;
+        }
+        catch(e){
+            log.error(e, serviceCharge, projectId, fundChannel, contractId, bills, userId);
+        }
     }
     else{
         //
-        return await common.PayBills(bills, projectId, fundChannel.id, userId);
-
-        // const payBills = fp.map(bill=>{
-        //     return {
-        //         id: assignNewId().id,
-        //         projectId: projectId,
-        //         billId: bill.id,
-        //         flowId: assignNewId().id,
-        //         paymentChannel: fundChannel.id,
-        //         amount: bill.dueAmount,
-        //         operator: userId,
-        //         paidAt: moment().unix(),
-        //     };
-        // })(bills);
-        //
-        // const flows = fp.map(bill=>{
-        //     return {
-        //         id: bill.flowId,
-        //         projectId: projectId,
-        //         category: 'rent'
-        //     };
-        // })(payBills);
-        //
-        // try{
-        //     const t = await MySQL.Sequelize.transaction();
-        //
-        //     await MySQL.BillPayment.bulkCreate(payBills, {transaction: t});
-        //     await MySQL.Flows.bulkCreate(flows, {transaction: t});
-        //
-        //     await t.commit();
-        //     return '';
-        // }
-        // catch(e){
-        //     log.error(e, fundChannel.toJSON(),contractId, userId, payBills, flows);
-        //     return ErrorCode.ack(ErrorCode.DATABASEEXEC);
-        // }
+        const result = await common.payBills(serviceCharge, bills, projectId, fundChannel, userId, orderNo);
+        return result;
     }
 }
 
@@ -143,10 +72,13 @@ module.exports = {
 
         (async()=>{
             try {
-                const fundChannel = await MySQL.ReceiveChannels.findOne({
+                const receiveChannelAttributes = ['fee', 'setting', 'share'];
+                const fundChannelAttributes = ['category', 'flow', 'name', 'tag', 'id'];
+                const result = await MySQL.ReceiveChannels.findOne({
                     where:{
                         fundChannelId: fundChannelId
                     },
+                    attributes: receiveChannelAttributes,
                     include:[
                         {
                             model: MySQL.FundChannels,
@@ -154,14 +86,23 @@ module.exports = {
                             where:{
                                 status: Typedef.FundChannelStatus.PASSED,
                                 projectId: projectId
-                            }
+                            },
+                            attributes: fundChannelAttributes,
+                            include:[
+                                {
+                                    model: MySQL.ServiceCharge,
+                                    as: 'serviceCharge'
+                                }
+                            ]
                         }
                     ]
                 });
-                if (!fundChannel) {
-                    return res.send(404, ErrorCode.ack(ErrorCode.CHANNELNOTEXISTS));
+
+                if(!result){
+                    return res.send(404, ErrorCode.ack(ErrorCode.CHANNELNOTEXISTS))
                 }
 
+                const fundChannel = _.omit( _.assign(result.toJSON(), _.pick(result.fundChannel, _.concat(fundChannelAttributes, 'serviceCharge'))), 'fundChannel' );
                 const contract = await MySQL.Contracts.findOne({
                     where: {
                         id: contractId,
@@ -189,8 +130,15 @@ module.exports = {
                     return bill.dueAmount;
                 })(contract.bills));
 
-                const result = await Pay(projectId, fundChannel, contractId, contract.bills, userId, amount);
-                res.send(result);
+                const serviceCharge = common.serviceCharge(fundChannel, amount);
+
+                const payResult = await Pay(serviceCharge, projectId, fundChannel, contractId, contract.bills, userId);
+                if( payResult.code === ErrorCode.OK ){
+                    res.send();
+                }
+                else{
+                    res.send(500, payResult);
+                }
             }
             catch(e){
                 log.error(e, body);

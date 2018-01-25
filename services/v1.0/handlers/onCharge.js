@@ -20,7 +20,7 @@ module.exports = {
             const metaData = data.metadata;
 
             if(!Util.ParameterCheck(metaData,
-                    ['fundChannelId', 'billIds', 'userId', 'orderNo', 'projectId', 'contractId']
+                    ['fundChannelId', 'userId', 'orderNo', 'projectId']
                 )){
                 return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED));
             }
@@ -31,7 +31,7 @@ module.exports = {
             const billIds = metaData.billIds;
             const userId = metaData.userId;
             const orderNo = metaData.orderNo;
-
+            const amount = data.amount;
 
             try {
                 const fundChannel = await MySQL.ReceiveChannels.findOne({
@@ -78,27 +78,22 @@ module.exports = {
                     return res.send(404, ErrorCode.ack(ErrorCode.CONTRACTNOTEXISTS));
                 }
 
-                if (contract.bills.length !== billIds.length) {
-                    return res.send(404, ErrorCode.ack(ErrorCode.BILLNOTEXISTS))
+                //
+                if(!billIds){
+                    //
+                    const result = await common.topUp(fundChannel, projectId, userId, userId, contractId, amount);
+                    if(result.code !== ErrorCode.OK){
+                        res.send(500);
+                    }
+                    else {
+                        res.send();
+                    }
                 }
-
-
-                //check payment
-				const countOfBillPaid = _.sum(fp.map(bill=>{
-					return _.sum(fp.map(payment=>{
-						return payment.orderNo === orderNo ? 1 : 0
-					})(bill.payments));
-				})(contract.bills));
-
-                if(countOfBillPaid > 0){
-                	log.warn('pingpp callback id:', body.id, ' has been paid', 'orderNo', orderNo);
-                	return res.send();
-				}
-
-				//do charge
-                await common.PayBills(contract.bills, projectId, fundChannelId, userId, orderNo);
-
-                res.send();
+                else{
+                    //
+                    await common.PayBills(contract.bills, projectId, fundChannelId, userId, orderNo);
+                    res.send();
+                }
             }
             catch(e){
             	log.error(e);
