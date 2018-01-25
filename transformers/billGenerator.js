@@ -4,6 +4,7 @@ const fp = require('lodash/fp');
 
 const scheduler = require('./billScheduler');
 const dueDateShifter = require('./dueDateShifter').dueDateShifter;
+const assignNewId = require('../services/v1.0/common').assignNewId;
 
 const expensesReduce = expenses => fp.sumBy('rent', fp.filter(e => e.pattern === 'withRent')(expenses));
 
@@ -114,7 +115,7 @@ const generate = contract => {
 
 const finalBill = (settlement) => {
 	const now = moment().unix();
-	return ({
+	return assignNewId({
 		flow: fp.getOr('receive', 'flow', settlement),
 		entityType: 'property',
 		projectId: settlement.projectId,

@@ -96,18 +96,18 @@ module.exports = {
 					});
 
 					const settlement = fp.defaults(fp.get('body.transaction')(req))({projectId, contractId});
-					const newBill = assignNewId(finalBillOf(settlement));
+					const newBill = finalBillOf(settlement);
 					const finalBillPromise = Bills.create(newBill, {transaction: t});
 					const operatorId = req.isAuthenticated() && req.user.id;
 
 					const finalFlow = assignNewId({projectId, category: 'final'});
 					const finalFlowPromise = Flows.create(finalFlow, {transaction: t});
 
-					const finalPayment = assignNewId(finalPaymentOf(fp.defaults(settlement)({
+					const finalPayment = finalPaymentOf(fp.defaults(settlement)({
 						billId: newBill.id,
 						operatorId,
 						flowId: finalFlow.id
-					})));
+					}));
 					const finalPaymentPromise = BillPayment.create(finalPayment, {transaction: t});
 
 					const operations = Typedef.OperationStatus.PAUSED === roomStatus ? [
