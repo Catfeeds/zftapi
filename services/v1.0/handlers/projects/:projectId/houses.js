@@ -489,6 +489,7 @@ async function Gethouses(params, query) {
                         const contract = room.contracts[0];
                         return {
                             id: contract.id,
+                            from: contract.from,
                             to: contract.to,
                             userId: contract.user.id,
                             name: contract.user.name,
@@ -527,12 +528,7 @@ async function Gethouses(params, query) {
                 rooms: rooms,
                 layout: house.layouts,
                 devices: getDevices(house.devices),
-                prices: fp.map(price=>{
-                    return {
-                        type: price.type,
-                        price: price.price
-                    }
-                })(house.prices)
+                prices: fp.map(fp.pick(['type', 'price']))(house.prices)
             }
 
         })(result.rows);
