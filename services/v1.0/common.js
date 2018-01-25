@@ -138,7 +138,7 @@ exports.roomLeasingStatus = (contracts, suspension = []) => {
 	const now = moment().unix();
 	const lastSuspension = fp.compact([fp.max(suspension, 'from')]);
 	// PAUSE
-	if (fp.some(suspendingRoom => (now > suspendingRoom.from && fp.isEmpty(suspendingRoom.to)))(lastSuspension)) {
+	if (fp.some(suspendingRoom => (now > suspendingRoom.from && fp.isNull(suspendingRoom.to)))(lastSuspension)) {
 		return Typedef.OperationStatus.PAUSED;
 	}
 

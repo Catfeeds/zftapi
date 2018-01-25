@@ -4,6 +4,7 @@ const {get} = require('../../services/v1.0/handlers/projects/:projectId/rooms');
 require('include-node');
 const {spy} = require('sinon');
 const moment = require('moment');
+const fp = require('lodash/fp');
 
 describe('Rooms', function () {
 	before(() => {
@@ -50,6 +51,9 @@ describe('Rooms', function () {
 						}]
 					};
 				}
+			},
+			Sequelize: {
+				literal: fp.identity
 			}
 		};
 		const resSpy = spy();
@@ -67,8 +71,7 @@ describe('Rooms', function () {
 				roomName: 'roomName',
 				status: Typedef.OperationStatus.IDLE
 			}]);
-		}
-		);
+		});
 	});
 
 	it('should calculate status base on all contracts', async function () {
@@ -113,6 +116,9 @@ describe('Rooms', function () {
 						}]
 					};
 				}
+			},
+			Sequelize: {
+				literal: fp.identity
 			}
 		};
 		const resSpy = spy();
@@ -130,10 +136,9 @@ describe('Rooms', function () {
 				roomName: 'roomName',
 				status: Typedef.OperationStatus.INUSE
 			}]);
-		}
-		);
+		});
 	});
-	it('should be `PAUSE` status if the `to` field is undefined', async function () {
+	it('should be `PAUSE` status if the `to` field is null', async function () {
 		const req = {
 			params: {
 				projectId: 100
@@ -148,7 +153,7 @@ describe('Rooms', function () {
 					return {
 						count: 1,
 						rows: [{
-							suspendingRooms: [{from: before, id: '123'}],
+							suspendingRooms: [{from: before, id: '123', to: null}],
 							contracts: [],
 							dataValues: {
 								id: 123,
@@ -175,6 +180,9 @@ describe('Rooms', function () {
 						}]
 					};
 				}
+			},
+			Sequelize: {
+				literal: fp.identity
 			}
 		};
 		const resSpy = spy();
@@ -192,8 +200,7 @@ describe('Rooms', function () {
 				roomName: 'roomName',
 				status: Typedef.OperationStatus.PAUSED
 			}]);
-		}
-		);
+		});
 	});
 	it('should be `IDLE` status if the suspension `to` field passes', async function () {
 		const req = {
@@ -238,6 +245,9 @@ describe('Rooms', function () {
 						}]
 					};
 				}
+			},
+			Sequelize: {
+				literal: fp.identity
 			}
 		};
 		const resSpy = spy();
@@ -253,10 +263,9 @@ describe('Rooms', function () {
 				unit: 'unit1',
 				roomNumber: 'roomNumber',
 				roomName: 'roomName',
-				status: Typedef.OperationStatus.PAUSED
+				status: Typedef.OperationStatus.IDLE
 			}]);
-		}
-		);
+		});
 	});
 	it('should be `IDLE` status if there is no contracts', async function () {
 		const req = {
@@ -297,6 +306,9 @@ describe('Rooms', function () {
 						}]
 					};
 				}
+			},
+			Sequelize: {
+				literal: fp.identity
 			}
 		};
 		const resSpy = spy();
@@ -314,7 +326,6 @@ describe('Rooms', function () {
 				roomName: 'roomName',
 				status: Typedef.OperationStatus.IDLE
 			}]);
-		}
-		);
+		});
 	});
 });

@@ -430,7 +430,9 @@ async function Gethouses(params, query) {
                         model: MySQL.SuspendingRooms,
                         required: false,
                         where:{
-                            to: 0
+                            to: {
+                                $eq: null
+                            }
                         },
                         attributes: ['id','from','to','memo']
                     }

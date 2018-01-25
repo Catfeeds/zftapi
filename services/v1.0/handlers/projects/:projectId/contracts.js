@@ -83,8 +83,7 @@ module.exports = {
 						to: {
 							$gte: contract.to
 						}
-					}
-					]
+					}]
 				},
 				transaction: t
 			}).then(result => {
