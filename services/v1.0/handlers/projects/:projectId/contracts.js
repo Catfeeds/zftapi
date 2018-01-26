@@ -133,6 +133,8 @@ module.exports = {
 		const status = fp.getOr(Typedef.ContractStatus.ONGOING)('params.status')(req).toUpperCase();
 		const query = req.query;
 		const houseFormat = query.houseFormat;
+		const locationId = query.locationId;
+		const locationCondition = {'$room.house.building.location.id$': {$eq: locationId}};
 		const pagingInfo = Util.PagingInfo(query.index, query.size, true);
 
 		return Contracts.findAndCountAll({
@@ -142,7 +144,7 @@ module.exports = {
 				include: [{model: CashAccount, as: 'cashAccount', attributes: ['balance']}]
 			}, houseConnection(Houses, Building, GeoLocation, Rooms)(houseFormat)],
 			distinct: true,
-			where: {projectId, status},
+			where: fp.defaults({projectId, status})(fp.isEmpty(locationId) ? {} : locationCondition),
 			offset: pagingInfo.skip,
 			limit: pagingInfo.size
 		}).then(data => translate(data, pagingInfo))

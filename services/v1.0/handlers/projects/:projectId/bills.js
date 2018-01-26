@@ -55,6 +55,8 @@ module.exports = {
 
 		const projectId = req.params.projectId;
 		const houseFormat = query.houseFormat;
+		const locationId = query.locationId;
+		const locationCondition = {'$contract.room.house.building.location.id$': {$eq: locationId}};
 
 		const paymentsFilter = (flag => {
 			if (fp.isUndefined(flag)) {
@@ -80,13 +82,13 @@ module.exports = {
 				attributes: ['id', 'amount', 'fundChannelId', 'operator', 'paidAt', 'remark', 'status']
 			}, contractFilter(houseFormat)],
 			distinct: true,
-			where: fp.defaults({
+			where: fp.defaults(fp.defaults({
 				entityType: 'property',
 				projectId,
 				startDate: {
 					$lt: moment().unix()
 				},
-			})(paymentsFilter ? {id: paymentsFilter} : {}),
+			})(fp.isEmpty(paymentsFilter) ? {} : {id: paymentsFilter}))(fp.isEmpty(locationId) ? {} : locationCondition),
 			offset: pagingInfo.skip,
 			limit: pagingInfo.size
 		}).then(models => translate(models, pagingInfo))
