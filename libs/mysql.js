@@ -1597,33 +1597,109 @@ function SequelizeDefine()
         timestamps: false,
         freezeTableName: true
     });
+
+
+    exports.WXUser = sequelizeInstance.define('wxUser', {
+        id:{
+            type: Sequelize.BIGINT.UNSIGNED,
+            primaryKey: true
+        },
+        openId: {
+            type: Sequelize.STRING(64),
+            allowNull: false
+        },
+        platformId: Sequelize.STRING(64),
+        userId: {
+            type: Sequelize.BIGINT.UNSIGNED,
+            allowNull: false
+        }
+    },{
+        timestamps: false,
+        freezeTableName: true
+    });
+
+    exports.ServiceCharge = sequelizeInstance.define('serviceCharge', {
+        id:{
+            type: Sequelize.BIGINT.UNSIGNED,
+            primaryKey: true,
+            autoIncrement: true
+        },
+        projectId: {
+            type: Sequelize.BIGINT.UNSIGNED,  //项目ID
+            allowNull: false,
+        },
+        fundChannelId:{
+            type: Sequelize.BIGINT.UNSIGNED,    //渠道ID
+            allowNull: false
+        },
+        type:{
+            type: Sequelize.STRING(16),
+            allowNull: false
+        },
+        strategy: {
+            type: Sequelize.TEXT,   //付款方式
+            get: function(){
+                let strategy;
+                try{
+                    strategy = JSON.parse(this.getDataValue('strategy'));
+                }
+                catch(e){
+                    strategy = {};
+                }
+                return strategy;
+            },
+            set : function (value) {
+                this.setDataValue('strategy', JSON.stringify(value));
+            }
+        }
+    },{
+        timestamps: true,
+        paranoid: true,
+        freezeTableName: true
+    });
+
+    // exports.ServiceCharge.belongsTo(Projects, {as: 'serviceCharge', foreignKey: 'id'});
+    exports.FundChannels.hasMany(exports.ServiceCharge, {as: 'serviceCharge', foreignKey: 'fundChannelId'})
+
+    exports.FundChannelFlows = sequelizeInstance.define('fundChannelFlows', {
+        id:{
+            type: Sequelize.BIGINT.UNSIGNED,
+            primaryKey: true,
+        },
+        category:{
+            type: Sequelize.STRING(16),
+            allowNull: false
+        },
+        orderNo:{
+            type: Sequelize.BIGINT.UNSIGNED,
+            allowNull: false
+        },
+        projectId: {
+            type: Sequelize.BIGINT.UNSIGNED,  //项目ID
+            allowNull: false,
+        },
+        fundChannelId:{
+            type: Sequelize.BIGINT.UNSIGNED,    //渠道ID
+            allowNull: false
+        },
+        from: {
+            type: Sequelize.BIGINT.UNSIGNED,    //资金来源
+            allowNull: false
+        },
+        to: {
+            type: Sequelize.BIGINT.UNSIGNED,    //资金去向
+            allowNull: false
+        },
+        amount: {
+            type: Sequelize.BIGINT,          //金额
+            allowNull: false
+        }
+    },{
+        timestamps: true,
+        paranoid: true,
+        freezeTableName: true
+    });
 }
-
-function EMDefine()
-{
-    let EM = {};
-
-}
-
-exports.GenerateFundID = function(uid)
-{
-    var now = moment();
-    var timePrefix = now.format('YYYYMMDDHHmmss');   //14位时间
-    var suffix = UUID.v4(uid+timePrefix).replace(/-/g, '');
-
-    return timePrefix + suffix;
-};
-
-//获取数据表名称
-exports.DataCollectionName = function (time)
-{
-    return "daily" + time.format("YYYYMM");
-};
-//获取计费日志表名称
-exports.PaymentTableName = function (time)
-{
-    return "paymentlog"+ time.format("YYYYMM");
-};
 
 /*
  * 数组转换成 SQL 语句 IN 适用的

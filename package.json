@@ -22,6 +22,7 @@
   "dependencies": {
     "app-root-path": "^2.0.1",
     "axios": "^0.17.1",
+    "bigdecimal": "^0.6.1",
     "biguint-format": "^1.0.0",
     "client-sessions": "^0.8.0",
     "config": "^1.28.1",

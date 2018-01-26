@@ -1,10 +1,11 @@
 'use strict';
 const fp = require('lodash/fp');
-const assignNewId = Include("/services/v1.0/common").assignNewId;
+const _ = require('lodash');
+const common = Include("/services/v1.0/common");
+const assignNewId = common.assignNewId;
 /**
  * Operations on /fundChannels/{fundChannelId}
  */
-
 
 module.exports = {
     /**
@@ -15,112 +16,92 @@ module.exports = {
      * produces: application/json
      * responses: 200, 400
      */
-    patch: (req, res, next)=>{
+    patch: (req, res)=>{
         /**
          * Get the data for response 200
          * For response `default` status 200 is used.
          */
-        const projectId = req.params.projectId;
-        const fundChannelId = req.params.fundChannelId;
+        (async()=>{
+            const projectId = req.params.projectId;
+            const fundChannelId = req.params.fundChannelId;
 
-        if(!Util.ParameterCheck(req.body,
-                ['contractId', 'amount', 'userId']
-            )){
-            return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED));
-        }
-
-        const contractId = req.body.contractId;
-        const amount = req.body.amount;
-        const userId = req.body.userId;
-
-        //todo: check if contract is available
-
-        MySQL.FundChannels.count({
-            where:{
-                id: fundChannelId
+            if(!Util.ParameterCheck(req.body,
+                    ['contractId', 'amount', 'userId']
+                )){
+                return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED));
             }
-        }).then(
-            isExists=>{
-                if(!isExists){
-                    return res.send(404, ErrorCode.ack(ErrorCode.CHANNELNOTEXISTS))
+
+            const body = req.body;
+            const contractId = req.body.contractId;
+            const amount = req.body.amount;
+            const userId = req.body.userId;
+
+            //todo: check if contract is available
+
+            const receiveChannelAttributes = ['fee', 'setting', 'share'];
+            const fundChannelAttributes = ['category', 'flow', 'name', 'tag', 'id'];
+            const result = await MySQL.ReceiveChannels.findOne({
+                where:{
+                    fundChannelId: fundChannelId
+                },
+                attributes: receiveChannelAttributes,
+                include:[
+                    {
+                        model: MySQL.FundChannels,
+                        as: 'fundChannel',
+                        where:{
+                            status: Typedef.FundChannelStatus.PASSED,
+                            projectId: projectId
+                        },
+                        attributes: fundChannelAttributes,
+                        include:[
+                            {
+                                model: MySQL.ServiceCharge,
+                                as: 'serviceCharge'
+                            }
+                        ]
+                    }
+                ]
+            });
+
+            if(!result){
+                return res.send(404, ErrorCode.ack(ErrorCode.CHANNELNOTEXISTS))
+            }
+
+            const fundChannel = _.omit( _.assign(result.toJSON(), _.pick(result.fundChannel, _.concat(fundChannelAttributes, 'serviceCharge'))), 'fundChannel' );
+            if(fundChannel.category === Typedef.FundChannelCategory.ONLINE){
+                if(!fundChannel.setting || !fundChannel.setting.appid || !fundChannel.setting.key){
+                    return res.send(501, ErrorCode.ack(ErrorCode.CHANNELPARAMLACK))
                 }
 
-                const Save = (resetLock, retry)=>{
-                    if(retry >= 20){
-                        return res.send(ErrorCode.ack(ErrorCode.RETRYLATER));
-                    }
-                    MySQL.CashAccount.findOne({
-                        where:{
-                            userId: userId
-                        }
-                    }).then(
-                        cashAccount=>{
-                            if(!cashAccount){
-                                return res.send(404, ErrorCode.ack(ErrorCode.USERNOTEXISTS));
-                            }
+                const orderNo = assignNewId().id;
+                try {
+                    const result = await Util.charge(fundChannel, amount, orderNo, 'subject', 'body', {
+                        fundChannelId: fundChannel.id,
+                        contractId: contractId,
+                        orderNo: orderNo,
+                        projectId: projectId,
+                        userId: userId,
+                    });
 
-                            //topup
-                            MySQL.Sequelize.transaction(t=>{
-                                return MySQL.CashAccount.update(
-                                    {
-										balance: MySQL.Literal(`balance+${amount}`),
-                                        locker: resetLock ? 0 : MySQL.Literal(`locker+1`)
-                                    },
-                                    {
-                                        where:{
-                                            locker: cashAccount.locker,
-                                            userId: userId
-                                        },
-                                        transaction: t
-                                    }
-								).then(result => {
-									if (!result || !result[0]) {
-										//save failed
-										throw new Error(ErrorCode.LOCKDUMPLICATE);
-									}
-								}).then(
-									() => MySQL.Flows.create(assignNewId({projectId, category: 'topup'}), {transaction: t})
-								).then(flow => {
-									return MySQL.Topup.create(assignNewId({
-										orderNo: SnowFlake.next(),
-										flowId: flow.id,
-										userId,
-										contractId,
-										projectId,
-										amount,
-										fundChannelId,
-										operator: req.user.id
-									}), {transaction: t});
-								})
-                            }).then(
-                                result=>{
-                                    res.send(200);
-                                }
-                            ).catch(
-                                err=>{
-                                    log.error(err);
-
-                                    if(err.original.errno === 1264){
-                                        return setImmediate(()=>{
-                                            Save(true, retry+1);
-                                        });
-                                    }
-                                    else if(err.message === ErrorCode.LOCKDUMPLICATE){
-                                        return setImmediate(()=>{
-                                            Save(false, retry+1);
-                                        });
-                                    }
-                                    else {
-                                        res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC));
-                                    }
-                                }
-                            );
-                        }
-                    );
-                };
-
-                Save();
+                    res.send({
+                        pingpp: result
+                    })
+                }
+                catch(e){
+                    log.error(e, body);
+                }
             }
-        );
+            else{
+                //offline channel
+                const result = await common.topUp(fundChannel, projectId, userId, req.user.id, contractId, amount);
+                res.send( result );
+            }
+        })();
+    },
+    get: (req, res)=> {
+        (async()=>{
+            //
+        })();
     }
 };

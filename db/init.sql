@@ -428,6 +428,44 @@ create table if not exists `cashAccount`
   PRIMARY KEY (`id`)
 ) ENGINE = InnoDB;
 
+create table if not exists `wxUser`
+(
+  `id` bigint auto_increment,
+  `openId` varchar(64) NOT NULL,
+  `platformId` varchar(64) NULL DEFAULT NULL,
+  `userId` varchar(128) NULL DEFAULT NULL,
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB;
+
+create table if not exists `fundChannelFlows`
+(
+  `id` bigint(20) UNSIGNED NOT NULL,
+  `category` varchar(16) NOT NULL,
+  `orderNo` bigint(20) UNSIGNED NOT NULL,
+  `projectId` bigint(20) UNSIGNED NOT NULL,
+  `fundChannelId` bigint(20) UNSIGNED NOT NULL,
+  `from` bigint(20) UNSIGNED NOT NULL,
+  `to` bigint(20) UNSIGNED NOT NULL,
+  `amount` bigint(20) NOT NULL,
+  `createdAt` datetime(0) NULL,
+  `updatedAt` datetime(0) NULL,
+  `deletedAt` datetime(0) NULL DEFAULT NULL,
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB;
+
+create table if not exists `serviceCharge`
+(
+  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `projectId` bigint(20) UNSIGNED NOT NULL,
+  `fundChannelId` bigint(20) UNSIGNED NOT NULL,
+  `type` varchar(16) NOT NULL,
+  `strategy` text NULL,
+  `createdAt` datetime(0) NULL,
+  `updatedAt` datetime(0) NULL,
+  `deletedAt` datetime(0) NULL DEFAULT NULL,
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB;
+
 #project demo record
 INSERT INTO `zft`.`projects` (`pid`, `externalId`) VALUES ('100', '5938bb4f4d3684627bcabd7f');
 INSERT INTO `zft`.`auth` (`projectId`, `username`, `password`, createdAt, updatedAt)
