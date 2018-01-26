@@ -26,7 +26,6 @@ module.exports = {
             return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED));
         }
 
-
         MySQL.HouseDevices.findAll({
             where:{
                 projectId: projectId,

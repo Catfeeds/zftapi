@@ -451,7 +451,12 @@ module.exports = {
                         , attributes: ['group', 'building', 'unit']
                     },
                     {model: MySQL.Layouts, as: 'layouts', attributes: ["id", "name","bedRoom", "livingRoom", "bathRoom", "orientation", "roomArea", "remark"]},
-                    {model: MySQL.Rooms, as: 'rooms', attributes:['config', 'name', 'people', 'type', 'roomArea', 'orientation']}
+                    {model: MySQL.Rooms, as: 'rooms', attributes:['config', 'name', 'people', 'type', 'roomArea', 'orientation']},
+                    {
+                        model: MySQL.HouseDevicePrice,
+                        as: 'prices',
+                        attributes:['type', 'price']
+                    }
                 ]
             });
             if(!houseIns){
@@ -465,6 +470,7 @@ module.exports = {
                 group: houseIns.building.group,
                 building: houseIns.building.building,
                 unit: houseIns.building.unit,
+                price: houseIns.prices,
                 roomNumber: houseIns.roomNumber,
                 currentFloor: houseIns.currentFloor,
                 totalFloor: houseIns.building.totalFloor,
