@@ -476,7 +476,7 @@ async function Gethouses(params, query) {
                             scale: device.device.channels && common.scaleDown(device.device.channels[0].scale),
                             type: device.device.type,
                             updatedAt: moment(device.device.updatedAt).unix(),
-                            status: common.DeviceStatus(device.device)
+                            status: common.deviceStatus(device.device)
                         };
                     }
                 })(devices));

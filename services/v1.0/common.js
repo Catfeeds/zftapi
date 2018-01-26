@@ -191,18 +191,22 @@ exports.includeContracts = (contractModel, userModel, houseModel, buildingModel,
 		}
 	} : contractCondition);
 
-exports.DeviceStatus = (device)=>{
-    if(!device || !device.freq || !device.updatedAt){
-        return  Typedef.DeviceStatus.OFFLINE;
-    }
-    const updatedAt = moment(device.updatedAt).unix();
-    const now = moment().unix();
-    if( updatedAt + device.freq < now ){
-        return Typedef.DeviceStatus.OFFLINE;
-    }
-    else{
-        return Typedef.DeviceStatus.ONLINE;
-    }
+exports.deviceStatus = (device)=>{
+    const runStatus = ()=>{
+        if(!device || !device.freq || !device.updatedAt){
+            return  Typedef.DriverCommand.EMC_OFFLINE;
+        }
+        const updatedAt = moment(device.updatedAt).unix();
+        const now = moment().unix();
+        if( updatedAt + device.freq < now ){
+            return Typedef.DriverCommand.EMC_OFFLINE;
+        }
+        else{
+            return Typedef.DriverCommand.EMC_ONLINE;
+        }
+    };
+
+    return _.assign(device.status || {}, {service: runStatus()});
 };
 
 exports.payBills = async (serviceCharge, bills, projectId, fundChannel, userId, orderNo)=>{

@@ -1,6 +1,7 @@
 'use strict';
 
 const _ = require('lodash');
+const fp = require('lodash/fp');
 const moment = require('moment');
 const common = Include("/services/v1.0/common");
 
@@ -195,7 +196,19 @@ module.exports = {
                     attributes: ['deviceId', "public"],
                     where:{
                         endDate: 0
-                    }
+                    },
+                    include:[
+                        {
+                            model: MySQL.Devices,
+                            as: 'device',
+                            include:[
+                                {
+                                    model: MySQL.DevicesChannels,
+                                    as: 'channels'
+                                }
+                            ]
+                        }
+                    ]
                 }
             ]
         }).then(
@@ -203,6 +216,24 @@ module.exports = {
                 if(!room){
                     return res.send(404, ErrorCode.ack(ErrorCode.REQUESTUNMATCH));
                 }
+                room = room.toJSON();
+
+                room.devices = _.compact(fp.map(device=>{
+                    if(!device || !device.device){
+                        return null;
+                    }
+                    else {
+                        return {
+                            deviceId: device.device.deviceId,
+                            public: device.public,
+                            title: device.device.name,
+                            scale: device.device.channels && common.scaleDown(device.device.channels[0].scale),
+                            type: device.device.type,
+                            updatedAt: moment(device.device.updatedAt).unix(),
+                            status: common.deviceStatus(device.device)
+                        };
+                    }
+                })(room.devices));
 
                 res.send(room);
             },

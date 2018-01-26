@@ -113,11 +113,8 @@ const DriverCommand = {
     'EMC_STATUS': 'EMC_STATUS',
     'EMC_SWITCH': 'EMC_SWITCH',
     'EMC_SYNC': 'EMC_SYNC',
-};
-
-const DeviceStatus = {
-    "ONLINE": "ONLINE",
-    "OFFLINE": "OFFLINE"
+    'EMC_ONLINE': 'EMC_ONLINE',
+    'EMC_OFFLINE': 'EMC_OFFLINE'
 };
 
 const ServiceChargeType = {
@@ -166,7 +163,6 @@ module.exports = {
     FundChannelCategory,
     FundChannelStatus,
     DriverCommand,
-    DeviceStatus,
     ServiceChargeType,
     FundChannelFlowCategory,
     PlatformId
