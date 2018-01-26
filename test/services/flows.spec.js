@@ -66,7 +66,7 @@ describe('Flows', function () {
 										include: [
 											{
 												model: Users,
-												
+												required: true
 											},
 											{
 												attributes: [
@@ -96,26 +96,26 @@ describe('Flows', function () {
 																		model: {
 																			id: 3
 																		},
-																		
+																		required: true
 																	}
 																],
 																model: Building,
-																
+																required: true
 															}
 														],
 														model: Houses,
-														
+														required: true
 													}
 												],
 												model: Rooms,
-												
+												required: true
 											}
 										],
 										model: Contracts
 									}
 								],
 								model: Bills,
-								
+								required: true
 							},
 							{
 								attributes: [
@@ -132,7 +132,7 @@ describe('Flows', function () {
 							include: [
 								{
 									model: Users,
-									
+									required: true
 								},
 								{
 									attributes: [
@@ -160,19 +160,19 @@ describe('Flows', function () {
 																'name'
 															],
 															model: GeoLocation,
-															
+															required: true
 														}
 													],
 													model: Building,
-													
+													required: true
 												}
 											],
 											model: Houses,
-											
+											required: true
 										}
 									],
 									model: Rooms,
-									
+									required: true
 								}
 							],
 							model: Contracts

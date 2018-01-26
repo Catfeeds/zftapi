@@ -22,13 +22,13 @@ describe('Bills', function () {
 			query: {}
 
 		};
-		const Users = {name: 'Users'};
-		const Rooms = {name: 'Rooms'};
-		const Houses = {name: 'Houses'};
-		const Building = {name: 'Building'};
-		const GeoLocation = {name: 'GeoLocation'};
-		const BillFlows = {name: 'BillFlows'};
-		const Contracts = {name: 'Contracts'};
+		const Users = {id: 100};
+		const Rooms = {id: 0};
+		const Houses = {id: 1};
+		const Building = {id: 2};
+		const GeoLocation = {id: 3};
+		const BillFlows = {id: 4};
+		const Contracts = {id: 5};
 		global.MySQL = {
 			Bills: {
 				async findAndCountAll() {
@@ -66,14 +66,14 @@ describe('Bills', function () {
 			}
 		};
 		const sequelizeFindSpy = stub().resolves([]);
-		const BillPayment = {id: 'BillPayment'};
-		const Users = {id: 'Users'};
-		const Rooms = {id: 'Rooms'};
-		const Houses = {id: 'Houses'};
-		const Building = {id: 'Building'};
-		const GeoLocation = {id: 'GeoLocation'};
-		const BillFlows = {id: 'BillFlows'};
-		const Contracts = {id: 'Contracts'};
+		const BillPayment = {id: 111};
+		const Users = {id: 100};
+		const Rooms = {id: 0};
+		const Houses = {id: 1};
+		const Building = {id: 2};
+		const GeoLocation = {id: 3};
+		const BillFlows = {id: 4};
+		const Contracts = {id: 5};
 		global.MySQL = {
 			Bills: {
 				findAndCountAll: sequelizeFindSpy
@@ -118,6 +118,7 @@ describe('Bills', function () {
 				'include': [
 					{
 						'model': Users,
+						'required': true
 					},
 					{
 						'attributes': [
@@ -145,18 +146,22 @@ describe('Bills', function () {
 													'name'
 												],
 												'model': GeoLocation,
+												'required': true
 											}
 										],
 										'model': Building,
+										'required': true
 									}
 								],
 								'model': Houses,
+								'required': true,
 								'where': {
 									'houseFormat': 'SOLE'
 								}
 							}
 						],
 						'model': Rooms,
+						'required': true
 					}
 				],
 				model: Contracts,

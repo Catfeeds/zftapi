@@ -155,18 +155,19 @@ exports.jsonProcess = (model) => fp.defaults(model)({
 });
 
 exports.userConnection = (userModel) => ({
-	model: userModel
+	model: userModel, required: true
 });
 exports.houseConnection = (houseModel, buildingModel, locationModel, roomModel) => (houseFormat) => {
 	const houseInclude = fp.defaults({
 			model: houseModel,
 			as: 'house',
+			required: true,
 			attributes: ['id', 'roomNumber'],
 			include: [{
-				model: buildingModel, as: 'building',
+				model: buildingModel, required: true, as: 'building',
 				attributes: ['building', 'unit'],
 				include: [{
-					model: locationModel,
+					model: locationModel, required: true,
 					as: 'location',
 					attributes: ['name']
 				}]
@@ -174,6 +175,7 @@ exports.houseConnection = (houseModel, buildingModel, locationModel, roomModel) 
 		})(fp.isEmpty(houseFormat) ? {} : {where: {houseFormat}});
 	return {
 		model: roomModel,
+		required: true,
 		attributes: ['id', 'name'],
 		include: [houseInclude]
 	};

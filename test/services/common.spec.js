@@ -1,12 +1,12 @@
 'use strict';
 const includeContracts = require('../../services/v1.0/common').includeContracts;
 
-const Users = {id: 'Users'};
-const Rooms = {id: 'Rooms'};
-const Houses = {id: 'Houses'};
-const Building = {id: 'Building'};
-const GeoLocation = {id: 'GeoLocation'};
-const Contracts = {id: 'Contracts'};
+const Users = {id: 1};
+const Rooms = {id: 2};
+const Houses = {id: 3};
+const Building = {id: 4};
+const GeoLocation = {id: 5};
+const Contracts = {id: 6};
 
 describe('Common', function () {
 	before(() => {
@@ -19,7 +19,7 @@ describe('Common', function () {
 			include: [
 				{
 					model: Users,
-					
+					required: true
 				},
 				{
 					attributes: [
@@ -47,19 +47,19 @@ describe('Common', function () {
 												'name'
 											],
 											model: GeoLocation,
-											
+											required: true
 										}
 									],
 									model: Building,
-									
+									required: true
 								}
 							],
 							model: Houses,
-							
+							required: true
 						}
 					],
 					model: Rooms,
-					
+					required: true
 				}
 			],
 			model: Contracts,
@@ -75,7 +75,7 @@ describe('Common', function () {
 			include: [
 				{
 					model: Users,
-					
+					required: true
 				},
 				{
 					attributes: [
@@ -103,19 +103,19 @@ describe('Common', function () {
 												'name'
 											],
 											model: GeoLocation,
-											
+											required: true
 										}
 									],
 									model: Building,
-									
+									required: true
 								}
 							],
 							model: Houses,
-							
+							required: true
 						}
 					],
 					model: Rooms,
-					
+					required: true
 				}
 			],
 			model: Contracts
@@ -128,7 +128,7 @@ describe('Common', function () {
 			include: [
 				{
 					model: Users,
-					
+					required: true
 				},
 				{
 					attributes: [
@@ -156,20 +156,22 @@ describe('Common', function () {
 												'name'
 											],
 											model: GeoLocation,
-											
+											required: true
 										}
 									],
 									model: Building,
-									
+									required: true
 								}
 							],
 							model: Houses,
+							required: true,
 							where: {
 								houseFormat: 'SOLE'
 							}
 						}
 					],
 					model: Rooms,
+					required: true
 				}
 			],
 			model: Contracts

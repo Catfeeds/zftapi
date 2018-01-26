@@ -85,7 +85,8 @@ module.exports = {
 				include: [{
 					model: Bills,
 					include: [contractFilter(houseFormat, {})],
-					attributes: ['id', 'type']
+					attributes: ['id', 'type'],
+					required: true
 				}, operatorConnection]
 			}, {
 				model: Topup,
