@@ -15,7 +15,7 @@ class CollectorMessageQueue{
             , config.REDIS_HOST
             , config.REDIS_PORT
             , config.REDIS_PASSWD || ''
-            );
+        );
         this.productor.bind(productorName);
 
         const consumerName = `${CONSUMBER_TOPIC}_${ENV.ENV}`;

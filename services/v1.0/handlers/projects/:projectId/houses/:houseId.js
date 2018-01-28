@@ -1,6 +1,6 @@
 'use strict';
 const fp = require('lodash/fp');
-const common = Include("/services/v1.0/common");
+const common = Include('/services/v1.0/common');
 const _ = require('lodash');
 const moment = require('moment');
 /**
@@ -35,7 +35,7 @@ async function PutEntire(projectId, id, body) {
         const nowEnabledFloors = putBody.enabledFloors;
         for (let i = 1; i < entire.entire.totalFloor; i++) {
             const compare = (v) => {
-                return v === i
+                return v === i;
             };
             const existsInOld = _.findIndex(oldEnabledFloors, compare);
             const existsInNow = _.findIndex(nowEnabledFloors, compare);
@@ -84,7 +84,7 @@ async function PutEntire(projectId, id, body) {
                 }
             ]
         });
-        removeHouses.map(house=>{ removeFloorHouseIds.push(house.id) });
+        removeHouses.map(house=>{ removeFloorHouseIds.push(house.id); });
         const enableHouses = await MySQL.Houses.findAll({
             where: {
                 projectId: projectId,
@@ -101,7 +101,7 @@ async function PutEntire(projectId, id, body) {
                 }
             ]
         });
-        enableHouses.map(house=>{ enableFloorHouseIds.push(house.id) });
+        enableHouses.map(house=>{ enableFloorHouseIds.push(house.id); });
     }
 
     //
@@ -118,7 +118,7 @@ async function PutEntire(projectId, id, body) {
 
         oldLayouts.map(layout => {
             const isExists = _.findKey(nowLayouts, (nowLayout) => {
-                return nowLayout.id === layout.id
+                return nowLayout.id === layout.id;
             });
             if (!isExists) {
                 removeFloors.push(layout.id);
@@ -160,7 +160,7 @@ async function PutEntire(projectId, id, body) {
                     },
                     transaction: t
                 }
-            )
+            );
         }
 
         const now = moment();
@@ -173,7 +173,7 @@ async function PutEntire(projectId, id, body) {
                     },
                     transaction: t
                 }
-            )
+            );
         }
         if (addLayout && addLayout.length) {
             await MySQL.Layouts.bulkCreate(addLayout, {transaction: t});
@@ -222,8 +222,8 @@ async function PutSole(projectId, id, body) {
     );
 
     if(!Util.ParameterCheck(putBody.layout,
-            ['id']
-        )){
+        ['id']
+    )){
         throw Error(ErrorCode.PARAMETERMISSED);
     }
 
@@ -319,8 +319,8 @@ async function PutShare(projectId, id, body) {
     );
 
     if(!Util.ParameterCheck(putBody.layout,
-            ['id']
-        )){
+        ['id']
+    )){
         throw Error(ErrorCode.PARAMETERMISSED);
     }
 
@@ -431,8 +431,8 @@ module.exports = {
             const projectId = params.projectId;
 
             if(!Util.ParameterCheck(query,
-                    ['houseFormat']
-                )){
+                ['houseFormat']
+            )){
                 return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED));
             }
 
@@ -446,11 +446,11 @@ module.exports = {
                     {
                         model: MySQL.Building, as: 'building'
                         , include:[{
-                        model: MySQL.GeoLocation, as: 'location'
-                    }]
+                            model: MySQL.GeoLocation, as: 'location'
+                        }]
                         , attributes: ['group', 'building', 'unit']
                     },
-                    {model: MySQL.Layouts, as: 'layouts', attributes: ["id", "name","bedRoom", "livingRoom", "bathRoom", "orientation", "roomArea", "remark"]},
+                    {model: MySQL.Layouts, as: 'layouts', attributes: ['id', 'name','bedRoom', 'livingRoom', 'bathRoom', 'orientation', 'roomArea', 'remark']},
                     {model: MySQL.Rooms, as: 'rooms', attributes:['config', 'name', 'people', 'type', 'roomArea', 'orientation']},
                     {
                         model: MySQL.HouseDevicePrice,
@@ -529,7 +529,7 @@ module.exports = {
             });
 
             const isRoomInUse = _.compact(fp.map(room=>{
-                return common.roomLeasingStatus(room.contracts) !== Typedef.OperationStatus.IDLE ? room.id : null
+                return common.roomLeasingStatus(room.contracts) !== Typedef.OperationStatus.IDLE ? room.id : null;
             })(rooms));
 
             if(isRoomInUse.length){

@@ -1,6 +1,6 @@
 'use strict';
 const fp = require('lodash/fp');
-const common = Include("/services/v1.0/common");
+const common = Include('/services/v1.0/common');
 const _ = require('lodash');
 const moment = require('moment');
 /**
@@ -61,7 +61,7 @@ module.exports = {
                     {
                         model: MySQL.Layouts
                         , as: 'layouts'
-                        , attributes: ["id", "name","bedRoom", "livingRoom", "bathRoom", "orientation", "roomArea", "remark"]},
+                        , attributes: ['id', 'name','bedRoom', 'livingRoom', 'bathRoom', 'orientation', 'roomArea', 'remark']},
                 ]
             });
             if(!building){
@@ -123,7 +123,7 @@ module.exports = {
 
                 const deleteAt = moment().unix();
 
-                const houseIds = fp.map(house=>{return house.id})(
+                const houseIds = fp.map(house=>{return house.id;})(
                     await MySQL.Houses.findAll({
                         where:{
                             buildingId: buildingId,
@@ -266,7 +266,7 @@ module.exports = {
                         updatedLayoutIds.push(layout.id);
 
                         layout.sourceId = buildingId;
-                        updateLayouts.push(layout)
+                        updateLayouts.push(layout);
                     }
                 }
                 else{

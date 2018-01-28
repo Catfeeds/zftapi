@@ -23,7 +23,7 @@ module.exports = {
             ret.push({
                 id: k,
                 name: v.name
-            })
+            });
         });
 
         res.send(ret);

@@ -2,15 +2,15 @@
 
 const _ = require('lodash');
 const fp = require('lodash/fp');
-const common = Include("/services/v1.0/common");
+const common = Include('/services/v1.0/common');
 
 /**
  * Operations on pingPP callback
  */
 module.exports = {
-	post: (req, res) => {
+    post: (req, res) => {
 
-		(async()=>{
+        (async()=>{
             const body = req.body;
             log.info(body);
 
@@ -20,8 +20,8 @@ module.exports = {
             const metaData = data.metadata;
 
             if(!Util.ParameterCheck(metaData,
-                    ['fundChannelId', 'userId', 'orderNo', 'projectId']
-                )){
+                ['fundChannelId', 'userId', 'orderNo', 'projectId']
+            )){
                 return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED));
             }
 
@@ -97,8 +97,8 @@ module.exports = {
             }
             catch(e){
             	log.error(e);
-			}
-		})();
+            }
+        })();
 
-	}
+    }
 };

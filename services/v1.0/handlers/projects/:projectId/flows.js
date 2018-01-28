@@ -9,9 +9,9 @@ const singleRoomTranslate = require('../../../common').singleRoomTranslate;
 
 
 const omitFields = fp.omit([
-	'userId', 'billId', 'bill', 'auth', 'topup',
-	'billpayment', 'operatorInfo', 'flowId', 'createdAt', 'updatedAt',
-	'contractId'
+    'userId', 'billId', 'bill', 'auth', 'topup',
+    'billpayment', 'operatorInfo', 'flowId', 'createdAt', 'updatedAt',
+    'contractId'
 ]);
 
 const formatTime = time => item => fp.defaults(item)({paidAt: moment(fp.get(time)(item)).unix()});
@@ -19,99 +19,99 @@ const formatTime = time => item => fp.defaults(item)({paidAt: moment(fp.get(time
 const formatRoom = room => item => fp.defaults(item)({room: singleRoomTranslate(fp.get(room)(item))});
 
 const formatUser = user => item => fp.defaults(item)({
-	user: fp.pick(['accountName', 'name', 'id', 'mobile'])(fp.get(user)(item))
+    user: fp.pick(['accountName', 'name', 'id', 'mobile'])(fp.get(user)(item))
 });
 
 const formatContract = contract => item => fp.defaults(item)({
-	contract: fp.pick(['id', 'from', 'to', 'status', 'actualEndDate'])(fp.get(contract)(item))
+    contract: fp.pick(['id', 'from', 'to', 'status', 'actualEndDate'])(fp.get(contract)(item))
 });
 
 const formatBillItems = billItems => item => fp.defaults(item)({
-	billItems: fp.get(billItems)(item)
+    billItems: fp.get(billItems)(item)
 });
 
 const formatOperator = operator => item => fp.defaults(item)({operator: fp.get(operator)(item)});
 
 const translate = (models, pagingInfo) => {
-	const singleBillPayment = fp.pipe(innerValues, omitSingleNulls, formatRoom('bill.contract.room'),
-		formatOperator('auth'), formatUser('bill.contract.user'), formatContract('bill.contract'), formatBillItems('bill.billItems'),
-		omitFields);
-	const singleTopUp = fp.pipe(innerValues, omitSingleNulls, formatRoom('contract.room'),
-		formatUser('contract.user'), formatContract('contract'), formatOperator('operatorInfo'), formatTime('createdAt'), omitFields);
+    const singleBillPayment = fp.pipe(innerValues, omitSingleNulls, formatRoom('bill.contract.room'),
+        formatOperator('auth'), formatUser('bill.contract.user'), formatContract('bill.contract'), formatBillItems('bill.billItems'),
+        omitFields);
+    const singleTopUp = fp.pipe(innerValues, omitSingleNulls, formatRoom('contract.room'),
+        formatUser('contract.user'), formatContract('contract'), formatOperator('operatorInfo'), formatTime('createdAt'), omitFields);
 
-	const single = (item) => fp.pipe(omitSingleNulls, omitFields)(
-		fp.defaults(
-			!fp.isNull(item.topup) ?
-				singleTopUp(item.topup) : singleBillPayment(item.billpayment))(item.dataValues));
+    const single = (item) => fp.pipe(omitSingleNulls, omitFields)(
+        fp.defaults(
+            !fp.isNull(item.topup) ?
+                singleTopUp(item.topup) : singleBillPayment(item.billpayment))(item.dataValues));
 
-	return {
-		paging: {
-			count: models.count,
-			index: pagingInfo.index,
-			size: pagingInfo.size
-		},
-		data: fp.map(single)(models.rows)
-	};
+    return {
+        paging: {
+            count: models.count,
+            index: pagingInfo.index,
+            size: pagingInfo.size
+        },
+        data: fp.map(single)(models.rows)
+    };
 };
 
 module.exports = {
-	get: async (req, res) => {
-		const BillPayment = MySQL.BillPayment;
-		const Bills = MySQL.Bills;
-		const Contracts = MySQL.Contracts;
-		const Users = MySQL.Users;
-		const Rooms = MySQL.Rooms;
-		const Houses = MySQL.Houses;
-		const Building = MySQL.Building;
-		const GeoLocation = MySQL.GeoLocation;
-		const Auth = MySQL.Auth;
-		const Flows = MySQL.Flows;
-		const Topup = MySQL.Topup;
-		const BillFlows = MySQL.BillFlows;
-		const contractFilter = includeContracts(Contracts, Users, Houses, Building, GeoLocation, Rooms);
+    get: async (req, res) => {
+        const BillPayment = MySQL.BillPayment;
+        const Bills = MySQL.Bills;
+        const Contracts = MySQL.Contracts;
+        const Users = MySQL.Users;
+        const Rooms = MySQL.Rooms;
+        const Houses = MySQL.Houses;
+        const Building = MySQL.Building;
+        const GeoLocation = MySQL.GeoLocation;
+        const Auth = MySQL.Auth;
+        const Flows = MySQL.Flows;
+        const Topup = MySQL.Topup;
+        const BillFlows = MySQL.BillFlows;
+        const contractFilter = includeContracts(Contracts, Users, Houses, Building, GeoLocation, Rooms);
 
-		const query = req.query;
-		const projectId = req.params.projectId;
-		const houseFormat = query.houseFormat;
-		const from = query.from;
-		const to = query.to;
+        const query = req.query;
+        const projectId = req.params.projectId;
+        const houseFormat = query.houseFormat;
+        const from = query.from;
+        const to = query.to;
 
-		if (to < from) {
-			return res.send(400, ErrorCode.ack(ErrorCode.PARAMETERERROR, {error: 'please provide valid from / to timestamp.'}));
-		}
+        if (to < from) {
+            return res.send(400, ErrorCode.ack(ErrorCode.PARAMETERERROR, {error: 'please provide valid from / to timestamp.'}));
+        }
 
-		const pagingInfo = Util.PagingInfo(query.index, query.size, true);
-		const operatorConnection = {
-			model: Auth,
-			attributes: ['id', 'username']
-		};
-		return Flows.findAndCountAll({
-			include: [{
-				model: BillPayment,
-				include: [{
-					model: Bills,
-					include: [contractFilter(houseFormat, {}), {
-						model: BillFlows,
-						as: 'billItems',
-						attributes: ['configId', 'amount', 'createdAt', 'id']
-					}],
-					attributes: ['id', 'type'],
-				}, operatorConnection]
-			}, {
-				model: Topup,
-				include: [contractFilter(houseFormat, {}), fp.merge({
-					as: 'operatorInfo'
-				}, operatorConnection)]
-			}],
-			where: {
-				projectId
-			},
-			distinct: true,
-			offset: pagingInfo.skip,
-			limit: pagingInfo.size
-		})
-			.then(models => translate(models, pagingInfo))
-			.then(flows => res.send(flows))
-			.catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, {error: err.message})));
-	}
+        const pagingInfo = Util.PagingInfo(query.index, query.size, true);
+        const operatorConnection = {
+            model: Auth,
+            attributes: ['id', 'username']
+        };
+        return Flows.findAndCountAll({
+            include: [{
+                model: BillPayment,
+                include: [{
+                    model: Bills,
+                    include: [contractFilter(houseFormat, {}), {
+                        model: BillFlows,
+                        as: 'billItems',
+                        attributes: ['configId', 'amount', 'createdAt', 'id']
+                    }],
+                    attributes: ['id', 'type'],
+                }, operatorConnection]
+            }, {
+                model: Topup,
+                include: [contractFilter(houseFormat, {}), fp.merge({
+                    as: 'operatorInfo'
+                }, operatorConnection)]
+            }],
+            where: {
+                projectId
+            },
+            distinct: true,
+            offset: pagingInfo.skip,
+            limit: pagingInfo.size
+        })
+            .then(models => translate(models, pagingInfo))
+            .then(flows => res.send(flows))
+            .catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, {error: err.message})));
+    }
 };

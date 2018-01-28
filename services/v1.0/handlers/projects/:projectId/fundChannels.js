@@ -23,8 +23,8 @@ module.exports = {
         const query = req.query;
 
         if(!Util.ParameterCheck(query,
-                ['flow', 'category']
-            )){
+            ['flow', 'category']
+        )){
             return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED));
         }
 
@@ -33,10 +33,10 @@ module.exports = {
         }
 
         const where = _.assignIn({
-                projectId: projectId,
-                flow: query.flow
-            },
-            query.category === Typedef.FundChannelCategory.ALL ? {} : {category: query.category}
+            projectId: projectId,
+            flow: query.flow
+        },
+        query.category === Typedef.FundChannelCategory.ALL ? {} : {category: query.category}
         );
 
         MySQL.FundChannels.findAll({

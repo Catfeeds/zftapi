@@ -2,5 +2,5 @@
 const auth = require('../../../auth/auth');
 
 module.exports = {
-	post: auth.authenticate
+    post: auth.authenticate
 };

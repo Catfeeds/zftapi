@@ -14,7 +14,7 @@ module.exports = {
          */
         const body = req.body;
         if(!Util.ParameterCheck(body, ['roomId', 'mode']
-            )){
+        )){
             return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED));
         }
 

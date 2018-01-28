@@ -13,7 +13,7 @@ module.exports = {
          */
         const body = req.body;
         if(!Util.ParameterCheck(body, ['deviceId']
-            )){
+        )){
             return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED));
         }
 
@@ -73,7 +73,7 @@ module.exports = {
                             _this._acked = true;
                             Message.Collector.unRegister(_this);
                             res.send(502, ErrorCode.ack(ErrorCode.DEVICETIMEOUT));
-                        }, 1000 * sec)
+                        }, 1000 * sec);
                     }
                 }
 

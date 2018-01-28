@@ -16,15 +16,15 @@ function BuildDivisionTree(divisions, inDivision)
         //     };
         // }
         // else{
-            let divisionInfo = {
-                districtCode: divisionId,
-                name: division.title
-            };
-            if(inDivision[divisionId]){
-                divisionInfo.communities = inDivision[divisionId];
-            }
-            // tree[parentDivision].districts[divisionId] = divisionInfo;
-            tree[divisionId] = divisionInfo;
+        let divisionInfo = {
+            districtCode: divisionId,
+            name: division.title
+        };
+        if(inDivision[divisionId]){
+            divisionInfo.communities = inDivision[divisionId];
+        }
+        // tree[parentDivision].districts[divisionId] = divisionInfo;
+        tree[divisionId] = divisionInfo;
         // }
     });
 
@@ -35,15 +35,15 @@ function BuildDivisionTree(divisions, inDivision)
  * Operations on /communities/:communityId
  */
 module.exports = {
-	get: function getCommunity(req, res, next) {
+    get: function getCommunity(req, res, next) {
 
         (async()=>{
             const param = req.params;
             const query = req.query;
 
             if(!Util.ParameterCheck(query,
-                    ['houseFormat']
-                )){
+                ['houseFormat']
+            )){
                 return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED));
             }
             const houseFormat = query.houseFormat;
@@ -68,7 +68,7 @@ module.exports = {
                     inner join buildings as bu on h.buildingId=bu.id
                     inner join location as l on bu.locationId=l.id
                      where h.houseFormat=:houseFormat and h.projectId=:projectId 
-                     ${districtsCode ? ` and l.divisionId LIKE '${districtsCode}%' ` : ""}
+                     ${districtsCode ? ` and l.divisionId LIKE '${districtsCode}%' ` : ''}
                      `;
                 const locations = await MySQL.Exec(sql, replacements);
 

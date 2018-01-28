@@ -1,14 +1,14 @@
-    'use strict';
+'use strict';
 /**
  * Operations on /houses
  */
 const fp = require('lodash/fp');
 const _ = require('lodash');
 const moment = require('moment');
-const common = Include("/services/v1.0/common");
+const common = Include('/services/v1.0/common');
 
 module.exports = {
-	/**
+    /**
 	 * summary: search houses
 	 * description: pass hid or query parameter to get house list
 
@@ -16,8 +16,8 @@ module.exports = {
 	 * produces: application/json
 	 * responses: 200, 400
 	 */
-	get: (req, res, next)=>{
-		/**
+    get: (req, res, next)=>{
+        /**
 		 * mode=FREE
 		 */
         (async()=>{
@@ -25,8 +25,8 @@ module.exports = {
             const query = req.query;
 
             if(!Util.ParameterCheck(query,
-                    ['mode']
-                )){
+                ['mode']
+            )){
                 return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED));
             }
             const mode = query.mode;
@@ -78,7 +78,7 @@ module.exports = {
                             return {
                                 deviceId: device.deviceId,
                                 title: device.name,
-                            }
+                            };
                         })(result.rows)
                     }
                 );
@@ -120,5 +120,5 @@ module.exports = {
         //         res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC));
         //     }
         // );
-	}
+    }
 };

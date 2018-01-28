@@ -1,7 +1,7 @@
 'use strict';
 const fp = require('lodash/fp');
 const _ = require('lodash');
-const common = Include("/services/v1.0/common");
+const common = Include('/services/v1.0/common');
 const assignNewId = common.assignNewId;
 /**
  * Operations on /fundChannels/{fundChannelId}
@@ -26,8 +26,8 @@ module.exports = {
             const fundChannelId = req.params.fundChannelId;
 
             if(!Util.ParameterCheck(req.body,
-                    ['contractId', 'amount', 'userId']
-                )){
+                ['contractId', 'amount', 'userId']
+            )){
                 return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED));
             }
 
@@ -65,13 +65,13 @@ module.exports = {
             });
 
             if(!result){
-                return res.send(404, ErrorCode.ack(ErrorCode.CHANNELNOTEXISTS))
+                return res.send(404, ErrorCode.ack(ErrorCode.CHANNELNOTEXISTS));
             }
 
             const fundChannel = _.omit( _.assign(result.toJSON(), _.pick(result.fundChannel, _.concat(fundChannelAttributes, 'serviceCharge'))), 'fundChannel' );
             if(fundChannel.category === Typedef.FundChannelCategory.ONLINE){
                 if(!fundChannel.setting || !fundChannel.setting.appid || !fundChannel.setting.key){
-                    return res.send(501, ErrorCode.ack(ErrorCode.CHANNELPARAMLACK))
+                    return res.send(501, ErrorCode.ack(ErrorCode.CHANNELPARAMLACK));
                 }
 
                 const orderNo = assignNewId().id;
@@ -86,7 +86,7 @@ module.exports = {
 
                     res.send({
                         pingpp: result
-                    })
+                    });
                 }
                 catch(e){
                     log.error(e, body);

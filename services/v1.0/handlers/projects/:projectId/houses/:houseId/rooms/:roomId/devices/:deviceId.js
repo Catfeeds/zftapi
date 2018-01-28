@@ -5,7 +5,7 @@
 const fp = require('lodash/fp');
 const _ = require('lodash');
 const moment = require('moment');
-const common = Include("/services/v1.0/common");
+const common = Include('/services/v1.0/common');
 
 module.exports = {
     delete: (req, res)=>{
@@ -53,7 +53,7 @@ module.exports = {
         }).then(
             houseDevices=>{
                 const index = _.findIndex(houseDevices, (houseDevice)=>{
-                    return houseDevice.deviceId === deviceId
+                    return houseDevice.deviceId === deviceId;
                 });
                 if (index === -1) {
                     //create

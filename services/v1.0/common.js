@@ -49,8 +49,8 @@ exports.QueryEntire = (projectId, query, include, attributes)=>{
                 {
                     model: MySQL.Building, as: 'building'
                     , include:[{
-                    model: MySQL.GeoLocation, as: 'location'
-                }]
+                        model: MySQL.GeoLocation, as: 'location'
+                    }]
                 },
                 {model: MySQL.Layouts, as: 'layouts'},
                 {
@@ -110,84 +110,84 @@ exports.assignFieldId = field => item => fp.defaults({[field]: SnowFlake.next()}
 exports.assignNewId = item => exports.assignFieldId('id')(item);
 
 exports.scaleUp = (v) => {
-	return v * 10000;
+    return v * 10000;
 };
 exports.scaleDown = (v) => {
-	return v / 10000;
+    return v / 10000;
 };
 
 exports.singleRoomTranslate = model => {
-	const room = model.dataValues;
-	const status = room.status;
-	const house = room.house.dataValues;
-	const building = house.building.dataValues;
-	const location = building.location.dataValues;
-	return {
-		id: room.id,
-		houseId: house.id,
-		locationName: location.name,
-		group: building.group,
-		building: building.building,
-		unit: building.unit,
-		roomNumber: house.roomNumber,
-		roomName: room.name,
-		status
-	};
+    const room = model.dataValues;
+    const status = room.status;
+    const house = room.house.dataValues;
+    const building = house.building.dataValues;
+    const location = building.location.dataValues;
+    return {
+        id: room.id,
+        houseId: house.id,
+        locationName: location.name,
+        group: building.group,
+        building: building.building,
+        unit: building.unit,
+        roomNumber: house.roomNumber,
+        roomName: room.name,
+        status
+    };
 };
 
 exports.roomLeasingStatus = (contracts, suspension = []) => {
-	const now = moment().unix();
-	const lastSuspension = fp.compact([fp.max(suspension, 'from')]);
-	// PAUSE
-	if (fp.some(suspendingRoom => (now > suspendingRoom.from && fp.isNull(suspendingRoom.to)))(lastSuspension)) {
-		return Typedef.OperationStatus.PAUSED;
-	}
+    const now = moment().unix();
+    const lastSuspension = fp.compact([fp.max(suspension, 'from')]);
+    // PAUSE
+    if (fp.some(suspendingRoom => (now > suspendingRoom.from && fp.isNull(suspendingRoom.to)))(lastSuspension)) {
+        return Typedef.OperationStatus.PAUSED;
+    }
 
-	const simplified = fp.map(fp.pick(['from', 'to', 'id']))(contracts);
-	const compactedContracts = fp.filter(c => !fp.isUndefined(c.from))(fp.concat(simplified, lastSuspension));
-	return fp.some(contract => (now > contract.from && contract.to > now))(compactedContracts) ?
-		Typedef.OperationStatus.INUSE : Typedef.OperationStatus.IDLE;
+    const simplified = fp.map(fp.pick(['from', 'to', 'id']))(contracts);
+    const compactedContracts = fp.filter(c => !fp.isUndefined(c.from))(fp.concat(simplified, lastSuspension));
+    return fp.some(contract => (now > contract.from && contract.to > now))(compactedContracts) ?
+        Typedef.OperationStatus.INUSE : Typedef.OperationStatus.IDLE;
 };
 
 exports.jsonProcess = (model) => fp.defaults(model)({
-	expenses: model.expenses ? JSON.parse(model.expenses) : undefined,
-	strategy: model.strategy ? JSON.parse(model.strategy) : undefined
+    expenses: model.expenses ? JSON.parse(model.expenses) : undefined,
+    strategy: model.strategy ? JSON.parse(model.strategy) : undefined
 });
 
 exports.userConnection = (userModel) => ({
-	model: userModel
+    model: userModel
 });
 exports.houseConnection = (houseModel, buildingModel, locationModel, roomModel) => (houseFormat) => {
-	const houseInclude = fp.defaults({
-			model: houseModel,
-			as: 'house',
-			attributes: ['id', 'roomNumber'],
-			include: [{
-				model: buildingModel, as: 'building',
-				attributes: ['building', 'unit'],
-				include: [{
-					model: locationModel,
-					as: 'location',
-					attributes: ['name']
-				}]
-			}]
-		})(fp.isEmpty(houseFormat) ? {} : {where: {houseFormat}});
-	return {
-		model: roomModel,
-		attributes: ['id', 'name'],
-		include: [houseInclude]
-	};
+    const houseInclude = fp.defaults({
+        model: houseModel,
+        as: 'house',
+        attributes: ['id', 'roomNumber'],
+        include: [{
+            model: buildingModel, as: 'building',
+            attributes: ['building', 'unit'],
+            include: [{
+                model: locationModel,
+                as: 'location',
+                attributes: ['name']
+            }]
+        }]
+    })(fp.isEmpty(houseFormat) ? {} : {where: {houseFormat}});
+    return {
+        model: roomModel,
+        attributes: ['id', 'name'],
+        include: [houseInclude]
+    };
 };
 
 exports.includeContracts = (contractModel, userModel, houseModel, buildingModel, locationModel, roomModel) =>
-	(houseFormat, contractCondition) => fp.defaults({
-		include: [exports.userConnection(userModel), exports.houseConnection(houseModel, buildingModel, locationModel, roomModel)(houseFormat)],
-		model: contractModel
-	})(fp.isUndefined(contractCondition) ? {
-		where: {
-			status: Typedef.ContractStatus.ONGOING
-		}
-	} : contractCondition);
+    (houseFormat, contractCondition) => fp.defaults({
+        include: [exports.userConnection(userModel), exports.houseConnection(houseModel, buildingModel, locationModel, roomModel)(houseFormat)],
+        model: contractModel
+    })(fp.isUndefined(contractCondition) ? {
+        where: {
+            status: Typedef.ContractStatus.ONGOING
+        }
+    } : contractCondition);
 
 exports.deviceStatus = (device)=>{
     const runStatus = ()=>{
@@ -256,7 +256,7 @@ exports.serviceCharge = (fundChannel, amount)=>{
 
     _.each(fundChannel.serviceCharge, serviceCharge=>{
         switch(serviceCharge.type){
-            case Typedef.ServiceChargeType.TOPUP:
+        case Typedef.ServiceChargeType.TOPUP:
             {
                 const CalcShare = (fee, percent)=>{
                     if(fee && percent){
@@ -293,7 +293,7 @@ exports.serviceCharge = (fundChannel, amount)=>{
 
                 chargeObj.amountForBill = chargeObj.amount + chargeObj.share.user;
             }
-                break;
+            break;
         }
     });
 
@@ -304,7 +304,7 @@ exports.serviceCharge = (fundChannel, amount)=>{
             new bigDecimal.BigDecimal(fundChannel.fee.toString())
         ).divide(
             new bigDecimal.BigDecimal('1000')
-        ).intValue()
+        ).intValue();
     }
 
     return chargeObj;
@@ -351,12 +351,12 @@ exports.platformFlows = (serviceCharge, orderNo, projectId, userId, fundChannel)
 exports.topupFlows = (serviceCharge, orderNo, projectId, userId, fundChannel, category)=>{
     const getAmount = ()=>{
         switch (category){
-            case Typedef.FundChannelFlowCategory.BILL:
-                return serviceCharge.amountForBill || serviceCharge.amount;
-                break;
-            default:
-                return serviceCharge.amount;
-                break;
+        case Typedef.FundChannelFlowCategory.BILL:
+            return serviceCharge.amountForBill || serviceCharge.amount;
+            break;
+        default:
+            return serviceCharge.amount;
+            break;
         }
     };
 

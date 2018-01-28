@@ -39,6 +39,6 @@ exports.run = ()=>{
             catch(e){
                 log.error('message loader error', subModulePath, e);
             }
-        })
+        });
     }
 };

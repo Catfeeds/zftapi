@@ -5,23 +5,23 @@
 const fp = require('lodash/fp');
 const _ = require('lodash');
 const moment = require('moment');
-const common = Include("/services/v1.0/common");
+const common = Include('/services/v1.0/common');
 
 const translate = (houses) => {
-	return fp.map(house => {
-		return house;
-	})(houses);
+    return fp.map(house => {
+        return house;
+    })(houses);
 };
 
 function EntireCheck(body) {
     return Util.ParameterCheck(body,
-            ['location', 'enabledFloors', 'houseCountOnFloor', 'totalFloor']
-        );
+        ['location', 'enabledFloors', 'houseCountOnFloor', 'totalFloor']
+    );
 }
 function SoleShareCheck(body) {
     return Util.ParameterCheck(body,
-            ['location', 'roomNumber', 'currentFloor', 'totalFloor']
-        )
+        ['location', 'roomNumber', 'currentFloor', 'totalFloor']
+    )
     && (_.isObject(body.layout) && !_.isArray(body.layout));
 }
 
@@ -163,7 +163,7 @@ async function SaveSole(t, params, body) {
             house: house,
             layout: layout,
             room: room
-        }
+        };
     };
 
     try{
@@ -251,7 +251,7 @@ async function SaveShare(t, params, body) {
             house: house,
             layout: layout,
             rooms: rooms
-        }
+        };
     };
 
     try{
@@ -307,7 +307,7 @@ async function Gethouses(params, query) {
                             {'id': {$in: sourceIds}},
                             {'$rooms.id$': {$in: sourceIds}},
                         ]
-                    }
+                    };
                 }
                 else if (query.device === 'FREE') {
                     return {
@@ -315,7 +315,7 @@ async function Gethouses(params, query) {
                             {'id': {$notIn: sourceIds}},
                             {'$rooms.id$': {$notIn: sourceIds}},
                         ]
-                    }
+                    };
                 }
                 else{
                     return {};
@@ -353,21 +353,21 @@ async function Gethouses(params, query) {
     const pagingInfo = Util.PagingInfo(query.index, query.size, true);
     try {
         const where = _.assignIn({
-                status:{$ne: Typedef.HouseStatus.DELETED}
-            },
-            query.buildingId ? {'$building.id$': query.buildingId} : {},
-            divisionLocation() || {},
-            query.houseFormat ? {houseFormat: query.houseFormat} : {},
+            status:{$ne: Typedef.HouseStatus.DELETED}
+        },
+        query.buildingId ? {'$building.id$': query.buildingId} : {},
+        divisionLocation() || {},
+        query.houseFormat ? {houseFormat: query.houseFormat} : {},
             // query.roomStatus ? {'$rooms.status$': query.status }: {},
-            query.layoutId ? {'layoutId': query.layoutId}: {},
-            query.floor ? {'currentFloor': query.floor}: {},
-            query.q ? {$or: [
-                {'$building.location.name$': {$regexp: query.q}},
-                {roomNumber: {$regexp: query.q}},
-                {code: {$regexp: query.q}},
-            ]} : {},
-            query.bedRoom ? {'$layouts.bedRoom$': query.bedRoom} : {},
-            query.device ? await deviceFilter() : {},
+        query.layoutId ? {'layoutId': query.layoutId}: {},
+        query.floor ? {'currentFloor': query.floor}: {},
+        query.q ? {$or: [
+            {'$building.location.name$': {$regexp: query.q}},
+            {roomNumber: {$regexp: query.q}},
+            {code: {$regexp: query.q}},
+        ]} : {},
+        query.bedRoom ? {'$layouts.bedRoom$': query.bedRoom} : {},
+        query.device ? await deviceFilter() : {},
         );
 
         const getIncludeHouseDevices =(isPublic)=>{
@@ -375,7 +375,7 @@ async function Gethouses(params, query) {
                 model: MySQL.HouseDevices,
                 as: 'devices',
                 required: false,
-                attributes: ['deviceId', "public"],
+                attributes: ['deviceId', 'public'],
                 where:{
                     endDate: 0,
                     public: isPublic
@@ -398,14 +398,14 @@ async function Gethouses(params, query) {
             {
                 model: MySQL.Building, as: 'building'
                 , include:[{
-                model: MySQL.GeoLocation, as: 'location',
-            }]
+                    model: MySQL.GeoLocation, as: 'location',
+                }]
                 , attributes: ['group', 'building', 'unit'],
             },
             {
                 model: MySQL.Layouts,
                 as: 'layouts',
-                attributes: ["name", "bedRoom", "livingRoom", "bathRoom", "orientation", "roomArea", "remark"],
+                attributes: ['name', 'bedRoom', 'livingRoom', 'bathRoom', 'orientation', 'roomArea', 'remark'],
             },
             {
                 model: MySQL.Rooms,
@@ -496,7 +496,7 @@ async function Gethouses(params, query) {
                             userId: contract.user.id,
                             name: contract.user.name,
                             rent: _.get(contract, 'strategy.freq.rent')
-                        }
+                        };
                     }
                 };
                 const getSuspending = ()=>{
@@ -514,7 +514,7 @@ async function Gethouses(params, query) {
                     , suspending: getSuspending()
                     , devices: devices
                     , status: common.roomLeasingStatus(room.contracts, room.suspendingRooms)}
-                    );
+                );
 
             })(house.rooms);
 
@@ -531,7 +531,7 @@ async function Gethouses(params, query) {
                 layout: house.layouts,
                 devices: getDevices(house.devices),
                 prices: fp.map(fp.pick(['type', 'price']))(house.prices)
-            }
+            };
 
         })(result.rows);
 
@@ -551,7 +551,7 @@ async function Gethouses(params, query) {
 }
 
 module.exports = {
-	/**
+    /**
 	 * summary: search houses
 	 * description: pass hid or query parameter to get house list
 
@@ -559,8 +559,8 @@ module.exports = {
 	 * produces: application/json
 	 * responses: 200, 400
 	 */
-	get: (req, res, next)=>{
-		/**
+    get: (req, res, next)=>{
+        /**
 		 * Get the data for response 200
 		 * For response `default` status 200 is used.
 		 */
@@ -569,8 +569,8 @@ module.exports = {
             const params = req.params;
 
             if(!Util.ParameterCheck(query,
-                    ['houseFormat']
-                )){
+                ['houseFormat']
+            )){
                 return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED, {error: 'missing query params houseFormat'}));
             }
 
@@ -583,8 +583,8 @@ module.exports = {
                 res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC));
             }
         })();
-	},
-	/**
+    },
+    /**
 	 * summary: save house
 	 * description: save house information
 
@@ -592,8 +592,8 @@ module.exports = {
 	 * produces: application/json
 	 * responses: 200, 400
 	 */
-	post: (req, res)=>{
-		/**
+    post: (req, res)=>{
+        /**
 		 * Get the data for response 200
 		 * For response `default` status 200 is used.
 		 */
@@ -601,8 +601,8 @@ module.exports = {
             const params = req.params;
             const body = req.body;
             if(!Util.ParameterCheck(body,
-                    ['houseFormat']
-                )){
+                ['houseFormat']
+            )){
                 return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED, {error: 'missing query params houseFormat'}));
             }
 
@@ -612,13 +612,13 @@ module.exports = {
 
             let formatPassed = false;
             switch(body.houseFormat){
-                case Typedef.HouseFormat.ENTIRE:
-                    formatPassed = EntireCheck(body);
-                    break;
-                case Typedef.HouseFormat.SOLE:
-                case Typedef.HouseFormat.SHARE:
-                    formatPassed = SoleShareCheck(body);
-                    break;
+            case Typedef.HouseFormat.ENTIRE:
+                formatPassed = EntireCheck(body);
+                break;
+            case Typedef.HouseFormat.SOLE:
+            case Typedef.HouseFormat.SHARE:
+                formatPassed = SoleShareCheck(body);
+                break;
             }
             if(!formatPassed){
                 return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED, {error: 'houseFormat check failed', houseFormat: body.houseFormat}));
@@ -688,15 +688,15 @@ module.exports = {
 
                 let ack;
                 switch(houseFormat){
-                    case Typedef.HouseFormat.ENTIRE:
-                        ack = await SaveEntire(t, params, body);
-                        break;
-                    case Typedef.HouseFormat.SOLE:
-                        ack = await SaveSole(t, params, body);
-                        break;
-                    case Typedef.HouseFormat.SHARE:
-                        ack = await SaveShare(t, params, body);
-                        break;
+                case Typedef.HouseFormat.ENTIRE:
+                    ack = await SaveEntire(t, params, body);
+                    break;
+                case Typedef.HouseFormat.SOLE:
+                    ack = await SaveSole(t, params, body);
+                    break;
+                case Typedef.HouseFormat.SHARE:
+                    ack = await SaveShare(t, params, body);
+                    break;
                 }
 
                 await t.commit();
@@ -708,17 +708,17 @@ module.exports = {
             }
         })();
 
-		// if(!promise){
-		// 	return res.send(500, ErrorCode.ack(ErrorCode.REQUESTUNMATCH));
-		// }
+        // if(!promise){
+        // 	return res.send(500, ErrorCode.ack(ErrorCode.REQUESTUNMATCH));
+        // }
         //
-		// promise.then(
-		// 	resolve=>{
-		// 		res.send(resolve);
-		// 	},
-		// 	err=>{
-		// 		res.send(422, err)
-		// 	}
-		// );
+        // promise.then(
+        // 	resolve=>{
+        // 		res.send(resolve);
+        // 	},
+        // 	err=>{
+        // 		res.send(422, err)
+        // 	}
+        // );
     }
 };

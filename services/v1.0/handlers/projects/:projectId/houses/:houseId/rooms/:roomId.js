@@ -3,7 +3,7 @@
 const _ = require('lodash');
 const fp = require('lodash/fp');
 const moment = require('moment');
-const common = Include("/services/v1.0/common");
+const common = Include('/services/v1.0/common');
 
 /**
  * Operations on /rooms/{hid}
@@ -148,7 +148,7 @@ module.exports = {
                             roomId: roomId,
                             from: patchBody.pauseTime,
                             to: 0
-                        })
+                        });
 
                     }
                 }
@@ -193,7 +193,7 @@ module.exports = {
                     model: MySQL.HouseDevices,
                     as: 'devices',
                     required: false,
-                    attributes: ['deviceId', "public"],
+                    attributes: ['deviceId', 'public'],
                     where:{
                         endDate: 0
                     },

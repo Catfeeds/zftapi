@@ -20,8 +20,8 @@ module.exports = {
          */
         const param = req.query;
         if(!Util.ParameterCheck(param,
-                ['city', 'q']
-            )){
+            ['city', 'q']
+        )){
             return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED));
         }
 

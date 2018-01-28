@@ -5,7 +5,7 @@
 const fp = require('lodash/fp');
 const _ = require('lodash');
 const moment = require('moment');
-const common = Include("/services/v1.0/common");
+const common = Include('/services/v1.0/common');
 
 module.exports = {
     /**
@@ -61,7 +61,7 @@ module.exports = {
             }
 
             const index = _.findIndex(houseDevices, (houseDevice)=>{
-                return houseDevice.deviceId === deviceId
+                return houseDevice.deviceId === deviceId;
             });
             try {
                 const t = await MySQL.Sequelize.transaction();

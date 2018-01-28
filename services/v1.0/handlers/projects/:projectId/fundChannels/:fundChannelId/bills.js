@@ -3,7 +3,7 @@ const moment = require('moment');
 const _ = require('lodash');
 const fp = require('lodash/fp');
 
-const common = Include("/services/v1.0/common");
+const common = Include('/services/v1.0/common');
 const assignNewId = common.assignNewId;
 /**
  * Operations on /fundChannels/{fundChannelId}
@@ -60,8 +60,8 @@ module.exports = {
         const body = req.body;
 
         if(!Util.ParameterCheck(body,
-                ['contractId', 'billIds', 'userId']
-            )){
+            ['contractId', 'billIds', 'userId']
+        )){
             return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED));
         }
 
@@ -99,7 +99,7 @@ module.exports = {
                 });
 
                 if(!result){
-                    return res.send(404, ErrorCode.ack(ErrorCode.CHANNELNOTEXISTS))
+                    return res.send(404, ErrorCode.ack(ErrorCode.CHANNELNOTEXISTS));
                 }
 
                 const fundChannel = _.omit( _.assign(result.toJSON(), _.pick(result.fundChannel, _.concat(fundChannelAttributes, 'serviceCharge'))), 'fundChannel' );
@@ -123,7 +123,7 @@ module.exports = {
                 }
 
                 if (contract.bills.length !== billIds.length) {
-                    return res.send(404, ErrorCode.ack(ErrorCode.BILLNOTEXISTS))
+                    return res.send(404, ErrorCode.ack(ErrorCode.BILLNOTEXISTS));
                 }
 
                 const amount = _.sum(fp.map(bill => {

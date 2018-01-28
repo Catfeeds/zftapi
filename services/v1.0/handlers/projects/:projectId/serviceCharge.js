@@ -3,48 +3,48 @@
 const fp = require('lodash/fp');
 
 module.exports = {
-	get: (req, res) => {
-		(async()=>{
+    get: (req, res) => {
+        (async()=>{
 
-			const projectId = req.params.projectId;
+            const projectId = req.params.projectId;
 
-			try {
+            try {
                 const serviceCharge = await MySQL.ServiceCharge.findAll({
                     where: {
                         projectId: projectId
                     }
                 });
 
-				res.send(serviceCharge);
+                res.send(serviceCharge);
             }
             catch(e){
-				log.error(e, projectId);
-				res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC));
-			}
+                log.error(e, projectId);
+                res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC));
+            }
 
-		})();
-	},
-	patch: (req, res)=>{
+        })();
+    },
+    patch: (req, res)=>{
         (async()=>{
 
             const projectId = req.params.projectId;
             const body = req.body;
 
             if(!Util.ParameterCheck(body,
-                    ['fundChannelId', 'type', 'strategy']
-                )){
+                ['fundChannelId', 'type', 'strategy']
+            )){
                 return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED));
             }
 
             const checkTopup = ()=>{
             	if(body.type !== Typedef.ServiceChargeType.TOPUP){
             		return true;
-				}
+                }
 
                 const strategy = body.strategy;
                 if(!Util.ParameterCheck(strategy,
-                        ['user', 'project', 'fee']
-                    )){
+                    ['user', 'project', 'fee']
+                )){
                     return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED, {message: 'parameter user or project is required'}));
                 }
 
@@ -55,19 +55,19 @@ module.exports = {
                 if(strategy.user + strategy.project !== 100){
                     return res.send(403, ErrorCode.ack(ErrorCode.PARAMETERERROR, 'the sum percent of user + project should be equals 100%'));
                 }
-			};
+            };
 
             checkTopup();
 
             try {
             	const isExists = await MySQL.FundChannels.count({
-					where:{
-						id: body.fundChannelId
-					}
-				});
+                    where:{
+                        id: body.fundChannelId
+                    }
+                });
             	if(!isExists){
             		return res.send(404, ErrorCode.ack(ErrorCode.CHANNELNOTEXISTS));
-				}
+                }
 
             	const result = await MySQL.ServiceCharge.findOrCreate({
                     where:{
@@ -103,5 +103,5 @@ module.exports = {
             }
 
         })();
-	}
+    }
 };

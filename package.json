@@ -4,8 +4,7 @@
   "description": "the backend of web-zft",
   "main": "zftapi",
   "scripts": {
-    "lint": "eslint .",
-    "lt": "eslint ./test --fix",
+    "lint": "eslint . --fix",
     "start": "node zftapi.js",
     "dev": "./node_modules/nodemon/bin/nodemon.js --config nodemon.json --exec npm start",
     "test": "mocha --require ./test/setup --recursive"
