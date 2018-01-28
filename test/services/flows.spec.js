@@ -20,17 +20,18 @@ describe('Flows', function () {
 			query: {}
 		};
 		const sequelizeFindSpy = stub().resolves([]);
-		const Users = {id: 100};
+		const Users = {id: 'Users'};
 		const CashAccount = {findOrCreate: async () => ([{id: 321, userId: 1999}])};
-		const Rooms = {id: 0};
-		const Houses = {id: 1};
-		const Building = {id: 2};
-		const GeoLocation = {id: 3};
-		const Topup = {id: 4};
-		const Auth = {id: 5};
-		const BillPayment = {id: 6};
-		const Contracts = {id: 7};
-		const Bills = {id: 8};
+		const Rooms = {id: 'Rooms'};
+		const Houses = {id: 'Houses'};
+		const Building = {id: 'Building'};
+		const GeoLocation = {id: 'GeoLocation'};
+		const Topup = {id: 'Topup'};
+		const Auth = {id: 'Auth'};
+		const BillPayment = {id: 'BillPayment'};
+		const Contracts = {id: 'Contracts'};
+		const Bills = {id: 'Bills'};
+		const BillFlows = {id: 'BillFlows'};
 		global.MySQL = {
 			Flows: {
 				findAndCountAll: sequelizeFindSpy,
@@ -45,7 +46,8 @@ describe('Flows', function () {
 			Auth,
 			Contracts,
 			BillPayment,
-			Bills
+			Bills,
+			BillFlows
 		};
 
 		await get(req, {send: fp.noop}).then(() => {
@@ -65,8 +67,7 @@ describe('Flows', function () {
 									{
 										include: [
 											{
-												model: Users,
-												required: true
+												model: Users
 											},
 											{
 												attributes: [
@@ -93,29 +94,27 @@ describe('Flows', function () {
 																		attributes: [
 																			'name'
 																		],
-																		model: {
-																			id: 3
-																		},
-																		required: true
+																		model: GeoLocation,
 																	}
 																],
 																model: Building,
-																required: true
 															}
 														],
 														model: Houses,
-														required: true
 													}
 												],
 												model: Rooms,
-												required: true
 											}
 										],
 										model: Contracts
+									},
+									{
+										model: BillFlows,
+										as: 'billItems',
+										attributes: ['configId', 'amount', 'createdAt', 'id']
 									}
 								],
-								model: Bills,
-								required: true
+								model: Bills
 							},
 							{
 								attributes: [
@@ -131,8 +130,7 @@ describe('Flows', function () {
 						include: [{
 							include: [
 								{
-									model: Users,
-									required: true
+									model: Users
 								},
 								{
 									attributes: [
@@ -160,19 +158,15 @@ describe('Flows', function () {
 																'name'
 															],
 															model: GeoLocation,
-															required: true
 														}
 													],
 													model: Building,
-													required: true
 												}
 											],
 											model: Houses,
-											required: true
 										}
 									],
 									model: Rooms,
-									required: true
 								}
 							],
 							model: Contracts
@@ -245,6 +239,14 @@ describe('Flows', function () {
 											'id': '6361497127071387648',
 											'type': 'rent',
 										},
+										billItems: [
+											{
+												"configId": 121,
+												"amount": 21600,
+												"createdAt": 1517010240,
+												"id": "6362802119761858560"
+											}
+										],
 										contract: {
 											'user': {
 												'id': 1,
@@ -333,7 +335,7 @@ describe('Flows', function () {
 				'paidAt': 1516699996,
 				'projectId': 100,
 				'remark': '',
-				'room': {
+				room: {
 					'building': '一幢',
 					'group': '某',
 					'houseId': '6361497057362055168',
@@ -344,13 +346,19 @@ describe('Flows', function () {
 					'status': 'IDLE',
 					'unit': '1单元',
 				},
-				'status': 'pending',
-				'user': {
+				status: 'pending',
+				user: {
 					'accountName': 'f1',
 					'name': 'www',
 					'id': 1,
 					'mobile': ''
-				}
+				},
+				billItems: [{
+					"configId": 121,
+					"amount": 21600,
+					"createdAt": 1517010240,
+					"id": "6362802119761858560"
+				}]
 			});
 		});
 	});

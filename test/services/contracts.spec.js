@@ -138,12 +138,12 @@ describe('Contracts', function () {
 			}
 		};
 		const sequelizeFindSpy = stub().resolves([]);
-		const Users = {id: 100};
-		const CashAccount = {id: 101};
-		const Rooms = {id: 0};
-		const Houses = {id: 1};
-		const Building = {id: 2};
-		const GeoLocation = {id: 3};
+		const CashAccount = {id: 'CashAccount'};
+		const Users = {id: 'Users'};
+		const Rooms = {id: 'Rooms'};
+		const Houses = {id: 'Houses'};
+		const Building = {id: 'Building'};
+		const GeoLocation = {id: 'GeoLocation'};
 		global.MySQL = {
 			Contracts: {
 				findAndCountAll: sequelizeFindSpy
@@ -161,7 +161,7 @@ describe('Contracts', function () {
 			const modelOptions = sequelizeFindSpy.getCall(0).args[0];
 			modelOptions.include.should.be.eql([
 				{
-					model: Users, required: true,
+					model: Users, "required": true,
 					include: [
 						{
 							as: 'cashAccount',
@@ -172,11 +172,9 @@ describe('Contracts', function () {
 				},
 				{
 					model: Rooms,
-					required: true,
 					attributes: ['id', 'name'],
 					include: [{
 						model: Houses,
-						required: true,
 						as: 'house',
 						attributes: ['id', 'roomNumber'],
 						where: {
@@ -194,10 +192,8 @@ describe('Contracts', function () {
 									'name'
 								],
 								model: GeoLocation,
-								required: true
 							}],
 							model: Building,
-							required: true
 						}]
 					}]
 				}]);
@@ -217,12 +213,12 @@ describe('Contracts', function () {
 			}
 		};
 		const sequelizeCountSpy = stub().resolves([]);
-		const Users = {id: 100, findOrCreate: async () => [{id: 1999}]};
+		const Users = {id: 'Users', findOrCreate: async () => [{id: 1999}]};
 		const CashAccount = {findOrCreate: async () => ([{id: 321, userId: 1999}])};
-		const Houses = {id: 1};
-		const Building = {id: 2};
-		const GeoLocation = {id: 3};
-		const Rooms = {id: 4};
+		const Houses = {id: 'Houses'};
+		const Building = {id: 'Building'};
+		const GeoLocation = {id: 'GeoLocation'};
+		const Rooms = {id: 'Rooms'};
 		global.MySQL = {
 			Contracts: {
 				count: sequelizeCountSpy,

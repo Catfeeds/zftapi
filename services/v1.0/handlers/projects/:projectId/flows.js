@@ -26,11 +26,16 @@ const formatContract = contract => item => fp.defaults(item)({
 	contract: fp.pick(['id', 'from', 'to', 'status', 'actualEndDate'])(fp.get(contract)(item))
 });
 
+const formatBillItems = billItems => item => fp.defaults(item)({
+	billItems: fp.get(billItems)(item)
+});
+
 const formatOperator = operator => item => fp.defaults(item)({operator: fp.get(operator)(item)});
 
 const translate = (models, pagingInfo) => {
 	const singleBillPayment = fp.pipe(innerValues, omitSingleNulls, formatRoom('bill.contract.room'),
-		formatOperator('auth'), formatUser('bill.contract.user'), formatContract('bill.contract'), omitFields);
+		formatOperator('auth'), formatUser('bill.contract.user'), formatContract('bill.contract'), formatBillItems('bill.billItems'),
+		omitFields);
 	const singleTopUp = fp.pipe(innerValues, omitSingleNulls, formatRoom('contract.room'),
 		formatUser('contract.user'), formatContract('contract'), formatOperator('operatorInfo'), formatTime('createdAt'), omitFields);
 
@@ -62,6 +67,7 @@ module.exports = {
 		const Auth = MySQL.Auth;
 		const Flows = MySQL.Flows;
 		const Topup = MySQL.Topup;
+		const BillFlows = MySQL.BillFlows;
 		const contractFilter = includeContracts(Contracts, Users, Houses, Building, GeoLocation, Rooms);
 
 		const query = req.query;
@@ -84,9 +90,12 @@ module.exports = {
 				model: BillPayment,
 				include: [{
 					model: Bills,
-					include: [contractFilter(houseFormat, {})],
+					include: [contractFilter(houseFormat, {}), {
+						model: BillFlows,
+						as: 'billItems',
+						attributes: ['configId', 'amount', 'createdAt', 'id']
+					}],
 					attributes: ['id', 'type'],
-					required: true
 				}, operatorConnection]
 			}, {
 				model: Topup,

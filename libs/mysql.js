@@ -1080,7 +1080,7 @@ function SequelizeDefine()
 	});
 
 	exports.BillFlows.belongsTo(exports.Bills);
-	exports.Bills.hasMany(exports.BillFlows , {as: 'billItems'});
+	exports.Bills.hasMany(exports.BillFlows, {as: 'billItems'});
 	exports.BillPayment.belongsTo(exports.Bills);
 
 	exports.BillPayment.belongsTo(exports.Flows);
