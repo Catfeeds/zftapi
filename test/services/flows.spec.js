@@ -241,10 +241,10 @@ describe('Flows', function () {
 										},
 										billItems: [
 											{
-												"configId": 121,
-												"amount": 21600,
-												"createdAt": 1517010240,
-												"id": "6362802119761858560"
+												'configId': 121,
+												'amount': 21600,
+												'createdAt': 1517010240,
+												'id': '6362802119761858560'
 											}
 										],
 										contract: {
@@ -354,10 +354,10 @@ describe('Flows', function () {
 					'mobile': ''
 				},
 				billItems: [{
-					"configId": 121,
-					"amount": 21600,
-					"createdAt": 1517010240,
-					"id": "6362802119761858560"
+					'configId': 121,
+					'amount': 21600,
+					'createdAt': 1517010240,
+					'id': '6362802119761858560'
 				}]
 			});
 		});

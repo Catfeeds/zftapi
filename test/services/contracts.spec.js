@@ -161,7 +161,7 @@ describe('Contracts', function () {
 			const modelOptions = sequelizeFindSpy.getCall(0).args[0];
 			modelOptions.include.should.be.eql([
 				{
-					model: Users, "required": true,
+					model: Users, 'required': true,
 					include: [
 						{
 							as: 'cashAccount',
