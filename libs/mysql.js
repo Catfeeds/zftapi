@@ -1674,6 +1674,11 @@ function SequelizeDefine()
             type: Sequelize.BIGINT.UNSIGNED,
             allowNull: false
         },
+        billId:{
+            type: Sequelize.BIGINT.UNSIGNED,
+            allowNull: false,
+            defaultValue: 0
+        },
         projectId: {
             type: Sequelize.BIGINT.UNSIGNED,  //项目ID
             allowNull: false,
@@ -1692,6 +1697,30 @@ function SequelizeDefine()
         },
         amount: {
             type: Sequelize.BIGINT,          //金额
+            allowNull: false
+        }
+    },{
+        timestamps: true,
+        paranoid: true,
+        freezeTableName: true
+    });
+
+    exports.HouseShare = sequelizeInstance.define('houseShare', {
+        id:{
+            type: Sequelize.BIGINT.UNSIGNED,
+            primaryKey: true,
+            autoIncrement: true
+        },
+        projectId: {
+            type: Sequelize.BIGINT.UNSIGNED,  //项目ID
+            allowNull: false,
+        },
+        houseId:{
+            type: Sequelize.BIGINT.UNSIGNED,
+            allowNull: false
+        },
+        roomId:{
+            type: Sequelize.BOOLEAN,
             allowNull: false
         }
     },{
