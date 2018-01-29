@@ -3,11 +3,17 @@
  * Operations on /contracts
  */
 const fp = require('lodash/fp');
-const extractContract = require('../../../../../transformers/contractExtractor').extract;
-const extractUser = require('../../../../../transformers/userExtractor').extract;
-const generateBills = require('../../../../../transformers/billGenerator').generate;
-const billItems = require('../../../../../transformers/billItemsGenerator').generate;
-const omitSingleNulls = require('../../../../../services/v1.0/common').omitSingleNulls;
+const moment = require('moment');
+const extractContract = require(
+    '../../../../../transformers/contractExtractor').extract;
+const extractUser = require(
+    '../../../../../transformers/userExtractor').extract;
+const generateBills = require(
+    '../../../../../transformers/billGenerator').generate;
+const billItems = require(
+    '../../../../../transformers/billItemsGenerator').generate;
+const omitSingleNulls = require(
+    '../../../../../services/v1.0/common').omitSingleNulls;
 const innerValues = require('../../../../../services/v1.0/common').innerValues;
 const assignNewId = require('../../../../../services/v1.0/common').assignNewId;
 const singleRoomTranslate = require('../../../common').singleRoomTranslate;
@@ -15,41 +21,61 @@ const jsonProcess = require('../../../common').jsonProcess;
 const houseConnection = require('../../../common').houseConnection;
 
 const omitFields = fp.omit(['userId', 'createdAt', 'updatedAt']);
-const roomTranslate = item => fp.defaults(item)({room: singleRoomTranslate(item.room)});
+const roomTranslate = item => fp.defaults(item)(
+    {room: singleRoomTranslate(item.room)});
 
 const translate = (models, pagingInfo) => {
-    const single = fp.pipe(innerValues, omitSingleNulls, omitFields, jsonProcess, roomTranslate);
+    const single = fp.pipe(innerValues, omitSingleNulls, omitFields,
+        jsonProcess, roomTranslate);
     return {
         paging: {
             count: models.count,
             index: pagingInfo.index,
-            size: pagingInfo.size
+            size: pagingInfo.size,
         },
-        data: fp.map(single)(models.rows)
+        data: fp.map(single)(models.rows),
     };
 };
 
 const validateContract = async (contract) => {
     if (contract.from >= contract.to) {
-        throw new Error(`Invalid contract time period : from ${contract.from} to ${contract.to}.`);
+        throw new Error(
+            `Invalid contract time period : from ${contract.from} to ${contract.to}.`);
     }
     return contract;
+};
+const conditionWhen = (now) => (status) => {
+    const conditions = {
+        'leasing': {
+            from: {$lt: now},
+            to: {$gt: now},
+        },
+        'overdue': {
+            to: {$lt: now},
+            status: Typedef.ContractStatus.ONGOING,
+        },
+        'waiting': {
+            from: {$gt: now},
+            status: Typedef.ContractStatus.ONGOING,
+        },
+    };
+    return fp.getOr({})(`${status}`)(conditions);
 };
 
 module.exports = {
     /**
-	 * summary: save contract
-	 * description: save contract information
+     * summary: save contract
+     * description: save contract information
 
-	 * parameters: body
-	 * produces: application/json
-	 * responses: 200, 400, 401, 406
-	 */
+     * parameters: body
+     * produces: application/json
+     * responses: 200, 400, 401, 406
+     */
     post: async function createContract(req, res) {
         /**
-		 * Get the data for response 200
-		 * For response `default` status 200 is used.
-		 */
+         * Get the data for response 200
+         * For response `default` status 200 is used.
+         */
         const Contracts = MySQL.Contracts;
         const Users = MySQL.Users;
         const Bills = MySQL.Bills;
@@ -58,10 +84,11 @@ module.exports = {
 
         const sequelize = MySQL.Sequelize;
 
-        const createBill = (contract, bill, t) => Bills.create(assignNewId(bill), {transaction: t})
-            .then(dbBill =>
-                Promise.all(fp.map(billflow =>
-                    BillFlows.create(assignNewId(billflow), {transaction: t}))(billItems(contract, dbBill))));
+        const createBill = (contract, bill, t) => Bills.create(
+            assignNewId(bill), {transaction: t}).then(dbBill =>
+            Promise.all(fp.map(billflow =>
+                BillFlows.create(assignNewId(billflow), {transaction: t}))(
+                billItems(contract, dbBill))));
 
         const checkRoomAvailability = async (contract, t) => {
             const roomId = contract.roomId;
@@ -69,23 +96,24 @@ module.exports = {
                 where: {
                     roomId,
                     status: Typedef.ContractStatus.ONGOING,
-                    $or: [{
-                        from: {
-                            $lte: contract.from
-                        },
-                        to: {
-                            $gte: contract.from
-                        }
-                    }, {
-                        from: {
-                            $lte: contract.to
-                        },
-                        to: {
-                            $gte: contract.to
-                        }
-                    }]
+                    $or: [
+                        {
+                            from: {
+                                $lte: contract.from,
+                            },
+                            to: {
+                                $gte: contract.from,
+                            },
+                        }, {
+                            from: {
+                                $lte: contract.to,
+                            },
+                            to: {
+                                $gte: contract.to,
+                            },
+                        }],
                 },
-                transaction: t
+                transaction: t,
             }).then(result => {
                 console.log(`rooms under contract ${contract.id}`, result);
                 if (result > 0) {
@@ -96,29 +124,33 @@ module.exports = {
         };
 
         return sequelize.transaction(t =>
-            extractUser(req)
-                .then(user => Users.findOrCreate({
+            extractUser(req).
+                then(user => Users.findOrCreate({
                     where: {accountName: user.accountName, id: user.id},
                     defaults: assignNewId(user),
-                    transaction: t
-                }))
-                .then(dbUsers => {
+                    transaction: t,
+                })).
+                then(dbUsers => {
                     const user = fp.head(dbUsers);
                     return CashAccount.findOrCreate({
                         where: {userId: user.id},
                         defaults: assignNewId({userId: user.id}),
-                        transaction: t
+                        transaction: t,
                     }).then(() => user);
-                })
-                .then(dbUser => extractContract(req, dbUser))
-                .then(contract => validateContract(contract))
-                .then(contract => checkRoomAvailability(contract, t))
-                .then(contract => Contracts.create(assignNewId(contract), {transaction: t}))
-                .then(contract => Promise.all(
-                    fp.map(bill => createBill(contract, bill, t))(generateBills(contract)))
-                )
-        ).then(() => res.send(201, ErrorCode.ack(ErrorCode.OK, {})))
-            .catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, {error: err.message})));
+                }).
+                then(dbUser => extractContract(req, dbUser)).
+                then(contract => validateContract(contract)).
+                then(contract => checkRoomAvailability(contract, t)).
+                then(contract => Contracts.create(assignNewId(contract),
+                    {transaction: t})).
+                then(contract => Promise.all(
+                    fp.map(bill => createBill(contract, bill, t))(
+                        generateBills(contract))),
+                ),
+        ).
+            then(() => res.send(201, ErrorCode.ack(ErrorCode.OK, {}))).
+            catch(err => res.send(500,
+                ErrorCode.ack(ErrorCode.DATABASEEXEC, {error: err.message})));
 
     },
     get: async function getContracts(req, res) {
@@ -130,25 +162,40 @@ module.exports = {
         const GeoLocation = MySQL.GeoLocation;
         const CashAccount = MySQL.CashAccount;
         const projectId = req.params.projectId;
-        const status = fp.getOr(Typedef.ContractStatus.ONGOING)('params.status')(req).toUpperCase();
+        const status = fp.getOr(Typedef.ContractStatus.ONGOING)(
+            'params.status')(req).toUpperCase();
         const query = req.query;
         const houseFormat = query.houseFormat;
         const locationId = query.locationId;
+        const leasingStatus = fp.getOr('')('query.leasingStatus')(req).
+            toLowerCase();
         const locationCondition = {'$room.house.building.location.id$': {$eq: locationId}};
         const pagingInfo = Util.PagingInfo(query.index, query.size, true);
-
+        const now = moment().unix();
         return Contracts.findAndCountAll({
-            include: [{
-                model: Users,
-                required: true,
-                include: [{model: CashAccount, as: 'cashAccount', attributes: ['balance']}]
-            }, houseConnection(Houses, Building, GeoLocation, Rooms)(houseFormat)],
+            include: [
+                {
+                    model: Users,
+                    required: true,
+                    include: [
+                        {
+                            model: CashAccount,
+                            as: 'cashAccount',
+                            attributes: ['balance'],
+                        }],
+                },
+                houseConnection(Houses, Building, GeoLocation, Rooms)(
+                    houseFormat)],
             distinct: true,
-            where: fp.defaults({projectId, status})(fp.isEmpty(locationId) ? {} : locationCondition),
+            where: fp.defaults(fp.defaults({projectId, status})(
+                fp.isEmpty(locationId) ? {} : locationCondition),
+            )(conditionWhen(now)(leasingStatus)),
             offset: pagingInfo.skip,
-            limit: pagingInfo.size
-        }).then(data => translate(data, pagingInfo))
-            .then(contracts => res.send(contracts))
-            .catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, {error: err.message})));
-    }
+            limit: pagingInfo.size,
+        }).
+            then(data => translate(data, pagingInfo)).
+            then(contracts => res.send(contracts)).
+            catch(err => res.send(500,
+                ErrorCode.ack(ErrorCode.DATABASEEXEC, {error: err.message})));
+    },
 };

@@ -12,6 +12,9 @@ describe('Payment generator', () => {
         sandbox.stub(fn, 'unix');
         fn.unix.returns(2018);
     });
+    after(() => {
+        sandbox.restore();
+    });
     it('should generate final payment base on bill & flow', () => {
         const payment = finalPayment({
             amount: 101,
