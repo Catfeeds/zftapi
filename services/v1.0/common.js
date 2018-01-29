@@ -435,3 +435,45 @@ exports.topUp = async(fundChannel, projectId, userId, operatorId, contractId, am
         return ErrorCode.ack(ErrorCode.DATABASEEXEC);
     }
 };
+
+exports.autoApportionment = async(projectId, houseId)=>{
+    const auto = (rooms)=>{
+        const count = rooms.length;
+        let base = Math.floor(100/count);
+        let suffix = 0;
+        if(base*count !==  100){
+            suffix = 100 - base * count;
+        }
+
+        let share = {};
+        let minTid = _.min(rooms);
+        rooms.map(roomId=>{
+            share[roomId] = base;
+        });
+        share[minTid] += suffix;
+        return share;
+    };
+
+    const rooms = await MySQL.Rooms.findAll({
+        where:{
+            houseId: houseId
+        },
+        attributes: ['id'],
+        include:[
+            {
+                model: MySQL.Contracts,
+                as: 'contracts',
+                attributes: ['id'],
+                where:{
+                    status: Typedef.ContractStatus.ONGOING
+                }
+            }
+        ]
+    })
+
+    fp.map(room=>{
+        if(room.contracts.length > 1){
+            
+        }
+    })(rooms);
+};
