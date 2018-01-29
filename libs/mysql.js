@@ -1732,6 +1732,7 @@ function SequelizeDefine()
         paranoid: true,
         freezeTableName: true
     });
+    exports.HouseApportionment.belongsTo(Rooms, {as:'room', foreignKey: 'roomId'});
 }
 
 /*

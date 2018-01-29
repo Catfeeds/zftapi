@@ -439,6 +439,9 @@ exports.topUp = async(fundChannel, projectId, userId, operatorId, contractId, am
 exports.autoApportionment = async(projectId, houseId)=>{
     const auto = (roomIds)=>{
         const count = roomIds.length;
+        if(!count){
+            return [];
+        }
         let base = Math.floor(100/count);
         let suffix = 0;
         if(base*count !==  100){
@@ -446,12 +449,12 @@ exports.autoApportionment = async(projectId, houseId)=>{
         }
 
         const minRoomId = _.min(roomIds);
-        const share = _.fromPairs(fp.map(roomId=>{
+        const share = fp.map(roomId=>{
             if(roomId === minRoomId){
-                return [roomId, base + suffix];
+                return {roomId: roomId, value: base + suffix, projectId: projectId, houseId: houseId};
             }
-            return [roomId, base];
-        })(roomIds));
+            return {roomId: roomId, value: base, projectId: projectId, houseId: houseId};
+        })(roomIds);
         return share;
     };
 
@@ -478,5 +481,30 @@ exports.autoApportionment = async(projectId, houseId)=>{
         }
         return null;
     })(rooms));
-    return auto(roomIds);
+
+    const bulkInsertApportionment = auto(roomIds);
+
+    try{
+        const t = await MySQL.Sequelize.transaction();
+
+        await MySQL.HouseApportionment.destroy({
+            where:{
+                projectId: projectId,
+                houseId: houseId
+            },
+            transaction: t
+        });
+
+        if(bulkInsertApportionment.length) {
+            await MySQL.HouseApportionment.bulkCreate(bulkInsertApportionment, {transaction: t});
+        }
+
+        await t.commit();
+
+        return 201;
+    }
+    catch(e){
+        log.error(e, projectId, houseId, bulkInsertApportionment);
+        return ErrorCode.ack(ErrorCode.DATABASEEXEC);
+    }
 };
