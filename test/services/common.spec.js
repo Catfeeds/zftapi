@@ -54,6 +54,7 @@ describe('Common', function () {
                             model: Houses,
                         }
                     ],
+                    required: true,
                     model: Rooms,
                 }
             ],
@@ -105,6 +106,7 @@ describe('Common', function () {
                             model: Houses,
                         }
                     ],
+                    required: true,
                     model: Rooms,
                 }
             ],
@@ -156,6 +158,7 @@ describe('Common', function () {
                             }
                         }
                     ],
+                    required: true,
                     model: Rooms,
                 }
             ],

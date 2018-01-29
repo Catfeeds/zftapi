@@ -156,6 +156,7 @@ describe('Bills', function () {
                                 }
                             }
                         ],
+                        'required': true,
                         'model': Rooms,
                     }
                 ],

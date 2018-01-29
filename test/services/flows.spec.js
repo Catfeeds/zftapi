@@ -53,6 +53,7 @@ describe('Flows', function () {
         await get(req, {send: fp.noop}).then(() => {
             sequelizeFindSpy.should.have.been.called;
             const countingOption = sequelizeFindSpy.getCall(0).args[0];
+            console.log(JSON.stringify(countingOption));
             countingOption.should.be.eql({
                 distinct: true,
                 include: [
@@ -103,6 +104,7 @@ describe('Flows', function () {
                                                         model: Houses,
                                                     }
                                                 ],
+                                                required: true,
                                                 model: Rooms,
                                             }
                                         ],
@@ -137,6 +139,7 @@ describe('Flows', function () {
                                         'id',
                                         'name'
                                     ],
+                                    required: true,
                                     include: [
                                         {
                                             as: 'house',
