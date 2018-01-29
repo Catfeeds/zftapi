@@ -1356,7 +1356,12 @@ function SequelizeDefine()
         },
         projectId:{
             type: Sequelize.BIGINT.UNSIGNED,
-            allowNull: true
+            allowNull: false
+        },
+        category:{
+            type: Sequelize.STRING(8),
+            allowNull: false,
+            defaultValue: 'HOST'
         },
         sourceId:{
             type: Sequelize.BIGINT.UNSIGNED,

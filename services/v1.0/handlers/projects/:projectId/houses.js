@@ -530,7 +530,7 @@ async function Gethouses(params, query) {
                 rooms: rooms,
                 layout: house.layouts,
                 devices: getDevices(house.devices),
-                prices: fp.map(fp.pick(['type', 'price']))(house.prices)
+                prices: fp.map(fp.pick(['category', 'type', 'price']))(house.prices)
             };
 
         })(result.rows);
