@@ -437,20 +437,21 @@ exports.topUp = async(fundChannel, projectId, userId, operatorId, contractId, am
 };
 
 exports.autoApportionment = async(projectId, houseId)=>{
-    const auto = (rooms)=>{
-        const count = rooms.length;
+    const auto = (roomIds)=>{
+        const count = roomIds.length;
         let base = Math.floor(100/count);
         let suffix = 0;
         if(base*count !==  100){
             suffix = 100 - base * count;
         }
 
-        let share = {};
-        let minTid = _.min(rooms);
-        rooms.map(roomId=>{
-            share[roomId] = base;
-        });
-        share[minTid] += suffix;
+        const minRoomId = _.min(roomIds);
+        const share = _.fromPairs(fp.map(roomId=>{
+            if(roomId === minRoomId){
+                return [roomId, base + suffix];
+            }
+            return [roomId, base];
+        })(roomIds));
         return share;
     };
 
@@ -469,11 +470,13 @@ exports.autoApportionment = async(projectId, houseId)=>{
                 }
             }
         ]
-    })
+    });
 
-    fp.map(room=>{
+    const roomIds = _.compact(fp.map(room=>{
         if(room.contracts.length > 1){
-            
+            return room.id;
         }
-    })(rooms);
+        return null;
+    })(rooms));
+    return auto(roomIds);
 };

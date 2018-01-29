@@ -36,7 +36,7 @@ module.exports = {
         const mode = req.query.mode;
 
         if(mode === 'AUTO'){
-            //
+            const apportionment = common.autoApportionment(projectId, houseId);
         }
 
         //check percent
