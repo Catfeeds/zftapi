@@ -207,7 +207,7 @@ exports.deviceStatus = (device)=>{
     return _.assign(device.status || {}, {service: runStatus()});
 };
 
-exports.payBills = async (serviceCharge, bills, projectId, fundChannel, userId, orderNo)=>{
+exports.payBills = async (bills, projectId, fundChannel, userId, orderNo)=>{
     const payBills = fp.map(bill=>{
         return {
             id: exports.assignNewId().id,
@@ -236,13 +236,19 @@ exports.payBills = async (serviceCharge, bills, projectId, fundChannel, userId, 
         await MySQL.BillPayment.bulkCreate(payBills, {transaction: t});
         await MySQL.Flows.bulkCreate(flows, {transaction: t});
 
-        await exports.logFlows(serviceCharge, orderNo, projectId, userId, fundChannel, t, Typedef.FundChannelFlowCategory.BILL);
+
+        const billLogFlows = fp.map(bill=>{
+            const serviceCharge = exports.serviceCharge(fundChannel, bill.dueAmount);
+
+            return exports.logFlows(serviceCharge, orderNo, projectId, userId, bill.id, fundChannel, t, Typedef.FundChannelFlowCategory.BILL);
+        })(bills);
+        await Promise.all(billLogFlows);
 
         await t.commit();
         return ErrorCode.ack(ErrorCode.OK);
     }
     catch(e){
-        log.error(e, fundChannelId, userId, payBills, flows);
+        log.error(e, bills, projectId, fundChannel, userId, orderNo, payBills, flows);
         return ErrorCode.ack(ErrorCode.DATABASEEXEC);
     }
 };
@@ -310,7 +316,7 @@ exports.serviceCharge = (fundChannel, amount)=>{
     return chargeObj;
 };
 
-exports.shareFlows = (serviceCharge, orderNo, projectId, userId, fundChannel)=>{
+exports.shareFlows = (serviceCharge, orderNo, projectId, userId, billId, fundChannel)=>{
     return _.compact([
         serviceCharge.share && serviceCharge.share.user ? {
             id: exports.assignNewId().id,
@@ -318,6 +324,7 @@ exports.shareFlows = (serviceCharge, orderNo, projectId, userId, fundChannel)=>{
             orderNo: orderNo,
             projectId: projectId,
             fundChannelId: fundChannel.id,
+            billId: billId,
             from: userId,
             to: Typedef.PlatformId,
             amount: serviceCharge.share.user
@@ -328,13 +335,14 @@ exports.shareFlows = (serviceCharge, orderNo, projectId, userId, fundChannel)=>{
             orderNo: orderNo,
             projectId: projectId,
             fundChannelId: fundChannel.id,
+            billId: billId,
             from: projectId,
             to: Typedef.PlatformId,
             amount: serviceCharge.share.project
         } : null,
     ]);
 };
-exports.platformFlows = (serviceCharge, orderNo, projectId, userId, fundChannel)=>{
+exports.platformFlows = (serviceCharge, orderNo, projectId, userId, billId, fundChannel)=>{
     return _.compact([
         fundChannel.fee ? {
             id: exports.assignNewId().id,
@@ -342,13 +350,14 @@ exports.platformFlows = (serviceCharge, orderNo, projectId, userId, fundChannel)
             orderNo: orderNo,
             projectId: projectId,
             fundChannelId: fundChannel.id,
+            billId: billId,
             from: Typedef.PlatformId,
             to: 0,
             amount: serviceCharge.fee
         } : null
     ]);
 };
-exports.topupFlows = (serviceCharge, orderNo, projectId, userId, fundChannel, category)=>{
+exports.topupFlows = (serviceCharge, orderNo, projectId, userId, billId, fundChannel, category)=>{
     const getAmount = ()=>{
         switch (category){
         case Typedef.FundChannelFlowCategory.BILL:
@@ -367,6 +376,7 @@ exports.topupFlows = (serviceCharge, orderNo, projectId, userId, fundChannel, ca
             orderNo: orderNo,
             projectId: projectId,
             fundChannelId: fundChannel.id,
+            billId: billId,
             from: 0,
             to: userId,
             amount: getAmount()
@@ -374,12 +384,12 @@ exports.topupFlows = (serviceCharge, orderNo, projectId, userId, fundChannel, ca
     ];
 };
 
-exports.logFlows = async(serviceCharge, orderNo, projectId, userId, fundChannel, t, category)=>{
+exports.logFlows = async(serviceCharge, orderNo, projectId, userId, billId, fundChannel, t, category)=>{
 
     const bulkFlows = _.compact(_.concat([]
-        , exports.topupFlows(serviceCharge, orderNo, projectId, userId, fundChannel, category)
-        , exports.shareFlows(serviceCharge, orderNo, projectId, userId, fundChannel)
-        , exports.platformFlows(serviceCharge, orderNo, projectId, userId, fundChannel)
+        , exports.topupFlows(serviceCharge, orderNo, projectId, userId, billId, fundChannel, category)
+        , exports.shareFlows(serviceCharge, orderNo, projectId, userId, billId, fundChannel)
+        , exports.platformFlows(serviceCharge, orderNo, projectId, userId, billId, fundChannel)
     ));
 
     return await MySQL.FundChannelFlows.bulkCreate(bulkFlows, {transaction: t});
