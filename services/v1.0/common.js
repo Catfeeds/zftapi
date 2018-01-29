@@ -175,6 +175,7 @@ exports.houseConnection = (houseModel, buildingModel, locationModel, roomModel) 
     return {
         model: roomModel,
         attributes: ['id', 'name'],
+        required: true,
         include: [houseInclude]
     };
 };
