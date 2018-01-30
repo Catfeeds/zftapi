@@ -1710,6 +1710,9 @@ function SequelizeDefine()
         freezeTableName: true
     });
 
+    exports.Bills.hasOne(exports.FundChannelFlows);
+    exports.FundChannelFlows.belongsTo(exports.Bills);
+
     exports.HouseApportionment = sequelizeInstance.define('houseApportionment', {
         id:{
             type: Sequelize.BIGINT.UNSIGNED,

@@ -443,6 +443,7 @@ create table if not exists `fundChannelFlows`
   `id` bigint(20) UNSIGNED NOT NULL,
   `category` varchar(16) NOT NULL,
   `orderNo` bigint(20) UNSIGNED NOT NULL,
+  `billId` bigint(20) UNSIGNED NOT NULL,
   `projectId` bigint(20) UNSIGNED NOT NULL,
   `fundChannelId` bigint(20) UNSIGNED NOT NULL,
   `from` bigint(20) UNSIGNED NOT NULL,
