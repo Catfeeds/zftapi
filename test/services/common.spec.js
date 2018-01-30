@@ -23,7 +23,8 @@ describe('Common', function () {
                 {
                     attributes: [
                         'id',
-                        'name'
+                        'name',
+                        'houseId'
                     ],
                     include: [
                         {
@@ -75,7 +76,8 @@ describe('Common', function () {
                 {
                     attributes: [
                         'id',
-                        'name'
+                        'name',
+                        'houseId'
                     ],
                     include: [
                         {
@@ -124,7 +126,8 @@ describe('Common', function () {
                 {
                     attributes: [
                         'id',
-                        'name'
+                        'name',
+                        'houseId'
                     ],
                     include: [
                         {

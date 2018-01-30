@@ -3,23 +3,23 @@
 const {get} = require('../../services/v1.0/handlers/projects/:projectId/bills');
 require('include-node');
 const {spy, stub} = require('sinon');
-const fp  = require('lodash/fp');
+const fp = require('lodash/fp');
 
 const stubRoom = {dataValues: {house: {dataValues: {building: {dataValues: {location: {dataValues: {}}}}}}}};
 
-describe('Bills', function () {
+describe('Bills', function() {
     before(() => {
         global.Typedef = Include('/libs/typedef');
         global.ErrorCode = Include('/libs/errorCode');
         global.Util = Include('/libs/util');
     });
-    it('should return all contracts from findAndCountAll', async function () {
+    it('should return all contracts from findAndCountAll', async function() {
         const bill = {dataValues: {contract: {dataValues: {room: stubRoom}}}};
         const req = {
             params: {
-                projectId: 100
+                projectId: 100,
             },
-            query: {}
+            query: {},
 
         };
         const Users = {id: 'Users'};
@@ -34,9 +34,9 @@ describe('Bills', function () {
                 async findAndCountAll() {
                     return {
                         count: 1,
-                        rows: [bill]
+                        rows: [bill],
                     };
-                }
+                },
             },
             Users,
             Rooms,
@@ -44,7 +44,7 @@ describe('Bills', function () {
             Building,
             GeoLocation,
             BillFlows,
-            Contracts
+            Contracts,
         };
         const resSpy = spy();
 
@@ -52,119 +52,123 @@ describe('Bills', function () {
             resSpy.should.have.been.called;
             resSpy.getCall(0).args[0].data[0].contract.should.be.eql({});
             resSpy.getCall(0).args[0].data[0].user.should.be.eql({});
-        }
+        },
         );
     });
 
-    it('should connect with houses if query with houseFormat', async function () {
-        const req = {
-            params: {
-                projectId: 100
-            },
-            query: {
-                houseFormat: 'SOLE'
-            }
-        };
-        const sequelizeFindSpy = stub().resolves([]);
-        const BillPayment = {id: 'BillPayment'};
-        const Users = {id: 'Users'};
-        const Rooms = {id: 'Rooms'};
-        const Houses = {id: 'Houses'};
-        const Building = {id: 'Building'};
-        const GeoLocation = {id: 'GeoLocation'};
-        const BillFlows = {id: 'BillFlows'};
-        const Contracts = {id: 'Contracts'};
-        global.MySQL = {
-            Bills: {
-                findAndCountAll: sequelizeFindSpy
-            },
-            Users,
-            Rooms,
-            Houses,
-            Building,
-            GeoLocation,
-            BillFlows,
-            BillPayment,
-            Contracts
-        };
+    it('should connect with houses if query with houseFormat',
+        async function() {
+            const req = {
+                params: {
+                    projectId: 100,
+                },
+                query: {
+                    houseFormat: 'SOLE',
+                },
+            };
+            const sequelizeFindSpy = stub().resolves([]);
+            const BillPayment = {id: 'BillPayment'};
+            const Users = {id: 'Users'};
+            const Rooms = {id: 'Rooms'};
+            const Houses = {id: 'Houses'};
+            const Building = {id: 'Building'};
+            const GeoLocation = {id: 'GeoLocation'};
+            const BillFlows = {id: 'BillFlows'};
+            const Contracts = {id: 'Contracts'};
+            global.MySQL = {
+                Bills: {
+                    findAndCountAll: sequelizeFindSpy,
+                },
+                Users,
+                Rooms,
+                Houses,
+                Building,
+                GeoLocation,
+                BillFlows,
+                BillPayment,
+                Contracts,
+            };
 
-        await get(req, {send: fp.noop}).then(() => {
-            sequelizeFindSpy.should.have.been.called;
-            const modelOptions = sequelizeFindSpy.getCall(0).args[0];
-            modelOptions.include.should.be.eql([{
-                as: 'billItems',
-                attributes: [
-                    'configId',
-                    'amount',
-                    'createdAt',
-                    'id',
-                ],
-                model: BillFlows
-            }, {
-                as: 'payments',
-                attributes: [
-                    'id',
-                    'amount',
-                    'fundChannelId',
-                    'operator',
-                    'paidAt',
-                    'remark',
-                    'status'
-                ],
-                model: BillPayment,
-                required: false
-            },
-            {
-                include: [
+            await get(req, {send: fp.noop}).then(() => {
+                sequelizeFindSpy.should.have.been.called;
+                const modelOptions = sequelizeFindSpy.getCall(0).args[0];
+                modelOptions.include.should.be.eql([
                     {
-                        model: Users
-                    },
-                    {
+                        as: 'billItems',
+                        attributes: [
+                            'configId',
+                            'amount',
+                            'createdAt',
+                            'id',
+                        ],
+                        required: true,
+                        model: BillFlows,
+                    }, {
+                        as: 'payments',
                         attributes: [
                             'id',
-                            'name'
+                            'amount',
+                            'fundChannelId',
+                            'operator',
+                            'paidAt',
+                            'remark',
+                            'status',
                         ],
+                        model: BillPayment,
+                        required: false,
+                    },
+                    {
                         include: [
                             {
-                                as: 'house',
+                                model: Users,
+                            },
+                            {
                                 attributes: [
                                     'id',
-                                    'roomNumber'
+                                    'name',
+                                    'houseId',
                                 ],
                                 include: [
                                     {
-                                        as: 'building',
+                                        as: 'house',
                                         attributes: [
-                                            'building',
-                                            'unit'
+                                            'id',
+                                            'roomNumber',
                                         ],
                                         include: [
                                             {
-                                                as: 'location',
+                                                as: 'building',
                                                 attributes: [
-                                                    'name'
+                                                    'building',
+                                                    'unit',
                                                 ],
-                                                model: GeoLocation,
-                                            }
+                                                include: [
+                                                    {
+                                                        as: 'location',
+                                                        attributes: [
+                                                            'name',
+                                                        ],
+                                                        model: GeoLocation,
+                                                    },
+                                                ],
+                                                model: Building,
+                                            },
                                         ],
-                                        model: Building,
-                                    }
+                                        model: Houses,
+                                        where: {
+                                            houseFormat: 'SOLE',
+                                        },
+                                    },
                                 ],
-                                model: Houses,
-                                where: {
-                                    houseFormat: 'SOLE'
-                                }
-                            }
+                                required: true,
+                                model: Rooms,
+                            },
                         ],
-                        required: true,
-                        model: Rooms,
-                    }
-                ],
-                model: Contracts,
-                where: {
-                    status: 'ONGOING'
-                }
-            }]);
+                        model: Contracts,
+                        where: {
+                            status: 'ONGOING',
+                        },
+                    }]);
+            });
         });
-    });
 });

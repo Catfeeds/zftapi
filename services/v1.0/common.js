@@ -184,7 +184,7 @@ exports.houseConnection = (houseModel, buildingModel, locationModel, roomModel) 
     })(fp.isEmpty(houseFormat) ? {} : {where: {houseFormat}});
     return {
         model: roomModel,
-        attributes: ['id', 'name'],
+        attributes: ['id', 'name', 'houseId'],
         required: true,
         include: [houseInclude]
     };

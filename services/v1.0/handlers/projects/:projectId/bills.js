@@ -9,34 +9,36 @@ const innerValues = require('../../../common').innerValues;
 const singleRoomTranslate = require('../../../common').singleRoomTranslate;
 const includeContracts = require('../../../common').includeContracts;
 
-
 const omitFields = fp.omit(['metadata', 'createdAt', 'updatedAt']);
-const formatRoom = item => fp.defaults(item)({room: singleRoomTranslate(item.contract.dataValues.room)});
+const formatRoom = item => fp.defaults(item)(
+    {room: singleRoomTranslate(item.contract.dataValues.room)});
 
 const formatUser = item => fp.defaults(item)({
-    user: fp.pick(['accountName', 'name', 'id', 'mobile'])(item.contract.user)
+    user: fp.pick(['accountName', 'name', 'id', 'mobile'])(item.contract.user),
 });
 
 const formatContract = item => fp.defaults(item)({
-    contract: fp.pick(['id', 'from', 'to'])(item.contract)
+    contract: fp.pick(['id', 'from', 'to'])(item.contract),
 });
 
-const pickUpFirstPayment = bill => fp.defaults(bill)({payments: fp.take(1)(bill.payments)});
+const pickUpFirstPayment = bill => fp.defaults(bill)(
+    {payments: fp.take(1)(bill.payments)});
 
 const translate = (models, pagingInfo) => {
-    const single = fp.pipe(innerValues, omitSingleNulls, formatRoom, formatUser, formatContract, omitFields, pickUpFirstPayment);
+    const single = fp.pipe(innerValues, omitSingleNulls, formatRoom, formatUser,
+        formatContract, omitFields, pickUpFirstPayment);
     return {
         paging: {
             count: models.count,
             index: pagingInfo.index,
-            size: pagingInfo.size
+            size: pagingInfo.size,
         },
-        data: fp.map(single)(models.rows)
+        data: fp.map(single)(models.rows),
     };
 };
 
 module.exports = {
-    get: async function (req, res) {
+    get: async function(req, res) {
         const Bills = MySQL.Bills;
         const BillFlows = MySQL.BillFlows;
         const BillPayment = MySQL.BillPayment;
@@ -47,7 +49,8 @@ module.exports = {
         const Houses = MySQL.Houses;
         const Building = MySQL.Building;
         const GeoLocation = MySQL.GeoLocation;
-        const contractFilter = includeContracts(Contracts, Users, Houses, Building, GeoLocation, Rooms);
+        const contractFilter = includeContracts(Contracts, Users, Houses,
+            Building, GeoLocation, Rooms);
 
         const query = req.query;
 
@@ -62,7 +65,8 @@ module.exports = {
             if (fp.isUndefined(flag)) {
                 return undefined;
             }
-            const billPaymentFilter = Sequelize.literal(`( select billId from billpayment where projectId = ${projectId} )`);
+            const billPaymentFilter = Sequelize.literal(
+                `( select billId from billpayment where projectId = ${projectId} )`);
             return flag === 'true' ?
                 {$in: billPaymentFilter}
                 : {$notIn: billPaymentFilter};
@@ -70,29 +74,42 @@ module.exports = {
 
         const pagingInfo = Util.PagingInfo(query.index, query.size, true);
 
-        return Bills.findAndCountAll({
-            include: [{
-                model: BillFlows,
-                as: 'billItems',
-                attributes: ['configId', 'amount', 'createdAt', 'id']
-            }, {
-                model: BillPayment,
-                required: false,
-                as: 'payments',
-                attributes: ['id', 'amount', 'fundChannelId', 'operator', 'paidAt', 'remark', 'status']
-            }, contractFilter(houseFormat)],
+        const billOptions = {
+            include: [
+                {
+                    model: BillFlows,
+                    required: true,
+                    as: 'billItems',
+                    attributes: ['configId', 'amount', 'createdAt', 'id'],
+                }, {
+                    model: BillPayment,
+                    required: false,
+                    as: 'payments',
+                    attributes: [
+                        'id',
+                        'amount',
+                        'fundChannelId',
+                        'operator',
+                        'paidAt',
+                        'remark',
+                        'status'],
+                }, contractFilter(houseFormat)],
             distinct: true,
             where: fp.defaults(fp.defaults({
                 entityType: 'property',
                 projectId,
                 startDate: {
-                    $lt: moment().unix()
+                    $lt: moment().unix(),
                 },
-            })(fp.isEmpty(paymentsFilter) ? {} : {id: paymentsFilter}))(fp.isEmpty(locationId) ? {} : locationCondition),
+            })(fp.isEmpty(paymentsFilter) ? {} : {id: paymentsFilter}))(
+                fp.isEmpty(locationId) ? {} : locationCondition),
             offset: pagingInfo.skip,
-            limit: pagingInfo.size
-        }).then(models => translate(models, pagingInfo))
-            .then(bills => res.send(bills))
-            .catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, {error: err.message})));
-    }
+            limit: pagingInfo.size,
+        };
+        return Bills.findAndCountAll(billOptions).
+            then(models => translate(models, pagingInfo)).
+            then(bills => res.send(bills)).
+            catch(err => res.send(500,
+                ErrorCode.ack(ErrorCode.DATABASEEXEC, {error: err.message})));
+    },
 };

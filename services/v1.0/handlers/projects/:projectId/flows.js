@@ -110,6 +110,7 @@ module.exports = {
             include: [
                 {
                     model: BillPayment,
+                    required: false,
                     include: [
                         {
                             model: Bills,
@@ -127,6 +128,7 @@ module.exports = {
                         }, operatorConnection],
                 }, {
                     model: Topup,
+                    required: false,
                     include: [
                         contractFilter(houseFormat, {}), fp.merge({
                             as: 'operatorInfo',

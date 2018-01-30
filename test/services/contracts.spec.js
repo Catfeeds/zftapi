@@ -184,7 +184,7 @@ describe('Contracts', function() {
                 {
                     model: Rooms,
                     required: true,
-                    attributes: ['id', 'name'],
+                    attributes: ['id', 'name', 'houseId'],
                     include: [
                         {
                             model: Houses,

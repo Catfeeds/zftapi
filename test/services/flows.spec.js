@@ -82,6 +82,7 @@ describe('Flows', function() {
                                                 attributes: [
                                                     'id',
                                                     'name',
+                                                    'houseId'
                                                 ],
                                                 include: [
                                                     {
@@ -147,6 +148,7 @@ describe('Flows', function() {
                                 model: Auth,
                             },
                         ],
+                        required: false,
                         model: BillPayment,
                     },
                     {
@@ -160,6 +162,7 @@ describe('Flows', function() {
                                         attributes: [
                                             'id',
                                             'name',
+                                            'houseId'
                                         ],
                                         required: true,
                                         include: [
@@ -205,6 +208,7 @@ describe('Flows', function() {
                                 model: Auth,
                             },
                         ],
+                        required: false,
                         model: Topup,
                     },
                 ],
