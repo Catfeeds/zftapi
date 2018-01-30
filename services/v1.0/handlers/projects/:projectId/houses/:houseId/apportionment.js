@@ -98,9 +98,9 @@ module.exports = {
                         return apportionment;
                     }
                 })(apportionments)),
-                    fp.map(item=>{
-                        return _.assign(item, {projectId: projectId, houseId: houseId});
-                    })(body)
+                fp.map(item=>{
+                    return _.assign(item, {projectId: projectId, houseId: houseId});
+                })(body)
                 );
 
                 const deleteApportionments = _.compact(fp.map(apportionment=>{

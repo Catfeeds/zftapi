@@ -155,7 +155,7 @@ exports.jsonProcess = (model) => fp.defaults(model)({
 });
 
 exports.userConnection = (userModel) => ({
-    model: userModel
+    model: userModel, required: true
 });
 exports.houseConnection = (houseModel, buildingModel, locationModel, roomModel) => (houseFormat) => {
     const houseInclude = fp.defaults({
@@ -186,6 +186,7 @@ exports.houseConnection = (houseModel, buildingModel, locationModel, roomModel) 
 exports.includeContracts = (contractModel, userModel, houseModel, buildingModel, locationModel, roomModel) =>
     (houseFormat, contractCondition) => fp.defaults({
         include: [exports.userConnection(userModel), exports.houseConnection(houseModel, buildingModel, locationModel, roomModel)(houseFormat)],
+        required: true,
         model: contractModel
     })(fp.isUndefined(contractCondition) ? {
         where: {

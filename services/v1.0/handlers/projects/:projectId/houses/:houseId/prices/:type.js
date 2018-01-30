@@ -9,8 +9,8 @@ module.exports = {
         const body = req.body;
 
         if(!Util.ParameterCheck(body,
-                ['category', 'price']
-            )){
+            ['category', 'price']
+        )){
             return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED, {error: 'missing query params houseFormat'}));
         }
 
