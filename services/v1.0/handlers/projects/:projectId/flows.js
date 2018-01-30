@@ -33,7 +33,7 @@ const formatBillItems = billItems => item => fp.defaults(item)({
 });
 
 const formatFundChannelFlows = fundFlows => item => fp.defaults(item)({
-    billItems: fp.get(fundFlows)(item),
+    fundChannelFlows: fp.get(fundFlows)(item),
 });
 
 const formatOperator = operator => item => fp.defaults(item)(
@@ -80,7 +80,7 @@ module.exports = {
         const Flows = MySQL.Flows;
         const Topup = MySQL.Topup;
         const BillFlows = MySQL.BillFlows;
-        // const FundChannelFlows = MySQL.FundChannelFlows;
+        const FundChannelFlows = MySQL.FundChannelFlows;
         const contractFilter = includeContracts(Contracts, Users, Houses,
             Building, GeoLocation, Rooms);
 
@@ -96,39 +96,41 @@ module.exports = {
         }
 
         const pagingInfo = Util.PagingInfo(query.index, query.size, true);
+        //TODO: in cash case, the operator is the manager, otherwise it's user themselves
         const operatorConnection = {
             model: Auth,
-            required: true,
             attributes: ['id', 'username'],
+        };
+        const fundFlowConnection = {
+            model: FundChannelFlows,
+            required: false,
+            attributes: ['id', 'category', 'orderNo', 'from', 'to', 'amount'],
         };
         const flowOption = {
             include: [
                 {
                     model: BillPayment,
-                    required: true,
                     include: [
                         {
                             model: Bills,
-                            required: true,
                             include: [
                                 contractFilter(houseFormat, {}), {
                                     model: BillFlows,
-                                    required: true,
                                     as: 'billItems',
                                     attributes: [
                                         'configId',
                                         'amount',
                                         'createdAt',
                                         'id'],
-                                }],
+                                }, fundFlowConnection],
                             attributes: ['id', 'type'],
-                        }, operatorConnection]
+                        }, operatorConnection],
                 }, {
                     model: Topup,
                     include: [
                         contractFilter(houseFormat, {}), fp.merge({
                             as: 'operatorInfo',
-                        }, operatorConnection)]
+                        }, operatorConnection)],
                 },
             ],
             where: {
@@ -138,12 +140,9 @@ module.exports = {
             offset: pagingInfo.skip,
             limit: pagingInfo.size,
         };
-        console.log(flowOption.include[0].include);
-        console.log(
-            flowOption.include[0].include[0].include[0].include[1].include);
-        return Flows.findAndCountAll(flowOption)
-        // .then(models => translate(models, pagingInfo))
-            .then(flows => res.send(flows)).
+        return Flows.findAndCountAll(flowOption).
+            then(models => translate(models, pagingInfo)).
+            then(flows => res.send(flows)).
             catch(err => res.send(500,
                 ErrorCode.ack(ErrorCode.DATABASEEXEC, {error: err.message})));
     },

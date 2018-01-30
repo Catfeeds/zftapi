@@ -1681,9 +1681,12 @@ function SequelizeDefine()
         },
         billId:{
             type: Sequelize.BIGINT.UNSIGNED,
-            allowNull: false,
-            defaultValue: 0
+            allowNull: true
         },
+        // topupId:{
+        //     type: Sequelize.BIGINT.UNSIGNED,
+        //     allowNull: true
+        // },
         projectId: {
             type: Sequelize.BIGINT.UNSIGNED,  //项目ID
             allowNull: false,
@@ -1710,8 +1713,11 @@ function SequelizeDefine()
         freezeTableName: true
     });
 
-    exports.Bills.hasOne(exports.FundChannelFlows);
+    exports.Bills.hasMany(exports.FundChannelFlows);
     exports.FundChannelFlows.belongsTo(exports.Bills);
+
+    // exports.Topup.hasOne(exports.FundChannelFlows);
+    // exports.FundChannelFlows.belongsTo(exports.Topup);
 
     exports.HouseApportionment = sequelizeInstance.define('houseApportionment', {
         id:{

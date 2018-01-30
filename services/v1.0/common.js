@@ -155,22 +155,29 @@ exports.jsonProcess = (model) => fp.defaults(model)({
 });
 
 exports.userConnection = (userModel) => ({
-    model: userModel, required: true
+    model: userModel
 });
+exports.includeContracts = (contractModel, userModel, houseModel, buildingModel, locationModel, roomModel) =>
+    (houseFormat, contractCondition) => fp.defaults({
+        include: [exports.userConnection(userModel), exports.houseConnection(houseModel, buildingModel, locationModel, roomModel)(houseFormat)],
+        model: contractModel
+    })(fp.isUndefined(contractCondition) ? {
+        where: {
+            status: Typedef.ContractStatus.ONGOING
+        }
+    } : contractCondition);
+
 exports.houseConnection = (houseModel, buildingModel, locationModel, roomModel) => (houseFormat) => {
     const houseInclude = fp.defaults({
         model: houseModel,
         as: 'house',
-        required: true,
         attributes: ['id', 'roomNumber'],
         include: [{
             model: buildingModel, as: 'building',
             attributes: ['building', 'unit'],
-            required: true,
             include: [{
                 model: locationModel,
                 as: 'location',
-                required: true,
                 attributes: ['name']
             }]
         }]
@@ -182,17 +189,6 @@ exports.houseConnection = (houseModel, buildingModel, locationModel, roomModel) 
         include: [houseInclude]
     };
 };
-
-exports.includeContracts = (contractModel, userModel, houseModel, buildingModel, locationModel, roomModel) =>
-    (houseFormat, contractCondition) => fp.defaults({
-        include: [exports.userConnection(userModel), exports.houseConnection(houseModel, buildingModel, locationModel, roomModel)(houseFormat)],
-        required: true,
-        model: contractModel
-    })(fp.isUndefined(contractCondition) ? {
-        where: {
-            status: Typedef.ContractStatus.ONGOING
-        }
-    } : contractCondition);
 
 exports.deviceStatus = (device)=>{
     const runStatus = ()=>{
