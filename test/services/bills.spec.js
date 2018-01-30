@@ -92,17 +92,17 @@ describe('Bills', function () {
             sequelizeFindSpy.should.have.been.called;
             const modelOptions = sequelizeFindSpy.getCall(0).args[0];
             modelOptions.include.should.be.eql([{
-                'as': 'billItems',
-                'attributes': [
+                as: 'billItems',
+                attributes: [
                     'configId',
                     'amount',
                     'createdAt',
                     'id',
                 ],
-                'model': BillFlows
+                model: BillFlows
             }, {
-                'as': 'payments',
-                'attributes': [
+                as: 'payments',
+                attributes: [
                     'id',
                     'amount',
                     'fundChannelId',
@@ -111,53 +111,56 @@ describe('Bills', function () {
                     'remark',
                     'status'
                 ],
-                'model': BillPayment,
+                model: BillPayment,
                 required: false
             },
             {
-                'include': [
+                include: [
                     {
-                        'model': Users
+                        model: Users
                     },
                     {
-                        'attributes': [
+                        attributes: [
                             'id',
                             'name'
                         ],
-                        'include': [
+                        include: [
                             {
-                                'as': 'house',
-                                'attributes': [
+                                as: 'house',
+                                attributes: [
                                     'id',
                                     'roomNumber'
                                 ],
-                                'include': [
+                                include: [
                                     {
-                                        'as': 'building',
-                                        'attributes': [
+                                        as: 'building',
+                                        attributes: [
                                             'building',
                                             'unit'
                                         ],
-                                        'include': [
+                                        include: [
                                             {
-                                                'as': 'location',
-                                                'attributes': [
+                                                as: 'location',
+                                                attributes: [
                                                     'name'
                                                 ],
-                                                'model': GeoLocation,
+                                                model: GeoLocation,
+                                                required: true,
                                             }
                                         ],
-                                        'model': Building,
+                                        model: Building,
+                                        required: true,
                                     }
                                 ],
-                                'model': Houses,
-                                'where': {
-                                    'houseFormat': 'SOLE'
+                                model: Houses,
+                                required: true,
+                                where: {
+                                    houseFormat: 'SOLE'
                                 }
                             }
                         ],
-                        'required': true,
-                        'model': Rooms,
+                        required: true,
+                        model: Rooms,
                     }
                 ],
                 model: Contracts,

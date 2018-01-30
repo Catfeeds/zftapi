@@ -161,13 +161,16 @@ exports.houseConnection = (houseModel, buildingModel, locationModel, roomModel) 
     const houseInclude = fp.defaults({
         model: houseModel,
         as: 'house',
+        required: true,
         attributes: ['id', 'roomNumber'],
         include: [{
             model: buildingModel, as: 'building',
             attributes: ['building', 'unit'],
+            required: true,
             include: [{
                 model: locationModel,
                 as: 'location',
+                required: true,
                 attributes: ['name']
             }]
         }]

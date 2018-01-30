@@ -46,12 +46,15 @@ describe('Common', function () {
                                                 'name'
                                             ],
                                             model: GeoLocation,
+                                            required: true,
                                         }
                                     ],
                                     model: Building,
+                                    required: true,
                                 }
                             ],
                             model: Houses,
+                            required: true,
                         }
                     ],
                     required: true,
@@ -98,12 +101,15 @@ describe('Common', function () {
                                                 'name'
                                             ],
                                             model: GeoLocation,
+                                            required: true,
                                         }
                                     ],
                                     model: Building,
+                                    required: true,
                                 }
                             ],
                             model: Houses,
+                            required: true,
                         }
                     ],
                     required: true,
@@ -147,12 +153,15 @@ describe('Common', function () {
                                                 'name'
                                             ],
                                             model: GeoLocation,
+                                            required: true,
                                         }
                                     ],
                                     model: Building,
+                                    required: true,
                                 }
                             ],
                             model: Houses,
+                            required: true,
                             where: {
                                 houseFormat: 'SOLE'
                             }

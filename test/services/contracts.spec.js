@@ -189,6 +189,7 @@ describe('Contracts', function() {
                         {
                             model: Houses,
                             as: 'house',
+                            required: true,
                             attributes: ['id', 'roomNumber'],
                             where: {
                                 houseFormat: 'SOLE',
@@ -207,8 +208,10 @@ describe('Contracts', function() {
                                                 'name',
                                             ],
                                             model: GeoLocation,
+                                            required: true,
                                         }],
                                     model: Building,
+                                    required: true,
                                 }],
                         }],
                 }]);

@@ -82,6 +82,7 @@ describe('Flows', function () {
                                                             'id',
                                                             'roomNumber'
                                                         ],
+                                                        required: true,
                                                         include: [
                                                             {
                                                                 as: 'building',
@@ -89,6 +90,7 @@ describe('Flows', function () {
                                                                     'building',
                                                                     'unit'
                                                                 ],
+                                                                required: true,
                                                                 include: [
                                                                     {
                                                                         as: 'location',
@@ -96,6 +98,7 @@ describe('Flows', function () {
                                                                             'name'
                                                                         ],
                                                                         model: GeoLocation,
+                                                                        required: true,
                                                                     }
                                                                 ],
                                                                 model: Building,
@@ -160,13 +163,16 @@ describe('Flows', function () {
                                                             attributes: [
                                                                 'name'
                                                             ],
+                                                            required: true,
                                                             model: GeoLocation,
                                                         }
                                                     ],
                                                     model: Building,
+                                                    required: true,
                                                 }
                                             ],
                                             model: Houses,
+                                            required: true,
                                         }
                                     ],
                                     model: Rooms,
