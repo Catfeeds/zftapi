@@ -189,7 +189,7 @@ describe('Contracts', function() {
                         {
                             model: Houses,
                             as: 'house',
-                            attributes: ['id', 'roomNumber'],
+                            attributes: ['id', 'roomNumber', 'buildingId'],
                             where: {
                                 houseFormat: 'SOLE',
                             },

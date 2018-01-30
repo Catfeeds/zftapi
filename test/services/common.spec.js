@@ -31,7 +31,8 @@ describe('Common', function () {
                             as: 'house',
                             attributes: [
                                 'id',
-                                'roomNumber'
+                                'roomNumber',
+                                'buildingId'
                             ],
                             include: [
                                 {
@@ -84,7 +85,8 @@ describe('Common', function () {
                             as: 'house',
                             attributes: [
                                 'id',
-                                'roomNumber'
+                                'roomNumber',
+                                'buildingId'
                             ],
                             include: [
                                 {
@@ -134,7 +136,8 @@ describe('Common', function () {
                             as: 'house',
                             attributes: [
                                 'id',
-                                'roomNumber'
+                                'roomNumber',
+                                'buildingId'
                             ],
                             include: [
                                 {

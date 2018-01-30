@@ -134,6 +134,7 @@ describe('Bills', function() {
                                         attributes: [
                                             'id',
                                             'roomNumber',
+                                            'buildingId'
                                         ],
                                         include: [
                                             {

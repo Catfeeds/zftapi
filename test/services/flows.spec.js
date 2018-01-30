@@ -90,6 +90,7 @@ describe('Flows', function() {
                                                         attributes: [
                                                             'id',
                                                             'roomNumber',
+                                                            'buildingId'
                                                         ],
                                                         include: [
                                                             {
@@ -171,6 +172,7 @@ describe('Flows', function() {
                                                 attributes: [
                                                     'id',
                                                     'roomNumber',
+                                                    'buildingId'
                                                 ],
                                                 include: [
                                                     {
