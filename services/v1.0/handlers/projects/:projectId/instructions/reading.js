@@ -2,12 +2,10 @@
 /**
  * Sync the device reading
  */
-const fp = require('lodash/fp');
-const _ = require('lodash');
 const moment = require('moment');
 
 module.exports = {
-    patch: (req, res, next)=>{
+    patch: (req, res)=>{
         /**
          * deviceId=xxx
          */
@@ -17,7 +15,6 @@ module.exports = {
             return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED));
         }
 
-        const projectId = req.params.projectId;
         const deviceId = body.deviceId;
 
         MySQL.Devices.findOne({
@@ -82,6 +79,7 @@ module.exports = {
                 pluginIns.Timing(5);
             },
             err=>{
+                log.error(err, body);
                 res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC));
             }
         );

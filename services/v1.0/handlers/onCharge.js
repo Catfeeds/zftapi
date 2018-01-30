@@ -1,7 +1,5 @@
 'use strict';
 
-const _ = require('lodash');
-const fp = require('lodash/fp');
 const common = Include('/services/v1.0/common');
 
 /**
@@ -96,7 +94,7 @@ module.exports = {
                 }
             }
             catch(e){
-            	log.error(e);
+                log.error(e);
             }
         })();
 

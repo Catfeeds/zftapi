@@ -51,8 +51,8 @@ module.exports = {
                                         size: pagingInfo.size
                                     },
                                     data: fp.map(row=>{
-                                    	const channel = _.find(fundChannels, channel=>{
-                                    		return channel.id === row.fundChannelId;
+                                        const channel = _.find(fundChannels, channel=>{
+                                            return channel.id === row.fundChannelId;
                                         });
 
                                         return {

@@ -1,6 +1,5 @@
 'use strict';
 
-const moment = require('moment');
 const _ = require('lodash');
 const fp = require('lodash/fp');
 
@@ -34,13 +33,12 @@ const translate = (models, pagingInfo) => {
     };
 };
 module.exports = {
-    post: (req, res, next)=>{
+    post: (req, res)=>{
         //
         (async()=>{
             const projectId = req.params.projectId;
             const houseId = req.params.houseId;
 
-            const now = moment();
             const house = await MySQL.Houses.findOne({
                 where:{
                     id: houseId,

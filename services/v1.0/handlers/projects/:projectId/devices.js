@@ -4,8 +4,6 @@
  */
 const fp = require('lodash/fp');
 const _ = require('lodash');
-const moment = require('moment');
-const common = Include('/services/v1.0/common');
 
 module.exports = {
     /**
@@ -16,7 +14,7 @@ module.exports = {
 	 * produces: application/json
 	 * responses: 200, 400
 	 */
-    get: (req, res, next)=>{
+    get: (req, res)=>{
         /**
 		 * mode=FREE
 		 */

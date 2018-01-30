@@ -1,7 +1,5 @@
 'use strict';
 
-const fp = require('lodash/fp');
-
 module.exports = {
     get: (req, res) => {
         (async()=>{
@@ -37,8 +35,8 @@ module.exports = {
             }
 
             const checkTopup = ()=>{
-            	if(body.type !== Typedef.ServiceChargeType.TOPUP){
-            		return true;
+                if(body.type !== Typedef.ServiceChargeType.TOPUP){
+                    return true;
                 }
 
                 const strategy = body.strategy;
@@ -60,16 +58,16 @@ module.exports = {
             checkTopup();
 
             try {
-            	const isExists = await MySQL.FundChannels.count({
+                const isExists = await MySQL.FundChannels.count({
                     where:{
                         id: body.fundChannelId
                     }
                 });
-            	if(!isExists){
-            		return res.send(404, ErrorCode.ack(ErrorCode.CHANNELNOTEXISTS));
+                if(!isExists){
+                    return res.send(404, ErrorCode.ack(ErrorCode.CHANNELNOTEXISTS));
                 }
 
-            	const result = await MySQL.ServiceCharge.findOrCreate({
+                const result = await MySQL.ServiceCharge.findOrCreate({
                     where:{
                         projectId: projectId,
                         fundChannelId: body.fundChannelId,
@@ -82,8 +80,8 @@ module.exports = {
                         strategy: body.strategy
                     }
                 });
-            	if(!result[1]){
-            	    await MySQL.ServiceCharge.update(
+                if(!result[1]){
+                    await MySQL.ServiceCharge.update(
                         {
                             strategy: body.strategy
                         },

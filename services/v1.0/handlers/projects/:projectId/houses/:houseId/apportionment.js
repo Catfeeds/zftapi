@@ -1,6 +1,5 @@
 'use strict';
 
-const moment = require('moment');
 const _ = require('lodash');
 const fp = require('lodash/fp');
 const common = Include('/services/v1.0/common');
@@ -50,12 +49,12 @@ module.exports = {
         else{
             //default mode is MANUAL
             //check percent
-            const totalPercent = _.sum( fp.map(item=>{return item.value})(body) );
+            const totalPercent = _.sum( fp.map(item=>{return item.value;})(body) );
             if(totalPercent !== 100){
-                return res.send(403, ErrorCode.ack(ErrorCode.PARAMETERERROR))
+                return res.send(403, ErrorCode.ack(ErrorCode.PARAMETERERROR));
             }
 
-            const roomIds = fp.map(item=>{return item.roomId})(body);
+            const roomIds = fp.map(item=>{return item.roomId;})(body);
             //check room in house
             try{
                 const roomsCount = await MySQL.Rooms.count({

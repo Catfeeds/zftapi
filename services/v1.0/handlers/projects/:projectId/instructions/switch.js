@@ -3,11 +3,10 @@
  * Operations devices in room
  */
 const fp = require('lodash/fp');
-const _ = require('lodash');
 const moment = require('moment');
 
 module.exports = {
-    patch: (req, res, next)=>{
+    patch: (req, res)=>{
         /**
          * roomId=xx
          * mode=EMC_ON/EMC_OFF

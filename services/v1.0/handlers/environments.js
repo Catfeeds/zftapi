@@ -31,10 +31,10 @@ module.exports = {
         const environments = [houseFormat, roomType, operationStatus, orientation];
 
         const projectId = (req.isAuthenticated() && !fp.isEmpty(req.user)) ?
-            [{
-                key: 'user',
-                value: fp.omit('id')(req.user)
-            }] : [];
+        [{
+            key: 'user',
+            value: fp.omit('id')(req.user)
+        }] : [];
 
         res.send(fp.compact(fp.concat(environments, projectId)));
     },

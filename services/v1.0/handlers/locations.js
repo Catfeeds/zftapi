@@ -13,7 +13,7 @@ module.exports = {
      * produces: application/json
      * responses: 200, 400
      */
-    get: (req, res, next)=>{
+    get: (req, res)=>{
         /**
          * Get the data for response 200
          * For response `default` status 200 is used.

@@ -1,41 +1,11 @@
 'use strict';
 const _ = require('lodash');
 
-function BuildDivisionTree(divisions, inDivision)
-{
-    //
-    let tree = {};
-    divisions.map(division=>{
-        const divisionId = division.id.toString();
-        // const parentDivision = Util.ParentDivisionId(divisionId);
-        // if(divisionId === parentDivision){
-        //     tree[divisionId] = {
-        //         districtCode: divisionId,
-        //         name: division.title,
-        //         districts:{}
-        //     };
-        // }
-        // else{
-        let divisionInfo = {
-            districtCode: divisionId,
-            name: division.title
-        };
-        if(inDivision[divisionId]){
-            divisionInfo.communities = inDivision[divisionId];
-        }
-        // tree[parentDivision].districts[divisionId] = divisionInfo;
-        tree[divisionId] = divisionInfo;
-        // }
-    });
-
-    return tree;
-}
-
 /**
  * Operations on /communities/:communityId
  */
 module.exports = {
-    get: function getCommunity(req, res, next) {
+    get: function getCommunity(req, res) {
 
         (async()=>{
             const param = req.params;

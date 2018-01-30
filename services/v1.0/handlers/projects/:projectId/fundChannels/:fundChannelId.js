@@ -1,5 +1,4 @@
 'use strict';
-const fp = require('lodash/fp');
 const _ = require('lodash');
 const common = Include('/services/v1.0/common');
 const assignNewId = common.assignNewId;
@@ -99,9 +98,4 @@ module.exports = {
             }
         })();
     },
-    get: (req, res)=> {
-        (async()=>{
-            //
-        })();
-    }
 };

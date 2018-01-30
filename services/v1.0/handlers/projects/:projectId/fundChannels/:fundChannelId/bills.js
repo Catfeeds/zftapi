@@ -1,5 +1,4 @@
 'use strict';
-const moment = require('moment');
 const _ = require('lodash');
 const fp = require('lodash/fp');
 
@@ -49,7 +48,7 @@ module.exports = {
      * produces: application/json
      * responses: 200, 400
      */
-    patch: (req, res, next)=>{
+    patch: (req, res)=>{
         /**
          * Get the data for response 200
          * For response `default` status 200 is used.

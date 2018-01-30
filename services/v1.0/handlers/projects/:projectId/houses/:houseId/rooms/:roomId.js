@@ -17,7 +17,7 @@ module.exports = {
      * produces: application/json
      * responses: 200, 400
      */
-    delete: function deleteRoom(req, res, next) {
+    delete: function deleteRoom(req, res) {
         /**
          * Get the data for response 200
          * For response `default` status 200 is used.
@@ -59,13 +59,12 @@ module.exports = {
      * produces: application/json
      * responses: 200, 400
      */
-    put: function updateRoom(req, res, next) {
+    put: function updateRoom(req, res) {
         /**
          * Get the data for response 200
          * For response `default` status 200 is used.
          */
         (async()=>{
-            const projectId = req.params.projectId;
             const houseId = req.params.houseId;
             const roomId = req.params.roomId;
             const body = req.body;
@@ -93,7 +92,7 @@ module.exports = {
         })();
     },
 
-    patch: (req, res, next)=>{
+    patch: (req, res)=>{
         (async()=>{
             const projectId = req.params.projectId;
             const roomId = req.params.roomId;
@@ -180,9 +179,8 @@ module.exports = {
         })();
     },
 
-    get: (req, res, next)=>{
+    get: (req, res)=>{
         const roomId = req.params.roomId;
-        const projectId =req.params.projectId;
 
         MySQL.Rooms.findOne({
             where:{

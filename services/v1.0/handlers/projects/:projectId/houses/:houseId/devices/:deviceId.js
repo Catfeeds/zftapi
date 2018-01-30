@@ -2,10 +2,8 @@
 /**
  * Operations on /houses
  */
-const fp = require('lodash/fp');
 const _ = require('lodash');
 const moment = require('moment');
-const common = Include('/services/v1.0/common');
 
 module.exports = {
     /**
@@ -13,7 +11,6 @@ module.exports = {
      */
     delete: (req, res)=>{
         const params = req.params;
-        const body = req.body;
 
         const projectId = params.projectId;
         const houseId = params.houseId;

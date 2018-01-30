@@ -1,9 +1,5 @@
 'use strict';
 
-const moment = require('moment');
-const _ = require('lodash');
-const fp = require('lodash/fp');
-
 module.exports = {
     get: (req, res) => {
         const projectId = req.params.projectId;

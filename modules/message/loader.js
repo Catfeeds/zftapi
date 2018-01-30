@@ -3,7 +3,6 @@ const path = require('path');
 const _ = require('lodash');
 
 exports.run = ()=>{
-    const baseDir = '/';
     const modulePath = __dirname;
     let files;
 

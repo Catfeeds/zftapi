@@ -363,10 +363,8 @@ exports.topupFlows = (serviceCharge, orderNo, projectId, userId, billId, fundCha
         switch (category){
         case Typedef.FundChannelFlowCategory.BILL:
             return serviceCharge.amountForBill || serviceCharge.amount;
-            break;
         default:
             return serviceCharge.amount;
-            break;
         }
     };
 
@@ -408,7 +406,7 @@ exports.topUp = async(fundChannel, projectId, userId, operatorId, contractId, am
 
     log.info(fundChannel, serviceCharge, projectId, userId, contractId, amount);
 
-    const received = amount - (serviceCharge && serviceCharge.share && serviceCharge.share.user || 0);
+    const received = amount - _.get(serviceCharge, 'share.user', 0);
     try{
         const t = await MySQL.Sequelize.transaction();
 

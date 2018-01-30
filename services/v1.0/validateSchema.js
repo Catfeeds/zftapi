@@ -1,5 +1,4 @@
 const validatorRunner = Include('/libs/validator');
-const _ =require('underscore');
 
 let validatorSchema = validatorRunner.alloc();
 
@@ -7,24 +6,24 @@ exports.Validate = (path, data)=>{
     validatorSchema.run(path, data);
 };
 
-const hfmt = [
-    {
-        method: null,
-        options: null,
-        customer: (value) => {
-            return Typedef.isHouseFormat(value);
-        }
-    },
-];
-const projectId = [
-    {
-        method: 'isLength',
-        options: {
-            min: 0,
-            max: 64
-        }
-    }
-];
+// const hfmt = [
+//     {
+//         method: null,
+//         options: null,
+//         customer: (value) => {
+//             return Typedef.isHouseFormat(value);
+//         }
+//     },
+// ];
+// const projectId = [
+//     {
+//         method: 'isLength',
+//         options: {
+//             min: 0,
+//             max: 64
+//         }
+//     }
+// ];
 
 validatorSchema.create('/houses', {
     hfmt:{

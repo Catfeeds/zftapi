@@ -7,12 +7,6 @@ const _ = require('lodash');
 const moment = require('moment');
 const common = Include('/services/v1.0/common');
 
-const translate = (houses) => {
-    return fp.map(house => {
-        return house;
-    })(houses);
-};
-
 function EntireCheck(body) {
     return Util.ParameterCheck(body,
         ['location', 'enabledFloors', 'houseCountOnFloor', 'totalFloor']
@@ -196,7 +190,6 @@ async function SaveSole(t, params, body) {
 async function SaveShare(t, params, body) {
 
     const projectId = params.projectId;
-    const location = body.location;
 
     if(body.layout){
         if(!Typedef.IsOrientation(body.layout.orientation)){
@@ -336,7 +329,6 @@ async function Gethouses(params, query) {
             return {'$building.location.id$': query.locationId};
         }
         else if(query.divisionId){
-            let where = {};
             if(Util.IsParentDivision(query.divisionId)){
                 return {
                     '$building.location.divisionId': {$regexp: Util.ParentDivision(query.divisionId)}
@@ -559,7 +551,7 @@ module.exports = {
 	 * produces: application/json
 	 * responses: 200, 400
 	 */
-    get: (req, res, next)=>{
+    get: (req, res)=>{
         /**
 		 * Get the data for response 200
 		 * For response `default` status 200 is used.
@@ -686,7 +678,6 @@ module.exports = {
                     body.location.id = location.id;
                 }
 
-                let ack;
                 switch(houseFormat){
                 case Typedef.HouseFormat.ENTIRE:
                     ack = await SaveEntire(t, params, body);

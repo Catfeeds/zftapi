@@ -34,13 +34,12 @@ module.exports = {
      * produces: application/json
      * responses: 200, 400
      */
-    get: (req, res, next)=>{
+    get: (req, res)=>{
         /**
          * Get the data for response 200
          * For response `default` status 200 is used.
          */
         (async()=>{
-            const query = req.query;
             const params = req.params;
 
             const id = params.id;
@@ -91,7 +90,7 @@ module.exports = {
      * produces: application/json
      * responses: 200, 400, 405, 410
      */
-    delete: function deleteHouse(req, res, next) {
+    delete: function deleteHouse(req, res) {
         /**
          * Get the data for response 200
          * For response `default` status 200 is used.
@@ -195,7 +194,7 @@ module.exports = {
      * produces: application/json
      * responses: 200, 400
      */
-    put: function updateHouse(req, res, next) {
+    put: function updateHouse(req, res) {
         /**
          * Get the data for response 200
          * For response `default` status 200 is used.
