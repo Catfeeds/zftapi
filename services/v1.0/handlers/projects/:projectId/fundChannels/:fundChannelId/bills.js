@@ -35,7 +35,7 @@ async function Pay(serviceCharge, projectId, fundChannel, contractId, bills, use
     }
     else{
         //
-        const result = await common.payBills(serviceCharge, bills, projectId, fundChannel, userId, orderNo);
+        const result = await common.payBills(bills, projectId, fundChannel, userId, orderNo);
         return result;
     }
 }

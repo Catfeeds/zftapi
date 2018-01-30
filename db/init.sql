@@ -254,6 +254,7 @@ create table if not exists `housesDevicesPrice`
 	`id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
 	`projectId` bigint(20) UNSIGNED NULL DEFAULT NULL,
 	`sourceId` bigint(20) UNSIGNED NOT NULL,
+	`category` varchar(8) NOT NULL DEFAULT 'HOST',
 	`type` varchar(10) NOT NULL,
 	`price` int(11) NOT NULL DEFAULT 0,
 	`createdAt`  datetime NOT NULL ,
@@ -460,6 +461,19 @@ create table if not exists `serviceCharge`
   `fundChannelId` bigint(20) UNSIGNED NOT NULL,
   `type` varchar(16) NOT NULL,
   `strategy` text NULL,
+  `createdAt` datetime(0) NULL,
+  `updatedAt` datetime(0) NULL,
+  `deletedAt` datetime(0) NULL DEFAULT NULL,
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB;
+
+create table if not exists `houseApportionment`
+(
+  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `projectId` bigint(20) UNSIGNED NOT NULL,
+  `houseId` bigint(20) UNSIGNED NOT NULL,
+  `roomId` bigint(20) UNSIGNED NOT NULL,
+  `value` tinyint(1) NOT NULL,
   `createdAt` datetime(0) NULL,
   `updatedAt` datetime(0) NULL,
   `deletedAt` datetime(0) NULL DEFAULT NULL,

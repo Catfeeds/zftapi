@@ -1356,7 +1356,12 @@ function SequelizeDefine()
         },
         projectId:{
             type: Sequelize.BIGINT.UNSIGNED,
-            allowNull: true
+            allowNull: false
+        },
+        category:{
+            type: Sequelize.STRING(8),
+            allowNull: false,
+            defaultValue: 'HOST'
         },
         sourceId:{
             type: Sequelize.BIGINT.UNSIGNED,
@@ -1705,7 +1710,7 @@ function SequelizeDefine()
         freezeTableName: true
     });
 
-    exports.HouseShare = sequelizeInstance.define('houseShare', {
+    exports.HouseApportionment = sequelizeInstance.define('houseApportionment', {
         id:{
             type: Sequelize.BIGINT.UNSIGNED,
             primaryKey: true,
@@ -1720,6 +1725,10 @@ function SequelizeDefine()
             allowNull: false
         },
         roomId:{
+            type: Sequelize.BIGINT.UNSIGNED,
+            allowNull: false
+        },
+        value: {
             type: Sequelize.BOOLEAN,
             allowNull: false
         }
@@ -1728,6 +1737,7 @@ function SequelizeDefine()
         paranoid: true,
         freezeTableName: true
     });
+    exports.HouseApportionment.belongsTo(Rooms, {as:'room', foreignKey: 'roomId'});
 }
 
 /*

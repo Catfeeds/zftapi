@@ -91,7 +91,7 @@ module.exports = {
                 }
                 else{
                     //
-                    await common.PayBills(contract.bills, projectId, fundChannelId, userId, orderNo);
+                    await common.payBills(contract.bills, projectId, fundChannelId, userId, orderNo);
                     res.send();
                 }
             }
