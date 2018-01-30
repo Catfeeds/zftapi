@@ -70,7 +70,7 @@ module.exports = {
 
 
         (async()=>{
-            // try {
+            try {
                 const receiveChannelAttributes = ['fee', 'setting', 'share'];
                 const fundChannelAttributes = ['category', 'flow', 'name', 'tag', 'id'];
                 const result = await MySQL.ReceiveChannels.findOne({
@@ -138,10 +138,10 @@ module.exports = {
                 else{
                     res.send(500, payResult);
                 }
-            // }
-            // catch(e){
-            //     log.error(e, body);
-            // }
+            }
+            catch(e){
+                log.error(e, body);
+            }
         })();
     }
 };
