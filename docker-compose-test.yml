@@ -8,14 +8,14 @@ services:
         environment:
           - MYSQL_ROOT_PASSWORD=example
         ports:
-          - "33061:3306"
+          - 3306
         volumes:
           - "./db:/db"
     redis:
         image: registry.docker-cn.com/library/redis:4
         restart: always
         ports:
-          - 6379:6379
+          - 6379
     api:
         build:
           context: .
@@ -23,7 +23,7 @@ services:
         entrypoint: /wait-for-it.sh db:3306 -- 
         command: npm run dev
         ports:
-          - 8000:8000
+          - 8000
         volumes:
           - ".:/src"
           - "./node_modules:/src/node_modules"
@@ -38,3 +38,16 @@ services:
         depends_on:
           - db
           - redis
+    test:
+        build:
+          context: .
+          dockerfile: Dockerfile-test
+        entrypoint: /wait-for-it.sh api:8000 --
+        command: npm run ft
+        volumes:
+          - ".:/src"
+          - "./node_modules:/src/node_modules"
+        environment:
+          - APP_URL="http://api:8000/v1.0"
+        depends_on:
+          - api
