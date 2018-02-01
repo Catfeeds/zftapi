@@ -37,7 +37,7 @@ module.exports = {
         const credentialId = req.params.credentialId;
 
         if (!allowToDeleteCredentials(req)) {
-            return res.send(403, ErrorCode.ack(ErrorCode.PARAMETERERROR,
+            return res.send(403, ErrorCode.ack(ErrorCode.PERMISSIONDENIED,
                 {error: 'Only admin can delete users.'}));
         }
 

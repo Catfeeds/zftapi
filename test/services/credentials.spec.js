@@ -2,7 +2,7 @@
 
 const {get, post} = require(
     '../../services/v1.0/handlers/projects/:projectId/credentials');
-const {patch} = require(
+const single = require(
     '../../services/v1.0/handlers/projects/:projectId/credentials/:credentialId');
 require('include-node');
 const {spy} = require('sinon');
@@ -178,7 +178,7 @@ describe('Environments', function() {
             },
         };
 
-        await patch(req, {json: fp.noop}).then(() =>
+        await single.patch(req, {json: fp.noop}).then(() =>
             updateSpy.should.have.been.calledWith({
                 password: '12312312312312312312312312312312',
                 email: 'a@b.c',
@@ -205,7 +205,7 @@ describe('Environments', function() {
             },
         };
 
-        await patch(req, {json: fp.noop}).then(() =>
+        await single.patch(req, {json: fp.noop}).then(() =>
             updateSpy.should.have.been.calledWith({email: 'c@b.c'}),
         );
     });
@@ -229,11 +229,66 @@ describe('Environments', function() {
         };
 
         const resSpy = spy();
-        await patch(req, {send: resSpy}).then(() => {
+        await single.patch(req, {send: resSpy}).then(() => {
             updateSpy.should.have.not.been.called;
             resSpy.should.have.been.calledWith(400,
                 ErrorCode.ack(ErrorCode.PARAMETERERROR,
                     {error: 'please provide md5 encrypted password'}));
+
+        });
+    });
+
+    it('should allow admin to delete user', async function() {
+        const req = {
+            isAuthenticated: () => true,
+            params: {
+                projectId: 100,
+                credentialId: 99,
+            },
+            user: {
+                level: 'ADMIN',
+            },
+        };
+
+        const deleteSpy = spy();
+        global.MySQL = {
+            Auth: {
+                findById: async () => ({destroy: deleteSpy}),
+            },
+        };
+
+        const resSpy = spy();
+        await single.delete(req, {json: resSpy}).then(() => {
+            deleteSpy.should.have.been.called;
+            resSpy.should.have.been.calledWith(ErrorCode.ack(ErrorCode.OK));
+
+        });
+    });
+    it('should not allow manager to delete user', async function() {
+        const req = {
+            isAuthenticated: () => true,
+            params: {
+                projectId: 100,
+                credentialId: 99,
+            },
+            user: {
+                level: 'MANAGER',
+            },
+        };
+
+        const deleteSpy = spy();
+        global.MySQL = {
+            Auth: {
+                findById: async () => ({destroy: deleteSpy}),
+            },
+        };
+
+        const resSpy = spy();
+        await single.delete(req, {send: resSpy}).then(() => {
+            deleteSpy.should.not.have.been.called;
+            resSpy.should.have.been.calledWith(403,
+                ErrorCode.ack(ErrorCode.PERMISSIONDENIED,
+                    {error: 'Only admin can delete users.'}));
 
         });
     });

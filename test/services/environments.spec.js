@@ -38,7 +38,6 @@ describe('Environments', function () {
 
         await get(req, {send: resSpy}).then(() => {
             const response = resSpy.getCall(0).args[0];
-            console.log(response);
             response.should.shallowDeepEqual({
                 length: 5,
                 0: {key: 'houseFormat'},
