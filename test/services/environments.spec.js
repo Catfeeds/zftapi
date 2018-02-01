@@ -9,7 +9,7 @@ describe('Environments', function () {
         global.Typedef = Include('/libs/typedef');
     });
     it('should return constants of zft project', async function () {
-        const req = {isAuthenticated: () => true};
+        const req = {isAuthenticated: () => false};
         const resSpy = spy();
 
         await get(req, {send: resSpy}).then(() => {
@@ -27,10 +27,18 @@ describe('Environments', function () {
     it('should return user info while user logged in', async function () {
         const user = {projectId: 99};
         const req = {isAuthenticated: () => true, user};
+
+        global.MySQL = {
+            Auth: {
+                findById: async () => ({dataValues: user}),
+            },
+        };
+
         const resSpy = spy();
 
         await get(req, {send: resSpy}).then(() => {
             const response = resSpy.getCall(0).args[0];
+            console.log(response);
             response.should.shallowDeepEqual({
                 length: 5,
                 0: {key: 'houseFormat'},
