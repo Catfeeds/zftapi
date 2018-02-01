@@ -227,7 +227,7 @@ exports.payBills = async (bills, projectId, fundChannel, userId, orderNo)=>{
         return {
             id: bill.flowId,
             projectId: projectId,
-            category: 'rent'
+            category: 'topup'
         };
     })(payBills);
 
