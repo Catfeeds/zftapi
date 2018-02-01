@@ -10,7 +10,7 @@ const omitSingleNulls = require('../../../common').omitSingleNulls;
 const innerValues = require('../../../common').innerValues;
 
 const translate = (items) => {
-    const omitFields = fp.omit(['id', 'createdAt', 'updatedAt', 'password']);
+    const omitFields = fp.omit(['createdAt', 'updatedAt', 'password']);
     return fp.map(fp.pipe(innerValues, omitSingleNulls, omitFields))(items);
 };
 
