@@ -584,16 +584,16 @@ async function Gethouses(params, query) {
             return {
                 houseId: house.id,
                 code: house.code,
-                // group: house.building.group,
-                // building: house.building.building,
-                // location: house.building.location,
-                // unit: house.building.unit,
+                group: house.building.group,
+                building: house.building.building,
+                location: house.building.location,
+                unit: house.building.unit,
                 roomNumber: house.roomNumber,
                 currentFloor: house.currentFloor,
                 rooms: rooms,
-                // layout: house.layouts,
-                // devices: getDevices(house.devices),
-                // prices: fp.map(fp.pick(['category', 'type', 'price']))(house.prices)
+                layout: house.layouts,
+                devices: getDevices(house.devices),
+                prices: fp.map(fp.pick(['category', 'type', 'price']))(house.prices)
             };
 
         })(result.rows);
