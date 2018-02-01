@@ -106,6 +106,8 @@ async function SaveEntire(t, params, body){
         await MySQL.Houses.bulkCreate(houseRoomLayouts.houses, {transaction: t});
         await MySQL.Rooms.bulkCreate(houseRoomLayouts.rooms, {transaction: t});
         await MySQL.Layouts.bulkCreate(houseRoomLayouts.layouts, {transaction: t});
+
+        return ErrorCode.ack(ErrorCode.OK);
     }
     catch(e){
         log.error(e);
@@ -181,6 +183,8 @@ async function SaveSole(t, params, body) {
         await MySQL.Houses.create(houseRoomLayout.house, {transaction: t});
         await MySQL.Rooms.create(houseRoomLayout.room, {transaction: t});
         await MySQL.Layouts.create(houseRoomLayout.layout, {transaction: t});
+
+        return ErrorCode.ack(ErrorCode.OK);
     }
     catch(e){
         log.error(e);
@@ -193,7 +197,7 @@ async function SaveShare(t, params, body) {
 
     if(body.layout){
         if(!Typedef.IsOrientation(body.layout.orientation)){
-            return ErrorCode.ack(ErrorCode.PARAMETERERROR, {'orientation': body.layout});
+            return ErrorCode.ack(ErrorCode.PARAMETERERROR, {'orientation': body.layout, message: 'missed orientation'});
         }
     }
 
@@ -268,6 +272,8 @@ async function SaveShare(t, params, body) {
         await MySQL.Houses.create(houseRoomLayout.house, {transaction: t});
         await MySQL.Rooms.bulkCreate(houseRoomLayout.rooms, {transaction: t});
         await MySQL.Layouts.create(houseRoomLayout.layout, {transaction: t});
+
+        return ErrorCode.ack(ErrorCode.OK);
     }
     catch(e){
         log.error(e);
@@ -749,20 +755,28 @@ module.exports = {
                     body.location.id = location.id;
                 }
 
+
+                let ack;
                 switch(houseFormat){
                 case Typedef.HouseFormat.ENTIRE:
-                    await SaveEntire(t, params, body);
+                    ack = await SaveEntire(t, params, body);
                     break;
                 case Typedef.HouseFormat.SOLE:
-                    await SaveSole(t, params, body);
+                    ack = await SaveSole(t, params, body);
                     break;
                 case Typedef.HouseFormat.SHARE:
-                    await SaveShare(t, params, body);
+                    ack = await SaveShare(t, params, body);
                     break;
                 }
 
-                await t.commit();
-                res.send();
+                if(ack.code !== ErrorCode.OK){
+                    await t.rollback();
+                    res.send(ack);
+                }
+                else {
+                    await t.commit();
+                    res.send();
+                }
             }
             catch(e){
                 log.error(e);
