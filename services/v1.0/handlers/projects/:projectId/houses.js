@@ -342,7 +342,6 @@ async function Gethouses(params, query) {
         }
     };
 
-    const now = moment().unix();
     const pagingInfo = Util.PagingInfo(query.index, query.size, true);
     try {
         const where = _.assignIn({
@@ -489,24 +488,24 @@ async function Gethouses(params, query) {
             );
         };
         const include = [
-            // {
-            //     model: MySQL.Building, as: 'building'
-            //     , include:[{
-            //         model: MySQL.GeoLocation, as: 'location',
-            //     }]
-            //     , attributes: ['group', 'building', 'unit'],
-            // },
-            // {
-            //     model: MySQL.Layouts,
-            //     as: 'layouts',
-            //     attributes: ['name', 'bedRoom', 'livingRoom', 'bathRoom', 'orientation', 'roomArea', 'remark'],
-            // },
+            {
+                model: MySQL.Building, as: 'building'
+                , include:[{
+                    model: MySQL.GeoLocation, as: 'location',
+                }]
+                , attributes: ['group', 'building', 'unit'],
+            },
+            {
+                model: MySQL.Layouts,
+                as: 'layouts',
+                attributes: ['name', 'bedRoom', 'livingRoom', 'bathRoom', 'orientation', 'roomArea', 'remark'],
+            },
             await getIncludeRoom(),
-            // getIncludeHouseDevices(true),
-            // {
-            //     model: MySQL.HouseDevicePrice,
-            //     as: 'prices',
-            // }
+            getIncludeHouseDevices(true),
+            {
+                model: MySQL.HouseDevicePrice,
+                as: 'prices',
+            }
         ];
 
         const result = await MySQL.Houses.findAndCountAll({
