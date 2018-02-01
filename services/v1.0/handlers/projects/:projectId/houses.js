@@ -342,6 +342,7 @@ async function Gethouses(params, query) {
         }
     };
 
+    const now = moment().unix();
     const pagingInfo = Util.PagingInfo(query.index, query.size, true);
     try {
         const where = _.assignIn({
@@ -350,7 +351,6 @@ async function Gethouses(params, query) {
         query.buildingId ? {'$building.id$': query.buildingId} : {},
         divisionLocation() || {},
         query.houseFormat ? {houseFormat: query.houseFormat} : {},
-            // query.roomStatus ? {'$rooms.status$': query.status }: {},
         query.layoutId ? {'layoutId': query.layoutId}: {},
         query.floor ? {'currentFloor': query.floor}: {},
         query.q ? {$or: [
@@ -358,9 +358,31 @@ async function Gethouses(params, query) {
             {roomNumber: {$regexp: query.q}},
             {code: {$regexp: query.q}},
         ]} : {},
-        query.bedRoom ? {'$layouts.bedRoom$': query.bedRoom} : {},
+        query.bedRooms ? {'$layouts.bedRoom$': query.bedRooms} : {},
         query.device ? await deviceFilter() : {},
         );
+
+        const contractOptions = async()=> {
+            switch (query.status) {
+            case 'ONGOING': {
+                return {
+                    where: {
+                        status: Typedef.ContractStatus.ONGOING
+                    },
+                    required: true
+                };
+            }
+            case 'EXPIRED': {
+                return {
+                    where: {
+                        status: Typedef.ContractStatus.ONGOING,
+                        to: {$lte: moment().unix()}
+                    },
+                    required: true
+                };
+            }
+            }
+        };
 
         const getIncludeHouseDevices =(isPublic)=>{
             return {
@@ -386,55 +408,105 @@ async function Gethouses(params, query) {
                 ]
             };
         };
-        const include = [
-            {
-                model: MySQL.Building, as: 'building'
-                , include:[{
-                    model: MySQL.GeoLocation, as: 'location',
-                }]
-                , attributes: ['group', 'building', 'unit'],
-            },
-            {
-                model: MySQL.Layouts,
-                as: 'layouts',
-                attributes: ['name', 'bedRoom', 'livingRoom', 'bathRoom', 'orientation', 'roomArea', 'remark'],
-            },
-            {
-                model: MySQL.Rooms,
-                as: 'rooms',
-                attributes:['id', 'config', 'name', 'people', 'type', 'roomArea', 'orientation'],
-                include:[
-                    getIncludeHouseDevices(false),
-                    {
-                        model: MySQL.Contracts,
-                        required: false,
+        const getIncludeRoom = async()=>{
+
+            const getWhere = async()=>{
+                if(query.status === 'IDLE'){
+                    const contracts = await MySQL.Contracts.findAll({
                         where:{
+                            projectId: projectId,
                             status: Typedef.ContractStatus.ONGOING
                         },
-                        order:['from asc'],
-                        include:[
-                            {
-                                model: MySQL.Users
-                            }
-                        ]
-                    },
-                    {
-                        model: MySQL.SuspendingRooms,
-                        required: false,
+                        attributes: ['roomId']
+                    });
+                    const roomIds = fp.map(contract=>{return contract.roomId;})(contracts);
+                    return {
                         where:{
-                            to: {
-                                $eq: null
+                            id: {
+                                $notIn: roomIds
                             }
+                        }
+                    };
+                }
+                else if(query.status === 'CLOSED' ){
+                    const suspendings = await MySQL.SuspendingRooms.findAll({
+                        where:{
+                            to: 0
                         },
-                        attributes: ['id','from','to','memo']
-                    }
-                ]
-            },
-            getIncludeHouseDevices(true),
-            {
-                model: MySQL.HouseDevicePrice,
-                as: 'prices',
-            }
+                        attributes: ['roomId']
+                    });
+                    const roomIds = fp.map(suspending=>{return suspending.roomId;})(suspendings);
+                    return {
+                        where:{
+                            id: {
+                                in: roomIds
+                            }
+                        }
+                    };
+                }
+                else{
+                    return null;
+                }
+            };
+
+            const where = await getWhere();
+
+            return _.assign(
+                {
+                    model: MySQL.Rooms,
+                    as: 'rooms',
+                    attributes:['id', 'config', 'name', 'people', 'type', 'roomArea', 'orientation'],
+                    required: true,
+                    include:[
+                        getIncludeHouseDevices(false),
+                        _.assign({
+                            model: MySQL.Contracts,
+                            required: false,
+                            where:{
+
+                                status: Typedef.ContractStatus.ONGOING
+                            },
+                            order:['from asc'],
+                            include:[
+                                {
+                                    model: MySQL.Users
+                                }
+                            ]
+                        }, await contractOptions()),
+                        {
+                            model: MySQL.SuspendingRooms,
+                            required: false,
+                            where:{
+                                to: {
+                                    $eq: null
+                                }
+                            },
+                            attributes: ['id','from','to','memo']
+                        }
+                    ]
+                },
+                where ? where : {}
+            );
+        };
+        const include = [
+            // {
+            //     model: MySQL.Building, as: 'building'
+            //     , include:[{
+            //         model: MySQL.GeoLocation, as: 'location',
+            //     }]
+            //     , attributes: ['group', 'building', 'unit'],
+            // },
+            // {
+            //     model: MySQL.Layouts,
+            //     as: 'layouts',
+            //     attributes: ['name', 'bedRoom', 'livingRoom', 'bathRoom', 'orientation', 'roomArea', 'remark'],
+            // },
+            await getIncludeRoom(),
+            // getIncludeHouseDevices(true),
+            // {
+            //     model: MySQL.HouseDevicePrice,
+            //     as: 'prices',
+            // }
         ];
 
         const result = await MySQL.Houses.findAndCountAll({
@@ -513,16 +585,16 @@ async function Gethouses(params, query) {
             return {
                 houseId: house.id,
                 code: house.code,
-                group: house.building.group,
-                building: house.building.building,
-                location: house.building.location,
-                unit: house.building.unit,
+                // group: house.building.group,
+                // building: house.building.building,
+                // location: house.building.location,
+                // unit: house.building.unit,
                 roomNumber: house.roomNumber,
                 currentFloor: house.currentFloor,
                 rooms: rooms,
-                layout: house.layouts,
-                devices: getDevices(house.devices),
-                prices: fp.map(fp.pick(['category', 'type', 'price']))(house.prices)
+                // layout: house.layouts,
+                // devices: getDevices(house.devices),
+                // prices: fp.map(fp.pick(['category', 'type', 'price']))(house.prices)
             };
 
         })(result.rows);
@@ -680,13 +752,13 @@ module.exports = {
 
                 switch(houseFormat){
                 case Typedef.HouseFormat.ENTIRE:
-                    ack = await SaveEntire(t, params, body);
+                    await SaveEntire(t, params, body);
                     break;
                 case Typedef.HouseFormat.SOLE:
-                    ack = await SaveSole(t, params, body);
+                    await SaveSole(t, params, body);
                     break;
                 case Typedef.HouseFormat.SHARE:
-                    ack = await SaveShare(t, params, body);
+                    await SaveShare(t, params, body);
                     break;
                 }
 
