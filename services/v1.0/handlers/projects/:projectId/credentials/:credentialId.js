@@ -3,6 +3,7 @@
 const fp = require('lodash/fp');
 const omitSingleNulls = require('../../../../common').omitSingleNulls;
 const innerValues = require('../../../../common').innerValues;
+const allowToDeleteCredentials = require('../../../../../../auth/access').allowToDeleteCredentials;
 
 const translate = fp.flow(innerValues,
     fp.omit(['createdAt', 'updatedAt', 'password']), omitSingleNulls);
@@ -27,6 +28,27 @@ module.exports = {
             then(credential => credential.updateAttributes(updateFields)).
             then(result => res.json(
                 ErrorCode.ack(ErrorCode.OK, translate(result)))).
+            catch(err => res.send(500,
+                ErrorCode.ack(ErrorCode.DATABASEEXEC, {error: err.message})));
+    },
+
+    delete: async (req, res) => {
+        const Auth = MySQL.Auth;
+        const credentialId = req.params.credentialId;
+
+        if (!allowToDeleteCredentials(req)) {
+            return res.send(403, ErrorCode.ack(ErrorCode.PARAMETERERROR,
+                {error: 'Only admin can delete users.'}));
+        }
+
+        return Auth.findById(credentialId).
+            then(credential => {
+                if (fp.isEmpty(credential)) {
+                    return res.send(404);
+                }
+                credential.destroy();
+            }).
+            then(() => res.json(ErrorCode.ack(ErrorCode.OK))).
             catch(err => res.send(500,
                 ErrorCode.ack(ErrorCode.DATABASEEXEC, {error: err.message})));
     },

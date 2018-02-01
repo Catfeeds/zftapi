@@ -7,6 +7,9 @@ const allowToCreateCredentials = (req) =>
 		&& req.isAuthenticated()
 		&& fp.getOr(Typedef.CredentialLevels.UNKNOWN)('user.level')(req).toUpperCase() === Typedef.CredentialLevels.ADMIN;
 
+const allowToDeleteCredentials = allowToCreateCredentials;
+
 module.exports = {
-    allowToCreateCredentials
+    allowToCreateCredentials,
+    allowToDeleteCredentials
 };
