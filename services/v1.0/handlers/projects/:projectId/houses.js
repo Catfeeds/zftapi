@@ -737,6 +737,7 @@ module.exports = {
                 }
             }
 
+            let t;
             try{
                 const location = await MySQL.GeoLocation.findOne({
                     where:{
@@ -745,7 +746,7 @@ module.exports = {
                     attributes:['id']
                 });
 
-                const t = await MySQL.Sequelize.transaction();
+                t = await MySQL.Sequelize.transaction({autocommit: false});
                 if(!location){
                     // await SaveHouses(params, body, location.id);
                     const newLocation = await common.AsyncUpsertGeoLocation(body.location, t);
@@ -779,6 +780,7 @@ module.exports = {
                 }
             }
             catch(e){
+                await t.rollback();
                 log.error(e);
                 res.send(422, ErrorCode.ack(ErrorCode.DATABASEEXEC));
             }

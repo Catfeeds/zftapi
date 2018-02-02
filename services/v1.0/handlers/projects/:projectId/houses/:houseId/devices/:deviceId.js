@@ -60,8 +60,10 @@ module.exports = {
             const index = _.findIndex(houseDevices, (houseDevice)=>{
                 return houseDevice.deviceId === deviceId;
             });
+
+            let t;
             try {
-                const t = await MySQL.Sequelize.transaction();
+                t = await MySQL.Sequelize.transaction({autocommit: false});
 
                 if (index === -1) {
                     //create
@@ -79,6 +81,7 @@ module.exports = {
                 res.send(201);
             }
             catch(e){
+                await t.rollback();
                 log.error(e, projectId, houseId, deviceId);
                 res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC));
             }

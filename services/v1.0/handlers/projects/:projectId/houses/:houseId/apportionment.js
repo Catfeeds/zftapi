@@ -83,6 +83,7 @@ module.exports = {
                 return res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC));
             }
 
+            let t;
             try {
                 const apportionmentMapping = _.fromPairs(fp.map(item=>{ return [item.roomId, item.value];})(body));
 
@@ -110,7 +111,7 @@ module.exports = {
                     return null;
                 })(apportionments));
 
-                const t = await MySQL.Sequelize.transaction();
+                t = await MySQL.Sequelize.transaction({autocommit: false});
 
                 await MySQL.HouseApportionment.bulkCreate(updateApportionments ,{transaction: t, updateOnDuplicate: true});
 
@@ -121,6 +122,7 @@ module.exports = {
                 res.send(204);
             }
             catch(e){
+                await t.rollback();
                 log.error(e, projectId, houseId, body);
                 return res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC));
             }

@@ -231,8 +231,9 @@ exports.payBills = async (bills, projectId, fundChannel, userId, orderNo)=>{
         };
     })(payBills);
 
+    let t;
     try{
-        const t = await MySQL.Sequelize.transaction();
+        t = await MySQL.Sequelize.transaction({autocommit: false});
 
         await MySQL.BillPayment.bulkCreate(payBills, {transaction: t});
         await MySQL.Flows.bulkCreate(flows, {transaction: t});
@@ -249,6 +250,7 @@ exports.payBills = async (bills, projectId, fundChannel, userId, orderNo)=>{
         return ErrorCode.ack(ErrorCode.OK);
     }
     catch(e){
+        await t.rollback();
         log.error(e, bills, projectId, fundChannel, userId, orderNo, payBills, flows);
         return ErrorCode.ack(ErrorCode.DATABASEEXEC);
     }
@@ -407,8 +409,10 @@ exports.topUp = async(fundChannel, projectId, userId, operatorId, contractId, am
     log.info(fundChannel, serviceCharge, projectId, userId, contractId, amount);
 
     const received = amount - _.get(serviceCharge, 'share.user', 0);
+
+    let t;
     try{
-        const t = await MySQL.Sequelize.transaction();
+        t = await MySQL.Sequelize.transaction({ autocommit: false });
 
         const result = await Util.PayWithOwed(userId, received, t);
 
@@ -433,13 +437,14 @@ exports.topUp = async(fundChannel, projectId, userId, operatorId, contractId, am
         await MySQL.Topup.create(topUp, {transaction: t});
 
         await exports.logFlows(serviceCharge, orderNo, projectId
-            , userId, fundChannel, t, Typedef.FundChannelFlowCategory.TOPUP);
+            , userId, 0, fundChannel, t, Typedef.FundChannelFlowCategory.TOPUP);
 
         await t.commit();
 
         return result.result;
     }
     catch(e){
+        await t.rollback();
         log.error(e, serviceCharge, projectId, userId, contractId, amount);
         return ErrorCode.ack(ErrorCode.DATABASEEXEC);
     }
@@ -493,8 +498,9 @@ exports.autoApportionment = async(projectId, houseId)=>{
 
     const bulkInsertApportionment = auto(roomIds);
 
+    let t;
     try{
-        const t = await MySQL.Sequelize.transaction();
+        t = await MySQL.Sequelize.transaction({autocommit: false});
 
         await MySQL.HouseApportionment.destroy({
             where:{
@@ -513,6 +519,7 @@ exports.autoApportionment = async(projectId, houseId)=>{
         return 201;
     }
     catch(e){
+        await t.rollback();
         log.error(e, projectId, houseId, bulkInsertApportionment);
         return ErrorCode.ack(ErrorCode.DATABASEEXEC);
     }

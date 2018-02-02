@@ -134,8 +134,9 @@ module.exports = {
                 return res.send(400, ErrorCode.ack(ErrorCode.CONTRACTWORKING));
             }
 
+            let t;
             try {
-                const t = await MySQL.Sequelize.transaction();
+                t = await MySQL.Sequelize.transaction({autocommit: false});
 
                 const now = moment();
                 await MySQL.Houses.update(
@@ -175,6 +176,7 @@ module.exports = {
                 res.send(201);
             }
             catch(e){
+                await t.rollback();
                 log.error(e, houseId);
                 res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC));
             }
@@ -246,8 +248,9 @@ module.exports = {
                 await MySQL.HouseDevicePrice.bulkCreate(bulkInsert, {transaction: t, updateOnDuplicate: true});
             };
 
+            let t;
             try{
-                const t = await MySQL.Sequelize.transaction();
+                t = await MySQL.Sequelize.transaction({autocommit: false});
 
                 if(body.location) {
                     const newLocation = await common.AsyncUpsertGeoLocation(body.location, t);
@@ -297,6 +300,7 @@ module.exports = {
                 res.send(204);
             }
             catch(e){
+                await t.rollback();
                 log.error(ErrorCode.ack(e.message), params, body);
                 res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC));
             }

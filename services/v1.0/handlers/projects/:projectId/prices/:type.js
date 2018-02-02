@@ -37,6 +37,7 @@ module.exports = {
             };
 
 
+            let t;
             try {
                 const houseIds = await getHouseIds();
                 const devicePrices = await MySQL.HouseDevicePrice.findAll({
@@ -68,7 +69,7 @@ module.exports = {
                     };
                 })(createIds);
 
-                const t = await MySQL.Sequelize.transaction();
+                t = await MySQL.Sequelize.transaction({autocommit: false});
 
                 await MySQL.HouseDevicePrice.update(
                     {
@@ -89,6 +90,7 @@ module.exports = {
                 res.send(204);
             }
             catch(e){
+                await t.rollback();
                 log.error(e, projectId, type, body);
                 res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC));
             }
