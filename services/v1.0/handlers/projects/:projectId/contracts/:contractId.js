@@ -18,7 +18,7 @@ module.exports = {
         const Contracts = MySQL.Contracts;
         const Users = MySQL.Users;
         Contracts.findById(req.params.contractId, {
-            include: {model: Users}
+            include: [Users]
         })
             .then(contract => {
                 if (fp.isEmpty(contract)) {
