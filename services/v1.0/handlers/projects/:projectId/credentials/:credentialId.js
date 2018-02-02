@@ -8,6 +8,8 @@ const allowToDeleteCredentials = require('../../../../../../auth/access').allowT
 const translate = fp.flow(innerValues,
     fp.omit(['createdAt', 'updatedAt', 'password']), omitSingleNulls);
 
+const isMyself = (id, req) => fp.getOr(0)('user.id')(req).toString() === id.toString();
+
 module.exports = {
     patch: async (req, res) => {
         const Auth = MySQL.Auth;
@@ -39,6 +41,11 @@ module.exports = {
         if (!allowToDeleteCredentials(req)) {
             return res.send(403, ErrorCode.ack(ErrorCode.PERMISSIONDENIED,
                 {error: 'Only admin can delete users.'}));
+        }
+        
+        if (isMyself(credentialId, req)) {
+            return res.send(403, ErrorCode.ack(ErrorCode.NOTSUPPORT,
+                {error: 'Don\'t attempt to delete yourself.'}));
         }
 
         return Auth.findById(credentialId).
