@@ -44,7 +44,7 @@ const guard = (req, res, next) => {
         return next();
     }
 
-    const belongsToThisProject = fp.getOr(-1)('user.projectId')(req) === parseInt(fp.get('[1]')(hasProjectId.exec(req.url)));
+    const belongsToThisProject = fp.getOr(-1)('user.projectId')(req) === fp.get('[1]')(hasProjectId.exec(req.url));
     if(belongsToThisProject) {
         return next();
     }
