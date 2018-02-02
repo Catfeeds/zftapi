@@ -30,7 +30,7 @@ module.exports = {
         const pagingInfo = Util.PagingInfo(query.index, query.size, true);
 
         Contracts.findAndCountAll({
-            include: [{model: Users, attributes: ['name', 'mobile']}],
+            include: [{model: Users, attributes: ['name', 'mobile', 'gender']}],
             attributes: ['from', 'to', 'status', 'strategy'],
             distinct: true,
             where: {projectId, roomId, status},
