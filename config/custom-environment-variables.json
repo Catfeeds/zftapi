@@ -7,5 +7,6 @@
   "REDIS_HOST": "REDIS_HOST",
   "REDIS_PORT": "REDIS_PORT",
   "REDIS_PASSWD": "REDIS_PASSWD",
-  "ENV": "ENV"
+  "ENV": "ENV",
+  "logfile": "LOGFILE"
 }

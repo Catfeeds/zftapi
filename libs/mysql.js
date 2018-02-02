@@ -20,23 +20,26 @@ exports.Load = () => {
     return new Promise((resolve, reject)=>{
         const read = JSON.parse(config.RDS.read);
         const write = JSON.parse(config.RDS.write);
-		sequelizeInstance = new Sequelize(null, null, null, {
-            dialect: 'mysql',
-            replication: {
-                read,
-                write
+        const options = _.assign(
+            {
+                dialect: 'mysql',
+                replication: {
+                    read,
+                    write
+                },
+                timezone: "+08:00",
+                retry:{
+                    max: 0
+                },
+                pool:{
+                    maxConnections: 20,
+                    minConnections: 5,
+                    maxIdleTime: 1000
+                }
             },
-            logging: true,
-            timezone: "+08:00",
-            retry:{
-                max: 0
-            },
-            pool:{
-                maxConnections: 20,
-                minConnections: 5,
-                maxIdleTime: 1000
-            }
-        });
+            config.ENV === 'DEVELOPMENT' ? {logging: true}:{}
+        );
+		sequelizeInstance = new Sequelize(null, null, null, options);
 		sequelizeInstance.authenticate().then(
             function (err) {
                 log.info('RDS EM Connection Successful...');
