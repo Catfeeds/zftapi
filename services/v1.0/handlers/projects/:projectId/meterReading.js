@@ -363,6 +363,8 @@ module.exports = {
 
             const houseFormat = req.query.houseFormat;
 
+            const pagingInfo = Util.PagingInfo(req.query.pageindex, req.query.pagesize, false);
+
             const districtLocation = ()=>{
                 if(query.locationId){
                     // geoLocationIds = [query.locationId];
@@ -371,38 +373,82 @@ module.exports = {
                 else if(query.districtId){
                     if(Util.IsParentDivision(query.districtId)){
                         return {
-                            '$building.location.divisionId': {$regexp: Util.ParentDivision(query.districtId)}
+                            '$building.location.divisionId$': {$regexp: Util.ParentDivision(query.districtId)}
                         };
                     }
                     else{
                         return {
-                            '$building.location.divisionId': query.districtId
+                            '$building.location.divisionId$': query.districtId
                         };
                     }
                 }
+
+                return {};
             };
 
-            MySQL.Houses.findAll({
-                where:{
+            const where = _.assign(
+                {
                     projectId: projectId,
                     houseFormat: houseFormat,
-                },
-                include:[
-                    {
-                        model: MySQL.Rooms
-                        , as: 'rooms'
-                        , required: true
+                }
+                , districtLocation()
+            );
+            try {
+                const houses = await MySQL.Houses.findAll(
+                    _.assign({
+                        where: where,
+                        attributes:['id'],
+                        include: [
+                            {
+                                model: MySQL.Rooms
+                                , as: 'rooms'
+                                , required: true
+                            },
+                            {
+                                model: MySQL.Building, as: 'building'
+                                , include: [{
+                                    model: MySQL.GeoLocation, as: 'location',
+                                }]
+                                , required: true
+                                , attributes: ['group', 'building', 'unit'],
+                            },
+                            {
+                                model: MySQL.HouseDevices,
+                                as: 'devices',
+                                required: false,
+                                attributes: ['deviceId', 'public'],
+                                where:{
+                                    endDate: 0,
+                                    public: true
+                                }
+                            }
+                        ]
                     },
-                    {
-                        model: MySQL.Building, as: 'building'
-                        , include:[{
-                            model: MySQL.GeoLocation, as: 'location',
-                        }]
-                        , required: true
-                        , attributes: ['group', 'building', 'unit'],
+                    pagingInfo ? {offset: pagingInfo.skip, limit: pagingInfo.size} : {}
+                    )
+                );
+
+                //
+                const roomIds = _.flatten(fp.map(house=>{
+                    return fp.map(room=>{return room.id;})(house.rooms);
+                })(houses));
+
+                //seek contracts
+                const contracts = await MySQL.Contracts.findAll({
+                    where:{
+                        roomId:{$in: roomIds},
+                        from:{$gte: timeFrom},
+                        to:{$lte: timeTo},
                     }
-                ]
-            }).then();
+                });
+                //seek
+
+                res.send(houses);
+            }
+            catch (e){
+                log.error(e, projectId, req.query);
+                res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC));
+            }
         })();
     },
 };
