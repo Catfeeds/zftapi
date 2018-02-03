@@ -55,6 +55,7 @@ module.exports = {
         const query = req.query;
 
         const Sequelize = MySQL.Sequelize;
+        const FundChannelFlows = MySQL.FundChannelFlows;
 
         const projectId = req.params.projectId;
         const houseFormat = query.houseFormat;
@@ -71,6 +72,12 @@ module.exports = {
                 {$in: billPaymentFilter}
                 : {$notIn: billPaymentFilter};
         })(fp.get('query.paid')(req));
+
+        const fundFlowConnection = {
+            model: FundChannelFlows,
+            required: false,
+            attributes: ['id', 'category', 'orderNo', 'from', 'to', 'amount'],
+        };
 
         const pagingInfo = Util.PagingInfo(query.index, query.size, true);
 
@@ -93,7 +100,8 @@ module.exports = {
                         'paidAt',
                         'remark',
                         'status'],
-                }, contractFilter(houseFormat)],
+                }, contractFilter(houseFormat),
+                fundFlowConnection],
             distinct: true,
             where: fp.defaults(fp.defaults({
                 entityType: 'property',

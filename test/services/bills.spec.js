@@ -75,6 +75,7 @@ describe('Bills', function() {
             const GeoLocation = {id: 'GeoLocation'};
             const BillFlows = {id: 'BillFlows'};
             const Contracts = {id: 'Contracts'};
+            const FundChannelFlows = {id: 'FundChannelFlows'};
             global.MySQL = {
                 Bills: {
                     findAndCountAll: sequelizeFindSpy,
@@ -87,6 +88,7 @@ describe('Bills', function() {
                 BillFlows,
                 BillPayment,
                 Contracts,
+                FundChannelFlows,
             };
 
             await get(req, {send: fp.noop}).then(() => {
@@ -134,7 +136,7 @@ describe('Bills', function() {
                                         attributes: [
                                             'id',
                                             'roomNumber',
-                                            'buildingId'
+                                            'buildingId',
                                         ],
                                         include: [
                                             {
@@ -169,6 +171,18 @@ describe('Bills', function() {
                         where: {
                             status: 'ONGOING',
                         },
+                    },
+                    {
+                        attributes: [
+                            'id',
+                            'category',
+                            'orderNo',
+                            'from',
+                            'to',
+                            'amount',
+                        ],
+                        model: FundChannelFlows,
+                        required: false,
                     }]);
             });
         });
