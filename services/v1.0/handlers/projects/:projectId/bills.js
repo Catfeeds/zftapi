@@ -100,7 +100,8 @@ module.exports = {
                         'paidAt',
                         'remark',
                         'status'],
-                }, contractFilter(houseFormat),
+                },
+                contractFilter(houseFormat),
                 fundFlowConnection],
             distinct: true,
             where: fp.defaults(fp.defaults({

@@ -30,8 +30,8 @@ module.exports = {
             const fundChannelId = req.body.fundChannelId;
 
             if(!Util.ParameterCheck(body,
-                    ['contractId', 'amount', 'fundChannelId']
-                )){
+                ['contractId', 'amount', 'fundChannelId']
+            )){
                 return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED));
             }
 
