@@ -22,18 +22,19 @@ module.exports = {
          */
         (async()=>{
             const projectId = req.params.projectId;
-            const fundChannelId = req.params.fundChannelId;
-
-            if(!Util.ParameterCheck(req.body,
-                ['contractId', 'amount', 'userId']
-            )){
-                return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED));
-            }
+            const userId = req.params.userId;
 
             const body = req.body;
             const contractId = req.body.contractId;
             const amount = req.body.amount;
-            const userId = req.body.userId;
+            const fundChannelId = req.body.fundChannelId;
+
+            if(!Util.ParameterCheck(body,
+                    ['contractId', 'amount', 'fundChannelId']
+                )){
+                return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED));
+            }
+
 
             //todo: check if contract is available
 

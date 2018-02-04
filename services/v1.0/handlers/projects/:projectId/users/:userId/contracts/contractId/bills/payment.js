@@ -54,19 +54,18 @@ module.exports = {
          * For response `default` status 200 is used.
          */
         const projectId = req.params.projectId;
-        const fundChannelId = req.params.fundChannelId;
+        const contractId = req.params.contractId;
+        const userId = req.params.userId;
 
         const body = req.body;
+        const billIds = body.billIds;
+        const fundChannelId = body.fundChannelId;
 
         if(!Util.ParameterCheck(body,
-            ['contractId', 'billIds', 'userId']
-        )){
+                ['contractId', 'billIds', 'userId']
+            )){
             return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED));
         }
-
-        const contractId = body.contractId;
-        const billIds = body.billIds;
-        const userId = body.userId;
 
 
         (async()=>{
