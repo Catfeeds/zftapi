@@ -3,6 +3,7 @@ const {get} = require('../../services/v1.0/handlers/projects/:projectId/flows');
 require('include-node');
 const {stub, spy} = require('sinon');
 const fp = require('lodash/fp');
+const moment = require('moment');
 
 describe('Flows', function() {
     before(() => {
@@ -584,8 +585,8 @@ describe('Flows', function() {
             countingOption.where.should.be.eql({
                 projectId: 100,
                 createdAt: {
-                    $gte: '2009-05-29 22:17:42',
-                    $lte: '2009-05-31 02:04:22'
+                    $gte: moment(req.query.from * 1000).format('YYYY-MM-DD HH:mm:ss'),
+                    $lte: moment(req.query.to * 1000).format('YYYY-MM-DD HH:mm:ss')
                 }
             });
         });
