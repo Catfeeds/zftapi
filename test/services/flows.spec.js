@@ -562,4 +562,49 @@ describe('Flows', function() {
             });
         });
     });
+
+    it('should accept filter from / to', async function() {
+        const req = {
+            params: {
+                projectId: 100,
+                roomId: 200,
+            },
+            query: {from: 1243599462, to: 1243699462},
+        };
+        const sequelizeFindSpy = stub().resolves([]);
+        global.MySQL = {
+            Flows: {
+                findAndCountAll: sequelizeFindSpy,
+            }
+        };
+
+        await get(req, {send: fp.noop}).then(() => {
+            sequelizeFindSpy.should.have.been.called;
+            const countingOption = sequelizeFindSpy.getCall(0).args[0];
+            countingOption.where.should.be.eql({
+                projectId: 100,
+                createdAt: {
+                    $gte: '2009-05-29 22:17:42',
+                    $lte: '2009-05-31 02:04:22'
+                }
+            });
+        });
+    });
+
+    it('should validate filter from / to', async function() {
+        const req = {
+            params: {
+                projectId: 100,
+                roomId: 200,
+            },
+            query: {from: 100, to: 99},
+        };
+
+        const resSpy = spy();
+
+        await get(req, {send: resSpy}).then(() => {
+            resSpy.should.have.been.called;
+            resSpy.getCall(0).args[0].should.be.eql(400);
+        });
+    });
 });

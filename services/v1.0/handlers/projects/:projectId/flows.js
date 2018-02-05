@@ -2,10 +2,8 @@
 
 const fp = require('lodash/fp');
 const moment = require('moment');
-const omitSingleNulls = require('../../../common').omitSingleNulls;
-const innerValues = require('../../../common').innerValues;
-const includeContracts = require('../../../common').includeContracts;
-const singleRoomTranslate = require('../../../common').singleRoomTranslate;
+const {innerValues, omitSingleNulls, formatMysqlDateTime, includeContracts, singleRoomTranslate} = require(
+    '../../../common');
 
 const omitFields = fp.omit([
     'userId', 'billId', 'bill', 'auth', 'topup',
@@ -135,9 +133,14 @@ module.exports = {
                         }, operatorConnection)],
                 },
             ],
-            where: {
+            where: fp.merge({
                 projectId,
-            },
+            }, from && to ? {
+                createdAt: {
+                    $gte: formatMysqlDateTime(from),
+                    $lte: formatMysqlDateTime(to),
+                },
+            } : {}),
             distinct: true,
             offset: pagingInfo.skip,
             limit: pagingInfo.size,

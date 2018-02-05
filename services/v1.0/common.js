@@ -524,3 +524,5 @@ exports.autoApportionment = async(projectId, houseId)=>{
         return ErrorCode.ack(ErrorCode.DATABASEEXEC);
     }
 };
+
+exports.formatMysqlDateTime = seconds => moment(seconds * 1000).format('YYYY-MM-DD HH:mm:ss');
