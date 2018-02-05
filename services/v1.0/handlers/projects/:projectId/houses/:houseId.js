@@ -53,6 +53,9 @@ module.exports = {
                     {
                         model: MySQL.HouseDevicePrice,
                         as: 'prices',
+                        where:{
+                            expiredDate: 0
+                        },
                         attributes:['type', 'price']
                     }
                 ]
@@ -217,35 +220,6 @@ module.exports = {
                     'config', 'houseKeeper', 'layout']
             );
 
-            const SavePrice = async(t, projectId, houseId, prices)=>{
-
-                const housePrices = await MySQL.HouseDevicePrice.findAll({
-                    where:{
-                        projectId: projectId,
-                        sourceId: houseId
-                    },
-                    attributes: ['id', 'type']
-                });
-
-                const bulkInsert = _.compact(fp.map(price=>{
-                    if(Typedef.IsPriceType(price.type)){
-                        const housePriceIndex = _.findKey(housePrices, housePrice=> {
-                            return housePrice.type === price.type;
-                        });
-                        const housePrice = housePrices[housePriceIndex];
-
-                        return _.assignIn({
-                            type: price.type,
-                            price: price.price,
-                            projectId: projectId,
-                            sourceId: houseId,
-                        }, housePrice ? {id: housePrice.id} : {});
-                    }
-                })(prices));
-
-                await MySQL.HouseDevicePrice.bulkCreate(bulkInsert, {transaction: t, updateOnDuplicate: true});
-            };
-
             try{
                 const t = await MySQL.Sequelize.transaction();
 
@@ -287,10 +261,6 @@ module.exports = {
                             transaction: t
                         }
                     );
-                }
-
-                if(body.prices) {
-                    await SavePrice(t, projectId, houseId, body.prices);
                 }
 
                 await t.commit();

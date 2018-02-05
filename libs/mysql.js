@@ -1363,7 +1363,7 @@ function SequelizeDefine()
             allowNull: false,
             defaultValue: 'HOST'
         },
-        sourceId:{
+        houseId:{
             type: Sequelize.BIGINT.UNSIGNED,
             allowNull: false,
         },
@@ -1372,6 +1372,15 @@ function SequelizeDefine()
             allowNull: false    //ELECTRIC
         },
         price: {
+            type: Sequelize.INTEGER,
+            allowNull: false,
+            defaultValue: 0
+        },
+        startDate:{
+            type: Sequelize.INTEGER,
+            allowNull: false,
+        },
+        expiredDate: {
             type: Sequelize.INTEGER,
             allowNull: false,
             defaultValue: 0
@@ -1384,8 +1393,8 @@ function SequelizeDefine()
 
     Houses.hasMany(HouseDevices, {as: 'devices', foreignKey: 'sourceId'});
     Rooms.hasMany(HouseDevices, {as: 'devices', foreignKey: 'sourceId'});
-    HouseDevices.hasMany(HouseDevicePrice, {as: 'devicePrice', foreignKey: 'sourceId'});
-    Houses.hasMany(HouseDevicePrice, {as: 'prices', foreignKey: 'sourceId'});
+    HouseDevices.hasMany(HouseDevicePrice, {as: 'devicePrice', foreignKey: 'houseId'});
+    Houses.hasMany(HouseDevicePrice, {as: 'prices', foreignKey: 'houseId'});
 
     exports.HouseDevices = HouseDevices;
     exports.HouseDevicePrice = HouseDevicePrice;

@@ -2,6 +2,7 @@
 
 const _ = require('lodash');
 const fp = require('lodash/fp');
+const moment = require('moment');
 
 module.exports = {
     put: (req, res) => {
@@ -37,38 +38,68 @@ module.exports = {
             };
 
 
+            let t;
             try {
+                const now = Number( moment().format('YYYYMMDD') );
                 const houseIds = await getHouseIds();
+                if(!houseIds.length){
+                    return res.send(404, ErrorCode.ack(ErrorCode.HOUSEEXISTS))
+                }
                 const devicePrices = await MySQL.HouseDevicePrice.findAll({
                     where: {
-                        sourceId: {$in: houseIds},
+                        houseId: {$in: houseIds},
                         projectId: projectId,
                         type: type,
-                        category: body.category
+                        category: body.category,
+                        expiredDate: 0
                     }
                 });
 
                 //
-                const updateIds = fp.map(price => {
-                    return price.id;
-                })(devicePrices);
+                const updateIds = _.compact( fp.map(price => {
+                    if( price.startDate === now ){
+                        return price.id;
+                    }
+                    return null;
+                })(devicePrices) );
+                const updateHouseIds = _.compact( fp.map(price => {
+                    if(price.startDate === now){
+                        return price.houseId;
+                    }
+                    return  null;
+                })(devicePrices) );
 
-                const updateHouseIds = fp.map(price => {
-                    return price.sourceId;
-                })(devicePrices);
-                const createIds = _.difference(houseIds, updateHouseIds);
+
+                const createHouseId = _.difference(houseIds, updateHouseIds);
 
                 const createPrices = fp.map(id => {
                     return {
                         projectId: projectId,
-                        sourceId: id,
+                        houseId: id,
                         type: type,
                         category: body.category,
-                        price: body.price
+                        price: body.price,
+                        startDate: now
                     };
-                })(createIds);
+                })(createHouseId);
 
-                const t = await MySQL.Sequelize.transaction();
+                t = await MySQL.Sequelize.transaction({autocommit: false});
+
+                await MySQL.HouseDevicePrice.update(
+                    {
+                        expiredDate: now
+                    },
+                    {
+                        where: {
+                            category: body.category,
+                            projectId: projectId,
+                            type: type,
+                            houseId: {$in: createHouseId},
+                            expiredDate: 0
+                        },
+                        transaction: t
+                    }
+                );
 
                 await MySQL.HouseDevicePrice.update(
                     {
@@ -89,6 +120,7 @@ module.exports = {
                 res.send(204);
             }
             catch(e){
+                t.rollback();
                 log.error(e, projectId, type, body);
                 res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC));
             }

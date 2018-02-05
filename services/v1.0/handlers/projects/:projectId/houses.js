@@ -511,6 +511,9 @@ async function Gethouses(params, query) {
             {
                 model: MySQL.HouseDevicePrice,
                 as: 'prices',
+                where:{
+                    expiredDate: 0
+                }
             }
         ];
 

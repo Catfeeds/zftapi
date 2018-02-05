@@ -8,7 +8,8 @@ module.exports = {
         MySQL.HouseDevicePrice.findAll({
             where:{
                 projectId: projectId,
-                sourceId: houseId
+                houseId: houseId,
+                expiredDate: 0
             },
             attributes:['category', 'type', 'price']
         }).then(
