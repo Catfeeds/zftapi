@@ -24,7 +24,7 @@ module.exports = {
             include: [{model: BillFlows,
                 as: 'billItems' ,
                 attributes: ['configId', 'relevantId', 'amount', 'createdAt', 'id']},
-            fundFlowConnection],
+                fundFlowConnection],
             where: {
                 entityType: 'property',
                 contractId: req.params.contractId,
