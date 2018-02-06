@@ -43,14 +43,7 @@ module.exports = {
         const BillFlows = MySQL.BillFlows;
         const BillPayment = MySQL.BillPayment;
 
-        const Contracts = MySQL.Contracts;
-        const Users = MySQL.Users;
-        const Rooms = MySQL.Rooms;
-        const Houses = MySQL.Houses;
-        const Building = MySQL.Building;
-        const GeoLocation = MySQL.GeoLocation;
-        const contractFilter = includeContracts(Contracts, Users, Houses,
-            Building, GeoLocation, Rooms);
+        const contractFilter = includeContracts(MySQL);
 
         const query = req.query;
 

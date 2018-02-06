@@ -68,19 +68,12 @@ module.exports = {
     get: async (req, res) => {
         const BillPayment = MySQL.BillPayment;
         const Bills = MySQL.Bills;
-        const Contracts = MySQL.Contracts;
-        const Users = MySQL.Users;
-        const Rooms = MySQL.Rooms;
-        const Houses = MySQL.Houses;
-        const Building = MySQL.Building;
-        const GeoLocation = MySQL.GeoLocation;
         const Auth = MySQL.Auth;
         const Flows = MySQL.Flows;
         const Topup = MySQL.Topup;
         const BillFlows = MySQL.BillFlows;
         const FundChannelFlows = MySQL.FundChannelFlows;
-        const contractFilter = includeContracts(Contracts, Users, Houses,
-            Building, GeoLocation, Rooms);
+        const contractFilter = includeContracts(MySQL);
 
         const query = req.query;
         const projectId = req.params.projectId;

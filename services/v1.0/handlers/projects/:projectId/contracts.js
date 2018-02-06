@@ -156,10 +156,6 @@ module.exports = {
     get: async function getContracts(req, res) {
         const Contracts = MySQL.Contracts;
         const Users = MySQL.Users;
-        const Rooms = MySQL.Rooms;
-        const Houses = MySQL.Houses;
-        const Building = MySQL.Building;
-        const GeoLocation = MySQL.GeoLocation;
         const CashAccount = MySQL.CashAccount;
         const projectId = req.params.projectId;
         const status = fp.getOr(Typedef.ContractStatus.ONGOING)(
@@ -184,7 +180,7 @@ module.exports = {
                             attributes: ['balance'],
                         }],
                 },
-                houseConnection(Houses, Building, GeoLocation, Rooms)(
+                houseConnection(MySQL)(
                     houseFormat)],
             distinct: true,
             where: fp.defaults(fp.defaults({projectId, status})(

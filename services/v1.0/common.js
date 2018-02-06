@@ -154,36 +154,36 @@ exports.jsonProcess = (model) => fp.defaults(model)({
     strategy: model.strategy ? JSON.parse(model.strategy) : undefined
 });
 
-exports.userConnection = (userModel) => ({
-    model: userModel
+exports.userConnection = (sequelizeModel) => ({
+    model: sequelizeModel.Users
 });
-exports.includeContracts = (contractModel, userModel, houseModel, buildingModel, locationModel, roomModel) =>
+exports.includeContracts = (sequelizeModel) =>
     (houseFormat, contractCondition) => fp.defaults({
-        include: [exports.userConnection(userModel), exports.houseConnection(houseModel, buildingModel, locationModel, roomModel)(houseFormat)],
-        model: contractModel
+        include: [exports.userConnection(sequelizeModel), exports.houseConnection(sequelizeModel)(houseFormat)],
+        model: sequelizeModel.Contracts
     })(fp.isUndefined(contractCondition) ? {
         where: {
             status: Typedef.ContractStatus.ONGOING
         }
     } : contractCondition);
 
-exports.houseConnection = (houseModel, buildingModel, locationModel, roomModel) => (houseFormat) => {
+exports.houseConnection = (sequelizeModel) => (houseFormat) => {
     const houseInclude = fp.defaults({
-        model: houseModel,
+        model: sequelizeModel.Houses,
         as: 'house',
         attributes: ['id', 'roomNumber', 'buildingId'],
         include: [{
-            model: buildingModel, as: 'building',
+            model: sequelizeModel.Building, as: 'building',
             attributes: ['building', 'unit'],
             include: [{
-                model: locationModel,
+                model: sequelizeModel.GeoLocation,
                 as: 'location',
                 attributes: ['name']
             }]
         }]
     })(fp.isEmpty(houseFormat) ? {} : {where: {houseFormat}});
     return {
-        model: roomModel,
+        model: sequelizeModel.Rooms,
         attributes: ['id', 'name', 'houseId'],
         required: true,
         include: [houseInclude]

@@ -15,10 +15,17 @@ describe('Common', function() {
         global.Typedef = Include('/libs/typedef');
         global.log = {error: () => ({})};
         global.SnowFlake = {next: () => 998811};
+        global.SequelizeModels = {
+            Users,
+            Rooms,
+            Houses,
+            Building,
+            GeoLocation,
+            Contracts
+        };
     });
     it('should provide contracts condition', function() {
-        const contractFilter = includeContracts(Contracts, Users, Houses,
-            Building, GeoLocation, Rooms);
+        const contractFilter = includeContracts(global.SequelizeModels);
         const contractOptions = contractFilter('');
         contractOptions.should.be.eql({
             include: [
@@ -73,8 +80,7 @@ describe('Common', function() {
     });
     it('should include terminated contracts if contract status is overridden',
         function() {
-            const contractFilter = includeContracts(Contracts, Users, Houses,
-                Building, GeoLocation, Rooms);
+            const contractFilter = includeContracts(global.SequelizeModels);
             const contractOptions = contractFilter('', {});
             contractOptions.should.be.eql({
                 include: [
@@ -125,8 +131,7 @@ describe('Common', function() {
             });
         });
     it('should consider houseFormat if provided', function() {
-        const contractFilter = includeContracts(Contracts, Users, Houses,
-            Building, GeoLocation, Rooms);
+        const contractFilter = includeContracts(global.SequelizeModels);
         const contractOptions = contractFilter('SOLE', {});
         contractOptions.should.be.eql({
             include: [
