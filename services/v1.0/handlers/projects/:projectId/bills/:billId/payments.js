@@ -11,7 +11,6 @@ module.exports = {
     post: async function createPayment(req, res) {
         const BillPayment = MySQL.BillPayment;
         const Bills = MySQL.Bills;
-        const Flows = MySQL.Flows;
         const projectId = req.params.projectId;
         const billId = req.params.billId;
 
