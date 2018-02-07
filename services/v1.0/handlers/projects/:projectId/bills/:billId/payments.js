@@ -2,8 +2,7 @@
 
 const fp = require('lodash/fp');
 const moment = require('moment');
-const assignNewId = require('../../../../../common').assignNewId;
-const assignFieldId = require('../../../../../common').assignFieldId;
+const {assignNewId, assignFieldId, payBills} = require('../../../../../common');
 /**
  * Operations on /bills/{billid}/payments
  */
@@ -33,8 +32,6 @@ module.exports = {
             return res.send(400, ErrorCode.ack(ErrorCode.PARAMETERERROR, {error: 'please provide fundChannelId'}));
         }
 
-        const Sequelize = MySQL.Sequelize;
-
         return Bills.findById(billId, {include: [{model: BillPayment, as: 'payments'}]}).then(bill => {
             if (fp.isEmpty(bill)) {
                 return res.send(404);
@@ -50,11 +47,8 @@ module.exports = {
                 return bill;
             }
             throw new Error(`Bill ${billId} already has payment ${fp.get('payments[0].id')(bill)}.`);
-        }).then(() => Sequelize.transaction(t =>
-            Flows.create(assignNewId({projectId, category: 'rent'}), {transaction: t})
-                .then(flow =>
-                    BillPayment.create(fp.defaults({flowId: flow.id})(assignFieldId('orderNo')(assignNewId(payment))), {transaction: t}))
-        )).then(results => res.send(201, ErrorCode.ack(ErrorCode.OK, results)))
+        }).then(bill => payBills([bill], projectId, {id: payment.fundChannelId}, operator))
+        .then(results => res.send(201, ErrorCode.ack(ErrorCode.OK, results)))
             .catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, {error: err.message})));
     }
 };

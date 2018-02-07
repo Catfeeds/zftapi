@@ -987,7 +987,7 @@ function SequelizeDefine()
             defaultValue: ''
         },
         contractId: {
-            type: Sequelize.BIGINT.UNSIGNED,    //合同id
+            type: Sequelize.BIGINT.UNSIGNED,    //合同ID
             allowNull: false
         },
         projectId: {
@@ -1069,14 +1069,41 @@ function SequelizeDefine()
 			allowNull: false
 		},
         category:{
-			type: Sequelize.STRING,  //项目ID
+			type: Sequelize.STRING,  //流水业务类型
 			allowNull: false,
             defaultValue: 'rent',
 			validate: {
 				isIn: [['rent', 'final', 'topup']]
 			}
-		}
-	},{
+		},
+        amount: {
+            type: Sequelize.BIGINT.UNSIGNED,    //金额 扩大100
+            allowNull: false,
+            defaultValue: 0
+        },
+        fee: {
+            type: Sequelize.BIGINT.UNSIGNED,    //服务费
+            allowNull: false,
+            defaultValue: 0
+        },
+        direction: {                                //资金流向(收入/支出)
+            type: Sequelize.STRING(10),
+            allowNull: false,
+            defaultValue: 'receive',
+            validate: {
+                isIn: [['pay', 'receive']]
+            }
+        },
+        locationId: {
+            type: Sequelize.BIGINT.UNSIGNED,    //小区ID
+            allowNull: false,
+            defaultValue: 0
+        },
+        locationName: {
+            type: Sequelize.STRING(16),     //小区名称
+            allowNull: false,
+        }
+    }, {
 		timestamps: true,
 		paranoid: true,
 		freezeTableName: true
