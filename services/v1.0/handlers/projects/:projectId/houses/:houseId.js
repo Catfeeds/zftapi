@@ -54,7 +54,7 @@ module.exports = {
                         model: MySQL.HouseDevicePrice,
                         as: 'prices',
                         where:{
-                            expiredDate: 0
+                            endDate: 0
                         },
                         attributes:['type', 'price']
                     }

@@ -40,7 +40,7 @@ module.exports = {
 
             let t;
             try {
-                const now = Number( moment().format('YYYYMMDD') );
+                const now = moment().unix();
                 const houseIds = await getHouseIds();
                 if(!houseIds.length){
                     return res.send(404, ErrorCode.ack(ErrorCode.HOUSEEXISTS))
@@ -51,7 +51,7 @@ module.exports = {
                         projectId: projectId,
                         type: type,
                         category: body.category,
-                        expiredDate: 0
+                        endDate: 0
                     }
                 });
 
@@ -85,9 +85,10 @@ module.exports = {
 
                 t = await MySQL.Sequelize.transaction({autocommit: false});
 
+                const endDate = moment().subtract(1, 'days').unix();
                 await MySQL.HouseDevicePrice.update(
                     {
-                        expiredDate: now
+                        endDate: endDate
                     },
                     {
                         where: {
@@ -95,7 +96,7 @@ module.exports = {
                             projectId: projectId,
                             type: type,
                             houseId: {$in: createHouseId},
-                            expiredDate: 0
+                            endDate: 0
                         },
                         transaction: t
                     }

@@ -9,7 +9,7 @@ module.exports = {
             where:{
                 projectId: projectId,
                 houseId: houseId,
-                expiredDate: 0
+                endDate: 0
             },
             attributes:['category', 'type', 'price']
         }).then(

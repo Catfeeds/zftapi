@@ -17,7 +17,7 @@ module.exports = {
 
         MySQL.HouseDevicePrice.findOne({
             where:{
-                expiredDate: 0,
+                endDate: 0,
                 projectId: projectId,
                 houseId: houseId,
                 type: type,
@@ -29,7 +29,7 @@ module.exports = {
                     return res.send(204);
                 }
 
-                const now = Number( moment().format('YYYYMMDD') );
+                const now = moment().unix();
                 if(price.startDate === now){
                     MySQL.HouseDevicePrice.update(
                         {
@@ -54,7 +54,7 @@ module.exports = {
                     MySQL.Sequelize.transaction(t => {
                         return MySQL.HouseDevicePrice.update(
                             {
-                                expiredDate: moment().unix()
+                                endDate: moment().subtract(1, 'days').unix()
                             },
                             {
                                 where: {

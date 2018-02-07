@@ -1377,11 +1377,11 @@ function SequelizeDefine()
             defaultValue: 0
         },
         startDate:{
-            type: Sequelize.INTEGER,
+            type: Sequelize.BIGINT.UNSIGNED,
             allowNull: false,
         },
-        expiredDate: {
-            type: Sequelize.INTEGER,
+        endDate: {
+            type: Sequelize.BIGINT.UNSIGNED,
             allowNull: false,
             defaultValue: 0
         }
