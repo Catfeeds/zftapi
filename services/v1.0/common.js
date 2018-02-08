@@ -227,7 +227,7 @@ exports.payBills = async (bills, projectId, fundChannel, userId, orderNo)=>{
         projectId,
         category: 'rent',
         amount: bill.amount,
-        fee: bill.serviceCharge.fee
+        fee: bill.serviceCharge.shareAmount
     }))(payBills);
 
     let t;
@@ -257,17 +257,19 @@ exports.serviceCharge = (fundChannel, amount)=>{
     //
 
     let chargeObj = {
-        amount: amount
+        amount: amount,
+        shareAmount: 0
     };
 
     _.each(fundChannel.serviceCharge, serviceCharge=>{
         switch(serviceCharge.type){
         case Typedef.ServiceChargeType.TOPUP:
+        case Typedef.ServiceChargeType.BILL:
             {
                 const CalcShare = (fee, percent)=>{
                     if(fee && percent){
                         if(amount === 1){
-                            return;
+                            return 0;
                         }
 
                         const balance = (
@@ -292,10 +294,13 @@ exports.serviceCharge = (fundChannel, amount)=>{
                     return;
                 }
 
+                const user = CalcShare(serviceCharge.strategy.fee, serviceCharge.strategy.user);
+                const project = CalcShare(serviceCharge.strategy.fee, serviceCharge.strategy.project);
                 chargeObj.share = {
-                    user: CalcShare(serviceCharge.strategy.fee, serviceCharge.strategy.user),
-                    project: CalcShare(serviceCharge.strategy.fee, serviceCharge.strategy.project),
+                    user: user,
+                    project: project
                 };
+                chargeObj.shareAmount = user + project;
 
                 chargeObj.amountForBill = chargeObj.amount + chargeObj.share.user;
             }
@@ -316,72 +321,84 @@ exports.serviceCharge = (fundChannel, amount)=>{
     return chargeObj;
 };
 
+exports.baseFlow = (category, orderNo, projectId, billId, fundChannel, amount)=>{
+    return {
+        id: exports.assignNewId().id,
+        category,
+        orderNo,
+        projectId,
+        fundChannelId: fundChannel.id,
+        billId,
+        amount
+    };
+};
+
 exports.shareFlows = (serviceCharge, orderNo, projectId, userId, billId, fundChannel)=>{
+
+    const category = Typedef.FundChannelFlowCategory.SCTOPUP;
     return _.compact([
-            fp.get('share.user')(serviceCharge) ? {
-            id: exports.assignNewId().id,
-            category: Typedef.FundChannelFlowCategory.CHARGETOPUP,
-            orderNo: orderNo,
-            projectId: projectId,
-            fundChannelId: fundChannel.id,
-            billId: billId,
-            from: userId,
-            to: Typedef.PlatformId,
-            amount: serviceCharge.share.user
-        } : null,
-        serviceCharge.share && serviceCharge.share.project ? {
-            id: exports.assignNewId().id,
-            category: Typedef.FundChannelFlowCategory.CHARGETOPUP,
-            orderNo: orderNo,
-            projectId: projectId,
-            fundChannelId: fundChannel.id,
-            billId: billId,
-            from: projectId,
-            to: Typedef.PlatformId,
-            amount: serviceCharge.share.project
-        } : null,
+        fp.get('share.user')(serviceCharge) ?
+            _.assign(
+                baseFlow(category, orderNo, projectId, billId, fundChannel, fp.get('share.user')(serviceCharge))
+                , {
+                    from: userId,
+                    to: Typedef.PlatformId,
+                }
+            ) : null
+        , fp.get('share.project')(serviceCharge)  ?
+            _.assign(
+                baseFlow(category, orderNo, projectId, billId, fundChannel, fp.get('share.user')(serviceCharge))
+                , {
+                    from: projectId,
+                    to: Typedef.PlatformId,
+                }
+            ) : null
     ]);
 };
 exports.platformFlows = (serviceCharge, orderNo, projectId, userId, billId, fundChannel)=>{
+    const category = Typedef.FundChannelFlowCategory.COMMISSION;
     return _.compact([
-        fundChannel.fee ? {
-            id: exports.assignNewId().id,
-            category: Typedef.FundChannelFlowCategory.SERVICECHARGE,
-            orderNo: orderNo,
-            projectId: projectId,
-            fundChannelId: fundChannel.id,
-            billId: billId,
-            from: Typedef.PlatformId,
-            to: 0,
-            amount: serviceCharge.fee
-        } : null
+        fundChannel.fee ?
+            _.assign(
+                exports.baseFlow(category, orderNo, projectId, billId, fundChannel, serviceCharge.fee)
+                ,{
+                    from: Typedef.PlatformId,
+                    to: 0,
+                }
+            ): null
     ]);
 };
-exports.topupFlows = (serviceCharge, orderNo, projectId, userId, billId, fundChannel, category)=>{
-    const getAmount = (category, serviceCharge) =>
-        Typedef.FundChannelFlowCategory.BILL === category
-            ? fp.getOr(serviceCharge.amount)('amountForBill')(serviceCharge)
-            : serviceCharge.amount;
-
+exports.topupFlows = (amount, orderNo, projectId, userId, billId, fundChannel)=>{
+    const category = Typedef.FundChannelFlowCategory.TOPUP;
     return [
-        {
-            id: exports.assignNewId().id,
-            fundChannelId: fundChannel.id,
-            from: 0,
-            to: userId,
-            amount: getAmount(category, serviceCharge),
-            category,
-            orderNo,
-            projectId,
-            billId
-        }
+        _.assign(
+            exports.baseFlow(category, orderNo, projectId, billId, fundChannel, amount)
+            ,{
+                from: 0,
+                to: userId,
+            }
+        )
+    ];
+};
+exports.billFlows = (amount, orderNo, projectId, userId, billId, fundChannel)=>{
+    const category = Typedef.FundChannelFlowCategory.BILL;
+    return [
+        _.assign(
+            exports.baseFlow(category, orderNo, projectId, billId, fundChannel, amount)
+            ,{
+                from: 0,
+                to: userId,
+            }
+        )
     ];
 };
 
 exports.logFlows = async(serviceCharge, orderNo, projectId, userId, billId, fundChannel, t, category)=>{
 
     const bulkFlows = _.compact(_.concat([]
-        , exports.topupFlows(serviceCharge, orderNo, projectId, userId, billId, fundChannel, category)
+        , category === Typedef.FundChannelFlowCategory.BILL ?
+            exports.billFlows(serviceCharge.amountForBill, orderNo, projectId, userId, billId, fundChannel)
+            : exports.topupFlows(serviceCharge.amount, orderNo, projectId, userId, billId, fundChannel)
         , exports.shareFlows(serviceCharge, orderNo, projectId, userId, billId, fundChannel)
         , exports.platformFlows(serviceCharge, orderNo, projectId, userId, billId, fundChannel)
     ));
