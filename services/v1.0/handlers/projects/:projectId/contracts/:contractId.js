@@ -3,10 +3,7 @@
  * Operations on /contracts/:contractId
  */
 const fp = require('lodash/fp');
-const assignNewId = require('../../../../common').assignNewId;
-const omitSingleNulls = require('../../../../common').omitSingleNulls;
-const innerValues = require('../../../../common').innerValues;
-const jsonProcess = require('../../../../common').jsonProcess;
+const {assignNewId, omitSingleNulls, innerValues, jsonProcess, payBills} = require('../../../../common');
 const finalBillOf = require('../../../../../../transformers/billGenerator').finalBill;
 const finalPaymentOf = require('../../../../../../transformers/paymentGenerator').finalPayment;
 
@@ -47,8 +44,6 @@ module.exports = {
         const Rooms = MySQL.Rooms;
         const SuspendingRooms = MySQL.SuspendingRooms;
         const Bills = MySQL.Bills;
-        const Flows = MySQL.Flows;
-        const BillPayment = MySQL.BillPayment;
         const contractId = req.params.contractId;
         const projectId = req.params.projectId;
         const status = fp.getOr('')('body.status')(req).toUpperCase();
@@ -97,25 +92,25 @@ module.exports = {
 
                     const settlement = fp.defaults(fp.get('body.transaction')(req))({projectId, contractId});
                     const newBill = finalBillOf(settlement);
-                    const finalBillPromise = Bills.create(newBill, {transaction: t});
+
+                    const finalBill = Bills.create(newBill, {transaction: t});
                     const operatorId = req.isAuthenticated() && req.user.id;
 
-                    const finalFlow = assignNewId({projectId, category: 'final'});
-                    const finalFlowPromise = Flows.create(finalFlow, {transaction: t});
-
-                    const finalPayment = finalPaymentOf(fp.defaults(settlement)({
-                        billId: newBill.id,
-                        operatorId,
-                        flowId: finalFlow.id
-                    }));
-                    const finalPaymentPromise = BillPayment.create(finalPayment, {transaction: t});
+                    const finalPayment = finalPaymentOf(
+                        fp.defaults(settlement)({
+                            bills: [newBill],
+                            operatorId,
+                        })
+                    );
+                    const finalFlow = payBills(finalPayment.bills, finalPayment.projectId,
+                        finalPayment.fundChannel, finalPayment.operator, null, 'final');
 
                     const operations = Typedef.OperationStatus.PAUSED === roomStatus ? [
                         SuspendingRooms.create(suspending, {transaction: t})
                     ] : [];
 
                     return Promise.all(fp.concat(
-                        operations, [contractUpdating, finalBillPromise, finalPaymentPromise, finalFlowPromise]
+                        operations, [contractUpdating, finalBill, finalFlow]
                     ));
                 });
             }).then(updated => res.send(fp.get('[1]')(updated)))

@@ -20,15 +20,13 @@ describe('Payment generator', () => {
             amount: 101,
             fundChannelId: 199,
             projectId: 100,
-            billId: 321,
-            operatorId: 19,
-            flowId: 123
+            bills: [{id: 'bill1'}],
+            operatorId: 19
         });
         payment.should.be.eql({
             amount: 101,
-            billId: 321,
-            flowId: 123,
-            fundChannelId: 199,
+            bills: [{id: 'bill1'}],
+            fundChannel: {id: 199},
             id: 9999,
             operator: 19,
             orderNo: 9999,

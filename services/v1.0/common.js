@@ -208,7 +208,7 @@ exports.deviceStatus = (device)=>{
     return _.assign(device.status || {}, {service: runStatus()});
 };
 
-exports.payBills = async (bills, projectId, fundChannel, userId, orderNo)=>{
+exports.payBills = async (bills, projectId, fundChannel, userId, orderNo, category) => {
     const payBills = fp.map(bill=>({
         id: exports.assignNewId().id,
         projectId,
@@ -225,7 +225,7 @@ exports.payBills = async (bills, projectId, fundChannel, userId, orderNo)=>{
     const flows = fp.map(bill=>({
         id: bill.flowId,
         projectId,
-        category: 'rent',
+        category: category ? category : 'rent',
         amount: bill.amount,
         fee: bill.serviceCharge.shareAmount
     }))(payBills);
