@@ -238,7 +238,7 @@ async function Gethouses(params, query) {
                 model: MySQL.HouseDevicePrice,
                 as: 'prices',
                 where:{
-                    expiredDate: 0
+                    endDate: 0
                 }
             }
         ];
@@ -435,6 +435,9 @@ module.exports = {
                 const roomIds = _.flatten(fp.map(house=>{
                     return fp.map(room=>{return room.id;})(house.rooms);
                 })(houses));
+                const houseIds = fp.map(house=>{
+                    return house.id;
+                })(houses);
 
                 //seek contracts
                 const contracts = await MySQL.Contracts.findAll({
@@ -444,7 +447,19 @@ module.exports = {
                         to:{$lte: timeTo},
                     }
                 });
-                //seek
+                //seek houseDevicePrices
+                const startDate = moment.unix(timeFrom).format('YYYYMMDD');
+                const endDate = moment.unix(timeTo).format('YYYYMMDD');
+                const houseDevicePrices = await MySQL.HouseDevicePrice.findAll({
+                    where:{
+                        projectId: projectId,
+                        houseId: {$in: houseIds},
+                        startDate:{$gte: startDate},
+                        endDate:{$lte: endDate},
+                    }
+                });
+
+
 
                 res.send(houses);
             }
