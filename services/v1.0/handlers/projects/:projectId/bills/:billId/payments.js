@@ -2,7 +2,7 @@
 
 const fp = require('lodash/fp');
 const moment = require('moment');
-const {assignNewId, assignFieldId, payBills} = require('../../../../../common');
+const {payBills} = require('../../../../../common');
 /**
  * Operations on /bills/{billid}/payments
  */
@@ -47,7 +47,7 @@ module.exports = {
             }
             throw new Error(`Bill ${billId} already has payment ${fp.get('payments[0].id')(bill)}.`);
         }).then(bill => payBills([bill], projectId, {id: payment.fundChannelId}, operator))
-        .then(results => res.send(201, ErrorCode.ack(ErrorCode.OK, results)))
+            .then(results => res.send(201, ErrorCode.ack(ErrorCode.OK, results)))
             .catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, {error: err.message})));
     }
 };

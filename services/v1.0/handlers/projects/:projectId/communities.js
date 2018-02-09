@@ -41,8 +41,8 @@ module.exports = {
             const query = req.query;
 
             if(!Util.ParameterCheck(query,
-                    ['houseFormat']
-                )){
+                ['houseFormat']
+            )){
                 return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED));
             }
             const houseFormat = query.houseFormat;
