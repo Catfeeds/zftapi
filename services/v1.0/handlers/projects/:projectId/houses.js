@@ -337,12 +337,12 @@ async function Gethouses(params, query) {
         else if(query.districtId){
             if(Util.IsParentDivision(query.districtId)){
                 return {
-                    '$building.location.divisionId': {$regexp: Util.ParentDivision(query.districtId)}
+                    '$building.location.divisionId$': {$regexp: Util.ParentDivision(query.districtId)}
                 };
             }
             else{
                 return {
-                    '$building.location.divisionId': query.districtId
+                    '$building.location.divisionId$': query.districtId
                 };
             }
         }
