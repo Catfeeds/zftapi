@@ -39,9 +39,10 @@ module.exports = {
             })
             .catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, {error: err.message})));
     },
-    put: function operateContract(req, res) {
+    put: async function operateContract(req, res) {
         const Contracts = MySQL.Contracts;
         const Rooms = MySQL.Rooms;
+        const ServiceCharge = MySQL.ServiceCharge;
         const SuspendingRooms = MySQL.SuspendingRooms;
         const Bills = MySQL.Bills;
         const contractId = req.params.contractId;
@@ -70,6 +71,12 @@ module.exports = {
         }
 
         const Sequelize = MySQL.Sequelize;
+        const serviceCharge = await ServiceCharge.findAll({
+            where: {
+                projectId,
+                type: Typedef.ServiceChargeType.BILL,
+            },
+        });
 
         return Contracts.findById(contractId, {include: [{model: Rooms, required: true}]})
             .then(contract => {
@@ -100,8 +107,13 @@ module.exports = {
                         fp.defaults(settlement)({
                             bills: [newBill],
                             operatorId,
+                            fundChannel: {
+                                id: settlement.fundChannelId,
+                                serviceCharge,
+                            },
                         })
                     );
+
                     const finalFlow = payBills(finalPayment.bills, finalPayment.projectId,
                         finalPayment.fundChannel, finalPayment.operator, null, 'final');
 

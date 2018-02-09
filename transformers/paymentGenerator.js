@@ -9,10 +9,10 @@ const finalPayment = (settlement) => assignNewId(assignFieldId('orderNo')({
     projectId: settlement.projectId,
     operator: settlement.operatorId,
     amount: fp.getOr(0)('amount')(settlement),
-    fundChannel: {id: fp.get('fundChannelId')(settlement)},
+    fundChannel: settlement.fundChannel,
     paidAt: moment().unix(),
-    status: 'approved'
+    status: 'approved',
 }));
 module.exports = {
-    finalPayment
+    finalPayment,
 };

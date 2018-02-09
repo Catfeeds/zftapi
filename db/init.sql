@@ -505,6 +505,9 @@ INSERT INTO `zft`.`fundChannels` (`flow`, `projectId`, `category`, `tag`, `name`
 INSERT INTO `zft`.`fundChannels` (`flow`, `projectId`, `category`, `tag`, `name`, `status`, `createdAt`, `updatedAt`, `deletedAt`) VALUES ('receive', '100', 'online', 'alipay', '支付宝', 'PASSED ', '2018-01-03 22:31:59', '2018-01-03 22:32:02', NULL);
 INSERT INTO `zft`.`fundChannels` (`flow`, `projectId`, `category`, `tag`, `name`, `status`, `createdAt`, `updatedAt`, `deletedAt`) VALUES ('pay', '100', 'online', 'icbc', '工商银行', 'PASSED', '2018-01-03 22:33:12', '2018-01-03 22:33:15', NULL);
 
+INSERT INTO zft.serviceCharge (id, projectId, fundChannelId, type, strategy, createdAt, updatedAt, deletedAt) VALUES (1, 100, 1, 'TOPUP', '{"user":40,"project":60,"fee":10}', '2018-01-24 17:59:13', '2018-01-25 08:12:08', null);
+INSERT INTO zft.serviceCharge (id, projectId, fundChannelId, type, strategy, createdAt, updatedAt, deletedAt) VALUES (2, 100, 1, 'BILL', '{"user":30,"project":70,"fee":10}', '2018-01-24 17:59:13', '2018-01-25 08:12:08', null);
+
 INSERT INTO `divisions` VALUES (110000, '北京市', 1, 0, 39.90000, 116.40000, 1);
 INSERT INTO `divisions` VALUES (110100, '市辖区', 2, 110000, 0.00000, 0.00000, 0);
 INSERT INTO `divisions` VALUES (110101, '东城区', 3, 110100, 39.93000, 116.42000, 0);

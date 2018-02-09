@@ -18,7 +18,7 @@ describe('Payment generator', () => {
     it('should generate final payment base on bill & flow', () => {
         const payment = finalPayment({
             amount: 101,
-            fundChannelId: 199,
+            fundChannel: {id: 199},
             projectId: 100,
             bills: [{id: 'bill1'}],
             operatorId: 19

@@ -226,7 +226,7 @@ exports.payBills = async (bills, projectId, fundChannel, userId, orderNo, catego
         id: bill.flowId,
         projectId,
         category: category ? category : 'rent',
-        amount: bill.amount,
+        amount: bill.dueAmount,
         fee: bill.serviceCharge.shareAmount
     }))(payBills);
 
@@ -255,7 +255,7 @@ exports.payBills = async (bills, projectId, fundChannel, userId, orderNo, catego
 
 exports.serviceCharge = (fundChannel, amount)=>{
     //
-
+    console.log('serviceCharge in', amount, fundChannel);
     let chargeObj = {
         amount: amount,
         shareAmount: 0
@@ -303,6 +303,7 @@ exports.serviceCharge = (fundChannel, amount)=>{
                 chargeObj.shareAmount = user + project;
 
                 chargeObj.amountForBill = chargeObj.amount + chargeObj.share.user;
+
             }
             break;
         }
@@ -317,7 +318,7 @@ exports.serviceCharge = (fundChannel, amount)=>{
             new bigDecimal.BigDecimal('1000')
         ).intValue();
     }
-
+    console.log('before return chargeObj', chargeObj);
     return chargeObj;
 };
 
@@ -339,7 +340,7 @@ exports.shareFlows = (serviceCharge, orderNo, projectId, userId, billId, fundCha
     return _.compact([
         fp.get('share.user')(serviceCharge) ?
             _.assign(
-                baseFlow(category, orderNo, projectId, billId, fundChannel, fp.get('share.user')(serviceCharge))
+                exports.baseFlow(category, orderNo, projectId, billId, fundChannel, fp.get('share.user')(serviceCharge))
                 , {
                     from: userId,
                     to: Typedef.PlatformId,
@@ -347,7 +348,7 @@ exports.shareFlows = (serviceCharge, orderNo, projectId, userId, billId, fundCha
             ) : null
         , fp.get('share.project')(serviceCharge)  ?
             _.assign(
-                baseFlow(category, orderNo, projectId, billId, fundChannel, fp.get('share.user')(serviceCharge))
+                exports.baseFlow(category, orderNo, projectId, billId, fundChannel, fp.get('share.user')(serviceCharge))
                 , {
                     from: projectId,
                     to: Typedef.PlatformId,
