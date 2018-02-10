@@ -254,6 +254,7 @@ describe('Common', function() {
     it('should calculate 0 charge if no service charge in fundChannel', () => {
         serviceCharge({}, 100).should.be.eql({
             amount: 100,
+            amountForBill: 100,
             shareAmount: 0,
         });
     });
