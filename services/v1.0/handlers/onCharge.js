@@ -89,7 +89,7 @@ module.exports = {
                 }
                 else{
                     //
-                    await common.payBills(contract.bills, projectId, fundChannelId, userId, orderNo);
+                    await common.payBills(MySQL)(contract.bills, projectId, fundChannelId, userId, orderNo);
                     res.send();
                 }
             }

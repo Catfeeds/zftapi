@@ -114,7 +114,7 @@ module.exports = {
                         })
                     );
 
-                    const finalFlow = payBills(finalPayment.bills, finalPayment.projectId,
+                    const finalFlow = payBills(MySQL)(finalPayment.bills, finalPayment.projectId,
                         finalPayment.fundChannel, finalPayment.operator, null, 'final');
 
                     const operations = Typedef.OperationStatus.PAUSED === roomStatus ? [

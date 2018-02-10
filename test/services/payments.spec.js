@@ -30,27 +30,28 @@ describe('Payment', function () {
             id: 1121
         });
 
-        const createStub = stub().resolves({});
+        const paymentCreateStub = stub().resolves({});
+        const flowCreateStub = stub().resolves({});
         global.MySQL = {
             BillPayment: {
-                create: createStub
+                bulkCreate: paymentCreateStub
             },
             Flows: {
-                create: async () => ({id: 123})
+                bulkCreate: flowCreateStub
             },
             Bills: {
                 findById: findByIdStub
             },
             Sequelize: {
-                transaction: async func => func({})
+                transaction: async () => ({})
             }
         };
 
         await post(req, {send: fp.noop})
             .then(() => {
                 findByIdStub.should.have.been.called;
-                // TODO: temporarily disable, should find a way to test common method `payBill`
-                // createStub.should.have.been.called;
+                paymentCreateStub.should.have.been.called;
+                flowCreateStub.should.have.been.called;
             });
     });
 

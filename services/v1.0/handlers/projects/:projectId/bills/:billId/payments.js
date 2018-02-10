@@ -46,7 +46,7 @@ module.exports = {
                 return bill;
             }
             throw new Error(`Bill ${billId} already has payment ${fp.get('payments[0].id')(bill)}.`);
-        }).then(bill => payBills([bill], projectId, {id: payment.fundChannelId}, operator))
+        }).then(bill => payBills(MySQL)([bill], projectId, {id: payment.fundChannelId}, operator))
             .then(results => res.send(201, ErrorCode.ack(ErrorCode.OK, results)))
             .catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, {error: err.message})));
     }

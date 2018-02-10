@@ -208,7 +208,7 @@ exports.deviceStatus = (device)=>{
     return _.assign(device.status || {}, {service: runStatus()});
 };
 
-exports.payBills = async (bills, projectId, fundChannel, userId, orderNo, category) => {
+exports.payBills = (sequelizeModel) => async (bills, projectId, fundChannel, userId, orderNo, category) => {
     const payBills = fp.map(bill=>({
         id: exports.assignNewId().id,
         projectId,
@@ -229,16 +229,16 @@ exports.payBills = async (bills, projectId, fundChannel, userId, orderNo, catego
         amount: bill.dueAmount,
         fee: bill.serviceCharge.shareAmount
     }))(payBills);
-
+    console.log('create 1');
     let t;
     try{
-        t = await MySQL.Sequelize.transaction({autocommit: false});
+        t = await sequelizeModel.Sequelize.transaction({autocommit: false});
+        console.log('create 2');
+        await sequelizeModel.BillPayment.bulkCreate(payBills, {transaction: t});
+        await sequelizeModel.Flows.bulkCreate(flows, {transaction: t});
 
-        await MySQL.BillPayment.bulkCreate(payBills, {transaction: t});
-        await MySQL.Flows.bulkCreate(flows, {transaction: t});
 
-
-        const billLogFlows = fp.map(bill => exports.logFlows(bill.serviceCharge,
+        const billLogFlows = fp.map(bill => exports.logFlows(sequelizeModel)(bill.serviceCharge,
             bill.orderNo, projectId, bill.operator, bill.billId,
             fundChannel, t, Typedef.FundChannelFlowCategory.BILL))(payBills);
         await Promise.all(billLogFlows);
@@ -322,17 +322,16 @@ exports.serviceCharge = (fundChannel, amount)=>{
     return chargeObj;
 };
 
-exports.baseFlow = (category, orderNo, projectId, billId, fundChannel, amount)=>{
-    return {
-        id: exports.assignNewId().id,
+exports.baseFlow = (category, orderNo, projectId,
+                    billId, fundChannel, amount) =>
+    exports.assignNewId({
+        fundChannelId: fundChannel.id,
         category,
         orderNo,
         projectId,
-        fundChannelId: fundChannel.id,
         billId,
-        amount
-    };
-};
+        amount,
+    });
 
 exports.shareFlows = (serviceCharge, orderNo, projectId, userId, billId, fundChannel)=>{
 
@@ -394,7 +393,7 @@ exports.billFlows = (amount, orderNo, projectId, userId, billId, fundChannel)=>{
     ];
 };
 
-exports.logFlows = async(serviceCharge, orderNo, projectId, userId, billId, fundChannel, t, category)=>{
+exports.logFlows = (sequelizeModel) => async(serviceCharge, orderNo, projectId, userId, billId, fundChannel, t, category)=>{
 
     const bulkFlows = _.compact(_.concat([]
         , category === Typedef.FundChannelFlowCategory.BILL ?
@@ -404,7 +403,7 @@ exports.logFlows = async(serviceCharge, orderNo, projectId, userId, billId, fund
         , exports.platformFlows(serviceCharge, orderNo, projectId, userId, billId, fundChannel)
     ));
 
-    return await MySQL.FundChannelFlows.bulkCreate(bulkFlows, {transaction: t});
+    return await sequelizeModel.FundChannelFlows.bulkCreate(bulkFlows, {transaction: t});
 };
 
 exports.topUp = async(fundChannel, projectId, userId, operatorId, contractId, amount)=>{
@@ -447,7 +446,7 @@ exports.topUp = async(fundChannel, projectId, userId, operatorId, contractId, am
         });
         await MySQL.Topup.create(topUp, {transaction: t});
 
-        await exports.logFlows(serviceCharge, orderNo, projectId
+        await exports.logFlows(MySQL)(serviceCharge, orderNo, projectId
             , userId, 0, fundChannel, t, Typedef.FundChannelFlowCategory.TOPUP);
 
         await t.commit();
