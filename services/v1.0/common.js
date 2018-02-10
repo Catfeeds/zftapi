@@ -209,6 +209,9 @@ exports.deviceStatus = (device)=>{
 };
 
 exports.payBills = (sequelizeModel) => async (bills, projectId, fundChannel, userId, orderNo, category) => {
+    if(fp.isEmpty(bills)) {
+        return ErrorCode.ack(ErrorCode.OK, {message: 'No bills were paid.'});
+    }
     const payBills = fp.map(bill=>({
         id: exports.assignNewId().id,
         projectId,
@@ -229,14 +232,13 @@ exports.payBills = (sequelizeModel) => async (bills, projectId, fundChannel, use
         amount: bill.dueAmount,
         fee: bill.serviceCharge.shareAmount
     }))(payBills);
-    console.log('create 1');
+
     let t;
     try{
         t = await sequelizeModel.Sequelize.transaction({autocommit: false});
-        console.log('create 2');
+
         await sequelizeModel.BillPayment.bulkCreate(payBills, {transaction: t});
         await sequelizeModel.Flows.bulkCreate(flows, {transaction: t});
-
 
         const billLogFlows = fp.map(bill => exports.logFlows(sequelizeModel)(bill.serviceCharge,
             bill.orderNo, projectId, bill.operator, bill.billId,
@@ -255,9 +257,9 @@ exports.payBills = (sequelizeModel) => async (bills, projectId, fundChannel, use
 
 exports.serviceCharge = (fundChannel, amount)=>{
     //
-    console.log('serviceCharge in', amount, fundChannel);
+
     let chargeObj = {
-        amount: amount,
+        amount,
         shareAmount: 0
     };
 
@@ -318,12 +320,12 @@ exports.serviceCharge = (fundChannel, amount)=>{
             new bigDecimal.BigDecimal('1000')
         ).intValue();
     }
-    console.log('before return chargeObj', chargeObj);
+
     return chargeObj;
 };
 
 exports.baseFlow = (category, orderNo, projectId,
-                    billId, fundChannel, amount) =>
+    billId, fundChannel, amount) =>
     exports.assignNewId({
         fundChannelId: fundChannel.id,
         category,
