@@ -433,7 +433,8 @@ exports.topUp = async(fundChannel, projectId, userId, operatorId, contractId, am
             throw new Error(result.code);
         }
 
-        const flow = await MySQL.Flows.create(assignNewId({projectId, category: 'topup'}), {transaction: t});
+        const topupFlow = assignNewId({projectId, category: 'topup', amount});
+        const flow = await MySQL.Flows.create(topupFlow, {transaction: t});
 
         const orderNo = assignNewId().id;
 
