@@ -8,7 +8,7 @@ const {innerValues, omitSingleNulls, formatMysqlDateTime, includeContracts, sing
 const omitFields = fp.omit([
     'userId', 'billId', 'bill', 'auth', 'topup',
     'billpayment', 'operatorInfo', 'flowId', 'createdAt', 'updatedAt',
-    'contractId',
+    'contractId', 'fee', 'locationId', 'locationName'
 ]);
 
 const formatTime = time => item => fp.defaults(item)(

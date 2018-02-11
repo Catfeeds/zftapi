@@ -229,8 +229,8 @@ exports.payBills = (sequelizeModel) => async (bills, projectId, fundChannel, use
         id: bill.flowId,
         projectId,
         category: category ? category : 'rent',
-        amount: bill.dueAmount,
-        fee: bill.serviceCharge.shareAmount
+        amount: bill.amount,
+        fee: bill.serviceCharge.shareAmount,
     }))(payBills);
 
     let t;
