@@ -1095,12 +1095,12 @@ function SequelizeDefine()
         },
         locationId: {
             type: Sequelize.BIGINT.UNSIGNED,    //小区ID
-            allowNull: false,
+            allowNull: true,
             defaultValue: 0
         },
         locationName: {
             type: Sequelize.STRING(16),     //小区名称
-            allowNull: false,
+            allowNull: true,
         }
     }, {
 		timestamps: true,
