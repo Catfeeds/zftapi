@@ -419,7 +419,6 @@ function SequelizeDefine()
         id:{
             type: Sequelize.BIGINT.UNSIGNED,
             primaryKey: true,
-            autoIncrement: true
         },
         code: {
             type: Sequelize.STRING(12),
@@ -1445,9 +1444,9 @@ function SequelizeDefine()
 			type: Sequelize.STRING(20),     //telephone number
 			allowNull: true
 		}
-
     },{
-        timestamps: false,
+        timestamps: true,
+        paranoid: true,
         freezeTableName: true
     });
     exports.Projects = Projects;

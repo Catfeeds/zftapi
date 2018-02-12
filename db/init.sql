@@ -274,6 +274,9 @@ create table if not exists `projects`
 	`address` varchar(255) NULL,
 	`description` TEXT,
 	`telephone` varchar(20) NULL,
+	`createdAt` datetime(0) NULL,
+  `updatedAt` datetime(0) NULL,
+  `deletedAt` datetime(0) NULL DEFAULT NULL,
 	PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB;
 

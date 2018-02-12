@@ -6,25 +6,28 @@ const moment = require('moment');
 const bigDecimal = require('bigdecimal');
 
 exports.UpsertGeoLocation = (location, t)=>{
+    if(!location.id) {
+        location = exports.assignNewId(location);
+    }
     return MySQL.GeoLocation.findOrCreate({
         where:{
             code: location.code
         },
         transaction: t,
-        defaults:location
+        defaults: location
     });
 };
 
 exports.AsyncUpsertGeoLocation = async (location, t) => {
-    location.code = location.id || location.code;
-    location = _.omit(location, 'id');
-
+    if(!location.id) {
+        location = exports.assignNewId(location);
+    }
     return await MySQL.GeoLocation.findOrCreate({
         where:{
             code: location.code
         },
         transaction: t,
-        defaults:location
+        defaults: location
     });
 };
 
