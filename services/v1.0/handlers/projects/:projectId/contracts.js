@@ -42,6 +42,22 @@ const validateContract = async (contract) => {
         throw new Error(
             `Invalid contract time period : from ${contract.from} to ${contract.to}.`);
     }
+    const standardRent = fp.getOr(0)('strategy.freq.rent')(contract);
+    if ( standardRent === 0) {
+        throw new Error(
+            `Invalid rent amount: ${standardRent}, it must be greater than 0.`);
+    }
+
+    const bond = fp.getOr(0)('strategy.bond')(contract);
+    if ( bond === 0) {
+        throw new Error(
+            `Invalid bond amount: ${bond}, it must be greater than 0.`);
+    }
+    const zeroExpense = fp.filter(expense => expense.rent === 0)(fp.getOr([])('expenses')(contract));
+    if (!fp.isEmpty(zeroExpense)) {
+        throw new Error(
+            `Invalid expense amount of configId ${fp.map('configId')(zeroExpense)}, it must be greater than 0.`);
+    }
     return contract;
 };
 const conditionWhen = (now) => (status) => {
