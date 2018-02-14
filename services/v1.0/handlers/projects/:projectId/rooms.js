@@ -2,8 +2,7 @@
 
 const fp = require('lodash/fp');
 const moment = require('moment');
-const singleRoomTranslate = require('../../../common').singleRoomTranslate;
-const roomLeasingStatus = require('../../../common').roomLeasingStatus;
+const {singleRoomTranslate, roomLeasingStatus} = require('../../../common');
 
 /**
  * Operations on /rooms/{hid}
@@ -13,9 +12,9 @@ const translate = (models, pagingInfo) => {
         paging: {
             count: models.count,
             index: pagingInfo.index,
-            size: pagingInfo.size
+            size: pagingInfo.size,
         },
-        data: fp.map(singleRoomTranslate)(models.rows)
+        data: fp.map(singleRoomTranslate)(models.rows),
     };
 };
 
@@ -40,41 +39,44 @@ module.exports = {
         const Sequelize = MySQL.Sequelize;
 
         const houseCondition = fp.defaults({projectId: params.projectId})(
-            query.houseFormat ? {houseFormat: query.houseFormat} : {}
+            query.houseFormat ? {houseFormat: query.houseFormat} : {},
         );
 
         const modelOption = {
-            include: [{
-                model: Houses, required: true,
-                as: 'house',
-                where: houseCondition,
-                attributes: ['id', 'roomNumber'],
-                include: [{
-                    model: Building, required: true, as: 'building',
-                    attributes: ['group', 'building', 'unit'],
-                    include: [{
-                        model: GeoLocation, required: true,
-                        as: 'location',
-                        attributes: ['name']
-                    }]
-                }]
-            }, {
-                model: Contracts,
-                attributes: ['id', 'from', 'to'],
-                required: false,
-                where: {
-                    status: Typedef.ContractStatus.ONGOING
-                }
-            }, {
-                model: SuspendingRooms,
-                attributes: ['id', 'from', 'to'],
-                required: false
-            }],
+            include: [
+                {
+                    model: Houses, required: true,
+                    as: 'house',
+                    where: houseCondition,
+                    attributes: ['id', 'roomNumber'],
+                    include: [
+                        {
+                            model: Building, required: true, as: 'building',
+                            attributes: ['group', 'building', 'unit'],
+                            include: [
+                                {
+                                    model: GeoLocation, required: true,
+                                    as: 'location',
+                                    attributes: ['name'],
+                                }],
+                        }],
+                }, {
+                    model: Contracts,
+                    attributes: ['id', 'from', 'to'],
+                    required: false,
+                    where: {
+                        status: Typedef.ContractStatus.ONGOING,
+                    },
+                }, {
+                    model: SuspendingRooms,
+                    attributes: ['id', 'from', 'to'],
+                    required: false,
+                }],
             distinct: true,
             where: {
                 $or: [
                     {'$house.building.location.name$': {$regexp: query.q}},
-                    {'$house.roomNumber$': {$regexp: query.q}}
+                    {'$house.roomNumber$': {$regexp: query.q}},
                 ],
                 id: {
                     $in: Sequelize.literal(`( select id from rooms r where 
@@ -82,23 +84,25 @@ module.exports = {
 											and (
  											(id not in (select roomId from contracts c where c.projectId=${projectId}))
                            						or
- 											(id not in (select roomId from contracts c where c.projectId=${projectId} and \`from\` < ${moment().unix()} and \`status\` = 'ONGOING' ) )) ) `)
-                }
+ 											(id not in (select roomId from contracts c where c.projectId=${projectId} and \`from\` < ${moment().
+    unix()} and \`status\` = 'ONGOING' ) )) ) `),
+                },
             },
             attributes: ['id', 'name'],
             offset: pagingInfo.skip,
-            limit: pagingInfo.size
+            limit: pagingInfo.size,
         };
 
-        return Rooms.findAndCountAll(modelOption)
-            .then(data => {
+        return Rooms.findAndCountAll(modelOption).
+            then(data => {
                 const rows = fp.map(single => {
-                    const status = roomLeasingStatus(single.contracts, single.suspendingRooms);
+                    const status = roomLeasingStatus(single.contracts,
+                        single.suspendingRooms);
                     return fp.merge(single)({dataValues: {status}});
                 })(data.rows);
                 return fp.defaults(data)({rows});
-            })
-            .then(data => translate(data, pagingInfo))
-            .then(data => res.send(data));
-    }
+            }).
+            then(data => translate(data, pagingInfo)).
+            then(data => res.send(data));
+    },
 };

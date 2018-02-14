@@ -4,10 +4,11 @@
  */
 const fp = require('lodash/fp');
 const moment = require('moment');
-const omitSingleNulls = require('../../../common').omitSingleNulls;
-const innerValues = require('../../../common').innerValues;
-const singleRoomTranslate = require('../../../common').singleRoomTranslate;
-const includeContracts = require('../../../common').includeContracts;
+const {
+    omitSingleNulls, innerValues,
+    singleRoomTranslate, includeContracts,
+} = require(
+    '../../../common');
 
 const omitFields = fp.omit(['metadata', 'createdAt', 'updatedAt']);
 const formatRoom = item => fp.defaults(item)(

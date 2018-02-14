@@ -260,7 +260,6 @@ exports.payBills = (sequelizeModel) => async (bills, projectId, fundChannel, use
 
 exports.serviceCharge = (fundChannel, amount)=>{
     //
-    console.log(fundChannel);
     let chargeObj = {
         amount,
         amountForBill: amount,

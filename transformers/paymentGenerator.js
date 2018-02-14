@@ -1,8 +1,7 @@
 'use strict';
 const moment = require('moment');
 const fp = require('lodash/fp');
-const assignFieldId = require('../services/v1.0/common').assignFieldId;
-const assignNewId = require('../services/v1.0/common').assignNewId;
+const {assignNewId, assignFieldId} = require('../services/v1.0/common');
 
 const finalPayment = (settlement) => assignNewId(assignFieldId('orderNo')({
     bills: settlement.bills,

@@ -4,7 +4,7 @@
  */
 
 const fp = require('lodash/fp');
-const innerValues = require('../../common').innerValues;
+const {innerValues} = require('../../common');
 
 const omitFields = fp.omit(['pid', 'createdAt', 'updatedAt']);
 

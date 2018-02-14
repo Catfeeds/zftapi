@@ -1,8 +1,7 @@
 'use strict';
 
 const fp = require('lodash/fp');
-const omitSingleNulls = require('../../../../common').omitSingleNulls;
-const innerValues = require('../../../../common').innerValues;
+const {omitSingleNulls, innerValues} = require('../../../../common');
 const allowToDeleteCredentials = require('../../../../../../auth/access').allowToDeleteCredentials;
 
 const translate = fp.flow(innerValues,

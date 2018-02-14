@@ -1,8 +1,7 @@
 'use strict';
 
 const fp = require('lodash/fp');
-const omitNulls = require('../services/v1.0/common').omitNulls;
-const omitSingleNulls = require('../services/v1.0/common').omitSingleNulls;
+const {omitNulls, omitSingleNulls} = require('../services/v1.0/common');
 
 const clearUpFields = bill => {
     const billItems = omitNulls(bill.billItems);
@@ -10,5 +9,5 @@ const clearUpFields = bill => {
 };
 
 module.exports = {
-    clearUpFields
+    clearUpFields,
 };

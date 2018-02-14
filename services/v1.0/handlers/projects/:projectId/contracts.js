@@ -16,7 +16,7 @@ const {
     omitSingleNulls, innerValues, assignNewId, singleRoomTranslate,
     jsonProcess, houseConnection,
 } = require(
-    '../../../../../services/v1.0/common');
+    '../../../common');
 
 const omitFields = fp.omit(['userId', 'createdAt', 'updatedAt']);
 const roomTranslate = item => fp.defaults(item)(
