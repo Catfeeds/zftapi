@@ -1,5 +1,5 @@
 'use strict';
-const {includeContracts, payBills, serviceCharge} = require(
+const {includeContracts, payBills, serviceCharge, moveFundChannelToRoot} = require(
     '../../services/v1.0/common');
 const {spy} = require('sinon');
 
@@ -24,64 +24,10 @@ describe('Common', function() {
             Contracts
         };
     });
-    it('should provide contracts condition', function() {
-        const contractFilter = includeContracts(global.SequelizeModels);
-        const contractOptions = contractFilter('');
-        contractOptions.should.be.eql({
-            include: [
-                {
-                    model: Users,
-                },
-                {
-                    attributes: [
-                        'id',
-                        'name',
-                        'houseId',
-                    ],
-                    include: [
-                        {
-                            as: 'house',
-                            attributes: [
-                                'id',
-                                'roomNumber',
-                                'buildingId',
-                            ],
-                            include: [
-                                {
-                                    as: 'building',
-                                    attributes: [
-                                        'building',
-                                        'unit',
-                                    ],
-                                    include: [
-                                        {
-                                            as: 'location',
-                                            attributes: [
-                                                'name',
-                                            ],
-                                            model: GeoLocation,
-                                        },
-                                    ],
-                                    model: Building,
-                                },
-                            ],
-                            model: Houses,
-                        },
-                    ],
-                    required: true,
-                    model: Rooms,
-                },
-            ],
-            model: Contracts,
-            where: {
-                status: 'ONGOING',
-            },
-        });
-    });
-    it('should include terminated contracts if contract status is overridden',
-        function() {
+    describe('default', () => {
+        it('should provide contracts condition', function() {
             const contractFilter = includeContracts(global.SequelizeModels);
-            const contractOptions = contractFilter('', {});
+            const contractOptions = contractFilter('');
             contractOptions.should.be.eql({
                 include: [
                     {
@@ -128,135 +74,206 @@ describe('Common', function() {
                     },
                 ],
                 model: Contracts,
+                where: {
+                    status: 'ONGOING',
+                },
             });
         });
-    it('should consider houseFormat if provided', function() {
-        const contractFilter = includeContracts(global.SequelizeModels);
-        const contractOptions = contractFilter('SOLE', {});
-        contractOptions.should.be.eql({
-            include: [
-                {
-                    model: Users,
-                },
-                {
-                    attributes: [
-                        'id',
-                        'name',
-                        'houseId',
-                    ],
+        it('should include terminated contracts if contract status is overridden',
+            function() {
+                const contractFilter = includeContracts(global.SequelizeModels);
+                const contractOptions = contractFilter('', {});
+                contractOptions.should.be.eql({
                     include: [
                         {
-                            as: 'house',
+                            model: Users,
+                        },
+                        {
                             attributes: [
                                 'id',
-                                'roomNumber',
-                                'buildingId',
+                                'name',
+                                'houseId',
                             ],
                             include: [
                                 {
-                                    as: 'building',
+                                    as: 'house',
                                     attributes: [
-                                        'building',
-                                        'unit',
+                                        'id',
+                                        'roomNumber',
+                                        'buildingId',
                                     ],
                                     include: [
                                         {
-                                            as: 'location',
+                                            as: 'building',
                                             attributes: [
-                                                'name',
+                                                'building',
+                                                'unit',
                                             ],
-                                            model: GeoLocation,
+                                            include: [
+                                                {
+                                                    as: 'location',
+                                                    attributes: [
+                                                        'name',
+                                                    ],
+                                                    model: GeoLocation,
+                                                },
+                                            ],
+                                            model: Building,
                                         },
                                     ],
-                                    model: Building,
+                                    model: Houses,
                                 },
                             ],
-                            model: Houses,
-                            where: {
-                                houseFormat: 'SOLE',
-                            },
+                            required: true,
+                            model: Rooms,
                         },
                     ],
-                    required: true,
-                    model: Rooms,
+                    model: Contracts,
+                });
+            });
+        it('should consider houseFormat if provided', function() {
+            const contractFilter = includeContracts(global.SequelizeModels);
+            const contractOptions = contractFilter('SOLE', {});
+            contractOptions.should.be.eql({
+                include: [
+                    {
+                        model: Users,
+                    },
+                    {
+                        attributes: [
+                            'id',
+                            'name',
+                            'houseId',
+                        ],
+                        include: [
+                            {
+                                as: 'house',
+                                attributes: [
+                                    'id',
+                                    'roomNumber',
+                                    'buildingId',
+                                ],
+                                include: [
+                                    {
+                                        as: 'building',
+                                        attributes: [
+                                            'building',
+                                            'unit',
+                                        ],
+                                        include: [
+                                            {
+                                                as: 'location',
+                                                attributes: [
+                                                    'name',
+                                                ],
+                                                model: GeoLocation,
+                                            },
+                                        ],
+                                        model: Building,
+                                    },
+                                ],
+                                model: Houses,
+                                where: {
+                                    houseFormat: 'SOLE',
+                                },
+                            },
+                        ],
+                        required: true,
+                        model: Rooms,
+                    },
+                ],
+                model: Contracts,
+            });
+        });
+
+        it('should return Ok if no bill is passed in', async () => {
+            const bills = [];
+            const result = await payBills(global.MySQL)(bills);
+            result.should.be.eql(
+                ErrorCode.ack(ErrorCode.OK, {message: 'No bills were paid.'}));
+        });
+
+        it('should be able to pay bills successfully', async () => {
+            const commit = spy();
+            const rollback = spy();
+            global.MySQL = {
+                BillPayment: {
+                    bulkCreate: async () => ({}),
                 },
-            ],
-            model: Contracts,
+                Flows: {
+                    bulkCreate: async () => ({}),
+                },
+                Sequelize: {
+                    transaction: async () => ({
+                        commit,
+                        rollback,
+                    }),
+                },
+                FundChannelFlows: {
+                    bulkCreate: async () => ({}),
+                },
+            };
+
+            const bills = [{}];
+            const projectId = 1000;
+            const fundChannel = {
+                id: 1,
+                serviceCharge: [
+                    {
+                        type: 'BILL',
+                    }],
+            };
+            const userId = 2312;
+            const orderNo = 311212;
+            const category = 'BILL';
+            const result = await payBills(global.MySQL)(bills, projectId,
+                fundChannel, userId, orderNo, category);
+            result.should.be.eql(ErrorCode.ack(ErrorCode.OK));
+            commit.should.have.been.called;
+            rollback.should.not.have.been.called;
+        });
+
+        it('should calculate charge base on fundChannel', () => {
+            const chargeObj = serviceCharge({
+                serviceCharge: [
+                    {
+                        type: 'BILL',
+                        strategy: {fee: 10, user: 20, project: 80},
+                    }],
+            }, 1000);
+            chargeObj.should.be.eql({
+                amount: 1000,
+                amountForBill: 1002,
+                shareAmount: 10,
+                share: {
+                    user: 2,
+                    project: 8,
+                },
+            });
+        });
+
+        it('should calculate 0 charge if no service charge in fundChannel', () => {
+            serviceCharge({}, 100).should.be.eql({
+                amount: 100,
+                amountForBill: 100,
+                shareAmount: 0,
+            });
         });
     });
 
-    it('should return Ok if no bill is passed in', async () => {
-        const bills = [];
-        const result = await payBills(global.MySQL)(bills);
-        result.should.be.eql(
-            ErrorCode.ack(ErrorCode.OK, {message: 'No bills were paid.'}));
-    });
+    describe('moveFundChannelToRoot', () => {
+        it('should pick serviceCharge and other attributes from result',
+            async function() {
+                moveFundChannelToRoot(
+                    {
+                        toJSON: () => ({id: 99}),
+                        fundChannel: {aField: 1, serviceCharge: 2, notMe: 3},
+                    },
+                )(['aField']).should.be.eql({id: 99, serviceCharge: 2, aField: 1});
+            });
 
-    it('should be able to pay bills successfully', async () => {
-        const commit = spy();
-        const rollback = spy();
-        global.MySQL = {
-            BillPayment: {
-                bulkCreate: async () => ({}),
-            },
-            Flows: {
-                bulkCreate: async () => ({}),
-            },
-            Sequelize: {
-                transaction: async () => ({
-                    commit,
-                    rollback,
-                }),
-            },
-            FundChannelFlows: {
-                bulkCreate: async () => ({}),
-            },
-        };
-
-        const bills = [{}];
-        const projectId = 1000;
-        const fundChannel = {
-            id: 1,
-            serviceCharge: [
-                {
-                    type: 'BILL',
-                }],
-        };
-        const userId = 2312;
-        const orderNo = 311212;
-        const category = 'BILL';
-        const result = await payBills(global.MySQL)(bills, projectId,
-            fundChannel, userId, orderNo, category);
-        result.should.be.eql(ErrorCode.ack(ErrorCode.OK));
-        commit.should.have.been.called;
-        rollback.should.not.have.been.called;
-    });
-
-    it('should calculate charge base on fundChannel', () => {
-        const chargeObj = serviceCharge({
-            serviceCharge: [
-                {
-                    type: 'BILL',
-                    strategy: {fee: 10, user: 20, project: 80},
-                }],
-        }, 1000);
-        chargeObj.should.be.eql({
-            amount: 1000,
-            amountForBill: 1002,
-            shareAmount: 10,
-            share: {
-                user: 2,
-                project: 8,
-            },
+        it('should return empty if result is empty', async function() {
+            moveFundChannelToRoot({toJSON: () => ({})})([]).should.be.eql({});
         });
     });
-
-    it('should calculate 0 charge if no service charge in fundChannel', () => {
-        serviceCharge({}, 100).should.be.eql({
-            amount: 100,
-            amountForBill: 100,
-            shareAmount: 0,
-        });
-    });
-
 });

@@ -1,8 +1,8 @@
 'use strict';
 const fp = require('lodash/fp');
 
-const common = Include('/services/v1.0/common');
-const assignNewId = common.assignNewId;
+const {assignNewId, moveFundChannelToRoot, payBills, serviceCharge: serviceChargeOf} =
+    require('../../../../../../../common');
 
 /**
  * Operations on /fundChannels/{fundChannelId}
@@ -37,19 +37,11 @@ async function Pay(
     }
     else {
         //
-        const result = await common.payBills(MySQL)(bills, projectId,
+        const result = await payBills(MySQL)(bills, projectId,
             fundChannel, userId, orderNo);
         return result;
     }
 }
-const moveFundChannelToRoot = result => {
-    const requireServiceCharge= fp.concat('serviceCharge');
-    const fromFundChannel = fieldList => fp.pick(fieldList)(result.fundChannel);
-    const moveToRoot = fp.assign(result.toJSON());
-    const cleanUp = fp.omit('fundChannel');
-
-    return fp.pipe(requireServiceCharge, fromFundChannel, moveToRoot, cleanUp);
-};
 
 module.exports = {
     /**
@@ -65,7 +57,6 @@ module.exports = {
          * Get the data for response 200
          * For response `default` status 200 is used.
          */
-        console.log(req.params);
         const projectId = req.params.projectId;
         const contractId = req.params.contractId;
         const userId = req.params.userId;
@@ -75,7 +66,8 @@ module.exports = {
         if (!Util.ParameterCheck(body,
             ['billIds', 'fundChannelId'],
         )) {
-            return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED, '请提供账单ID和支付渠道ID。'));
+            return res.send(422,
+                ErrorCode.ack(ErrorCode.PARAMETERMISSED, 'please provide billIds & fundChannelId.'));
         }
 
         const billIds = body.billIds;
@@ -119,7 +111,8 @@ module.exports = {
                         ErrorCode.ack(ErrorCode.CHANNELNOTEXISTS));
                 }
 
-                const fundChannel = moveFundChannelToRoot(result)(fundChannelAttributes);
+                const fundChannel = moveFundChannelToRoot(result)(
+                    fundChannelAttributes);
                 const contract = await MySQL.Contracts.findOne({
                     where: {
                         id: contractId,
@@ -147,7 +140,7 @@ module.exports = {
 
                 const amount = fp.sum(fp.map('dueAmount')(contract.bills));
 
-                const serviceCharge = common.serviceCharge(fundChannel, amount);
+                const serviceCharge = serviceChargeOf(fundChannel, amount);
 
                 const payResult = await Pay(serviceCharge, projectId,
                     fundChannel, contractId, contract.bills, userId);
@@ -163,5 +156,4 @@ module.exports = {
             }
         })();
     },
-    moveFundChannelToRoot
 };

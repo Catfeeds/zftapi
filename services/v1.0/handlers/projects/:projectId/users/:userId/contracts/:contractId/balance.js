@@ -1,7 +1,6 @@
 'use strict';
-const _ = require('lodash');
-const common = Include('/services/v1.0/common');
-const assignNewId = common.assignNewId;
+const {assignNewId, moveFundChannelToRoot, topUp} = require('../../../../../../../common');
+
 /**
  * Operations on /fundChannels/{fundChannelId}
  */
@@ -23,16 +22,16 @@ module.exports = {
         (async()=>{
             const projectId = req.params.projectId;
             const userId = req.params.userId;
+            const contractId = req.params.contractId;
 
             const body = req.body;
-            const contractId = req.body.contractId;
             const amount = req.body.amount;
             const fundChannelId = req.body.fundChannelId;
 
             if(!Util.ParameterCheck(body,
-                ['contractId', 'amount', 'fundChannelId']
+                ['amount', 'fundChannelId']
             )){
-                return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED));
+                return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED, 'please provide amount & fundChannelId.'));
             }
 
 
@@ -68,7 +67,7 @@ module.exports = {
                 return res.send(404, ErrorCode.ack(ErrorCode.CHANNELNOTEXISTS));
             }
 
-            const fundChannel = _.omit( _.assign(result.toJSON(), _.pick(result.fundChannel, _.concat(fundChannelAttributes, 'serviceCharge'))), 'fundChannel' );
+            const fundChannel = moveFundChannelToRoot(result)(fundChannelAttributes);
             if(fundChannel.category === Typedef.FundChannelCategory.ONLINE){
                 if(!fundChannel.setting || !fundChannel.setting.appid || !fundChannel.setting.key){
                     return res.send(501, ErrorCode.ack(ErrorCode.CHANNELPARAMLACK));
@@ -94,7 +93,7 @@ module.exports = {
             }
             else{
                 //offline channel
-                const result = await common.topUp(fundChannel, projectId, userId, req.user.id, contractId, amount);
+                const result = await topUp(fundChannel, projectId, userId, req.user.id, contractId, amount);
                 res.send( result );
             }
         })();
