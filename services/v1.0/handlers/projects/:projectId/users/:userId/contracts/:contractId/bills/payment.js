@@ -42,6 +42,14 @@ async function Pay(
         return result;
     }
 }
+const moveFundChannelToRoot = result => {
+    const requireServiceCharge= fp.concat('serviceCharge');
+    const fromFundChannel = fieldList => fp.pick(fieldList)(result.fundChannel);
+    const moveToRoot = fp.assign(result.toJSON());
+    const cleanUp = fp.omit('fundChannel');
+
+    return fp.pipe(requireServiceCharge, fromFundChannel, moveToRoot, cleanUp);
+};
 
 module.exports = {
     /**
@@ -57,19 +65,21 @@ module.exports = {
          * Get the data for response 200
          * For response `default` status 200 is used.
          */
+        console.log(req.params);
         const projectId = req.params.projectId;
         const contractId = req.params.contractId;
         const userId = req.params.userId;
 
         const body = req.body;
-        const billIds = body.billIds;
-        const fundChannelId = body.fundChannelId;
 
         if (!Util.ParameterCheck(body,
-            ['contractId', 'billIds', 'userId'],
+            ['billIds', 'fundChannelId'],
         )) {
-            return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED));
+            return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED, '请提供账单ID和支付渠道ID。'));
         }
+
+        const billIds = body.billIds;
+        const fundChannelId = body.fundChannelId;
 
         (async () => {
             try {
@@ -109,7 +119,7 @@ module.exports = {
                         ErrorCode.ack(ErrorCode.CHANNELNOTEXISTS));
                 }
 
-                const fundChannel = exports.moveFundChannelToRoot(result)(fundChannelAttributes);
+                const fundChannel = moveFundChannelToRoot(result)(fundChannelAttributes);
                 const contract = await MySQL.Contracts.findOne({
                     where: {
                         id: contractId,
@@ -153,11 +163,5 @@ module.exports = {
             }
         })();
     },
-    moveFundChannelToRoot: (result) => {
-        const requireServiceCharge= fp.concat('serviceCharge');
-        const fromFundChannel = fieldList => fp.pick(fieldList)(result.fundChannel);
-        const moveToRoot = fp.assign(result.toJSON());
-        const cleanUp = fp.omit('fundChannel');
-        return fp.pipe(requireServiceCharge, fromFundChannel, moveToRoot, cleanUp);
-    }
+    moveFundChannelToRoot
 };

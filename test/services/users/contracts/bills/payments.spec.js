@@ -1,5 +1,5 @@
 const {moveFundChannelToRoot} = require(
-    '../../../../../services/v1.0/handlers/projects/:projectId/users/:userId/contracts/contractId/bills/payment');
+    '../../../../../services/v1.0/handlers/projects/:projectId/users/:userId/contracts/:contractId/bills/payment');
 
 describe('payments', function() {
     it('should pick serviceCharge and other attributes from result',
