@@ -1,6 +1,5 @@
 'use strict';
 
-const _ = require('lodash');
 const fp = require('lodash/fp');
 
 /**
@@ -82,10 +81,8 @@ module.exports = {
         const Building = MySQL.Building;
         const GeoLocation = MySQL.GeoLocation;
 
-        const houseCondition = _.assign(
-            {projectId: params.projectId},
-            query.houseFormat ? {houseFormat: query.houseFormat} : {}
-        );
+        const houseCondition = fp.assign({projectId: params.projectId})(
+            query.houseFormat ? {houseFormat: query.houseFormat} : {});
 
         const modelOption = {
             include: [{

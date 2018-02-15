@@ -1,6 +1,5 @@
 'use strict';
 
-const _ = require('lodash');
 const fp = require('lodash/fp');
 const moment = require('moment');
 const common = Include('/services/v1.0/common');
@@ -69,7 +68,7 @@ module.exports = {
             const roomId = req.params.roomId;
             const body = req.body;
 
-            const putBody = _.pick(body, ['name', 'type', 'roomArea', 'config', 'orientation']);
+            const putBody = fp.pick(['name', 'type', 'roomArea', 'config', 'orientation'])(body);
 
             try {
 
@@ -98,7 +97,7 @@ module.exports = {
             const roomId = req.params.roomId;
             const body = req.body;
 
-            const patchBody = _.pick(body, ['reuseTime', 'pauseTime', 'suspendingId']);
+            const patchBody = fp.pick(['reuseTime', 'pauseTime', 'suspendingId'])(body);
 
             if(!patchBody.pauseTime && (!patchBody.reuseTime || !patchBody.suspendingId) ){
                 return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED));
@@ -216,7 +215,7 @@ module.exports = {
                 }
                 room = room.toJSON();
 
-                room.devices = _.compact(fp.map(device=>{
+                room.devices = fp.compact(fp.map(device=>{
                     if(!device || !device.device){
                         return null;
                     }

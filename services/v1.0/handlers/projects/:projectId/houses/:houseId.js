@@ -1,7 +1,6 @@
 'use strict';
 const fp = require('lodash/fp');
 const common = Include('/services/v1.0/common');
-const _ = require('lodash');
 const moment = require('moment');
 /**
  * Operations on /houses/{hid}
@@ -126,7 +125,7 @@ module.exports = {
                 ]
             });
 
-            const isRoomInUse = _.compact(fp.map(room=>{
+            const isRoomInUse = fp.compact(fp.map(room=>{
                 return common.roomLeasingStatus(room.contracts) !== Typedef.OperationStatus.IDLE ? room.id : null;
             })(rooms));
 
@@ -213,11 +212,9 @@ module.exports = {
                 return res.send(404, ErrorCode.ack(ErrorCode.REQUESTUNMATCH));
             }
 
-            const putBody = _.pick(body
-                , ['location', 'code', 'group', 'building', 'unit',
+            const putBody = fp.pick(['location', 'code', 'group', 'building', 'unit',
                     'roomNumber', 'totalFloor', 'currentFloor',
-                    'config', 'houseKeeper', 'layout']
-            );
+                    'config', 'houseKeeper', 'layout'])(body);
 
             const SavePrice = async(t, projectId, houseId, prices)=>{
 
@@ -229,19 +226,16 @@ module.exports = {
                     attributes: ['id', 'type']
                 });
 
-                const bulkInsert = _.compact(fp.map(price=>{
+                const bulkInsert = fp.compact(fp.map(price=>{
                     if(Typedef.IsPriceType(price.type)){
-                        const housePriceIndex = _.findKey(housePrices, housePrice=> {
-                            return housePrice.type === price.type;
-                        });
-                        const housePrice = housePrices[housePriceIndex];
+                        const housePrice = fp.find({type: price.type})(housePrices);
 
-                        return _.assignIn({
+                        return fp.assignIn({
                             type: price.type,
                             price: price.price,
                             projectId: projectId,
                             sourceId: houseId,
-                        }, housePrice ? {id: housePrice.id} : {});
+                        })(housePrice ? {id: housePrice.id} : {});
                     }
                 })(prices));
 
@@ -257,7 +251,7 @@ module.exports = {
                     body.location = MySQL.Plain(newLocation[0]);
                 }
 
-                if(!_.isEmpty(putBody)) {
+                if(!fp.isEmpty(putBody)) {
                     await MySQL.Houses.update(
                         putBody,
                         {

@@ -2,7 +2,7 @@
 /**
  * Operations on /houses
  */
-const _ = require('lodash');
+const fp = require('lodash/fp');
 const moment = require('moment');
 
 module.exports = {
@@ -57,15 +57,13 @@ module.exports = {
                 return res.send(403, ErrorCode.ack(ErrorCode.DUPLICATEREQUEST));
             }
 
-            const index = _.findIndex(houseDevices, (houseDevice)=>{
-                return houseDevice.deviceId === deviceId;
-            });
+
 
             let t;
             try {
                 t = await MySQL.Sequelize.transaction({autocommit: false});
-
-                if (index === -1) {
+                const current = fp.find(deviceId)(houseDevices);
+                if (isUndefined(current)) {
                     //create
                     await MySQL.HouseDevices.create({
                         projectId: projectId,
