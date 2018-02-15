@@ -2,7 +2,7 @@
 /**
  * Operations on /houses
  */
-const _ = require('lodash');
+const fp = require('lodash/fp');
 const moment = require('moment');
 
 module.exports = {
@@ -50,10 +50,8 @@ module.exports = {
             attributes: ['id', 'deviceId']
         }).then(
             houseDevices=>{
-                const index = _.findIndex(houseDevices, (houseDevice)=>{
-                    return houseDevice.deviceId === deviceId;
-                });
-                if (index === -1) {
+                const currentDevice = fp.find({deviceId})(houseDevices);
+                if (isUndefined(currentDevice)) {
                     //create
                     const now = moment().unix();
                     const bulkCreate = [
