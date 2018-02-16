@@ -213,8 +213,8 @@ module.exports = {
             }
 
             const putBody = fp.pick(['location', 'code', 'group', 'building', 'unit',
-                    'roomNumber', 'totalFloor', 'currentFloor',
-                    'config', 'houseKeeper', 'layout'])(body);
+                'roomNumber', 'totalFloor', 'currentFloor',
+                'config', 'houseKeeper', 'layout'])(body);
 
             const SavePrice = async(t, projectId, houseId, prices)=>{
 
