@@ -1,6 +1,5 @@
 'use strict';
 
-const _ = require('lodash');
 const fp = require('lodash/fp');
 const moment = require('moment');
 const bigDecimal = require('bigdecimal');
@@ -33,7 +32,7 @@ exports.AsyncUpsertGeoLocation = async (location, t) => {
 
 exports.QueryEntire = (projectId, query, include, attributes)=>{
     return new Promise((resolve, reject)=>{
-        const where = fp.assignIn({},
+        const where = fp.extendAll([{},
             query.buildingId ? {'$building.id$': query.buildingId} : {},
             query.houseFormat ? {houseFormat: query.houseFormat} : {},
             query.houseStatus ? { 'status': query.houseStatus } : {},
@@ -44,7 +43,7 @@ exports.QueryEntire = (projectId, query, include, attributes)=>{
                 {roomNumber: {$regexp: query.q}},
                 {code: {$regexp: query.q}},
             ]} : {},
-            query.bedRoom ? {'$layouts.bedRoom$': query.bedRoom} : {}
+            query.bedRoom ? {'$layouts.bedRoom$': query.bedRoom} : {}]
         );
 
         const queryInclude = fp.union(
@@ -361,9 +360,9 @@ exports.shareFlows = (serviceCharge, orderNo, projectId, userId, billId, fundCha
 };
 exports.platformFlows = (serviceCharge, orderNo, projectId, userId, billId, fundChannel)=>{
     const category = Typedef.FundChannelFlowCategory.COMMISSION;
-    return _.compact([
+    return fp.compact([
         fundChannel.fee ?
-            _.assign(
+            fp.assign(
                 exports.baseFlow(category, orderNo, projectId, billId, fundChannel, serviceCharge.fee)
                 ,{
                     from: Typedef.PlatformId,
@@ -375,7 +374,7 @@ exports.platformFlows = (serviceCharge, orderNo, projectId, userId, billId, fund
 exports.topupFlows = (amount, orderNo, projectId, userId, billId, fundChannel)=>{
     const category = Typedef.FundChannelFlowCategory.TOPUP;
     return [
-        _.assign(
+        fp.assign(
             exports.baseFlow(category, orderNo, projectId, billId, fundChannel, amount)
             ,{
                 from: 0,
@@ -387,7 +386,7 @@ exports.topupFlows = (amount, orderNo, projectId, userId, billId, fundChannel)=>
 exports.billFlows = (amount, orderNo, projectId, userId, billId, fundChannel)=>{
     const category = Typedef.FundChannelFlowCategory.BILL;
     return [
-        _.assign(
+        fp.assign(
             exports.baseFlow(category, orderNo, projectId, billId, fundChannel, amount)
             ,{
                 from: 0,
@@ -397,17 +396,23 @@ exports.billFlows = (amount, orderNo, projectId, userId, billId, fundChannel)=>{
     ];
 };
 
-exports.logFlows = (sequelizeModel) => async(serviceCharge, orderNo, projectId, userId, billId, fundChannel, t, category)=>{
+exports.logFlows = (sequelizeModel) => async (
+    serviceCharge, orderNo, projectId, userId, billId, fundChannel, t,
+    category) => {
 
-    const bulkFlows = _.compact(_.concat([]
-        , category === Typedef.FundChannelFlowCategory.BILL ?
-            exports.billFlows(serviceCharge.amountForBill, orderNo, projectId, userId, billId, fundChannel)
-            : exports.topupFlows(serviceCharge.amount, orderNo, projectId, userId, billId, fundChannel)
-        , exports.shareFlows(serviceCharge, orderNo, projectId, userId, billId, fundChannel)
-        , exports.platformFlows(serviceCharge, orderNo, projectId, userId, billId, fundChannel)
-    ));
+    const businessFlow = category === Typedef.FundChannelFlowCategory.BILL ?
+        exports.billFlows(serviceCharge.amountForBill, orderNo, projectId,
+            userId, billId, fundChannel)
+        : exports.topupFlows(serviceCharge.amount, orderNo, projectId, userId,
+            billId, fundChannel);
+    const bulkFlows = fp.compact(fp.flatten([businessFlow,
+        exports.shareFlows(serviceCharge, orderNo, projectId, userId, billId,
+            fundChannel),
+        exports.platformFlows(serviceCharge, orderNo, projectId, userId, billId,
+            fundChannel)]));
 
-    return await sequelizeModel.FundChannelFlows.bulkCreate(bulkFlows, {transaction: t});
+    return await sequelizeModel.FundChannelFlows.bulkCreate(bulkFlows,
+        {transaction: t});
 };
 
 exports.topUp = async(fundChannel, projectId, userId, operatorId, contractId, amount)=>{
@@ -504,12 +509,9 @@ exports.autoApportionment = async(projectId, houseId)=>{
         ]
     });
 
-    const roomIds = _.compact(fp.map(room=>{
-        if(room.contracts.length > 1){
-            return room.id;
-        }
-        return null;
-    })(rooms));
+    const allRoomIds = fp.map('id');
+    const whichHasMoreThanOneContracts = fp.filter(room => fp.getOr(0)('contracts.length')(room) > 1);
+    const roomIds = allRoomIds(whichHasMoreThanOneContracts(rooms));
 
     const bulkInsertApportionment = auto(roomIds);
 

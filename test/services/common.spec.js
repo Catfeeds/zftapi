@@ -1,7 +1,10 @@
 'use strict';
-const {includeContracts, payBills, serviceCharge, moveFundChannelToRoot, shareFlows} = require(
+const {
+    includeContracts, payBills, serviceCharge,
+    moveFundChannelToRoot, shareFlows, platformFlows, logFlows,
+} = require(
     '../../services/v1.0/common');
-const {spy} = require('sinon');
+const {spy, stub} = require('sinon');
 
 const Users = {id: 'Users'};
 const Rooms = {id: 'Rooms'};
@@ -282,48 +285,179 @@ describe('Common', function() {
     });
 
     describe('shareFlows', () => {
-        it('should be able to create by fund channel', async function() {
-            const serviceCharge = {
-                share: {
-                    user: 10,
-                    project: 90,
-                },
-            };
-            const orderNo = 321;
-            const projectId = 100;
-            const userId = 999;
-            const billId = {};
-            const fundChannel = {id: 345};
-            shareFlows(serviceCharge, orderNo, projectId, userId, billId,
-                fundChannel).should.be.eql([
-                {
-                    amount: 10,
-                    billId,
-                    category: 'SCTOPUP',
-                    from: userId,
-                    fundChannelId: 345,
-                    id: 998811,
-                    orderNo,
-                    projectId,
-                    to: 1,
-                },
-                {
-                    amount: 90,
-                    billId,
-                    category: 'SCTOPUP',
-                    from: projectId,
-                    fundChannelId: 345,
-                    id: 998811,
-                    orderNo,
-                    projectId,
-                    to: 1,
-                },
-            ]);
-        });
+        it('should be able to create according to serviceCharge',
+            async function() {
+                const serviceCharge = {
+                    share: {
+                        user: 10,
+                        project: 90,
+                    },
+                };
+                const orderNo = 321;
+                const projectId = 100;
+                const userId = 999;
+                const billId = 111;
+                const fundChannel = {id: 345};
+                shareFlows(serviceCharge, orderNo, projectId, userId, billId,
+                    fundChannel).should.be.eql([
+                    {
+                        amount: 10,
+                        billId,
+                        category: 'SCTOPUP',
+                        from: userId,
+                        fundChannelId: 345,
+                        id: 998811,
+                        orderNo,
+                        projectId,
+                        to: 1,
+                    },
+                    {
+                        amount: 90,
+                        billId,
+                        category: 'SCTOPUP',
+                        from: projectId,
+                        fundChannelId: 345,
+                        id: 998811,
+                        orderNo,
+                        projectId,
+                        to: 1,
+                    },
+                ]);
+            });
 
         it('should be empty by default', async function() {
             shareFlows().should.be.eql([]);
         });
 
+    });
+
+    describe('platformFlows', () => {
+        it('should be able to create according to serviceCharge & fundChannel',
+            async function() {
+                const serviceCharge = {
+                    fee: 99,
+                };
+                const orderNo = 321;
+                const projectId = 100;
+                const userId = 999;
+                const billId = 111;
+                const fundChannel = {id: 345, fee: 100};
+                platformFlows(serviceCharge, orderNo, projectId, userId, billId,
+                    fundChannel).should.be.eql([
+                    {
+                        amount: serviceCharge.fee,
+                        billId,
+                        category: 'COMMISSION',
+                        from: Typedef.PlatformId,
+                        fundChannelId: 345,
+                        id: 998811,
+                        orderNo,
+                        projectId,
+                        to: 0,
+                    },
+                ]);
+            });
+    });
+
+    describe('logFlows', () => {
+        it('should be able to create sub flows for BILL',
+            async function() {
+                const serviceCharge = {
+                    amountForBill: 1000,
+                    fee: 99,
+                };
+                const orderNo = 321;
+                const projectId = 100;
+                const userId = 999;
+                const billId = 111;
+                const fundChannel = {id: 345, fee: 100};
+                const t = {id: 't'};
+                const category = 'BILL';
+                const createStub = stub().resolves({});
+                const Models = {
+                    FundChannelFlows: {
+                        bulkCreate: createStub,
+                    },
+                };
+                await logFlows(Models)(serviceCharge, orderNo, projectId,
+                    userId, billId, fundChannel, t, category).then(() => {
+                    createStub.should.have.been.called;
+                    createStub.getCall(0).args[0].should.be.eql([
+
+                        {
+                            amount: 1000,
+                            billId,
+                            category: 'BILL',
+                            from: 0,
+                            fundChannelId: fundChannel.id,
+                            id: 998811,
+                            orderNo,
+                            projectId,
+                            to: userId,
+                        },
+                        {
+                            amount: 99,
+                            billId: 111,
+                            category: 'COMMISSION',
+                            from: 1,
+                            fundChannelId: fundChannel.id,
+                            id: 998811,
+                            orderNo,
+                            projectId,
+                            to: 0,
+                        },
+                    ]);
+                });
+
+            });
+        it('should be able to create sub flows for TOPUP',
+            async function() {
+                const serviceCharge = {
+                    amount: 1000,
+                    fee: 99,
+                };
+                const orderNo = 321;
+                const projectId = 100;
+                const userId = 999;
+                const billId = 111;
+                const fundChannel = {id: 345, fee: 100};
+                const t = {id: 't'};
+                const category = 'TOPUP';
+                const createStub = stub().resolves({});
+                const Models = {
+                    FundChannelFlows: {
+                        bulkCreate: createStub,
+                    },
+                };
+                await logFlows(Models)(serviceCharge, orderNo, projectId,
+                    userId, billId, fundChannel, t, category).then(() => {
+                    createStub.should.have.been.called;
+                    createStub.getCall(0).args[0].should.be.eql([
+                        {
+                            amount: 1000,
+                            billId,
+                            category: 'TOPUP',
+                            from: 0,
+                            fundChannelId: fundChannel.id,
+                            id: 998811,
+                            orderNo,
+                            projectId,
+                            to: userId,
+                        },
+                        {
+                            amount: 99,
+                            billId: 111,
+                            category: 'COMMISSION',
+                            from: 1,
+                            fundChannelId: fundChannel.id,
+                            id: 998811,
+                            orderNo,
+                            projectId,
+                            to: 0,
+                        },
+                    ]);
+                });
+
+            });
     });
 });
