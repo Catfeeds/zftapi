@@ -33,7 +33,7 @@ exports.AsyncUpsertGeoLocation = async (location, t) => {
 
 exports.QueryEntire = (projectId, query, include, attributes)=>{
     return new Promise((resolve, reject)=>{
-        const where = _.assignIn({},
+        const where = fp.assignIn({},
             query.buildingId ? {'$building.id$': query.buildingId} : {},
             query.houseFormat ? {houseFormat: query.houseFormat} : {},
             query.houseStatus ? { 'status': query.houseStatus } : {},
@@ -47,46 +47,44 @@ exports.QueryEntire = (projectId, query, include, attributes)=>{
             query.bedRoom ? {'$layouts.bedRoom$': query.bedRoom} : {}
         );
 
-        const queryInclude = _.union(
+        const queryInclude = fp.union(
             [
                 {
-                    model: MySQL.Building, as: 'building'
-                    , include:[{
-                        model: MySQL.GeoLocation, as: 'location'
-                    }]
+                    model: MySQL.Building, as: 'building',
+                    include: [
+                        {
+                            model: MySQL.GeoLocation, as: 'location',
+                        }],
                 },
                 {model: MySQL.Layouts, as: 'layouts'},
                 {
                     model: MySQL.Rooms,
                     as: 'rooms',
-                    include:[
+                    include: [
                         {
                             model: MySQL.HouseDevices,
-                            as: 'devices'
-                        }
-                    ]
-                }
-            ],
-            include ? include : []
-        );
+                            as: 'devices',
+                        }],
+                },
+            ])(include ? include : []);
 
 
         const pagingInfo = Util.PagingInfo(query.index, query.size, true);
 
         Promise.all([
             MySQL.Houses.count(
-                _.assignIn({
+                fp.assignIn({
                     where: where,
-                }, attributes ? attributes:{})
+                })(attributes ? attributes:{})
             ),
             MySQL.Houses.findAll(
-                _.assignIn({
+                fp.assignIn({
                     where: where,
                     subQuery: false,
                     include: queryInclude,
                     offset: pagingInfo.skip,
                     limit: pagingInfo.size
-                }, attributes ? attributes:{})
+                })(attributes ? attributes:{})
             )
         ]).then(
             result=>{
@@ -208,7 +206,7 @@ exports.deviceStatus = (device)=>{
         }
     };
 
-    return _.assign(device.status || {}, {service: runStatus()});
+    return fp.assign(device.status || {}, {service: runStatus()});
 };
 
 exports.payBills = (sequelizeModel) => async (bills, projectId, fundChannel, userId, orderNo, category) => {
@@ -266,7 +264,7 @@ exports.serviceCharge = (fundChannel, amount)=>{
         shareAmount: 0
     };
 
-    _.each(fundChannel.serviceCharge, serviceCharge=>{
+    fp.each(serviceCharge=>{
         switch(serviceCharge.type){
         case Typedef.ServiceChargeType.TOPUP:
         case Typedef.ServiceChargeType.BILL:
@@ -312,7 +310,7 @@ exports.serviceCharge = (fundChannel, amount)=>{
             }
             break;
         }
-    });
+    })(fundChannel.serviceCharge);
 
     if(fundChannel.fee){
         chargeObj.fee = (
@@ -341,9 +339,9 @@ exports.baseFlow = (category, orderNo, projectId,
 exports.shareFlows = (serviceCharge, orderNo, projectId, userId, billId, fundChannel)=>{
 
     const category = Typedef.FundChannelFlowCategory.SCTOPUP;
-    return _.compact([
+    return fp.compact([
         fp.get('share.user')(serviceCharge) ?
-            _.assign(
+            fp.assign(
                 exports.baseFlow(category, orderNo, projectId, billId, fundChannel, fp.get('share.user')(serviceCharge))
                 , {
                     from: userId,
@@ -351,8 +349,9 @@ exports.shareFlows = (serviceCharge, orderNo, projectId, userId, billId, fundCha
                 }
             ) : null
         , fp.get('share.project')(serviceCharge)  ?
-            _.assign(
-                exports.baseFlow(category, orderNo, projectId, billId, fundChannel, fp.get('share.user')(serviceCharge))
+            fp.assign(
+                //TODO: 怀疑是拷贝粘贴错误 @joey  'share.user' => 'share.project'
+                exports.baseFlow(category, orderNo, projectId, billId, fundChannel, fp.get('share.project')(serviceCharge))
                 , {
                     from: projectId,
                     to: Typedef.PlatformId,
@@ -423,7 +422,7 @@ exports.topUp = async(fundChannel, projectId, userId, operatorId, contractId, am
 
     log.info(fundChannel, serviceCharge, projectId, userId, contractId, amount);
 
-    const received = amount - _.get(serviceCharge, 'share.user', 0);
+    const received = amount - fp.getOr(0)('share.user')(serviceCharge);
 
     let t;
     try{
@@ -478,7 +477,7 @@ exports.autoApportionment = async(projectId, houseId)=>{
             suffix = 100 - base * count;
         }
 
-        const minRoomId = _.min(roomIds);
+        const minRoomId = fp.min(roomIds);
         const share = fp.map(roomId=>{
             if(roomId === minRoomId){
                 return {roomId: roomId, value: base + suffix, projectId: projectId, houseId: houseId};

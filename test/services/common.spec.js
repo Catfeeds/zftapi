@@ -1,5 +1,5 @@
 'use strict';
-const {includeContracts, payBills, serviceCharge, moveFundChannelToRoot} = require(
+const {includeContracts, payBills, serviceCharge, moveFundChannelToRoot, shareFlows} = require(
     '../../services/v1.0/common');
 const {spy} = require('sinon');
 
@@ -21,7 +21,7 @@ describe('Common', function() {
             Houses,
             Building,
             GeoLocation,
-            Contracts
+            Contracts,
         };
     });
     describe('default', () => {
@@ -252,13 +252,14 @@ describe('Common', function() {
             });
         });
 
-        it('should calculate 0 charge if no service charge in fundChannel', () => {
-            serviceCharge({}, 100).should.be.eql({
-                amount: 100,
-                amountForBill: 100,
-                shareAmount: 0,
+        it('should calculate 0 charge if no service charge in fundChannel',
+            () => {
+                serviceCharge({}, 100).should.be.eql({
+                    amount: 100,
+                    amountForBill: 100,
+                    shareAmount: 0,
+                });
             });
-        });
     });
 
     describe('moveFundChannelToRoot', () => {
@@ -269,11 +270,60 @@ describe('Common', function() {
                         toJSON: () => ({id: 99}),
                         fundChannel: {aField: 1, serviceCharge: 2, notMe: 3},
                     },
-                )(['aField']).should.be.eql({id: 99, serviceCharge: 2, aField: 1});
+                )(['aField']).
+                    should.
+                    be.
+                    eql({id: 99, serviceCharge: 2, aField: 1});
             });
 
         it('should return empty if result is empty', async function() {
             moveFundChannelToRoot({toJSON: () => ({})})([]).should.be.eql({});
         });
+    });
+
+    describe('shareFlows', () => {
+        it('should be able to create by fund channel', async function() {
+            const serviceCharge = {
+                share: {
+                    user: 10,
+                    project: 90,
+                },
+            };
+            const orderNo = 321;
+            const projectId = 100;
+            const userId = 999;
+            const billId = {};
+            const fundChannel = {id: 345};
+            shareFlows(serviceCharge, orderNo, projectId, userId, billId,
+                fundChannel).should.be.eql([
+                {
+                    amount: 10,
+                    billId,
+                    category: 'SCTOPUP',
+                    from: userId,
+                    fundChannelId: 345,
+                    id: 998811,
+                    orderNo,
+                    projectId,
+                    to: 1,
+                },
+                {
+                    amount: 90,
+                    billId,
+                    category: 'SCTOPUP',
+                    from: projectId,
+                    fundChannelId: 345,
+                    id: 998811,
+                    orderNo,
+                    projectId,
+                    to: 1,
+                },
+            ]);
+        });
+
+        it('should be empty by default', async function() {
+            shareFlows().should.be.eql([]);
+        });
+
     });
 });
