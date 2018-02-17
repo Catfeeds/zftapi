@@ -4,7 +4,7 @@ const fp = require('lodash/fp');
 
 const scheduler = require('./billScheduler');
 const dueDateShifter = require('./dueDateShifter').dueDateShifter;
-const assignNewId = require('../services/v1.0/common').assignNewId;
+const {assignNewId} = require('../services/v1.0/common');
 
 const expensesReduce = expenses => fp.sumBy('rent', fp.filter(e => e.pattern === 'withRent')(expenses));
 

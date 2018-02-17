@@ -292,5 +292,33 @@ describe('Environments', function() {
 
         });
     });
+    it('should not allow admin to delete themselves', async function() {
+        const req = {
+            isAuthenticated: () => true,
+            params: {
+                projectId: 100,
+                credentialId: 1000,
+            },
+            user: {
+                level: 'ADMIN',
+                id: 1000
+            },
+        };
 
+        const deleteSpy = spy();
+        global.MySQL = {
+            Auth: {
+                findById: async () => ({destroy: deleteSpy}),
+            },
+        };
+
+        const resSpy = spy();
+        await single.delete(req, {send: resSpy}).then(() => {
+            deleteSpy.should.not.have.been.called;
+            resSpy.should.have.been.calledWith(403,
+                ErrorCode.ack(ErrorCode.NOTSUPPORT,
+                    {error: 'Don\'t attempt to delete yourself.'}));
+
+        });
+    });
 });

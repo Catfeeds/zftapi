@@ -4,10 +4,11 @@
  */
 const fp = require('lodash/fp');
 const moment = require('moment');
-const omitSingleNulls = require('../../../common').omitSingleNulls;
-const innerValues = require('../../../common').innerValues;
-const singleRoomTranslate = require('../../../common').singleRoomTranslate;
-const includeContracts = require('../../../common').includeContracts;
+const {
+    omitSingleNulls, innerValues,
+    singleRoomTranslate, includeContracts,
+} = require(
+    '../../../common');
 
 const omitFields = fp.omit(['metadata', 'createdAt', 'updatedAt']);
 const formatRoom = item => fp.defaults(item)(
@@ -43,18 +44,12 @@ module.exports = {
         const BillFlows = MySQL.BillFlows;
         const BillPayment = MySQL.BillPayment;
 
-        const Contracts = MySQL.Contracts;
-        const Users = MySQL.Users;
-        const Rooms = MySQL.Rooms;
-        const Houses = MySQL.Houses;
-        const Building = MySQL.Building;
-        const GeoLocation = MySQL.GeoLocation;
-        const contractFilter = includeContracts(Contracts, Users, Houses,
-            Building, GeoLocation, Rooms);
+        const contractFilter = includeContracts(MySQL);
 
         const query = req.query;
 
         const Sequelize = MySQL.Sequelize;
+        const FundChannelFlows = MySQL.FundChannelFlows;
 
         const projectId = req.params.projectId;
         const houseFormat = query.houseFormat;
@@ -71,6 +66,12 @@ module.exports = {
                 {$in: billPaymentFilter}
                 : {$notIn: billPaymentFilter};
         })(fp.get('query.paid')(req));
+
+        const fundFlowConnection = {
+            model: FundChannelFlows,
+            required: false,
+            attributes: ['id', 'category', 'orderNo', 'from', 'to', 'amount'],
+        };
 
         const pagingInfo = Util.PagingInfo(query.index, query.size, true);
 
@@ -93,7 +94,9 @@ module.exports = {
                         'paidAt',
                         'remark',
                         'status'],
-                }, contractFilter(houseFormat)],
+                },
+                contractFilter(houseFormat),
+                fundFlowConnection],
             distinct: true,
             where: fp.defaults(fp.defaults({
                 entityType: 'property',

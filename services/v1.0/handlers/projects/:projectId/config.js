@@ -3,7 +3,7 @@
  * Operations on /projects/{projectid}/config
  */
 
-const omitNulls = require('../../../common').omitNulls;
+const {omitNulls} = require('../../../common');
 
 const translate = omitNulls;
 

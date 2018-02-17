@@ -3,6 +3,7 @@ const {get} = require('../../services/v1.0/handlers/projects/:projectId/flows');
 require('include-node');
 const {stub, spy} = require('sinon');
 const fp = require('lodash/fp');
+const moment = require('moment');
 
 describe('Flows', function() {
     before(() => {
@@ -560,6 +561,51 @@ describe('Flows', function() {
                     'mobile': '',
                 },
             });
+        });
+    });
+
+    it('should accept filter from / to', async function() {
+        const req = {
+            params: {
+                projectId: 100,
+                roomId: 200,
+            },
+            query: {from: 1243599462, to: 1243699462},
+        };
+        const sequelizeFindSpy = stub().resolves([]);
+        global.MySQL = {
+            Flows: {
+                findAndCountAll: sequelizeFindSpy,
+            }
+        };
+
+        await get(req, {send: fp.noop}).then(() => {
+            sequelizeFindSpy.should.have.been.called;
+            const countingOption = sequelizeFindSpy.getCall(0).args[0];
+            countingOption.where.should.be.eql({
+                projectId: 100,
+                createdAt: {
+                    $gte: moment(req.query.from * 1000).format('YYYY-MM-DD HH:mm:ss'),
+                    $lte: moment(req.query.to * 1000).format('YYYY-MM-DD HH:mm:ss')
+                }
+            });
+        });
+    });
+
+    it('should validate filter from / to', async function() {
+        const req = {
+            params: {
+                projectId: 100,
+                roomId: 200,
+            },
+            query: {from: 100, to: 99},
+        };
+
+        const resSpy = spy();
+
+        await get(req, {send: resSpy}).then(() => {
+            resSpy.should.have.been.called;
+            resSpy.getCall(0).args[0].should.be.eql(400);
         });
     });
 });

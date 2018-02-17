@@ -12,11 +12,19 @@ module.exports = {
     get: function getContractBills(req, res) {
         const Bills = MySQL.Bills;
         const BillFlows = MySQL.BillFlows;
+        const FundChannelFlows = MySQL.FundChannelFlows;
+
+        const fundFlowConnection = {
+            model: FundChannelFlows,
+            required: false,
+            attributes: ['id', 'category', 'orderNo', 'from', 'to', 'amount'],
+        };
 
         Bills.findAll({
             include: [{model: BillFlows,
                 as: 'billItems' ,
-                attributes: ['configId', 'relevantId', 'amount', 'createdAt', 'id']}],
+                attributes: ['configId', 'relevantId', 'amount', 'createdAt', 'id']},
+            fundFlowConnection],
             where: {
                 entityType: 'property',
                 contractId: req.params.contractId,

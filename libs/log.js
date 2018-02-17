@@ -1,8 +1,8 @@
-let appRootPath = require('app-root-path');
-let config = require('config');
-let path = require('path');
-let fs = require('fs');
-let _ = require('underscore');
+const appRootPath = require('app-root-path');
+const config = require('config');
+const path = require('path');
+const fs = require('fs');
+const _ = require('lodash');
 
 exports = module.exports = function(appName, logPath)
 {
@@ -12,17 +12,20 @@ exports = module.exports = function(appName, logPath)
         fs.mkdirSync(loggerPath);
     }
 
+    const methods = ['tracer', 'warn', 'info', 'error', 'debug',  'response', 'request', 'delete'];
     if(config.logfile) {
+        const os = require('os');
         global.log = require('tracer').dailyfile({
             root: logPath,
-            methods: ['tracer', 'warn', 'info', 'error', 'debug',  'response', 'request', 'delete'],
-            allLogsFileName: appName,
+            logPathFormat: '{{root}}/{{prefix}}_{{date}}.log',
+            methods: methods,
+            allLogsFileName: appName+"_"+os.hostname(),
             format: "[{{timestamp}}] {{ipAddress}}:{{pid}} {{appName}} {{title}} {{path}}{{relativePath}}:{{line}}:{{method}} {{message}}",
             dateformat: "yyyy-mm-dd HH:MM:ss",
             maxLogFiles:365,
             preprocess: function (data) {
-                let process = require('process');
-                let ip = require("ip");
+                const process = require('process');
+                const ip = require("ip");
 
                 data.relativePath = path.relative(appRootPath.path, data.path);
                 data.path = '';
@@ -41,7 +44,7 @@ exports = module.exports = function(appName, logPath)
     }
     else{
         global.log = require('tracer').console({
-            methods: ['tracer', 'warn', 'info', 'error', 'debug', 'response', 'request', 'delete']
+            methods: methods
         });
     }
 };

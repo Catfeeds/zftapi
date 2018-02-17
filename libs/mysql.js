@@ -20,23 +20,26 @@ exports.Load = () => {
     return new Promise((resolve, reject)=>{
         const read = JSON.parse(config.RDS.read);
         const write = JSON.parse(config.RDS.write);
-		sequelizeInstance = new Sequelize(null, null, null, {
-            dialect: 'mysql',
-            replication: {
-                read,
-                write
+        const options = _.assign(
+            {
+                dialect: 'mysql',
+                replication: {
+                    read,
+                    write
+                },
+                timezone: "+08:00",
+                retry:{
+                    max: 0
+                },
+                pool:{
+                    maxConnections: 20,
+                    minConnections: 5,
+                    maxIdleTime: 1000
+                }
             },
-            logging: true,
-            timezone: "+08:00",
-            retry:{
-                max: 0
-            },
-            pool:{
-                maxConnections: 20,
-                minConnections: 5,
-                maxIdleTime: 1000
-            }
-        });
+            config.ENV === 'DEVELOPMENT' ? {logging: true}:{}
+        );
+		sequelizeInstance = new Sequelize(null, null, null, options);
 		sequelizeInstance.authenticate().then(
             function (err) {
                 log.info('RDS EM Connection Successful...');
@@ -416,7 +419,6 @@ function SequelizeDefine()
         id:{
             type: Sequelize.BIGINT.UNSIGNED,
             primaryKey: true,
-            autoIncrement: true
         },
         code: {
             type: Sequelize.STRING(12),
@@ -984,7 +986,7 @@ function SequelizeDefine()
             defaultValue: ''
         },
         contractId: {
-            type: Sequelize.BIGINT.UNSIGNED,    //合同id
+            type: Sequelize.BIGINT.UNSIGNED,    //合同ID
             allowNull: false
         },
         projectId: {
@@ -1066,14 +1068,41 @@ function SequelizeDefine()
 			allowNull: false
 		},
         category:{
-			type: Sequelize.STRING,  //项目ID
+			type: Sequelize.STRING,  //流水业务类型
 			allowNull: false,
             defaultValue: 'rent',
 			validate: {
 				isIn: [['rent', 'final', 'topup']]
 			}
-		}
-	},{
+		},
+        amount: {
+            type: Sequelize.BIGINT.UNSIGNED,    //金额 扩大100
+            allowNull: false,
+            defaultValue: 0
+        },
+        fee: {
+            type: Sequelize.BIGINT.UNSIGNED,    //服务费
+            allowNull: false,
+            defaultValue: 0
+        },
+        direction: {                                //资金流向(收入/支出)
+            type: Sequelize.STRING(10),
+            allowNull: false,
+            defaultValue: 'receive',
+            validate: {
+                isIn: [['pay', 'receive']]
+            }
+        },
+        locationId: {
+            type: Sequelize.BIGINT.UNSIGNED,    //小区ID
+            allowNull: true,
+            defaultValue: 0
+        },
+        locationName: {
+            type: Sequelize.STRING(16),     //小区名称
+            allowNull: true,
+        }
+    }, {
 		timestamps: true,
 		paranoid: true,
 		freezeTableName: true
@@ -1424,9 +1453,9 @@ function SequelizeDefine()
 			type: Sequelize.STRING(20),     //telephone number
 			allowNull: true
 		}
-
     },{
-        timestamps: false,
+        timestamps: true,
+        paranoid: true,
         freezeTableName: true
     });
     exports.Projects = Projects;

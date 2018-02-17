@@ -274,6 +274,9 @@ create table if not exists `projects`
 	`address` varchar(255) NULL,
 	`description` TEXT,
 	`telephone` varchar(20) NULL,
+	`createdAt` datetime(0) NULL,
+  `updatedAt` datetime(0) NULL,
+  `deletedAt` datetime(0) NULL DEFAULT NULL,
 	PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB;
 
@@ -410,6 +413,11 @@ create table if not exists `flows`
   `id` bigint(20) UNSIGNED NOT NULL,
   `projectId` bigint(20) UNSIGNED NOT NULL,
   `category` varchar(20) default 'rent' NOT NULL,
+  `locationId` bigint(20) UNSIGNED NOT NULL,
+  `locationName` varchar(16) NULL,
+  `amount` bigint(20) UNSIGNED default '0' NOT NULL,
+  `fee` bigint(20) UNSIGNED default '0' NOT NULL,
+  `direction` varchar(10) default 'receive' not null,
   `createdAt` datetime(0) NULL,
   `updatedAt` datetime(0) NULL,
   `deletedAt` datetime(0) NULL DEFAULT NULL,
@@ -499,6 +507,9 @@ VALUES ( '2', '6', NULL, NULL, NOW(), NOW(), NULL);
 INSERT INTO `zft`.`fundChannels` (`flow`, `projectId`, `category`, `tag`, `name`, `status`, `createdAt`, `updatedAt`, `deletedAt`) VALUES ('receive', '100', 'offline', 'cash', '现金', 'PASSED ', '2018-01-03 22:23:01', '2018-01-03 22:23:03', NULL);
 INSERT INTO `zft`.`fundChannels` (`flow`, `projectId`, `category`, `tag`, `name`, `status`, `createdAt`, `updatedAt`, `deletedAt`) VALUES ('receive', '100', 'online', 'alipay', '支付宝', 'PASSED ', '2018-01-03 22:31:59', '2018-01-03 22:32:02', NULL);
 INSERT INTO `zft`.`fundChannels` (`flow`, `projectId`, `category`, `tag`, `name`, `status`, `createdAt`, `updatedAt`, `deletedAt`) VALUES ('pay', '100', 'online', 'icbc', '工商银行', 'PASSED', '2018-01-03 22:33:12', '2018-01-03 22:33:15', NULL);
+
+INSERT INTO zft.serviceCharge (id, projectId, fundChannelId, type, strategy, createdAt, updatedAt, deletedAt) VALUES (1, 100, 1, 'TOPUP', '{"user":40,"project":60,"fee":10}', '2018-01-24 17:59:13', '2018-01-25 08:12:08', null);
+INSERT INTO zft.serviceCharge (id, projectId, fundChannelId, type, strategy, createdAt, updatedAt, deletedAt) VALUES (2, 100, 1, 'BILL', '{"user":30,"project":70,"fee":10}', '2018-01-24 17:59:13', '2018-01-25 08:12:08', null);
 
 INSERT INTO `divisions` VALUES (110000, '北京市', 1, 0, 39.90000, 116.40000, 1);
 INSERT INTO `divisions` VALUES (110100, '市辖区', 2, 110000, 0.00000, 0.00000, 0);

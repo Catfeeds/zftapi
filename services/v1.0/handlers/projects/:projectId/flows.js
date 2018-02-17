@@ -2,15 +2,13 @@
 
 const fp = require('lodash/fp');
 const moment = require('moment');
-const omitSingleNulls = require('../../../common').omitSingleNulls;
-const innerValues = require('../../../common').innerValues;
-const includeContracts = require('../../../common').includeContracts;
-const singleRoomTranslate = require('../../../common').singleRoomTranslate;
+const {innerValues, omitSingleNulls, formatMysqlDateTime, includeContracts, singleRoomTranslate} = require(
+    '../../../common');
 
 const omitFields = fp.omit([
     'userId', 'billId', 'bill', 'auth', 'topup',
     'billpayment', 'operatorInfo', 'flowId', 'createdAt', 'updatedAt',
-    'contractId',
+    'contractId', 'fee', 'locationId', 'locationName'
 ]);
 
 const formatTime = time => item => fp.defaults(item)(
@@ -70,19 +68,12 @@ module.exports = {
     get: async (req, res) => {
         const BillPayment = MySQL.BillPayment;
         const Bills = MySQL.Bills;
-        const Contracts = MySQL.Contracts;
-        const Users = MySQL.Users;
-        const Rooms = MySQL.Rooms;
-        const Houses = MySQL.Houses;
-        const Building = MySQL.Building;
-        const GeoLocation = MySQL.GeoLocation;
         const Auth = MySQL.Auth;
         const Flows = MySQL.Flows;
         const Topup = MySQL.Topup;
         const BillFlows = MySQL.BillFlows;
         const FundChannelFlows = MySQL.FundChannelFlows;
-        const contractFilter = includeContracts(Contracts, Users, Houses,
-            Building, GeoLocation, Rooms);
+        const contractFilter = includeContracts(MySQL);
 
         const query = req.query;
         const projectId = req.params.projectId;
@@ -135,9 +126,14 @@ module.exports = {
                         }, operatorConnection)],
                 },
             ],
-            where: {
+            where: fp.merge({
                 projectId,
-            },
+            }, from && to ? {
+                createdAt: {
+                    $gte: formatMysqlDateTime(from),
+                    $lte: formatMysqlDateTime(to),
+                },
+            } : {}),
             distinct: true,
             offset: pagingInfo.skip,
             limit: pagingInfo.size,

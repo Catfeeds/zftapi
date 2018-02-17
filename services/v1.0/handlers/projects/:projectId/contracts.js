@@ -12,13 +12,11 @@ const generateBills = require(
     '../../../../../transformers/billGenerator').generate;
 const billItems = require(
     '../../../../../transformers/billItemsGenerator').generate;
-const omitSingleNulls = require(
-    '../../../../../services/v1.0/common').omitSingleNulls;
-const innerValues = require('../../../../../services/v1.0/common').innerValues;
-const assignNewId = require('../../../../../services/v1.0/common').assignNewId;
-const singleRoomTranslate = require('../../../common').singleRoomTranslate;
-const jsonProcess = require('../../../common').jsonProcess;
-const houseConnection = require('../../../common').houseConnection;
+const {
+    omitSingleNulls, innerValues, assignNewId, singleRoomTranslate,
+    jsonProcess, houseConnection,
+} = require(
+    '../../../common');
 
 const omitFields = fp.omit(['userId', 'createdAt', 'updatedAt']);
 const roomTranslate = item => fp.defaults(item)(
@@ -41,6 +39,24 @@ const validateContract = async (contract) => {
     if (contract.from >= contract.to) {
         throw new Error(
             `Invalid contract time period : from ${contract.from} to ${contract.to}.`);
+    }
+    const standardRent = fp.getOr(0)('strategy.freq.rent')(contract);
+    if (standardRent === 0) {
+        throw new Error(
+            `Invalid rent amount: ${standardRent}, it must be greater than 0.`);
+    }
+
+    const bond = fp.getOr(0)('strategy.bond')(contract);
+    if (bond === 0) {
+        throw new Error(
+            `Invalid bond amount: ${bond}, it must be greater than 0.`);
+    }
+    const zeroExpense = fp.filter(expense => expense.rent === 0)(
+        fp.getOr([])('expenses')(contract));
+    if (!fp.isEmpty(zeroExpense)) {
+        throw new Error(
+            `Invalid expense amount of configId ${fp.map('configId')(
+                zeroExpense)}, it must be greater than 0.`);
     }
     return contract;
 };
@@ -156,10 +172,6 @@ module.exports = {
     get: async function getContracts(req, res) {
         const Contracts = MySQL.Contracts;
         const Users = MySQL.Users;
-        const Rooms = MySQL.Rooms;
-        const Houses = MySQL.Houses;
-        const Building = MySQL.Building;
-        const GeoLocation = MySQL.GeoLocation;
         const CashAccount = MySQL.CashAccount;
         const projectId = req.params.projectId;
         const status = fp.getOr(Typedef.ContractStatus.ONGOING)(
@@ -184,7 +196,7 @@ module.exports = {
                             attributes: ['balance'],
                         }],
                 },
-                houseConnection(Houses, Building, GeoLocation, Rooms)(
+                houseConnection(MySQL)(
                     houseFormat)],
             distinct: true,
             where: fp.defaults(fp.defaults({projectId, status})(

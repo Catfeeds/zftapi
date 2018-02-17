@@ -1,19 +1,17 @@
 'use strict';
 const moment = require('moment');
 const fp = require('lodash/fp');
-const assignFieldId = require('../services/v1.0/common').assignFieldId;
-const assignNewId = require('../services/v1.0/common').assignNewId;
+const {assignNewId, assignFieldId} = require('../services/v1.0/common');
 
 const finalPayment = (settlement) => assignNewId(assignFieldId('orderNo')({
-    billId: settlement.billId,
-    flowId: settlement.flowId,
+    bills: settlement.bills,
     projectId: settlement.projectId,
-    amount: fp.getOr(0)('amount')(settlement),
-    fundChannelId: fp.get('fundChannelId')(settlement),
     operator: settlement.operatorId,
+    amount: fp.getOr(0)('amount')(settlement),
+    fundChannel: settlement.fundChannel,
     paidAt: moment().unix(),
-    status: 'approved'
+    status: 'approved',
 }));
 module.exports = {
-    finalPayment
+    finalPayment,
 };

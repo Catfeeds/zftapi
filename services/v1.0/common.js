@@ -1,36 +1,38 @@
 'use strict';
 
-const _ = require('lodash');
 const fp = require('lodash/fp');
 const moment = require('moment');
 const bigDecimal = require('bigdecimal');
 
 exports.UpsertGeoLocation = (location, t)=>{
+    if(!location.id) {
+        location = exports.assignNewId(location);
+    }
     return MySQL.GeoLocation.findOrCreate({
         where:{
             code: location.code
         },
         transaction: t,
-        defaults:location
+        defaults: location
     });
 };
 
 exports.AsyncUpsertGeoLocation = async (location, t) => {
-    location.code = location.id || location.code;
-    location = _.omit(location, 'id');
-
+    if(!location.id) {
+        location = exports.assignNewId(location);
+    }
     return await MySQL.GeoLocation.findOrCreate({
         where:{
             code: location.code
         },
         transaction: t,
-        defaults:location
+        defaults: location
     });
 };
 
 exports.QueryEntire = (projectId, query, include, attributes)=>{
     return new Promise((resolve, reject)=>{
-        const where = _.assignIn({},
+        const where = fp.extendAll([{},
             query.buildingId ? {'$building.id$': query.buildingId} : {},
             query.houseFormat ? {houseFormat: query.houseFormat} : {},
             query.houseStatus ? { 'status': query.houseStatus } : {},
@@ -41,49 +43,47 @@ exports.QueryEntire = (projectId, query, include, attributes)=>{
                 {roomNumber: {$regexp: query.q}},
                 {code: {$regexp: query.q}},
             ]} : {},
-            query.bedRoom ? {'$layouts.bedRoom$': query.bedRoom} : {}
+            query.bedRoom ? {'$layouts.bedRoom$': query.bedRoom} : {}]
         );
 
-        const queryInclude = _.union(
+        const queryInclude = fp.union(
             [
                 {
-                    model: MySQL.Building, as: 'building'
-                    , include:[{
-                        model: MySQL.GeoLocation, as: 'location'
-                    }]
+                    model: MySQL.Building, as: 'building',
+                    include: [
+                        {
+                            model: MySQL.GeoLocation, as: 'location',
+                        }],
                 },
                 {model: MySQL.Layouts, as: 'layouts'},
                 {
                     model: MySQL.Rooms,
                     as: 'rooms',
-                    include:[
+                    include: [
                         {
                             model: MySQL.HouseDevices,
-                            as: 'devices'
-                        }
-                    ]
-                }
-            ],
-            include ? include : []
-        );
+                            as: 'devices',
+                        }],
+                },
+            ])(include ? include : []);
 
 
         const pagingInfo = Util.PagingInfo(query.index, query.size, true);
 
         Promise.all([
             MySQL.Houses.count(
-                _.assignIn({
+                fp.assignIn({
                     where: where,
-                }, attributes ? attributes:{})
+                })(attributes ? attributes:{})
             ),
             MySQL.Houses.findAll(
-                _.assignIn({
+                fp.assignIn({
                     where: where,
                     subQuery: false,
                     include: queryInclude,
                     offset: pagingInfo.skip,
                     limit: pagingInfo.size
-                }, attributes ? attributes:{})
+                })(attributes ? attributes:{})
             )
         ]).then(
             result=>{
@@ -154,36 +154,36 @@ exports.jsonProcess = (model) => fp.defaults(model)({
     strategy: model.strategy ? JSON.parse(model.strategy) : undefined
 });
 
-exports.userConnection = (userModel) => ({
-    model: userModel
+exports.userConnection = (sequelizeModel) => ({
+    model: sequelizeModel.Users
 });
-exports.includeContracts = (contractModel, userModel, houseModel, buildingModel, locationModel, roomModel) =>
+exports.includeContracts = (sequelizeModel) =>
     (houseFormat, contractCondition) => fp.defaults({
-        include: [exports.userConnection(userModel), exports.houseConnection(houseModel, buildingModel, locationModel, roomModel)(houseFormat)],
-        model: contractModel
+        include: [exports.userConnection(sequelizeModel), exports.houseConnection(sequelizeModel)(houseFormat)],
+        model: sequelizeModel.Contracts
     })(fp.isUndefined(contractCondition) ? {
         where: {
             status: Typedef.ContractStatus.ONGOING
         }
     } : contractCondition);
 
-exports.houseConnection = (houseModel, buildingModel, locationModel, roomModel) => (houseFormat) => {
+exports.houseConnection = (sequelizeModel) => (houseFormat) => {
     const houseInclude = fp.defaults({
-        model: houseModel,
+        model: sequelizeModel.Houses,
         as: 'house',
         attributes: ['id', 'roomNumber', 'buildingId'],
         include: [{
-            model: buildingModel, as: 'building',
+            model: sequelizeModel.Building, as: 'building',
             attributes: ['building', 'unit'],
             include: [{
-                model: locationModel,
+                model: sequelizeModel.GeoLocation,
                 as: 'location',
                 attributes: ['name']
             }]
         }]
     })(fp.isEmpty(houseFormat) ? {} : {where: {houseFormat}});
     return {
-        model: roomModel,
+        model: sequelizeModel.Rooms,
         attributes: ['id', 'name', 'houseId'],
         required: true,
         include: [houseInclude]
@@ -205,50 +205,51 @@ exports.deviceStatus = (device)=>{
         }
     };
 
-    return _.assign(device.status || {}, {service: runStatus()});
+    return fp.assign(device.status || {}, {service: runStatus()});
 };
 
-exports.payBills = async (bills, projectId, fundChannel, userId, orderNo)=>{
-    const payBills = fp.map(bill=>{
-        return {
-            id: exports.assignNewId().id,
-            projectId: projectId,
-            billId: bill.id,
-            orderNo: orderNo ? orderNo : exports.assignNewId().id,
-            flowId: exports.assignNewId().id,
-            fundChannelId: fundChannel.id,
-            amount: bill.dueAmount,
-            operator: userId,
-            paidAt: moment().unix(),
-        };
-    })(bills);
+exports.payBills = (sequelizeModel) => async (bills, projectId, fundChannel, userId, orderNo, category) => {
+    if(fp.isEmpty(bills)) {
+        return ErrorCode.ack(ErrorCode.OK, {message: 'No bills were paid.'});
+    }
+    const payBills = fp.map(bill=>({
+        id: exports.assignNewId().id,
+        projectId,
+        billId: bill.id,
+        orderNo: orderNo ? orderNo : exports.assignNewId().id,
+        flowId: exports.assignNewId().id,
+        fundChannelId: fundChannel.id,
+        amount: bill.dueAmount,
+        operator: userId,
+        paidAt: moment().unix(),
+        serviceCharge: exports.serviceCharge(fundChannel, bill.dueAmount)
+    }))(bills);
 
-    const flows = fp.map(bill=>{
-        return {
-            id: bill.flowId,
-            projectId: projectId,
-            category: 'topup'
-        };
-    })(payBills);
+    const flows = fp.map(bill=>({
+        id: bill.flowId,
+        projectId,
+        category: category ? category : 'rent',
+        amount: bill.amount,
+        fee: bill.serviceCharge.shareAmount,
+    }))(payBills);
 
+    let t;
     try{
-        const t = await MySQL.Sequelize.transaction();
+        t = await sequelizeModel.Sequelize.transaction({autocommit: false});
 
-        await MySQL.BillPayment.bulkCreate(payBills, {transaction: t});
-        await MySQL.Flows.bulkCreate(flows, {transaction: t});
+        await sequelizeModel.BillPayment.bulkCreate(payBills, {transaction: t});
+        await sequelizeModel.Flows.bulkCreate(flows, {transaction: t});
 
-
-        const billLogFlows = fp.map(bill=>{
-            const serviceCharge = exports.serviceCharge(fundChannel, bill.dueAmount);
-
-            return exports.logFlows(serviceCharge, orderNo, projectId, userId, bill.id, fundChannel, t, Typedef.FundChannelFlowCategory.BILL);
-        })(bills);
+        const billLogFlows = fp.map(bill => exports.logFlows(sequelizeModel)(bill.serviceCharge,
+            bill.orderNo, projectId, bill.operator, bill.billId,
+            fundChannel, t, Typedef.FundChannelFlowCategory.BILL))(payBills);
         await Promise.all(billLogFlows);
 
         await t.commit();
         return ErrorCode.ack(ErrorCode.OK);
     }
     catch(e){
+        await t.rollback();
         log.error(e, bills, projectId, fundChannel, userId, orderNo, payBills, flows);
         return ErrorCode.ack(ErrorCode.DATABASEEXEC);
     }
@@ -256,19 +257,21 @@ exports.payBills = async (bills, projectId, fundChannel, userId, orderNo)=>{
 
 exports.serviceCharge = (fundChannel, amount)=>{
     //
-
     let chargeObj = {
-        amount: amount
+        amount,
+        amountForBill: amount,
+        shareAmount: 0
     };
 
-    _.each(fundChannel.serviceCharge, serviceCharge=>{
+    fp.each(serviceCharge=>{
         switch(serviceCharge.type){
         case Typedef.ServiceChargeType.TOPUP:
+        case Typedef.ServiceChargeType.BILL:
             {
                 const CalcShare = (fee, percent)=>{
                     if(fee && percent){
                         if(amount === 1){
-                            return;
+                            return 0;
                         }
 
                         const balance = (
@@ -293,16 +296,20 @@ exports.serviceCharge = (fundChannel, amount)=>{
                     return;
                 }
 
+                const user = CalcShare(serviceCharge.strategy.fee, serviceCharge.strategy.user);
+                const project = CalcShare(serviceCharge.strategy.fee, serviceCharge.strategy.project);
                 chargeObj.share = {
-                    user: CalcShare(serviceCharge.strategy.fee, serviceCharge.strategy.user),
-                    project: CalcShare(serviceCharge.strategy.fee, serviceCharge.strategy.project),
+                    user: user,
+                    project: project
                 };
+                chargeObj.shareAmount = user + project;
 
                 chargeObj.amountForBill = chargeObj.amount + chargeObj.share.user;
+
             }
             break;
         }
-    });
+    })(fundChannel.serviceCharge);
 
     if(fundChannel.fee){
         chargeObj.fee = (
@@ -317,81 +324,95 @@ exports.serviceCharge = (fundChannel, amount)=>{
     return chargeObj;
 };
 
+exports.baseFlow = (category, orderNo, projectId,
+    billId, fundChannel, amount) =>
+    exports.assignNewId({
+        fundChannelId: fundChannel.id,
+        category,
+        orderNo,
+        projectId,
+        billId,
+        amount,
+    });
+
 exports.shareFlows = (serviceCharge, orderNo, projectId, userId, billId, fundChannel)=>{
-    return _.compact([
-        serviceCharge.share && serviceCharge.share.user ? {
-            id: exports.assignNewId().id,
-            category: Typedef.FundChannelFlowCategory.CHARGETOPUP,
-            orderNo: orderNo,
-            projectId: projectId,
-            fundChannelId: fundChannel.id,
-            billId: billId,
-            from: userId,
-            to: Typedef.PlatformId,
-            amount: serviceCharge.share.user
-        } : null,
-        serviceCharge.share && serviceCharge.share.project ? {
-            id: exports.assignNewId().id,
-            category: Typedef.FundChannelFlowCategory.CHARGETOPUP,
-            orderNo: orderNo,
-            projectId: projectId,
-            fundChannelId: fundChannel.id,
-            billId: billId,
-            from: projectId,
-            to: Typedef.PlatformId,
-            amount: serviceCharge.share.project
-        } : null,
+
+    const category = Typedef.FundChannelFlowCategory.SCTOPUP;
+    return fp.compact([
+        fp.get('share.user')(serviceCharge) ?
+            fp.assign(
+                exports.baseFlow(category, orderNo, projectId, billId, fundChannel, fp.get('share.user')(serviceCharge))
+                , {
+                    from: userId,
+                    to: Typedef.PlatformId,
+                }
+            ) : null
+        , fp.get('share.project')(serviceCharge)  ?
+            fp.assign(
+                //TODO: 怀疑是拷贝粘贴错误 @joey  'share.user' => 'share.project'
+                exports.baseFlow(category, orderNo, projectId, billId, fundChannel, fp.get('share.project')(serviceCharge))
+                , {
+                    from: projectId,
+                    to: Typedef.PlatformId,
+                }
+            ) : null
     ]);
 };
 exports.platformFlows = (serviceCharge, orderNo, projectId, userId, billId, fundChannel)=>{
-    return _.compact([
-        fundChannel.fee ? {
-            id: exports.assignNewId().id,
-            category: Typedef.FundChannelFlowCategory.SERVICECHARGE,
-            orderNo: orderNo,
-            projectId: projectId,
-            fundChannelId: fundChannel.id,
-            billId: billId,
-            from: Typedef.PlatformId,
-            to: 0,
-            amount: serviceCharge.fee
-        } : null
+    const category = Typedef.FundChannelFlowCategory.COMMISSION;
+    return fp.compact([
+        fundChannel.fee ?
+            fp.assign(
+                exports.baseFlow(category, orderNo, projectId, billId, fundChannel, serviceCharge.fee)
+                ,{
+                    from: Typedef.PlatformId,
+                    to: 0,
+                }
+            ): null
     ]);
 };
-exports.topupFlows = (serviceCharge, orderNo, projectId, userId, billId, fundChannel, category)=>{
-    const getAmount = ()=>{
-        switch (category){
-        case Typedef.FundChannelFlowCategory.BILL:
-            return serviceCharge.amountForBill || serviceCharge.amount;
-        default:
-            return serviceCharge.amount;
-        }
-    };
-
+exports.topupFlows = (amount, orderNo, projectId, userId, billId, fundChannel)=>{
+    const category = Typedef.FundChannelFlowCategory.TOPUP;
     return [
-        {
-            id: exports.assignNewId().id,
-            category: Typedef.FundChannelFlowCategory.TOPUP,
-            orderNo: orderNo,
-            projectId: projectId,
-            fundChannelId: fundChannel.id,
-            billId: billId,
-            from: 0,
-            to: userId,
-            amount: getAmount()
-        }
+        fp.assign(
+            exports.baseFlow(category, orderNo, projectId, billId, fundChannel, amount)
+            ,{
+                from: 0,
+                to: userId,
+            }
+        )
+    ];
+};
+exports.billFlows = (amount, orderNo, projectId, userId, billId, fundChannel)=>{
+    const category = Typedef.FundChannelFlowCategory.BILL;
+    return [
+        fp.assign(
+            exports.baseFlow(category, orderNo, projectId, billId, fundChannel, amount)
+            ,{
+                from: 0,
+                to: userId,
+            }
+        )
     ];
 };
 
-exports.logFlows = async(serviceCharge, orderNo, projectId, userId, billId, fundChannel, t, category)=>{
+exports.logFlows = (sequelizeModel) => async (
+    serviceCharge, orderNo, projectId, userId, billId, fundChannel, t,
+    category) => {
 
-    const bulkFlows = _.compact(_.concat([]
-        , exports.topupFlows(serviceCharge, orderNo, projectId, userId, billId, fundChannel, category)
-        , exports.shareFlows(serviceCharge, orderNo, projectId, userId, billId, fundChannel)
-        , exports.platformFlows(serviceCharge, orderNo, projectId, userId, billId, fundChannel)
-    ));
+    const businessFlow = category === Typedef.FundChannelFlowCategory.BILL ?
+        exports.billFlows(serviceCharge.amountForBill, orderNo, projectId,
+            userId, billId, fundChannel)
+        : exports.topupFlows(serviceCharge.amount, orderNo, projectId, userId,
+            billId, fundChannel);
+    const bulkFlows = fp.compact(fp.flatten([businessFlow,
+        exports.shareFlows(serviceCharge, orderNo, projectId, userId, billId,
+            fundChannel),
+        exports.platformFlows(serviceCharge, orderNo, projectId, userId, billId,
+            fundChannel)]));
 
-    return await MySQL.FundChannelFlows.bulkCreate(bulkFlows, {transaction: t});
+    return await sequelizeModel.FundChannelFlows.bulkCreate(bulkFlows,
+        {transaction: t});
 };
 
 exports.topUp = async(fundChannel, projectId, userId, operatorId, contractId, amount)=>{
@@ -406,9 +427,11 @@ exports.topUp = async(fundChannel, projectId, userId, operatorId, contractId, am
 
     log.info(fundChannel, serviceCharge, projectId, userId, contractId, amount);
 
-    const received = amount - _.get(serviceCharge, 'share.user', 0);
+    const received = amount - fp.getOr(0)('share.user')(serviceCharge);
+
+    let t;
     try{
-        const t = await MySQL.Sequelize.transaction();
+        t = await MySQL.Sequelize.transaction({ autocommit: false });
 
         const result = await Util.PayWithOwed(userId, received, t);
 
@@ -416,7 +439,8 @@ exports.topUp = async(fundChannel, projectId, userId, operatorId, contractId, am
             throw new Error(result.code);
         }
 
-        const flow = await MySQL.Flows.create(assignNewId({projectId, category: 'topup'}), {transaction: t});
+        const topupFlow = assignNewId({projectId, category: 'topup', amount});
+        const flow = await MySQL.Flows.create(topupFlow, {transaction: t});
 
         const orderNo = assignNewId().id;
 
@@ -432,14 +456,15 @@ exports.topUp = async(fundChannel, projectId, userId, operatorId, contractId, am
         });
         await MySQL.Topup.create(topUp, {transaction: t});
 
-        await exports.logFlows(serviceCharge, orderNo, projectId
-            , userId, fundChannel, t, Typedef.FundChannelFlowCategory.TOPUP);
+        await exports.logFlows(MySQL)(serviceCharge, orderNo, projectId
+            , userId, 0, fundChannel, t, Typedef.FundChannelFlowCategory.TOPUP);
 
         await t.commit();
 
         return result.result;
     }
     catch(e){
+        await t.rollback();
         log.error(e, serviceCharge, projectId, userId, contractId, amount);
         return ErrorCode.ack(ErrorCode.DATABASEEXEC);
     }
@@ -457,7 +482,7 @@ exports.autoApportionment = async(projectId, houseId)=>{
             suffix = 100 - base * count;
         }
 
-        const minRoomId = _.min(roomIds);
+        const minRoomId = fp.min(roomIds);
         const share = fp.map(roomId=>{
             if(roomId === minRoomId){
                 return {roomId: roomId, value: base + suffix, projectId: projectId, houseId: houseId};
@@ -484,17 +509,15 @@ exports.autoApportionment = async(projectId, houseId)=>{
         ]
     });
 
-    const roomIds = _.compact(fp.map(room=>{
-        if(room.contracts.length > 1){
-            return room.id;
-        }
-        return null;
-    })(rooms));
+    const allRoomIds = fp.map('id');
+    const whichHasMoreThanOneContracts = fp.filter(room => fp.getOr(0)('contracts.length')(room) > 1);
+    const roomIds = allRoomIds(whichHasMoreThanOneContracts(rooms));
 
     const bulkInsertApportionment = auto(roomIds);
 
+    let t;
     try{
-        const t = await MySQL.Sequelize.transaction();
+        t = await MySQL.Sequelize.transaction({autocommit: false});
 
         await MySQL.HouseApportionment.destroy({
             where:{
@@ -513,7 +536,19 @@ exports.autoApportionment = async(projectId, houseId)=>{
         return 201;
     }
     catch(e){
+        await t.rollback();
         log.error(e, projectId, houseId, bulkInsertApportionment);
         return ErrorCode.ack(ErrorCode.DATABASEEXEC);
     }
+};
+
+exports.formatMysqlDateTime = seconds => moment(seconds * 1000).format('YYYY-MM-DD HH:mm:ss');
+
+exports.moveFundChannelToRoot = result => {
+    const requireServiceCharge= fp.concat('serviceCharge');
+    const fromFundChannel = fieldList => fp.pick(fieldList)(result.fundChannel);
+    const moveToRoot = fp.assign(result.toJSON());
+    const cleanUp = fp.omit('fundChannel');
+
+    return fp.pipe(requireServiceCharge, fromFundChannel, moveToRoot, cleanUp);
 };

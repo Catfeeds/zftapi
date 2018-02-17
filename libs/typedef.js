@@ -119,13 +119,14 @@ const DriverCommand = {
 
 const ServiceChargeType = {
     "TOPUP": 'TOPUP',
+    "BILL": "BILL"
 };
 
 const FundChannelFlowCategory = {
     TOPUP: 'TOPUP',
     BILL: 'BILL',
-    CHARGETOPUP: 'CHARGETOPUP',
-    SERVICECHARGE: 'SERVICECHARGE'
+    SCTOPUP: 'SCTOPUP',
+    COMMISSION: 'COMMISSION'
 };
 
 const PlatformId = 1;

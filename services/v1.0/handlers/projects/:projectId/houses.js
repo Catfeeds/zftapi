@@ -329,20 +329,20 @@ async function Gethouses(params, query) {
             return {};
         }
     };
-    const divisionLocation = ()=>{
+    const districtLocation = ()=>{
         if(query.locationId){
             // geoLocationIds = [query.locationId];
             return {'$building.location.id$': query.locationId};
         }
-        else if(query.divisionId){
-            if(Util.IsParentDivision(query.divisionId)){
+        else if(query.districtId){
+            if(Util.IsParentDivision(query.districtId)){
                 return {
-                    '$building.location.divisionId': {$regexp: Util.ParentDivision(query.divisionId)}
+                    '$building.location.divisionId$': {$regexp: Util.ParentDivision(query.districtId)}
                 };
             }
             else{
                 return {
-                    '$building.location.divisionId': query.divisionId
+                    '$building.location.divisionId$': query.districtId
                 };
             }
         }
@@ -354,7 +354,7 @@ async function Gethouses(params, query) {
             status:{$ne: Typedef.HouseStatus.DELETED}
         },
         query.buildingId ? {'$building.id$': query.buildingId} : {},
-        divisionLocation() || {},
+        districtLocation() || {},
         query.houseFormat ? {houseFormat: query.houseFormat} : {},
         query.layoutId ? {'layoutId': query.layoutId}: {},
         query.floor ? {'currentFloor': query.floor}: {},
@@ -740,6 +740,7 @@ module.exports = {
                 }
             }
 
+            let t;
             try{
                 const location = await MySQL.GeoLocation.findOne({
                     where:{
@@ -748,7 +749,7 @@ module.exports = {
                     attributes:['id']
                 });
 
-                const t = await MySQL.Sequelize.transaction();
+                t = await MySQL.Sequelize.transaction({autocommit: false});
                 if(!location){
                     // await SaveHouses(params, body, location.id);
                     const newLocation = await common.AsyncUpsertGeoLocation(body.location, t);
@@ -782,6 +783,7 @@ module.exports = {
                 }
             }
             catch(e){
+                await t.rollback();
                 log.error(e);
                 res.send(422, ErrorCode.ack(ErrorCode.DATABASEEXEC));
             }

@@ -117,8 +117,9 @@ module.exports = {
                 res.send(400, ErrorCode.ack(ErrorCode.CONTRACTWORKING));
             }
 
+            let t;
             try {
-                const t = await MySQL.Sequelize.transaction();
+                t = await MySQL.Sequelize.transaction({autocommit: false});
 
                 const deleteAt = moment().unix();
 
@@ -181,6 +182,7 @@ module.exports = {
                 res.send(201);
             }
             catch(e){
+                await t.rollback();
                 log.error(e, houseId);
                 res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC));
             }
@@ -277,8 +279,9 @@ module.exports = {
             });
             const removeLayoutIds = _.difference(existsLayoutIds, updatedLayoutIds);
 
+            let t;
             try{
-                const t = await MySQL.Sequelize.transaction();
+                t = await MySQL.Sequelize.transaction({autocommit: false});
 
                 const newLocation = await common.AsyncUpsertGeoLocation(body.location, t);
                 body.location = MySQL.Plain( newLocation[0] );
@@ -336,6 +339,7 @@ module.exports = {
                 res.send(204);
             }
             catch(e){
+                await t.rollback();
                 log.error(ErrorCode.ack(e.message), params, body);
                 res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC));
             }
