@@ -1,7 +1,6 @@
 'use strict';
 const fp = require('lodash/fp');
 const common = Include('/services/v1.0/common');
-const _ = require('lodash');
 const moment = require('moment');
 /**
  * Operations on /building/{buildingId}
@@ -17,11 +16,12 @@ async function getEnabledFloors(buildingId, projectId) {
     });
     let enabledFloors = [];
     houses.map(house=>{
+        //TODO: @joey consider filter
         if(house.status !== Typedef.HouseStatus.CLOSED){
             enabledFloors.push(house.currentFloor);
         }
     });
-    enabledFloors = _.uniq(enabledFloors);
+    enabledFloors = fp.uniq(enabledFloors);
     return enabledFloors;
 }
 
@@ -233,7 +233,7 @@ module.exports = {
             };
             const floors = allFloors(buildingIns.totalFloor);
 
-            const disabledFloors = _.difference(floors, body.building.enabledFloors);
+            const disabledFloors = fp.difference(floors)(body.building.enabledFloors);
 
             const existsUnMatch = await MySQL.Houses.count({
                 where:{
@@ -250,20 +250,20 @@ module.exports = {
                 return res.send(400, ErrorCode.ack(ErrorCode.CONTRACTWORKING));
             }
 
-            const existsLayoutIds = fp.map(layout => {
-                return layout.id;
-            })(await MySQL.Layouts.findAll({
-                where:{
+            const existsLayoutIds = await MySQL.Layouts.findAll({
+                where: {
                     sourceId: buildingId,
-                    deleteAt: 0
-                }
-            }));
+                    deleteAt: 0,
+                },
+                attributes: ['id'],
+            });
 
             let updateLayouts = [];
             let updatedLayoutIds = [];
             body.layouts.map(layout=>{
+                //TODO: @joey consider fp.partition
                 if(layout.id){
-                    if(_.indexOf(existsLayoutIds, layout.id) !== -1){
+                    if(fp.indexOf(layout.id)(existsLayoutIds) !== -1){
                         updatedLayoutIds.push(layout.id);
 
                         layout.sourceId = buildingId;
@@ -277,7 +277,7 @@ module.exports = {
                     updateLayouts.push(layout);
                 }
             });
-            const removeLayoutIds = _.difference(existsLayoutIds, updatedLayoutIds);
+            const removeLayoutIds = fp.difference(existsLayoutIds)(updatedLayoutIds);
 
             let t;
             try{
