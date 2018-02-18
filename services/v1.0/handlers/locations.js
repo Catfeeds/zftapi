@@ -1,9 +1,23 @@
 'use strict';
-const _ = require('lodash');
 const fp = require('lodash/fp');
 /**
  * Operations on /houses/format
  */
+
+const translate = fp.map(res => {
+    const position = res.location && res.location.split(',') || [0,0];
+    return {
+        name: res.name,
+        district: res.district,
+        address: res.address,
+        divisionId: res.adcode,
+        code: res.id,
+        longitude: position[0],
+        latitude: position[1],
+    };
+});
+const whichHasId = fp.filter(location => !fp.isEmpty(location.id));
+
 module.exports = {
     /**
      * summary: get house locations
@@ -13,7 +27,7 @@ module.exports = {
      * produces: application/json
      * responses: 200, 400
      */
-    get: (req, res)=>{
+    get: async (req, res)=>{
         /**
          * Get the data for response 200
          * For response `default` status 200 is used.
@@ -29,25 +43,9 @@ module.exports = {
             keywords: param.q,
             city: param.city
         };
-        Amap.InputTips(query).then(
+        return Amap.InputTips(query).then(
             data=>{
-                res.send( _.compact(fp.map(location=>{
-
-                    if(!location.id || !location.id.length){
-                        return;
-                    }
-
-                    const position = location.location && location.location.split(',') || [0,0];
-                    return {
-                        name: location.name,
-                        district: location.district,
-                        address: location.address,
-                        divisionId: location.adcode,
-                        code: location.id,
-                        longitude: position[0],
-                        latitude: position[1],
-                    };
-                })(data) ));
+                res.send((translate(whichHasId(data))));
             },
             err=>{
                 log.error(err, query);
