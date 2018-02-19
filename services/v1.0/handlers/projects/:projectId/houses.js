@@ -522,13 +522,14 @@ async function Gethouses(params, query) {
                 as: 'prices',
             }
         ];
-
+        console.log('where', where);
         const result = await MySQL.Houses.findAndCountAll({
             where: where,
             subQuery: false,
             include: include,
             offset: pagingInfo.skip,
-            limit: pagingInfo.size
+            limit: pagingInfo.size,
+            distinct: true,
         });
 
         //
