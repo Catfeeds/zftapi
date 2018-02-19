@@ -3,7 +3,6 @@
  * Operations on /houses
  */
 const fp = require('lodash/fp');
-const _ = require('lodash');
 const moment = require('moment');
 const common = Include('/services/v1.0/common');
 
@@ -16,7 +15,7 @@ function SoleShareCheck(body) {
     return Util.ParameterCheck(body,
         ['location', 'roomNumber', 'currentFloor', 'totalFloor']
     )
-    && (_.isObject(body.layout) && !_.isArray(body.layout));
+    && (fp.isObject(body.layout) && !fp.isArray(body.layout));
 }
 
 
@@ -38,7 +37,7 @@ async function SaveEntire(t, params, body){
                 roomNumber = roomNumber.substr(roomNumber.length-2);
                 roomNumber = currentFloor + roomNumber;
 
-                const status = _.indexOf(body.enabledFloors, currentFloor) === -1 ? Typedef.HouseStatus.CLOSED : Typedef.HouseStatus.OPEN;
+                const status = fp.includes(currentFloor)(body.enabledFloors) ? Typedef.HouseStatus.OPEN : Typedef.HouseStatus.CLOSED;
 
                 const houseId = SnowFlake.next();
                 const house = {
@@ -148,7 +147,7 @@ async function SaveSole(t, params, body) {
         const roomId = SnowFlake.next();
         const room = {
             id: roomId,
-            name: _.uniqueId('room'),
+            name: fp.uniqueId('room'),
             houseId: house.id,
             roomArea: body.roomArea,
             status: Typedef.OperationStatus.IDLE,
@@ -350,22 +349,25 @@ async function Gethouses(params, query) {
 
     const pagingInfo = Util.PagingInfo(query.index, query.size, true);
     try {
-        const where = _.assignIn({
-            status:{$ne: Typedef.HouseStatus.DELETED}
-        },
-        query.buildingId ? {'$building.id$': query.buildingId} : {},
-        districtLocation() || {},
-        query.houseFormat ? {houseFormat: query.houseFormat} : {},
-        query.layoutId ? {'layoutId': query.layoutId}: {},
-        query.floor ? {'currentFloor': query.floor}: {},
-        query.q ? {$or: [
-            {'$building.location.name$': {$regexp: query.q}},
-            {roomNumber: {$regexp: query.q}},
-            {code: {$regexp: query.q}},
-        ]} : {},
-        query.bedRooms ? {'$layouts.bedRoom$': query.bedRooms} : {},
-        query.device ? await deviceFilter() : {},
-        );
+        const where = fp.extendAll([
+            {
+                status: {$ne: Typedef.HouseStatus.DELETED},
+            },
+            query.buildingId ? {'$building.id$': query.buildingId} : {},
+            districtLocation() || {},
+            query.houseFormat ? {houseFormat: query.houseFormat} : {},
+            query.layoutId ? {'layoutId': query.layoutId} : {},
+            query.floor ? {'currentFloor': query.floor} : {},
+            query.q ? {
+                $or: [
+                    {'$building.location.name$': {$regexp: query.q}},
+                    {roomNumber: {$regexp: query.q}},
+                    {code: {$regexp: query.q}},
+                ],
+            } : {},
+            query.bedRooms ? {'$layouts.bedRoom$': query.bedRooms} : {},
+            query.device ? await deviceFilter() : {},
+        ]);
 
         const contractOptions = async()=> {
             switch (query.status) {
@@ -456,41 +458,48 @@ async function Gethouses(params, query) {
 
             const where = await getWhere();
 
-            return _.assign(
+            return fp.assign(
                 {
                     model: MySQL.Rooms,
                     as: 'rooms',
-                    attributes:['id', 'config', 'name', 'people', 'type', 'roomArea', 'orientation'],
+                    attributes: [
+                        'id',
+                        'config',
+                        'name',
+                        'people',
+                        'type',
+                        'roomArea',
+                        'orientation'],
                     required: true,
-                    include:[
+                    include: [
                         getIncludeHouseDevices(false),
-                        _.assign({
+                        fp.assign({
                             model: MySQL.Contracts,
                             required: false,
-                            where:{
+                            where: {
 
-                                status: Typedef.ContractStatus.ONGOING
+                                status: Typedef.ContractStatus.ONGOING,
                             },
-                            order:['from asc'],
-                            include:[
+                            order: ['from asc'],
+                            include: [
                                 {
-                                    model: MySQL.Users
-                                }
-                            ]
-                        }, await contractOptions()),
+                                    model: MySQL.Users,
+                                },
+                            ],
+                        })(await contractOptions()),
                         {
                             model: MySQL.SuspendingRooms,
                             required: false,
-                            where:{
+                            where: {
                                 to: {
-                                    $eq: null
-                                }
+                                    $eq: null,
+                                },
                             },
-                            attributes: ['id','from','to','memo']
-                        }
-                    ]
-                },
-                where ? where : {}
+                            attributes: ['id', 'from', 'to', 'memo'],
+                        },
+                    ],
+                })(
+                where ? where : {},
             );
         };
         const include = [
@@ -527,28 +536,17 @@ async function Gethouses(params, query) {
             const house = row.toJSON();
 
             const getDevices = (devices)=>{
-                return _.compact(fp.map(device=>{
-                    if(!device || !device.device){
-                        return null;
-                    }
-                    else {
-                        return {
-                            deviceId: device.device.deviceId,
-                            public: device.public,
-                            title: device.device.name,
-                            // scale: fp.map(channel=>{
-                            //     return {
-                            //         channelId: channel.channelId,
-                            //         scale: common.scaleDown(channel.scale)
-                            //     }
-                            // })(device.device.channels),
-                            scale: device.device.channels && common.scaleDown(device.device.channels[0].scale),
-                            type: device.device.type,
-                            updatedAt: moment(device.device.updatedAt).unix(),
-                            status: common.deviceStatus(device.device)
-                        };
-                    }
-                })(devices));
+                const whichHasDevice = fp.filter(fp.has('device'));
+                const transform = fp.map(device=> ({
+                    deviceId: device.device.deviceId,
+                    public: device.public,
+                    title: device.device.name,
+                    scale: device.device.channels && common.scaleDown(device.device.channels[0].scale),
+                    type: device.device.type,
+                    updatedAt: moment(device.device.updatedAt).unix(),
+                    status: common.deviceStatus(device.device)
+                }));
+                return transform(whichHasDevice(devices));
             };
 
             const rooms = fp.map(room=>{
@@ -564,7 +562,7 @@ async function Gethouses(params, query) {
                             to: contract.to,
                             userId: contract.user.id,
                             name: contract.user.name,
-                            rent: _.get(contract, 'strategy.freq.rent')
+                            rent: fp.get('strategy.freq.rent')(contract)
                         };
                     }
                 };
@@ -578,11 +576,14 @@ async function Gethouses(params, query) {
                 };
                 const devices = getDevices(room.devices);
 
-                return _.assignIn( _.omit(room, ['contracts','devices']), {
-                    contract: getContract()
-                    , suspending: getSuspending()
-                    , devices: devices
-                    , status: common.roomLeasingStatus(room.contracts, room.suspendingRooms)}
+                return fp.assignIn(fp.omit(['contracts', 'devices'])(room))(
+                    {
+                        contract: getContract(),
+                        suspending: getSuspending(),
+                        devices: devices,
+                        status: common.roomLeasingStatus(room.contracts,
+                            room.suspendingRooms),
+                    },
                 );
 
             })(house.rooms);
@@ -628,30 +629,29 @@ module.exports = {
 	 * produces: application/json
 	 * responses: 200, 400
 	 */
-    get: (req, res)=>{
+    get: async (req, res) => {
         /**
-		 * Get the data for response 200
-		 * For response `default` status 200 is used.
-		 */
-        (async()=>{
-            const query = req.query;
-            const params = req.params;
+         * Get the data for response 200
+         * For response `default` status 200 is used.
+         */
+        const query = req.query;
+        const params = req.params;
 
-            if(!Util.ParameterCheck(query,
-                ['houseFormat']
-            )){
-                return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED, {error: 'missing query params houseFormat'}));
-            }
+        if (!Util.ParameterCheck(query,
+            ['houseFormat'],
+        )) {
+            return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED,
+                {error: 'missing query params houseFormat'}));
+        }
 
-            try {
-                let result = await Gethouses(params, query);
-                res.send(result);
-            }
-            catch(e){
-                log.error(e, query, params);
-                res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC));
-            }
-        })();
+        try {
+            let result = await Gethouses(params, query);
+            res.send(result);
+        }
+        catch (e) {
+            log.error(e, query, params);
+            res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC));
+        }
     },
     /**
 	 * summary: save house
@@ -704,12 +704,12 @@ module.exports = {
                             {
                                 model: MySQL.Building,
                                 as: 'building',
-                                where: _.assign(
+                                where: fp.extendAll([
                                     {}
                                     , body.group ? {group: body.group} : {}
                                     , body.building ? {building: body.building} : {}
                                     , body.unit ? {unit: body.unit} : {}
-                                ),
+                                ]),
                                 include: [
                                     {
                                         model: MySQL.GeoLocation,
@@ -730,9 +730,10 @@ module.exports = {
             };
 
             const houseFormat = body.houseFormat;
-            if(_.includes([Typedef.HouseFormat.SOLE, Typedef.HouseFormat.SHARE], houseFormat)){
+            if (fp.includes(houseFormat)(
+                [Typedef.HouseFormat.SOLE, Typedef.HouseFormat.SHARE])) {
                 const houseCount = await isExists();
-                if(houseCount){
+                if (houseCount) {
                     return res.send(403, ErrorCode.ack(ErrorCode.HOUSEEXISTS));
                 }
             }
