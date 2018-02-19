@@ -2,7 +2,7 @@
 /**
  * Operations on /houses
  */
-const _ = require('lodash');
+
 
 
 module.exports = {
@@ -41,7 +41,8 @@ module.exports = {
                     }
                 }
             };
-
+            //TODO: @joey fix this later
+            districtLocation();
             MySQL.Houses.findAll({
                 where:{
                     projectId: projectId,
@@ -62,7 +63,7 @@ module.exports = {
                         , attributes: ['group', 'building', 'unit'],
                     }
                 ]
-            }).then();
+            }).then(res.send(204));
         })();
     },
 };
