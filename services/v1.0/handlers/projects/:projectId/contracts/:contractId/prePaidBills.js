@@ -2,7 +2,6 @@
 /**
  * Operations on /contracts/{contractid}/bills
  */
-const _ = require('lodash');
 const fp = require('lodash/fp');
 const moment = require('moment');
 
@@ -51,9 +50,9 @@ module.exports = {
                                         size: pagingInfo.size
                                     },
                                     data: fp.map(row=>{
-                                        const channel = _.find(fundChannels, channel=>{
-                                            return channel.id === row.fundChannelId;
-                                        });
+                                        const channel = fp.find(channel =>
+                                            channel.id === row.fundChannelId)(
+                                            fundChannels);
 
                                         return {
                                             time: moment(row.createdAt).unix(),

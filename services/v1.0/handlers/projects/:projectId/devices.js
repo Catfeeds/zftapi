@@ -3,7 +3,6 @@
  * Operations on /houses
  */
 const fp = require('lodash/fp');
-const _ = require('lodash');
 
 module.exports = {
     /**
@@ -46,16 +45,15 @@ module.exports = {
             }));
 
             //
-            const deviceQuery = _.assignIn(
-                {
-                    deviceId: {$notIn: deviceIds}
-                },
-                query.q ? {$or:[
+            const deviceQuery = fp.assignIn({
+                deviceId: {$notIn: deviceIds},
+            })(query.q ? {
+                $or: [
                     {name: new RegExp(query.q)},
                     {type: new RegExp(query.q)},
-                    {tag: new RegExp(query.q)}
-                ]} : {}
-            );
+                    {tag: new RegExp(query.q)},
+                ],
+            } : {});
 
             try {
                 const result = await MySQL.Devices.findAndCountAll({

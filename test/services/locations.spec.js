@@ -4,7 +4,6 @@ const {get} = require(
     '../../services/v1.0/handlers/locations');
 require('include-node');
 const {stub, spy} = require('sinon');
-const fp = require('lodash/fp');
 
 describe('Location', function() {
     before(() => {

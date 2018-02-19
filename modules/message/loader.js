@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const _ = require('lodash');
+const fp = require('lodash/fp');
 
 exports.run = ()=>{
     const modulePath = __dirname;
@@ -17,7 +17,7 @@ exports.run = ()=>{
 
     if(files){
         global.Message = {};
-        _.each(files, function(baseName){
+        fp.each(baseName => {
             //
             const newSubPath = path.join(modulePath, baseName);
 
@@ -38,6 +38,6 @@ exports.run = ()=>{
             catch(e){
                 log.error('message loader error', subModulePath, e);
             }
-        });
+        })(files);
     }
 };

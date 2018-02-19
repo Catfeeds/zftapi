@@ -2,7 +2,7 @@
 /**
  * Operations on /fundChannels
  */
-const _ = require('lodash');
+const fp = require('lodash/fp');
 
 module.exports = {
     /**
@@ -26,16 +26,17 @@ module.exports = {
             return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED));
         }
 
-        if(!_.includes(Typedef.FundChannelCategory, query.category)){
+        if(!fp.includes(query.category)(Typedef.FundChannelCategory)){
             return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED, 'category'));
         }
 
-        const where = _.assignIn({
+        const where = fp.assignIn({
             projectId: projectId,
-            flow: query.flow
-        },
-        query.category === Typedef.FundChannelCategory.ALL ? {} : {category: query.category}
-        );
+            flow: query.flow,
+        })(
+            query.category === Typedef.FundChannelCategory.ALL ?
+                {} :
+                {category: query.category});
 
         MySQL.FundChannels.findAll({
             where: where,

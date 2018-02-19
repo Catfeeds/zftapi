@@ -1,5 +1,5 @@
 'use strict';
-const _ = require('lodash');
+const fp = require('lodash/fp');
 
 function BuildDivisionTree(districts, inDivision)
 {
@@ -106,7 +106,7 @@ module.exports = {
                         name: loc.name
                     });
                 });
-                districtIds = _.uniq(districtIds);
+                districtIds = fp.uniq(districtIds);
 
                 const districts = await MySQL.Divisions.findAll({
                     where: {
