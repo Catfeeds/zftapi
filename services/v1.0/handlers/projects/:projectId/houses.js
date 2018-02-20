@@ -522,7 +522,7 @@ async function Gethouses(params, query) {
                 as: 'prices',
             }
         ];
-        console.log('where', where);
+
         const result = await MySQL.Houses.findAndCountAll({
             where: where,
             subQuery: false,
@@ -537,7 +537,7 @@ async function Gethouses(params, query) {
             const house = row.toJSON();
 
             const getDevices = (devices)=>{
-                const whichHasDevice = fp.filter(fp.has('device'));
+                const whichHasDevice = fp.filter(fp.flow(fp.get('device'), fp.negate(fp.isEmpty)));
                 const transform = fp.map(device=> ({
                     deviceId: device.device.deviceId,
                     public: device.public,

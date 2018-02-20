@@ -51,7 +51,6 @@ describe('Houses', function() {
 
         await get(req, {send: resSpy}).then(() => {
             resSpy.should.have.been.called;
-            console.log(resSpy.getCall(0).args[0]);
             resSpy.getCall(0).args[0].should.be.eql({
                 data: [
                     {
@@ -75,6 +74,51 @@ describe('Houses', function() {
                     size: 10,
                 },
             });
+        });
+
+    });
+
+    it('should handle null device from toJSON', async function() {
+        const req = {
+            params: {
+                projectId: 100,
+            },
+            query: {houseFormat: 'SHARE', q: 'q'},
+
+        };
+        global.MySQL = {
+            Houses: {
+                async findAndCountAll() {
+                    return {
+                        count: 1,
+                        rows: [
+                            {
+                                toJSON: () => ({
+                                    id: 'id',
+                                    code: 'code',
+                                    roomNumber: 'roomNumber',
+                                    currentFloor: 'currentFloor',
+                                    layouts: 'layouts',
+                                    building: {
+                                        group: 'group',
+                                        building: 'building',
+                                        location: 'location',
+                                        unit: 'unit',
+                                    },
+                                    devices: [{device: null}, {device: {deviceId: 'deviceId'}}],
+                                    rooms: null,
+                                }),
+                            }],
+                    };
+                },
+            },
+        };
+        const resSpy = spy();
+
+        await get(req, {send: resSpy}).then(() => {
+            resSpy.should.have.been.called;
+            resSpy.getCall(0).args[0].data[0].devices[0].deviceId.should.be.eql('deviceId');
+            resSpy.getCall(0).args[0].data[0].devices[0].status.service.should.be.eql('EMC_OFFLINE');
         });
 
     });
