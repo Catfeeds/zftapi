@@ -537,7 +537,7 @@ async function Gethouses(params, query) {
             const house = row.toJSON();
 
             const getDevices = (devices)=>{
-                const whichHasDevice = fp.filter(fp.flow(fp.get('device'), fp.negate(fp.isEmpty)));
+                const whichHasDevice = fp.reject(fp.flow(fp.get('device'), fp.isEmpty));
                 const transform = fp.map(device=> ({
                     deviceId: device.device.deviceId,
                     public: device.public,

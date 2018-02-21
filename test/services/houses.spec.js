@@ -117,6 +117,7 @@ describe('Houses', function() {
 
         await get(req, {send: resSpy}).then(() => {
             resSpy.should.have.been.called;
+            resSpy.getCall(0).args[0].data[0].devices.should.have.length(1);
             resSpy.getCall(0).args[0].data[0].devices[0].deviceId.should.be.eql('deviceId');
             resSpy.getCall(0).args[0].data[0].devices[0].status.service.should.be.eql('EMC_OFFLINE');
         });
