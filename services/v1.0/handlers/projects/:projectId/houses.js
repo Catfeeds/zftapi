@@ -350,6 +350,7 @@ async function Gethouses(params, query) {
     const pagingInfo = Util.PagingInfo(query.index, query.size, true);
     try {
         const where = fp.extendAll([
+            {projectId: projectId},
             {
                 status: {$ne: Typedef.HouseStatus.DELETED},
             },
@@ -527,6 +528,7 @@ async function Gethouses(params, query) {
             where: where,
             subQuery: false,
             include: include,
+            order:[['rooms', 'name', 'ASC']],
             offset: pagingInfo.skip,
             limit: pagingInfo.size,
             distinct: true,
