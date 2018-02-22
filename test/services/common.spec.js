@@ -27,7 +27,7 @@ describe('Common', function() {
             Contracts,
         };
     });
-    describe('default', () => {
+    describe('includeContract', () => {
         it('should provide contracts condition', function() {
             const contractFilter = includeContracts(global.SequelizeModels);
             const contractOptions = contractFilter('');
@@ -57,6 +57,7 @@ describe('Common', function() {
                                             'building',
                                             'unit',
                                         ],
+                                        required: true,
                                         include: [
                                             {
                                                 as: 'location',
@@ -82,6 +83,120 @@ describe('Common', function() {
                 },
             });
         });
+        it('should consider houseFormat parameter', function() {
+            const contractFilter = includeContracts(global.SequelizeModels);
+            const contractOptions = contractFilter('SHARE');
+            contractOptions.should.be.eql({
+                include: [
+                    {
+                        model: Users,
+                    },
+                    {
+                        attributes: [
+                            'id',
+                            'name',
+                            'houseId',
+                        ],
+                        include: [
+                            {
+                                as: 'house',
+                                attributes: [
+                                    'id',
+                                    'roomNumber',
+                                    'buildingId',
+                                ],
+                                where: {
+                                    houseFormat: 'SHARE'
+                                },
+                                include: [
+                                    {
+                                        as: 'building',
+                                        attributes: [
+                                            'building',
+                                            'unit',
+                                        ],
+                                        required: true,
+                                        include: [
+                                            {
+                                                as: 'location',
+                                                attributes: [
+                                                    'name',
+                                                ],
+                                                model: GeoLocation,
+                                            },
+                                        ],
+                                        model: Building,
+                                    },
+                                ],
+                                model: Houses,
+                            },
+                        ],
+                        required: true,
+                        model: Rooms,
+                    },
+                ],
+                model: Contracts,
+                where: {
+                    status: 'ONGOING',
+                },
+            });
+        });
+        it('should consider location condition', function() {
+            const contractFilter = includeContracts(global.SequelizeModels);
+            const contractOptions = contractFilter('', {}, {where: {id: 'locationId'}});
+            contractOptions.should.be.eql({
+                include: [
+                    {
+                        model: Users,
+                    },
+                    {
+                        attributes: [
+                            'id',
+                            'name',
+                            'houseId',
+                        ],
+                        include: [
+                            {
+                                as: 'house',
+                                attributes: [
+                                    'id',
+                                    'roomNumber',
+                                    'buildingId',
+                                ],
+                                include: [
+                                    {
+                                        as: 'building',
+                                        attributes: [
+                                            'building',
+                                            'unit',
+                                        ],
+                                        required: true,
+                                        include: [
+                                            {
+                                                as: 'location',
+                                                attributes: [
+                                                    'name',
+                                                ],
+                                                model: GeoLocation,
+                                                where: {id: 'locationId'},
+                                            },
+                                        ],
+                                        model: Building,
+                                    },
+                                ],
+                                model: Houses,
+                            },
+                        ],
+                        required: true,
+                        model: Rooms,
+                    },
+                ],
+                model: Contracts,
+            });
+        });
+    });
+
+    describe('default', () => {
         it('should include terminated contracts if contract status is overridden',
             function() {
                 const contractFilter = includeContracts(global.SequelizeModels);
@@ -112,6 +227,7 @@ describe('Common', function() {
                                                 'building',
                                                 'unit',
                                             ],
+                                            required: true,
                                             include: [
                                                 {
                                                     as: 'location',
@@ -131,7 +247,7 @@ describe('Common', function() {
                             model: Rooms,
                         },
                     ],
-                    model: Contracts,
+                    model: Contracts
                 });
             });
         it('should consider houseFormat if provided', function() {
@@ -173,6 +289,7 @@ describe('Common', function() {
                                             },
                                         ],
                                         model: Building,
+                                        required: true,
                                     },
                                 ],
                                 model: Houses,

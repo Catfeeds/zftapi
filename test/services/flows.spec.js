@@ -99,6 +99,7 @@ describe('Flows', function() {
                                                                     'building',
                                                                     'unit',
                                                                 ],
+                                                                required: true,
                                                                 include: [
                                                                     {
                                                                         as: 'location',
@@ -181,6 +182,7 @@ describe('Flows', function() {
                                                             'building',
                                                             'unit',
                                                         ],
+                                                        required: true,
                                                         include: [
                                                             {
                                                                 as: 'location',

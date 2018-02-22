@@ -158,8 +158,8 @@ exports.userConnection = (sequelizeModel) => ({
     model: sequelizeModel.Users
 });
 exports.includeContracts = (sequelizeModel) =>
-    (houseFormat, contractCondition) => fp.defaults({
-        include: [exports.userConnection(sequelizeModel), exports.houseConnection(sequelizeModel)(houseFormat)],
+    (houseFormat, contractCondition, locationCondition) => fp.defaults({
+        include: [exports.userConnection(sequelizeModel), exports.houseConnection(sequelizeModel)(houseFormat, locationCondition)],
         model: sequelizeModel.Contracts
     })(fp.isUndefined(contractCondition) ? {
         where: {
@@ -167,19 +167,20 @@ exports.includeContracts = (sequelizeModel) =>
         }
     } : contractCondition);
 
-exports.houseConnection = (sequelizeModel) => (houseFormat) => {
+exports.houseConnection = (sequelizeModel) => (houseFormat, locationCondition) => {
     const houseInclude = fp.defaults({
         model: sequelizeModel.Houses,
         as: 'house',
         attributes: ['id', 'roomNumber', 'buildingId'],
         include: [{
             model: sequelizeModel.Building, as: 'building',
+            required: true,
             attributes: ['building', 'unit'],
-            include: [{
+            include: [fp.defaults(locationCondition ? locationCondition : {})({
                 model: sequelizeModel.GeoLocation,
                 as: 'location',
                 attributes: ['name']
-            }]
+            })]
         }]
     })(fp.isEmpty(houseFormat) ? {} : {where: {houseFormat}});
     return {

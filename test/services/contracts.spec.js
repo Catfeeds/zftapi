@@ -209,6 +209,7 @@ describe('Contracts', function() {
                                             model: GeoLocation,
                                         }],
                                     model: Building,
+                                    required: true,
                                 }],
                         }],
                 }]);

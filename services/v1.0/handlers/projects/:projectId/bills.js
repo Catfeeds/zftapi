@@ -7,8 +7,7 @@ const moment = require('moment');
 const {
     omitSingleNulls, innerValues,
     singleRoomTranslate, includeContracts,
-} = require(
-    '../../../common');
+} = require('../../../common');
 
 const omitFields = fp.omit(['metadata', 'createdAt', 'updatedAt']);
 const formatRoom = item => fp.defaults(item)(
@@ -54,7 +53,7 @@ module.exports = {
         const projectId = req.params.projectId;
         const houseFormat = query.houseFormat;
         const locationId = query.locationId;
-        const locationCondition = {'$contract.room.house.building.location.id$': {$eq: locationId}};
+        const locationCondition = locationId ? {where: {id: locationId}} : null;
 
         const paymentsFilter = (flag => {
             if (fp.isUndefined(flag)) {
@@ -95,17 +94,19 @@ module.exports = {
                         'remark',
                         'status'],
                 },
-                contractFilter(houseFormat),
+                contractFilter(houseFormat, undefined, locationCondition),
                 fundFlowConnection],
             distinct: true,
-            where: fp.defaults(fp.defaults({
+            where: fp.defaults({
                 entityType: 'property',
                 projectId,
                 startDate: {
                     $lt: moment().unix(),
                 },
-            })(fp.isEmpty(paymentsFilter) ? {} : {id: paymentsFilter}))(
-                fp.isEmpty(locationId) ? {} : locationCondition),
+            })(fp.isEmpty(paymentsFilter) ? {} : {
+                id: paymentsFilter,
+                projectId,
+            }),
             offset: pagingInfo.skip,
             limit: pagingInfo.size,
         };

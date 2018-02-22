@@ -56,134 +56,134 @@ describe('Bills', function() {
         );
     });
 
-    it('should connect with houses if query with houseFormat',
-        async function() {
-            const req = {
-                params: {
-                    projectId: 100,
-                },
-                query: {
-                    houseFormat: 'SOLE',
-                },
-            };
-            const sequelizeFindSpy = stub().resolves([]);
-            const BillPayment = {id: 'BillPayment'};
-            const Users = {id: 'Users'};
-            const Rooms = {id: 'Rooms'};
-            const Houses = {id: 'Houses'};
-            const Building = {id: 'Building'};
-            const GeoLocation = {id: 'GeoLocation'};
-            const BillFlows = {id: 'BillFlows'};
-            const Contracts = {id: 'Contracts'};
-            const FundChannelFlows = {id: 'FundChannelFlows'};
-            global.MySQL = {
-                Bills: {
-                    findAndCountAll: sequelizeFindSpy,
-                },
-                Users,
-                Rooms,
-                Houses,
-                Building,
-                GeoLocation,
-                BillFlows,
-                BillPayment,
-                Contracts,
-                FundChannelFlows,
-            };
+    it('should connect with houses if query with houseFormat', async () => {
+        const req = {
+            params: {
+                projectId: 100,
+            },
+            query: {
+                houseFormat: 'SOLE',
+            },
+        };
+        const sequelizeFindSpy = stub().resolves([]);
+        const BillPayment = {id: 'BillPayment'};
+        const Users = {id: 'Users'};
+        const Rooms = {id: 'Rooms'};
+        const Houses = {id: 'Houses'};
+        const Building = {id: 'Building'};
+        const GeoLocation = {id: 'GeoLocation'};
+        const BillFlows = {id: 'BillFlows'};
+        const Contracts = {id: 'Contracts'};
+        const FundChannelFlows = {id: 'FundChannelFlows'};
+        global.MySQL = {
+            Bills: {
+                findAndCountAll: sequelizeFindSpy,
+            },
+            Users,
+            Rooms,
+            Houses,
+            Building,
+            GeoLocation,
+            BillFlows,
+            BillPayment,
+            Contracts,
+            FundChannelFlows,
+        };
 
-            await get(req, {send: fp.noop}).then(() => {
-                sequelizeFindSpy.should.have.been.called;
-                const modelOptions = sequelizeFindSpy.getCall(0).args[0];
-                modelOptions.include.should.be.eql([
-                    {
-                        as: 'billItems',
-                        attributes: [
-                            'configId',
-                            'amount',
-                            'createdAt',
-                            'id',
-                        ],
-                        required: true,
-                        model: BillFlows,
-                    }, {
-                        as: 'payments',
-                        attributes: [
-                            'id',
-                            'amount',
-                            'fundChannelId',
-                            'operator',
-                            'paidAt',
-                            'remark',
-                            'status',
-                        ],
-                        model: BillPayment,
-                        required: false,
-                    },
-                    {
-                        include: [
-                            {
-                                model: Users,
-                            },
-                            {
-                                attributes: [
-                                    'id',
-                                    'name',
-                                    'houseId',
-                                ],
-                                include: [
-                                    {
-                                        as: 'house',
-                                        attributes: [
-                                            'id',
-                                            'roomNumber',
-                                            'buildingId',
-                                        ],
-                                        include: [
-                                            {
-                                                as: 'building',
-                                                attributes: [
-                                                    'building',
-                                                    'unit',
-                                                ],
-                                                include: [
-                                                    {
-                                                        as: 'location',
-                                                        attributes: [
-                                                            'name',
-                                                        ],
-                                                        model: GeoLocation,
-                                                    },
-                                                ],
-                                                model: Building,
-                                            },
-                                        ],
-                                        model: Houses,
-                                        where: {
-                                            houseFormat: 'SOLE',
-                                        },
-                                    },
-                                ],
-                                required: true,
-                                model: Rooms,
-                            },
-                        ],
-                        model: Contracts,
-                        where: {
-                            status: 'ONGOING',
+        await get(req, {send: fp.noop}).then(() => {
+            sequelizeFindSpy.should.have.been.called;
+            const modelOptions = sequelizeFindSpy.getCall(0).args[0];
+            modelOptions.include.should.be.eql([
+                {
+                    as: 'billItems',
+                    attributes: [
+                        'configId',
+                        'amount',
+                        'createdAt',
+                        'id',
+                    ],
+                    required: true,
+                    model: BillFlows,
+                }, {
+                    as: 'payments',
+                    attributes: [
+                        'id',
+                        'amount',
+                        'fundChannelId',
+                        'operator',
+                        'paidAt',
+                        'remark',
+                        'status',
+                    ],
+                    model: BillPayment,
+                    required: false,
+                },
+                {
+                    include: [
+                        {
+                            model: Users,
                         },
+                        {
+                            attributes: [
+                                'id',
+                                'name',
+                                'houseId',
+                            ],
+                            include: [
+                                {
+                                    as: 'house',
+                                    attributes: [
+                                        'id',
+                                        'roomNumber',
+                                        'buildingId',
+                                    ],
+                                    include: [
+                                        {
+                                            as: 'building',
+                                            attributes: [
+                                                'building',
+                                                'unit',
+                                            ],
+                                            required: true,
+                                            include: [
+                                                {
+                                                    as: 'location',
+                                                    attributes: [
+                                                        'name',
+                                                    ],
+                                                    model: GeoLocation,
+                                                },
+                                            ],
+                                            model: Building,
+                                        },
+                                    ],
+                                    model: Houses,
+                                    where: {
+                                        houseFormat: 'SOLE',
+                                    },
+                                },
+                            ],
+                            required: true,
+                            model: Rooms,
+                        },
+                    ],
+                    model: Contracts,
+                    where: {
+                        status: 'ONGOING',
                     },
-                    {
-                        attributes: [
-                            'id',
-                            'category',
-                            'orderNo',
-                            'from',
-                            'to',
-                            'amount',
-                        ],
-                        model: FundChannelFlows,
-                        required: false,
-                    }]);
-            });
+                },
+                {
+                    attributes: [
+                        'id',
+                        'category',
+                        'orderNo',
+                        'from',
+                        'to',
+                        'amount',
+                    ],
+                    model: FundChannelFlows,
+                    required: false,
+                }]);
         });
+    });
 });
