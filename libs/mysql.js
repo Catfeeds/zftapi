@@ -1057,6 +1057,7 @@ function SequelizeDefine()
         freezeTableName: true
     });
     exports.DevicePrePaid = devicePrePaid;
+    exports.Contracts.hasMany(exports.DevicePrePaid, {as: 'devicePrePaid'});
 
 	exports.Flows = sequelizeInstance.define('flows', {
 		id: {
