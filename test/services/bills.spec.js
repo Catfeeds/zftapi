@@ -152,6 +152,7 @@ describe('Bills', function() {
                                                         'name',
                                                     ],
                                                     model: GeoLocation,
+                                                    where: {}
                                                 },
                                             ],
                                             model: Building,

@@ -65,12 +65,14 @@ describe('Common', function() {
                                                     'name',
                                                 ],
                                                 model: GeoLocation,
+                                                where: {}
                                             },
                                         ],
                                         model: Building,
                                     },
                                 ],
                                 model: Houses,
+                                where: {}
                             },
                         ],
                         required: true,
@@ -123,6 +125,7 @@ describe('Common', function() {
                                                     'name',
                                                 ],
                                                 model: GeoLocation,
+                                                where: {}
                                             },
                                         ],
                                         model: Building,
@@ -185,6 +188,7 @@ describe('Common', function() {
                                     },
                                 ],
                                 model: Houses,
+                                where: {}
                             },
                         ],
                         required: true,
@@ -235,12 +239,14 @@ describe('Common', function() {
                                                         'name',
                                                     ],
                                                     model: GeoLocation,
+                                                    where: {}
                                                 },
                                             ],
                                             model: Building,
                                         },
                                     ],
                                     model: Houses,
+                                    where: {}
                                 },
                             ],
                             required: true,
@@ -286,6 +292,7 @@ describe('Common', function() {
                                                     'name',
                                                 ],
                                                 model: GeoLocation,
+                                                where: {}
                                             },
                                         ],
                                         model: Building,

@@ -207,6 +207,7 @@ describe('Contracts', function() {
                                                 'name',
                                             ],
                                             model: GeoLocation,
+                                            where: {}
                                         }],
                                     model: Building,
                                     required: true,

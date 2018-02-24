@@ -107,12 +107,14 @@ describe('Flows', function() {
                                                                             'name',
                                                                         ],
                                                                         model: GeoLocation,
+                                                                        where: {}
                                                                     },
                                                                 ],
                                                                 model: Building,
                                                             },
                                                         ],
                                                         model: Houses,
+                                                        where: {}
                                                     },
                                                 ],
                                                 required: true,
@@ -190,12 +192,14 @@ describe('Flows', function() {
                                                                     'name',
                                                                 ],
                                                                 model: GeoLocation,
+                                                                where: {}
                                                             },
                                                         ],
                                                         model: Building,
                                                     },
                                                 ],
                                                 model: Houses,
+                                                where: {}
                                             },
                                         ],
                                         model: Rooms,

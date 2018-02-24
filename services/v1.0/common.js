@@ -157,6 +157,9 @@ exports.jsonProcess = (model) => fp.defaults(model)({
 exports.userConnection = (sequelizeModel) => ({
     model: sequelizeModel.Users
 });
+
+const defaultWhere = {where: {}};
+
 exports.includeContracts = (sequelizeModel) =>
     (houseFormat, contractCondition, locationCondition) => fp.defaults({
         include: [exports.userConnection(sequelizeModel), exports.houseConnection(sequelizeModel)(houseFormat, locationCondition)],
@@ -176,13 +179,13 @@ exports.houseConnection = (sequelizeModel) => (houseFormat, locationCondition) =
             model: sequelizeModel.Building, as: 'building',
             required: true,
             attributes: ['building', 'unit'],
-            include: [fp.defaults(locationCondition ? locationCondition : {})({
+            include: [fp.defaults(locationCondition ? locationCondition : defaultWhere)({
                 model: sequelizeModel.GeoLocation,
                 as: 'location',
                 attributes: ['name']
             })]
         }]
-    })(fp.isEmpty(houseFormat) ? {} : {where: {houseFormat}});
+    })(fp.isEmpty(houseFormat) ? {where: {}} : {where: {houseFormat}});
     return {
         model: sequelizeModel.Rooms,
         attributes: ['id', 'name', 'houseId'],
