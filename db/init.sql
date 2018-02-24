@@ -253,10 +253,12 @@ create table if not exists `housesDevicesPrice`
 (
 	`id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
 	`projectId` bigint(20) UNSIGNED NULL DEFAULT NULL,
-	`sourceId` bigint(20) UNSIGNED NOT NULL,
+	`houseId` bigint(20) UNSIGNED NOT NULL,
 	`category` varchar(8) NOT NULL DEFAULT 'HOST',
 	`type` varchar(10) NOT NULL,
 	`price` int(11) NOT NULL DEFAULT 0,
+	`startDate` bigint(20) UNSIGNED NOT NULL,
+	`endDate` bigint(20) UNSIGNED NOT NULL DEFAULT 0,
 	`createdAt`  datetime NOT NULL ,
 	`updatedAt`  datetime NOT NULL ,
 	`deletedAt`  datetime NULL DEFAULT NULL ,

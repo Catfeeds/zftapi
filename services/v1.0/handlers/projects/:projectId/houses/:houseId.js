@@ -52,6 +52,9 @@ module.exports = {
                     {
                         model: MySQL.HouseDevicePrice,
                         as: 'prices',
+                        where:{
+                            endDate: 0
+                        },
                         attributes:['type', 'price']
                     }
                 ]
@@ -133,9 +136,8 @@ module.exports = {
                 return res.send(400, ErrorCode.ack(ErrorCode.CONTRACTWORKING));
             }
 
-            let t;
             try {
-                t = await MySQL.Sequelize.transaction({autocommit: false});
+                const t = await MySQL.Sequelize.transaction();
 
                 const now = moment();
                 await MySQL.Houses.update(
@@ -175,7 +177,6 @@ module.exports = {
                 res.send(201);
             }
             catch(e){
-                await t.rollback();
                 log.error(e, houseId);
                 res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC));
             }
@@ -212,39 +213,14 @@ module.exports = {
                 return res.send(404, ErrorCode.ack(ErrorCode.REQUESTUNMATCH));
             }
 
-            const putBody = fp.pick(['location', 'code', 'group', 'building', 'unit',
-                'roomNumber', 'totalFloor', 'currentFloor',
-                'config', 'houseKeeper', 'layout'])(body);
+            const putBody = fp.pick(body
+                , ['location', 'code', 'group', 'building', 'unit',
+                    'roomNumber', 'totalFloor', 'currentFloor',
+                    'config', 'houseKeeper', 'layout']
+            );
 
-            const SavePrice = async(t, projectId, houseId, prices)=>{
-
-                const housePrices = await MySQL.HouseDevicePrice.findAll({
-                    where:{
-                        projectId: projectId,
-                        sourceId: houseId
-                    },
-                    attributes: ['id', 'type']
-                });
-
-                const bulkInsert = fp.compact(fp.map(price=>{
-                    if(Typedef.IsPriceType(price.type)){
-                        const housePrice = fp.find({type: price.type})(housePrices);
-
-                        return fp.assignIn({
-                            type: price.type,
-                            price: price.price,
-                            projectId: projectId,
-                            sourceId: houseId,
-                        })(housePrice ? {id: housePrice.id} : {});
-                    }
-                })(prices));
-
-                await MySQL.HouseDevicePrice.bulkCreate(bulkInsert, {transaction: t, updateOnDuplicate: true});
-            };
-
-            let t;
             try{
-                t = await MySQL.Sequelize.transaction({autocommit: false});
+                const t = await MySQL.Sequelize.transaction();
 
                 if(body.location) {
                     const newLocation = await common.AsyncUpsertGeoLocation(body.location, t);
@@ -286,15 +262,10 @@ module.exports = {
                     );
                 }
 
-                if(body.prices) {
-                    await SavePrice(t, projectId, houseId, body.prices);
-                }
-
                 await t.commit();
                 res.send(204);
             }
             catch(e){
-                await t.rollback();
                 log.error(ErrorCode.ack(e.message), params, body);
                 res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC));
             }

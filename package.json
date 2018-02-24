@@ -7,7 +7,7 @@
     "lint": "eslint . --fix",
     "start": "node zftapi.js",
     "dev": "./node_modules/nodemon/bin/nodemon.js --config nodemon.json --exec npm start",
-    "test": "mocha --require ./test/setup --recursive && eslint .",
+    "test": "mocha which ./test/setup --recursive && eslint .",
     "ft": "mocha ./functional-tests/**/*.spec.js --require ./functional-tests/setup --recursive"
   },
   "repository": {

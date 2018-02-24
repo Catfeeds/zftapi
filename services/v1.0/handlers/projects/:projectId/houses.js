@@ -521,6 +521,10 @@ async function Gethouses(params, query) {
             {
                 model: MySQL.HouseDevicePrice,
                 as: 'prices',
+                required: false,
+                where:{
+                    endDate: 0
+                }
             }
         ];
 
