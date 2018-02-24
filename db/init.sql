@@ -263,7 +263,7 @@ create table if not exists `housesDevicesPrice`
 	`updatedAt`  datetime NOT NULL ,
 	`deletedAt`  datetime NULL DEFAULT NULL ,
 	PRIMARY KEY (`id`) USING BTREE,
-	INDEX `sourceId`(`sourceId`) USING BTREE
+	INDEX `houseId`(`houseId`) USING BTREE
 ) ENGINE = InnoDB;
 
 create table if not exists `projects`
