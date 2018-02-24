@@ -697,7 +697,7 @@ module.exports = {
                 break;
             }
             if(!formatPassed){
-                return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED, {error: 'houseFormat check failed', houseFormat: body.houseFormat}));
+                return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED, {error: 'location/roomNumber/currentFloor/totalFloor/layout check failed'}));
             }
 
 
