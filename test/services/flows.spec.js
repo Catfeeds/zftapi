@@ -99,7 +99,7 @@ describe('Flows', function() {
                                                                     'building',
                                                                     'unit',
                                                                 ],
-                                                                required: true,
+                                                                required: false,
                                                                 include: [
                                                                     {
                                                                         as: 'location',
@@ -114,10 +114,11 @@ describe('Flows', function() {
                                                             },
                                                         ],
                                                         model: Houses,
+                                                        required: false,
                                                         where: {}
                                                     },
                                                 ],
-                                                required: true,
+                                                required: false,
                                                 model: Rooms,
                                             },
                                         ],
@@ -168,7 +169,7 @@ describe('Flows', function() {
                                             'name',
                                             'houseId'
                                         ],
-                                        required: true,
+                                        required: false,
                                         include: [
                                             {
                                                 as: 'house',
@@ -184,7 +185,7 @@ describe('Flows', function() {
                                                             'building',
                                                             'unit',
                                                         ],
-                                                        required: true,
+                                                        required: false,
                                                         include: [
                                                             {
                                                                 as: 'location',
@@ -199,6 +200,7 @@ describe('Flows', function() {
                                                     },
                                                 ],
                                                 model: Houses,
+                                                required: false,
                                                 where: {}
                                             },
                                         ],

@@ -159,6 +159,7 @@ describe('Bills', function() {
                                         },
                                     ],
                                     model: Houses,
+                                    required: true,
                                     where: {
                                         houseFormat: 'SOLE',
                                     },

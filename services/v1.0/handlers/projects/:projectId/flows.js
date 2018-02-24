@@ -73,7 +73,8 @@ module.exports = {
         const Topup = MySQL.Topup;
         const BillFlows = MySQL.BillFlows;
         const FundChannelFlows = MySQL.FundChannelFlows;
-        const contractFilter = includeContracts(MySQL);
+        const forceRequired = {required: false};
+        const contractFilter = includeContracts(MySQL, forceRequired);
 
         const query = req.query;
         const projectId = req.params.projectId;

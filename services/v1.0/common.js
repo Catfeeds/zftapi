@@ -160,9 +160,9 @@ exports.userConnection = (sequelizeModel) => ({
 
 const defaultWhere = {where: {}};
 
-exports.includeContracts = (sequelizeModel) =>
+exports.includeContracts = (sequelizeModel, forceRequired) =>
     (houseFormat, contractCondition, locationCondition) => fp.defaults({
-        include: [exports.userConnection(sequelizeModel), exports.houseConnection(sequelizeModel)(houseFormat, locationCondition)],
+        include: [exports.userConnection(sequelizeModel), exports.houseConnection(sequelizeModel, forceRequired)(houseFormat, locationCondition)],
         model: sequelizeModel.Contracts
     })(fp.isUndefined(contractCondition) ? {
         where: {
@@ -170,14 +170,15 @@ exports.includeContracts = (sequelizeModel) =>
         }
     } : contractCondition);
 
-exports.houseConnection = (sequelizeModel) => (houseFormat, locationCondition) => {
+exports.houseConnection = (sequelizeModel, forceRequired) => (houseFormat, locationCondition) => {
     const houseInclude = fp.defaults({
         model: sequelizeModel.Houses,
         as: 'house',
         attributes: ['id', 'roomNumber', 'buildingId'],
+        required: forceRequired ? forceRequired.required : true,
         include: [{
             model: sequelizeModel.Building, as: 'building',
-            required: true,
+            required: forceRequired ? forceRequired.required : true,
             attributes: ['building', 'unit'],
             include: [fp.defaults(locationCondition ? locationCondition : defaultWhere)({
                 model: sequelizeModel.GeoLocation,
@@ -189,7 +190,7 @@ exports.houseConnection = (sequelizeModel) => (houseFormat, locationCondition) =
     return {
         model: sequelizeModel.Rooms,
         attributes: ['id', 'name', 'houseId'],
-        required: true,
+        required: forceRequired ? forceRequired.required : true,
         include: [houseInclude]
     };
 };

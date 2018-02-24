@@ -193,6 +193,7 @@ describe('Contracts', function() {
                             where: {
                                 houseFormat: 'SOLE',
                             },
+                            required: true,
                             include: [
                                 {
                                     as: 'building',

@@ -72,6 +72,7 @@ describe('Common', function() {
                                     },
                                 ],
                                 model: Houses,
+                                required: true,
                                 where: {}
                             },
                         ],
@@ -132,6 +133,7 @@ describe('Common', function() {
                                     },
                                 ],
                                 model: Houses,
+                                required: true,
                             },
                         ],
                         required: true,
@@ -188,6 +190,7 @@ describe('Common', function() {
                                     },
                                 ],
                                 model: Houses,
+                                required: true,
                                 where: {}
                             },
                         ],
@@ -246,7 +249,8 @@ describe('Common', function() {
                                         },
                                     ],
                                     model: Houses,
-                                    where: {}
+                                    where: {},
+                                    required: true,
                                 },
                             ],
                             required: true,
@@ -303,6 +307,7 @@ describe('Common', function() {
                                 where: {
                                     houseFormat: 'SOLE',
                                 },
+                                required: true,
                             },
                         ],
                         required: true,
