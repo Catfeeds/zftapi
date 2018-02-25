@@ -2,18 +2,15 @@
 const moment = require('moment');
 const fp = require('lodash/fp');
 
-const scheduler = require('./billScheduler');
-const dueDateShifter = require('./dueDateShifter').dueDateShifter;
+const {billPace, billCycles} = require('./billScheduler');
+const {dueDateShifter} = require('./dueDateShifter');
 const {assignNewId} = require('../services/v1.0/common');
 
 const expensesReduce = expenses => fp.sumBy('rent', fp.filter(e => e.pattern === 'withRent')(expenses));
 
 const dueAmountOf = (strategy, expenses) => strategy.freq.rent + expensesReduce(expenses);
 
-const expenseAmount = (expense, from, to) => fp.get('rent')(expense) * billPace(expense.pattern, from, to);
-
-const billPace = scheduler.billPace;
-const billCycles = scheduler.billCycles;
+const expenseAmount = (expense, from, to) => fp.getOr(0)('rent')(expense) * billPace(expense.pattern, from, to);
 
 const bondOf = contract => fp.compact([fp.get('strategy.bond')(contract)]);
 
