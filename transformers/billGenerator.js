@@ -3,7 +3,7 @@ const moment = require('moment');
 const fp = require('lodash/fp');
 
 const {billPace, billCycles} = require('./billScheduler');
-const {dueDateShifter} = require('./dueDateShifter');
+const {dueDateShifter, onDisplayShift} = require('./dueDateShifter');
 const {assignNewId} = require('../services/v1.0/common');
 
 const expensesReduce = expenses => fp.sumBy('rent', fp.filter(e => e.pattern === 'withRent')(expenses));
@@ -56,7 +56,7 @@ const generate = contract => {
         contractId: contract.id,
         source: 'contract',
         type: 'extra',
-        startDate: from,
+        startDate: onDisplayShift(from),
         endDate: to,
         dueDate: dueAt(expense.pattern, paymentPlan, from),
         createdAt: moment().unix(),
@@ -73,7 +73,7 @@ const generate = contract => {
             contractId: contract.id,
             source: 'contract',
             type: 'rent',
-            startDate: from,
+            startDate: onDisplayShift(from),
             endDate: to,
             dueDate: dueAt(freq.pattern, paymentPlan, from),
             createdAt: moment().unix(),
@@ -123,8 +123,8 @@ const finalBill = (settlement) => {
         endDate: now,
         dueDate: now,
         createdAt: now,
-        dueAmount: fp.getOr(0, 'amount', settlement),
-        remark: fp.getOr('', 'remark', settlement),
+        dueAmount: fp.getOr(0)('amount')(settlement),
+        remark: fp.getOr('')('remark')(settlement),
         metadata: settlement
     });
 };

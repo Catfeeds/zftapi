@@ -3,6 +3,8 @@ const moment = require('moment');
 const fp = require('lodash/fp');
 const generate = require('../../transformers/billGenerator').generate;
 
+const displayShift = (startDate) => moment.unix(startDate).add(1, 'day').unix();
+
 describe('Bill generator', () => {
     it('should generate bills base on contract', () => {
         const startDate = moment().unix();
@@ -49,7 +51,6 @@ describe('Bill generator', () => {
             paymentPlan: '-00',
             projectId: 1,
             id: 2,
-
         });
         fp.omit('createdAt')(bills[0]).should.be.eql({
             flow: 'receive',
@@ -58,7 +59,7 @@ describe('Bill generator', () => {
             contractId: 2,
             source: 'contract',
             type: 'rent',
-            startDate: startDate,
+            startDate: displayShift(startDate),
             endDate: oneYearLater,
             dueDate: startDate,
             dueAmount: 3600 * 12,
@@ -147,7 +148,7 @@ describe('Bill generator', () => {
             contractId: 2,
             source: 'contract',
             type: 'extra',
-            startDate: startDate,
+            startDate: displayShift(startDate),
             endDate: oneMonthLater,
             dueDate: startDate,
             dueAmount: 12000,
@@ -186,7 +187,7 @@ describe('Bill generator', () => {
             contractId: 2,
             source: 'contract',
             type: 'rent',
-            startDate: startDate,
+            startDate: displayShift(startDate),
             endDate: oneYearLater,
             dueDate: startDate,
             dueAmount: 43200,
@@ -232,7 +233,7 @@ describe('Bill generator', () => {
             contractId: 2,
             source: 'contract',
             type: 'rent',
-            startDate: startDate,
+            startDate: displayShift(startDate),
             endDate: oneMonthLater,
             dueDate: startDate,
             dueAmount: 300,
@@ -281,7 +282,7 @@ describe('Bill generator', () => {
             contractId: 2,
             source: 'contract',
             type: 'rent',
-            startDate: startDate,
+            startDate: displayShift(startDate),
             endDate: oneYearLater,
             dueDate: startDate,
             dueAmount: 3600,

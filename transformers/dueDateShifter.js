@@ -52,6 +52,9 @@ const dueDateShifter = (leaseStart, leaseEnd) => (pattern, paymentPlan, from) =>
     return fp.isUndefined(firstCycle) ? from : shiftByPlan(firstCycle, from, paymentPlan);
 };
 
+const onDisplayShift = timestamp => moment.unix(timestamp).add(1, 'day').unix();
+
 module.exports = {
-    dueDateShifter
+    dueDateShifter,
+    onDisplayShift
 };
