@@ -3,7 +3,7 @@ const moment = require('moment');
 const fp = require('lodash/fp');
 
 const {billPace, billCycles} = require('./billScheduler');
-const {dueDateShifter, onDisplayShift} = require('./dueDateShifter');
+const {dueDateShifter, onDisplayDateShift} = require('./dueDateShifter');
 const {assignNewId} = require('../services/v1.0/common');
 
 const expensesReduce = expenses => fp.sumBy('rent', fp.filter(e => e.pattern === 'withRent')(expenses));
@@ -56,7 +56,7 @@ const generate = contract => {
         contractId: contract.id,
         source: 'contract',
         type: 'extra',
-        startDate: onDisplayShift(from),
+        startDate: onDisplayDateShift(from),
         endDate: to,
         dueDate: dueAt(expense.pattern, paymentPlan, from),
         createdAt: moment().unix(),
@@ -73,7 +73,7 @@ const generate = contract => {
             contractId: contract.id,
             source: 'contract',
             type: 'rent',
-            startDate: onDisplayShift(from),
+            startDate: onDisplayDateShift(from),
             endDate: to,
             dueDate: dueAt(freq.pattern, paymentPlan, from),
             createdAt: moment().unix(),
