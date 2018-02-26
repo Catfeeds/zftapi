@@ -1,6 +1,6 @@
 'use strict';
 const moment = require('moment');
-const {dueDateShifter, onDisplayDateShift} = require(
+const {dueDateShifter, onDisplayShift} = require(
     '../../transformers/dueDateShifter');
 
 describe('DateShifter', () => {
@@ -126,13 +126,34 @@ describe('DateShifter', () => {
                     randomDate).should.eql(expectBillDate);
             });
     });
-    describe('onDisplayDateShift', () => {
-        it('should shift one day after the real date for display purpose',
+    describe('onDisplayShift', () => {
+        it('should shift one minute before the real end date for display purpose for all bills but the last one',
             () => {
-                onDisplayDateShift(moment('2018-01-31').unix()).
+                onDisplayShift(
+                    [{endDate: moment('2018-01-31').unix()}, {endDate: 1}]).
                     should.
                     be.
-                    eql(moment('2018-02-01').unix());
+                    eql([
+                        {
+                            endDate: moment('2018-01-31').
+                                subtract(12, 'hour').
+                                unix(),
+                        },
+                        {endDate: 1}]);
+            });
+        it('should not modify if only one bill',
+            () => {
+                onDisplayShift([{endDate: 100}]).
+                    should.
+                    be.
+                    eql([{endDate: 100}]);
+            });
+        it('should be able to handle empty list',
+            () => {
+                onDisplayShift([]).
+                    should.
+                    be.
+                    eql([]);
             });
     });
 });

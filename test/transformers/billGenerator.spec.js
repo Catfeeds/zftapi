@@ -3,7 +3,7 @@ const moment = require('moment');
 const fp = require('lodash/fp');
 const generate = require('../../transformers/billGenerator').generate;
 
-const displayShift = (startDate) => moment.unix(startDate).add(1, 'day').unix();
+const displayShift = (startDate) => moment.unix(startDate).subtract(12, 'hour').unix();
 
 describe('Bill generator', () => {
     it('should generate bills base on contract', () => {
@@ -59,7 +59,7 @@ describe('Bill generator', () => {
             contractId: 2,
             source: 'contract',
             type: 'rent',
-            startDate: displayShift(startDate),
+            startDate: startDate,
             endDate: oneYearLater,
             dueDate: startDate,
             dueAmount: 3600 * 12,
@@ -148,8 +148,8 @@ describe('Bill generator', () => {
             contractId: 2,
             source: 'contract',
             type: 'extra',
-            startDate: displayShift(startDate),
-            endDate: oneMonthLater,
+            startDate: startDate,
+            endDate: displayShift(oneMonthLater),
             dueDate: startDate,
             dueAmount: 12000,
             metadata: {
@@ -187,7 +187,7 @@ describe('Bill generator', () => {
             contractId: 2,
             source: 'contract',
             type: 'rent',
-            startDate: displayShift(startDate),
+            startDate: startDate,
             endDate: oneYearLater,
             dueDate: startDate,
             dueAmount: 43200,
@@ -233,8 +233,8 @@ describe('Bill generator', () => {
             contractId: 2,
             source: 'contract',
             type: 'rent',
-            startDate: displayShift(startDate),
-            endDate: oneMonthLater,
+            startDate: startDate,
+            endDate: displayShift(oneMonthLater),
             dueDate: startDate,
             dueAmount: 300,
             metadata: {
@@ -282,7 +282,7 @@ describe('Bill generator', () => {
             contractId: 2,
             source: 'contract',
             type: 'rent',
-            startDate: displayShift(startDate),
+            startDate: startDate,
             endDate: oneYearLater,
             dueDate: startDate,
             dueAmount: 3600,
