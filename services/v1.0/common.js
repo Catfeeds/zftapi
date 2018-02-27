@@ -213,11 +213,11 @@ exports.deviceStatus = (device)=>{
     return fp.assign(device.status || {}, {service: runStatus()});
 };
 
-exports.payBills = (sequelizeModel) => async (bills, projectId, fundChannel, userId, orderNo, category) => {
+exports.payBills = (sequelizeModel) => async (bills, projectId, fundChannel, userId, orderNo, category='rent') => {
     if(fp.isEmpty(bills)) {
         return ErrorCode.ack(ErrorCode.OK, {message: 'No bills were paid.'});
     }
-    const payBills = fp.map(bill=>({
+    const billsToPay = fp.map(bill=>({
         id: exports.assignNewId().id,
         projectId,
         billId: bill.id,
@@ -233,21 +233,21 @@ exports.payBills = (sequelizeModel) => async (bills, projectId, fundChannel, use
     const flows = fp.map(bill=>({
         id: bill.flowId,
         projectId,
-        category: category ? category : 'rent',
+        category,
         amount: bill.amount,
         fee: bill.serviceCharge.shareAmount,
-    }))(payBills);
+    }))(billsToPay);
 
     let t;
     try{
         t = await sequelizeModel.Sequelize.transaction({autocommit: false});
 
-        await sequelizeModel.BillPayment.bulkCreate(payBills, {transaction: t});
+        await sequelizeModel.BillPayment.bulkCreate(billsToPay, {transaction: t});
         await sequelizeModel.Flows.bulkCreate(flows, {transaction: t});
 
         const billLogFlows = fp.map(bill => exports.logFlows(sequelizeModel)(bill.serviceCharge,
             bill.orderNo, projectId, bill.operator, bill.billId,
-            fundChannel, t, Typedef.FundChannelFlowCategory.BILL))(payBills);
+            fundChannel, t, Typedef.FundChannelFlowCategory.BILL))(billsToPay);
         await Promise.all(billLogFlows);
 
         await t.commit();
@@ -255,7 +255,7 @@ exports.payBills = (sequelizeModel) => async (bills, projectId, fundChannel, use
     }
     catch(e){
         await t.rollback();
-        log.error(e, bills, projectId, fundChannel, userId, orderNo, payBills, flows);
+        log.error(e, bills, projectId, fundChannel, userId, orderNo, billsToPay, flows);
         return ErrorCode.ack(ErrorCode.DATABASEEXEC);
     }
 };

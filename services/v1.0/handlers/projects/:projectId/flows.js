@@ -81,10 +81,67 @@ module.exports = {
         const houseFormat = query.houseFormat;
         const from = query.from;
         const to = query.to;
+        const view = query.view;
+
+        const groupByCategory = async (req, res) => {
+
+            const sequelize = MySQL.Sequelize;
+            const sql = 'select a.id,\n' +
+                '  name,\n' +
+                '  rent,\n' +
+                '  rentFee,\n' +
+                '  topup,\n' +
+                '  topupFee,\n' +
+                '  final\n' +
+                'from (select l.id,\n' +
+                '        sum(case\n' +
+                '            when f.category=\'rent\' then f.amount else 0\n' +
+                '            end) as rent,\n' +
+                '        sum(case\n' +
+                '            when f.category=\'rent\' then fee else 0\n' +
+                '            end) as rentFee,\n' +
+                '        sum(case\n' +
+                '            when f.category=\'topup\' then f.amount else 0\n' +
+                '            end) as topup,\n' +
+                '        sum(case\n' +
+                '            when f.category=\'topup\' then fee else 0\n' +
+                '            end) as topupFee,\n' +
+                '        sum(case\n' +
+                '            when f.category=\'final\' then fee else 0\n' +
+                '            end) as final\n' +
+                '      from\n' +
+                '        billpayment b,\n' +
+                '        bills b2,\n' +
+                '        flows f,\n' +
+                '        contracts c,\n' +
+                '        houses h,\n' +
+                '        rooms r,\n' +
+                '        location l,\n' +
+                '        buildings\n' +
+                '      where\n' +
+                '        f.id = b.flowId\n' +
+                '        and b.billId = b2.id\n' +
+                '        and c.id = b2.contractId\n' +
+                '        and b.projectId = 100\n' +
+                '        and c.roomId = r.id\n' +
+                '        and r.houseId = h.id\n' +
+                '        and h.buildingId = buildings.id\n' +
+                '        and buildings.locationId = l.id\n' +
+                '      GROUP BY l.id) a, location l where a.id = l.id';
+
+            return sequelize.query(sql, { type: sequelize.QueryTypes.SELECT}).
+                then(flows => res.send(flows)).
+                catch(err => res.send(500,
+                    ErrorCode.ack(ErrorCode.DATABASEEXEC, {error: err.message})));
+        };
 
         if (to < from) {
             return res.send(400, ErrorCode.ack(ErrorCode.PARAMETERERROR,
                 {error: 'please provide valid from / to timestamp.'}));
+        }
+
+        if(view === 'category') {
+            return groupByCategory(req, res);
         }
 
         const pagingInfo = Util.PagingInfo(query.index, query.size, true);
