@@ -597,6 +597,7 @@ async function Gethouses(params, query) {
 
             return {
                 houseId: house.id,
+                houseFormat: house.houseFormat,
                 code: house.code,
                 group: house.building.group,
                 building: house.building.building,
