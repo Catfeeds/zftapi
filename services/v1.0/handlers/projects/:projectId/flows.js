@@ -78,58 +78,88 @@ module.exports = {
 
         const query = req.query;
         const projectId = req.params.projectId;
+        const locationIds = fp.get('locationIds')(query);
         const houseFormat = query.houseFormat;
         const from = query.from;
         const to = query.to;
         const view = query.view;
 
         const groupByCategory = async (req, res) => {
-
             const sequelize = MySQL.Sequelize;
-            const sql = 'select a.id,\n' +
-                '  name,\n' +
-                '  rent,\n' +
-                '  rentFee,\n' +
-                '  topup,\n' +
-                '  topupFee,\n' +
-                '  final\n' +
-                'from (select l.id,\n' +
-                '        sum(case\n' +
-                '            when f.category=\'rent\' then f.amount else 0\n' +
-                '            end) as rent,\n' +
-                '        sum(case\n' +
-                '            when f.category=\'rent\' then fee else 0\n' +
-                '            end) as rentFee,\n' +
-                '        sum(case\n' +
-                '            when f.category=\'topup\' then f.amount else 0\n' +
-                '            end) as topup,\n' +
-                '        sum(case\n' +
-                '            when f.category=\'topup\' then fee else 0\n' +
-                '            end) as topupFee,\n' +
-                '        sum(case\n' +
-                '            when f.category=\'final\' then fee else 0\n' +
-                '            end) as final\n' +
-                '      from\n' +
-                '        billpayment b,\n' +
-                '        bills b2,\n' +
-                '        flows f,\n' +
-                '        contracts c,\n' +
-                '        houses h,\n' +
-                '        rooms r,\n' +
-                '        location l,\n' +
-                '        buildings\n' +
-                '      where\n' +
-                '        f.id = b.flowId\n' +
-                '        and b.billId = b2.id\n' +
-                '        and c.id = b2.contractId\n' +
-                '        and b.projectId = 100\n' +
-                '        and c.roomId = r.id\n' +
-                '        and r.houseId = h.id\n' +
-                '        and h.buildingId = buildings.id\n' +
-                '        and buildings.locationId = l.id\n' +
-                '      GROUP BY l.id) a, location l where a.id = l.id';
-
-            return sequelize.query(sql, { type: sequelize.QueryTypes.SELECT}).
+            const sql = 'select\n' +
+                '  id, name,\n' +
+                '  sum(rent) as rent,\n' +
+                '  sum(rentFee) as rentFee,\n' +
+                '  sum(topup) as topup,\n' +
+                '  sum(topupFee) as topupFee,\n' +
+                '  sum(final) as final\n' +
+                'from (select l.id, l.name,\n' +
+                '  sum(case\n' +
+                '      when f.category=\'rent\' then f.amount else 0\n' +
+                '      end) as rent,\n' +
+                '  sum(case\n' +
+                '      when f.category=\'rent\' then fee else 0\n' +
+                '      end) as rentFee,\n' +
+                '  0 as topup,\n' +
+                '  0 as topupFee,\n' +
+                '  sum(case\n' +
+                '      when f.category=\'final\' then fee else 0\n' +
+                '      end) as final\n' +
+                'from\n' +
+                '  billpayment b,\n' +
+                '  bills b2,\n' +
+                '  flows f,\n' +
+                '  contracts c,\n' +
+                '  houses h,\n' +
+                '  rooms r,\n' +
+                '  location l,\n' +
+                '  buildings\n' +
+                'where\n' +
+                '  f.id = b.flowId\n' +
+                '  and b2.id = b.billId\n' +
+                '  and c.id = b2.contractId\n' +
+                '  and b.projectId = :projectId \n' +
+                '  and c.roomId = r.id\n' +
+                '  and r.houseId = h.id\n' +
+                '  and h.buildingId = buildings.id\n' +
+                '  and buildings.locationId = l.id\n' +
+                (locationIds ? '  and l.id in (:locationIds)' : '') +
+                'GROUP BY l.id, l.name\n' +
+                ' UNION\n' +
+                'select l.id, l.name,\n' +
+                '  0 as rent,\n' +
+                '  0 as rentFee,\n' +
+                '  sum(case\n' +
+                '      when f.category=\'topup\' then f.amount else 0\n' +
+                '      end) as topup,\n' +
+                '  sum(case\n' +
+                '      when f.category=\'topup\' then fee else 0\n' +
+                '      end) as topupFee,\n' +
+                '  0 as final\n' +
+                'from\n' +
+                '  topup t,\n' +
+                '  flows f,\n' +
+                '  contracts c,\n' +
+                '  houses h,\n' +
+                '  rooms r,\n' +
+                '  location l,\n' +
+                '  buildings\n' +
+                'where\n' +
+                '  f.id = t.flowId\n' +
+                '  and c.id = t.contractId\n' +
+                '  and t.projectId = :projectId \n' +
+                '  and c.roomId = r.id\n' +
+                '  and r.houseId = h.id\n' +
+                '  and h.buildingId = buildings.id\n' +
+                '  and buildings.locationId = l.id\n' +
+                (locationIds ? '  and l.id in (:locationIds)' : '') +
+                'GROUP BY l.id, l.name\n' +
+                '     ) as f2\n' +
+                'GROUP BY id, name';
+            console.log('flow group sql', sql);
+            const replacements = {projectId, locationIds};
+            return sequelize.query(sql, { replacements,
+                type: sequelize.QueryTypes.SELECT}).
                 then(flows => res.send(flows)).
                 catch(err => res.send(500,
                     ErrorCode.ack(ErrorCode.DATABASEEXEC, {error: err.message})));
