@@ -113,6 +113,7 @@ module.exports = {
             // const params = req.params;
 
             const projectId = req.params.projectId;
+            const roomId = query.roomId;
             // const deviceType = req.query.deviceType;
 
             const timeFrom = moment.unix(req.query.startDate).startOf('days').unix();
@@ -156,44 +157,51 @@ module.exports = {
                         {
                             where: where,
                             include: [
-                                {
-                                    model: MySQL.Rooms
-                                    , as: 'rooms'
-                                    , required: true
-                                    , include:[
-                                        {
-                                            model: MySQL.HouseDevices,
-                                            as: 'devices',
-                                            required: false,
-                                            where:{
-                                                startDate:{$lte: timeFrom},
-                                                endDate:{
-                                                    $or:[
-                                                        {$gte: timeTo},
-                                                        {$eq: 0}
-                                                    ]
-                                                },
-                                            }
-                                        },
-                                        {
-                                            model: MySQL.Contracts,
-                                            as: 'contracts',
-                                            required: false,
-                                            where:{
-                                                from: {$lt: timeFrom},
-                                                to: {$gt: timeTo},
-                                            },
-                                            include:[
-                                                {
-                                                    model: MySQL.Users,
-                                                    as: 'user',
-                                                    required: true
+                                fp.assign(
+                                    {
+                                        model: MySQL.Rooms
+                                        , as: 'rooms'
+                                        , required: true
+                                        , include:[
+                                            {
+                                                model: MySQL.HouseDevices,
+                                                as: 'devices',
+                                                required: false,
+                                                where:{
+                                                    startDate:{$lte: timeFrom},
+                                                    endDate:{
+                                                        $or:[
+                                                            {$gte: timeTo},
+                                                            {$eq: 0}
+                                                        ]
+                                                    },
                                                 }
-                                            ]
+                                            },
+                                            {
+                                                model: MySQL.Contracts,
+                                                as: 'contracts',
+                                                required: false,
+                                                where:{
+                                                    from: {$lt: timeFrom},
+                                                    to: {$gt: timeTo},
+                                                },
+                                                include:[
+                                                    {
+                                                        model: MySQL.Users,
+                                                        as: 'user',
+                                                        required: true
+                                                    }
+                                                ]
+                                            }
+                                        ]
+                                    },
+                                    roomId ? {
+                                        where:{
+                                            id: roomId
                                         }
-                                    ]
-                                },
-                                {
+                                    } : {}
+                                )
+                                , {
                                     model: MySQL.Building, as: 'building'
                                     , include: [{
                                         model: MySQL.GeoLocation, as: 'location', required: true
