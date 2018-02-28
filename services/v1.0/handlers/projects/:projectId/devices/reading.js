@@ -115,6 +115,9 @@ module.exports = {
             const projectId = req.params.projectId;
             const roomId = query.roomId;
             // const deviceType = req.query.deviceType;
+            if (!Util.ParameterCheck(query, ['startDate', 'endDate'])) {
+                return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED, {error: 'missing starteDate/endDate'}));
+            }
 
             const timeFrom = moment.unix(req.query.startDate).startOf('days').unix();
             const timeTo = moment.unix(req.query.endDate).endOf('days').unix();

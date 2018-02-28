@@ -46,12 +46,13 @@ module.exports = {
 
             //
             const deviceQuery = fp.assignIn({
+                projectId: projectId,
                 deviceId: {$notIn: deviceIds},
             })(query.q ? {
                 $or: [
-                    {name: new RegExp(query.q)},
-                    {type: new RegExp(query.q)},
-                    {tag: new RegExp(query.q)},
+                    {name: {$regexp:query.q}},
+                    {deviceId: {$regexp: query.q}},
+                    {tag: {$regexp: query.q}},
                 ],
             } : {});
 
@@ -72,7 +73,7 @@ module.exports = {
                         },
                         data: fp.map(device => {
                             return {
-                                deviceId: device.deviceId,
+                                deviceId: device.deviceId.substr(3),
                                 title: device.name,
                             };
                         })(result.rows)
