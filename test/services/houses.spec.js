@@ -34,6 +34,7 @@ describe('Houses', function() {
                                     roomNumber: 'roomNumber',
                                     currentFloor: 'currentFloor',
                                     layouts: 'layouts',
+                                    houseFormat: 'SHARE',
                                     building: {
                                         group: 'group',
                                         building: 'building',
@@ -54,6 +55,7 @@ describe('Houses', function() {
             resSpy.getCall(0).args[0].should.be.eql({
                 data: [
                     {
+                        houseFormat: 'SHARE',
                         building: 'building',
                         code: 'code',
                         currentFloor: 'currentFloor',

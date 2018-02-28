@@ -69,7 +69,7 @@ function reGroupDetail(devices, contracts, devicePrices, timeTo) {
     };
 
     let details = [];
-    fp.map(device=>{
+    fp.each(devices, device=>{
         const deviceDate = getDate(device);
         const dateBase = getDate(device);
         for(;;) {
@@ -97,7 +97,7 @@ function reGroupDetail(devices, contracts, devicePrices, timeTo) {
                 break;
             }
         }
-    })(devices);
+    });
 
     return details;
 }
