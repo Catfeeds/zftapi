@@ -55,32 +55,13 @@ module.exports = {
                 return {
                     service: service,
                     switch: power
-                }
+                };
             };
 
             if(mode === 'BIND'){
-                //
-                // const houseDevices = await MySQL.HouseDevices.findAndCountAll(
-                //     fp.assign(
-                //         {
-                //             where:{
-                //                 projectId: projectId,
-                //                 endDate: 0
-                //             },
-                //             attributes:[
-                //                 [MySQL.Sequelize.fn('DISTINCT', MySQL.Sequelize.col('deviceId')), 'deviceId']
-                //             ]
-                //         }
-                //         , pagingInfo? {offset: pagingInfo.skip, limit: pagingInfo.size} : {}
-                //     )
-                // );
-                // const deviceIds = fp.map(device=>{return device.deviceId;})(houseDevices);
-
                 const houses = await MySQL.Houses.findAll({
                     where:fp.extendAll([
                         {projectId: projectId}
-                        , getQueryPower()
-                        , getQueryStatus()
                         , common.districtLocation(query) || {}
                         , q? {
                             $or: [
@@ -91,89 +72,99 @@ module.exports = {
                             ]
                         } : {}
                     ]),
+                    attributes:['id'],
                     include: [
-                        {
-                            model: MySQL.HouseDevices
-                            , as:'devices'
-                            , required: false
-                            , where: {
-                                public: true
-                            }
-                        },
                         {
                             model: MySQL.Building
                             , as: 'building'
                             , required: true
+                            , attributes: ['building', 'unit']
                             , include:[{
                                 model: MySQL.GeoLocation
                                 , as: 'location'
                                 , attributes:['name']
                                 , required: true
                             }]
-                            , attributes: ['group', 'building', 'unit'],
-                        },
-                        {
+                        }
+                        , {
                             model: MySQL.Rooms
                             , as: 'rooms'
                             , required: true
-                            , attributes: ['name']
-                            , include:[
-                                {
-                                    model: MySQL.Contracts
-                                    , as: 'contracts'
-                                    , include:[
-                                        {
-                                            model: MySQL.Users
-                                            , as: 'user'
-                                        }
-                                    ]
+                            , attributes: ['id']
+                            , include: [{
+                                model: MySQL.Contracts
+                                , as: 'contracts'
+                                , where:{
                                 }
-                                , {
-                                    model: MySQL.HouseDevices,
-                                    as: 'devices',
-                                    required: true,
-                                    where:{
-                                        public: false,
-                                        endDate: 0
-                                    },
-                                    include:[
-                                        {
-                                            model: MySQL.Devices,
-                                            as: 'device',
-                                            required: true,
-                                            include:[
-                                                {
-                                                    model: MySQL.DevicesChannels,
-                                                    as: 'channels',
-                                                    required: true,
-                                                }
-                                            ]
-                                        }
-                                    ]
-                                }
-                            ]
+                                , attributes: []
+                                , include: [{
+                                    model: MySQL.Users
+                                    , as: 'user'
+                                    , attributes: ['name']
+                                }]
+                            }]
                         }
                     ]
                 });
 
-                log.info(houses);
+                const sourceIds = fp.flattenDeep(fp.map(house=>{
+                    return fp.map(room=>{ return room.id; })(house.rooms);
+                })(houses));
+
+                const roomIdMapping = fp.extendAll(fp.map(house => {
+                    return fp.fromPairs(fp.map(room => {
+                        return [room.id, {
+                            id: room.id,
+                            building: house.building,
+                            contract: fp.getOr(null)('contracts[0]')(room)
+                        }];
+                    })(house.rooms));
+                })(houses));
+
+                const devices = await MySQL.Devices.findAndCountAll({
+                    where: fp.extendAll([
+                        getQueryPower()
+                        , getQueryStatus()
+                        , {projectId: projectId}
+                    ])
+                    , include:[
+                        {
+                            model: MySQL.DevicesChannels,
+                            as: 'channels',
+                            required: true,
+                        },
+                        {
+                            model: MySQL.HouseDevices,
+                            as: 'houseRelation',
+                            required: true,
+                            where: {
+                                sourceId:{$in: sourceIds}
+                            }
+                        }
+                    ]
+                });
 
                 const nowTime = moment().unix();
-                _.flattenDeep(fp.map(house=>{
-                    return fp.map(room=>{
-                        return fp.map(device=>{
-                            return {
-                                    deviceId: device.deviceId
-                                    , status: getDeviceStatus(device, nowTime)
-                                    , scale: fp.getOr(0)('channels[0].scale')(device)
-                                    , updatedAt: moment(device.updatedAt).unix()
-                                    , building: house.building
-                                    , roomNumber: house.roomNumber
-                                    , roomName: room.name
-                                };
-                        })(room.devices);
-                    })(house.rooms);
-                })(houses));
+                const rows = fp.map(device=>{
+                    const roomIns = roomIdMapping[fp.getOr(0)('houseRelation[0].sourceId')(device)];
+                    return {
+                        deviceId: device.deviceId
+                        , status: getDeviceStatus(device, nowTime)
+                        , scale: fp.getOr(0)('channels[0].scale')(device)
+                        , updatedAt: moment(device.updatedAt).unix()
+                        , building: fp.getOr({})('building')(roomIns)
+                        , contract: fp.getOr({})('contract')(roomIns)
+                    };
+                })(devices.rows);
+
+                res.send({
+                    paging:{
+                        count: devices.count,
+                        index: pagingInfo.index,
+                        size: pagingInfo.size
+                    },
+                    data: rows
+                });
             }
             else if(mode === 'FREE'){
                 const houseDevices = await MySQL.HouseDevices.findAll(
@@ -218,7 +209,7 @@ module.exports = {
 
                 const returnDevices = fp.map(device=>{
 
-                    // const updatedAt = moment(device.updatedAt);
+                    const updatedAt = moment(device.updatedAt);
                     // const service = updatedAt < nowTime - device.freq ? 'EMC_OFFLINE':'EMC_ONLINE';
                     // const power = fp.getOr('EMC_OFF')('status.switch')(device);
 
@@ -232,95 +223,7 @@ module.exports = {
 
                 res.send(returnDevices);
             }
-return;
-
-
-            const deviceIds = fp.map(device=>{
-                return device.deviceId;
-            })(await MySQL.HouseDevices.findAll({
-                where: fp.assign(
-                    {
-                        projectId: projectId,
-                        endDate: 0
-                    },
-
-                )
-                , distinct: 'deviceId'
-                , attributes: ['deviceId']
-            }));
-
-            //
-            const deviceQuery = fp.assignIn({
-                projectId: projectId,
-                deviceId: {$notIn: deviceIds},
-            })(query.q ? {
-                $or: [
-                    {name: {$regexp:query.q}},
-                    {deviceId: {$regexp: query.q}},
-                    {tag: {$regexp: query.q}},
-                ],
-            } : {});
-
-            try {
-                const result = await MySQL.Devices.findAndCountAll({
-                    where: deviceQuery,
-                    attributes: ['deviceId', 'name'],
-                    offset: pagingInfo.skip,
-                    limit: pagingInfo.size
-                });
-
-                res.send(
-                    {
-                        paging: {
-                            count: result.count,
-                            index: pagingInfo.index,
-                            size: pagingInfo.size
-                        },
-                        data: fp.map(device => {
-                            return {
-                                deviceId: device.deviceId.substr(3),
-                                title: device.name,
-                            };
-                        })(result.rows)
-                    }
-                );
-            }
-            catch(err){
-                log.error(err, projectId);
-                res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC));
-            }
 
         })();
-
-        // if(!Typedef.IsHouseFormat(houseFormat)){
-        //     return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERERROR, 'houseFormat'));
-        // }
-        //
-        //
-        // const housesQuery = ()=> {
-        //     switch (houseFormat) {
-        //         case Typedef.HouseFormat.ENTIRE:
-        //             return common.QueryEntire(projectId, query,
-        //                 [
-        //                     {
-        //                         model: MySQL.HouseDevices,
-        //                         as: 'Devices'
-        //                     },
-        //                 ]
-        //             );
-        //             break;
-        //         default:
-        //             break;
-        //     }
-        // };
-        // housesQuery().then(
-        //     data=>{
-        //         res.send(data)
-        //     },
-        //     err=>{
-        //         log.error(err, projectId, query);
-        //         res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC));
-        //     }
-        // );
     }
 };
