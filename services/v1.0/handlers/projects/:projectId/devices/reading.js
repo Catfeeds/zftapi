@@ -264,7 +264,14 @@ module.exports = {
                                         return price.contractId === contract.id ? price : null;
                                     })(result));
                                 })(contracts));
-                                const groupedDetails = reGroupDetail(devices, contracts, devicePrices, parseInt(timeTo));
+
+                                let groupedDetails;
+                                try{
+                                    groupedDetails = reGroupDetail(devices, contracts, devicePrices, parseInt(timeTo));
+                                }
+                                catch(e){
+                                    log.error(e, groupedDetails, room);
+                                }
 
                                 const details = fp.map(detail=>{
                                     return fp.assign(
