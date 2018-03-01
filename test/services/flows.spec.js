@@ -227,6 +227,12 @@ describe('Flows', function() {
                 where: {
                     projectId: 100,
                 },
+                order: [
+                    [
+                        'createdAt',
+                        'DESC'
+                    ]
+                ]
             });
         });
     });

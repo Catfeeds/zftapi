@@ -225,6 +225,9 @@ module.exports = {
             distinct: true,
             offset: pagingInfo.skip,
             limit: pagingInfo.size,
+            order: [
+                ['createdAt', 'DESC']
+            ]
         };
         return Flows.findAndCountAll(flowOption).
             then(models => translate(models, pagingInfo)).
