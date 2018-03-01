@@ -1555,6 +1555,8 @@ function SequelizeDefine()
     Devices.hasMany(DevicesChannels, {as: 'channels', foreignKey: 'deviceId', sourceKey: 'deviceId'});
     Devices.hasMany(HouseDevices, {as: 'houseRelation', foreignKey: 'deviceId', sourceKey: 'deviceId'});
 
+    HouseDevices.belongsTo(Devices, {as: 'device', foreignKey: 'deviceId', targetKey: 'deviceId'});
+
     exports.Devices = Devices;
     exports.DevicesChannels = DevicesChannels;
 
