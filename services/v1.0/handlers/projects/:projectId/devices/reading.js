@@ -100,6 +100,7 @@ function reGroupDetail(devices, contracts, devicePrices, timeTo) {
         }
     });
 
+
     return details;
 }
 
@@ -245,9 +246,10 @@ module.exports = {
                     })(house.rooms);
                 })(houses));
 
-                const sql = `select dpp.contractId, sum(amount) as amount, sum(\`usage\`) as \`usage\`, price, min(createdAt) as startDate, max(createdAt) as endDate 
+                const sql = `select dpp.contractId, sum(amount) as amount, sum(\`usage\`) as \`usage\`, price
+                    , min(createdAt) as startDate, max(createdAt) as endDate, max(scale) as scale
                     from(
-                    select contractId, amount,\`usage\`,price,createdAt
+                    select contractId, amount,\`usage\`,price, scale, createdAt
                     from devicePrePaid
                         where contractId IN (${contractIds.toString()}) and createdAt BETWEEN ${timeFrom} and ${timeTo}
                      order by createdAt desc 
@@ -274,6 +276,10 @@ module.exports = {
                                 }
 
                                 const details = fp.map(detail=>{
+
+                                    const usage = parseInt( fp.getOr(0)('price.item.usage')(detail));
+                                    const startScale = (fp.getOr(0)('price.item.scale')(detail)-usage)/10000;
+                                    const endScale = (fp.getOr(0)('price.item.scale')(detail))/10000;
                                     return fp.assign(
                                         {
                                             device:{
@@ -282,13 +288,16 @@ module.exports = {
                                                 endDate: fp.getOr(0)('device.endDate')(detail),
                                             },
                                             contract:{
+                                                userId: fp.getOr(0)('contract.item.userId')(detail),
                                                 userName: fp.getOr('')('contract.item.user.name')(detail),
                                                 startDate: fp.getOr(0)('contract.startDate')(detail),
                                                 endDate: fp.getOr(0)('contract.endDate')(detail),
                                             },
                                         },
                                         fp.getOr(null)('price.item')(detail) ? {
-                                            usage: parseInt( fp.getOr(0)('price.item.usage')(detail))/10000,
+                                            startScale,
+                                            endScale,
+                                            usage: usage/10000,
                                             price: parseInt( fp.getOr(0)('price.item.price')(detail))/100,
                                             amount: parseInt( fp.getOr(0)('price.item.amount')(detail))/100
                                         } : {}
@@ -300,6 +309,7 @@ module.exports = {
                                     building: house.building.building,
                                     unit: house.building.unit,
                                     roomNumber: house.roomNumber,
+                                    roomName: room.name,
                                     location: house.building.location,
                                     details: details,
                                 };

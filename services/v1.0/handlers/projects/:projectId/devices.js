@@ -3,6 +3,8 @@
  * Operations on /houses
  */
 const fp = require('lodash/fp');
+const moment = require('moment');
+const common = Include('/services/v1.0/common');
 
 module.exports = {
     /**
@@ -21,101 +23,205 @@ module.exports = {
             const projectId = req.params.projectId;
             const query = req.query;
 
+            const power = query.switch || 'ALL';
+            const service = query.status || 'ALL';
+            const q = query.q;
+
             if(!Util.ParameterCheck(query,
                 ['mode']
             )){
                 return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED));
             }
             const mode = query.mode;
-            if(mode !== 'FREE'){
-                return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERERROR));
-            }
-
             const pagingInfo = Util.PagingInfo(query.index, query.size, true);
 
-            const deviceIds = fp.map(device=>{
-                return device.deviceId;
-            })(await MySQL.HouseDevices.findAll({
-                where:{
-                    projectId: projectId,
-                    endDate: 0
-                },
-                distinct: 'deviceId',
-                attributes: ['deviceId']
-            }));
+            const getQueryPower = ()=>{
+                return power === 'ALL' ? {} : {
+                    status:{$regexp: power === 'OFF' ? 'EMC_OFF' : 'EMC_ON'}
+                };
+            };
+            const getQueryStatus = ()=>{
+                return service === 'ALL' ? {} : {
+                    updatedAt: service === 'OFFLINE' ?
+                        {$lt: MySQL.Sequelize.literal(`FROM_UNIXTIMESTAMP(${nowTime}-freq)`)} :
+                        {$gt: MySQL.Sequelize.literal(`FROM_UNIXTIMESTAMP(${nowTime}-freq)`)}
+                };
+            };
+            const getDeviceStatus = (device, nowTime)=>{
+                const updatedAt = moment(device.updatedAt);
+                const service = updatedAt < nowTime - device.freq ? 'EMC_OFFLINE':'EMC_ONLINE';
+                const power = fp.getOr('EMC_OFF')('status.switch')(device);
 
-            //
-            const deviceQuery = fp.assignIn({
-                projectId: projectId,
-                deviceId: {$notIn: deviceIds},
-            })(query.q ? {
-                $or: [
-                    {name: {$regexp:query.q}},
-                    {deviceId: {$regexp: query.q}},
-                    {tag: {$regexp: query.q}},
-                ],
-            } : {});
+                return {
+                    service: service,
+                    switch: power
+                };
+            };
 
-            try {
-                const result = await MySQL.Devices.findAndCountAll({
-                    where: deviceQuery,
-                    attributes: ['deviceId', 'name'],
-                    offset: pagingInfo.skip,
-                    limit: pagingInfo.size
+            if(mode === 'BIND'){
+                const houses = await MySQL.Houses.findAll({
+                    where:fp.extendAll([
+                        {projectId: projectId}
+                        , common.districtLocation(query) || {}
+                        , q? {
+                            $or: [
+                                {'$building.location.name$': {$regexp: query.q}},
+                                {roomNumber: {$regexp: query.q}},
+                                {code: {$regexp: query.q}},
+                                {'$rooms.contracts.user.name$': {$regexp: query.q}},
+                            ]
+                        } : {}
+                    ]),
+                    attributes:['id'],
+                    include: [
+                        {
+                            model: MySQL.Building
+                            , as: 'building'
+                            , required: true
+                            , attributes: ['building', 'unit', 'roomNumber']
+                            , include:[{
+                                model: MySQL.GeoLocation
+                                , as: 'location'
+                                , attributes:['name']
+                                , required: true
+                            }]
+                        }
+                        , {
+                            model: MySQL.Rooms
+                            , as: 'rooms'
+                            , required: true
+                            , attributes: ['id']
+                            , include: [{
+                                model: MySQL.Contracts
+                                , as: 'contracts'
+                                , attributes: ['userId']
+                                , include: [{
+                                    model: MySQL.Users
+                                    , as: 'user'
+                                    , attributes: ['name']
+                                }]
+                            }]
+                        }
+                    ]
                 });
 
-                res.send(
-                    {
-                        paging: {
-                            count: result.count,
-                            index: pagingInfo.index,
-                            size: pagingInfo.size
+                const sourceIds = fp.flattenDeep(fp.map(house=>{
+                    return fp.map(room=>{ return room.id; })(house.rooms);
+                })(houses));
+
+                const roomIdMapping = fp.extendAll(fp.map(house => {
+                    return fp.fromPairs(fp.map(room => {
+                        return [room.id, {
+                            id: room.id,
+                            building: house.building,
+                            contract: fp.getOr(null)('contracts[0]')(room)
+                        }];
+                    })(house.rooms));
+                })(houses));
+
+                const devices = await MySQL.Devices.findAndCountAll({
+                    where: fp.extendAll([
+                        getQueryPower()
+                        , getQueryStatus()
+                        , {projectId: projectId}
+                    ])
+                    , include:[
+                        {
+                            model: MySQL.DevicesChannels,
+                            as: 'channels',
+                            required: true,
                         },
-                        data: fp.map(device => {
-                            return {
-                                deviceId: device.deviceId.substr(3),
-                                title: device.name,
-                            };
-                        })(result.rows)
-                    }
-                );
+                        {
+                            model: MySQL.HouseDevices,
+                            as: 'houseRelation',
+                            required: true,
+                            where: {
+                                sourceId:{$in: sourceIds}
+                            }
+                        }
+                    ]
+                });
+
+                const nowTime = moment().unix();
+                const rows = fp.map(device=>{
+                    const roomIns = roomIdMapping[fp.getOr(0)('houseRelation[0].sourceId')(device)];
+                    return {
+                        deviceId: device.deviceId
+                        , status: getDeviceStatus(device, nowTime)
+                        , scale: fp.getOr(0)('channels[0].scale')(device)
+                        , updatedAt: moment(device.updatedAt).unix()
+                        , building: fp.getOr({})('building')(roomIns)
+                        , contract: fp.getOr({})('contract')(roomIns)
+                    };
+                })(devices.rows);
+
+                res.send({
+                    paging:{
+                        count: devices.count,
+                        index: pagingInfo.index,
+                        size: pagingInfo.size
+                    },
+                    data: rows
+                });
             }
-            catch(err){
-                log.error(err, projectId);
-                res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC));
+            else if(mode === 'FREE'){
+                const houseDevices = await MySQL.HouseDevices.findAll(
+                    {
+                        where:{
+                            projectId: projectId,
+                            endDate: 0
+                        },
+                        attributes:[
+                            [MySQL.Sequelize.fn('DISTINCT', MySQL.Sequelize.col('deviceId')), 'deviceId']
+                        ]
+                    });
+                const deviceIds = fp.map(device=>{return device.deviceId;})(houseDevices);
+
+                const nowTime = moment().unix();
+                const devices = await MySQL.Devices.findAll(
+                    fp.assign(
+                        {
+                            where: fp.extendAll(
+                                [
+                                    {
+                                        projectId: projectId,
+                                        deviceId:{$notIn: deviceIds}
+                                    }
+                                    , getQueryPower()
+                                    , getQueryStatus()
+                                    , q ? {
+                                        deviceId:{$regexp: q}
+                                    } : {}
+                                ]
+                            ),
+                            include:[
+                                {
+                                    model: MySQL.DevicesChannels,
+                                    as: 'channels'
+                                }
+                            ]
+                        }
+                        , pagingInfo? {offset: pagingInfo.skip, limit: pagingInfo.size} : {}
+                    )
+                );
+
+                const returnDevices = fp.map(device=>{
+
+                    const updatedAt = moment(device.updatedAt);
+                    // const service = updatedAt < nowTime - device.freq ? 'EMC_OFFLINE':'EMC_ONLINE';
+                    // const power = fp.getOr('EMC_OFF')('status.switch')(device);
+
+                    return {
+                        deviceId: device.deviceId.substr(3)
+                        , status: getDeviceStatus(device, nowTime)
+                        , scale: fp.getOr(0)('channels[0].scale')(device)
+                        , updatedAt: updatedAt.unix()
+                    };
+                })(devices);
+
+                res.send(returnDevices);
             }
 
         })();
-
-        // if(!Typedef.IsHouseFormat(houseFormat)){
-        //     return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERERROR, 'houseFormat'));
-        // }
-        //
-        //
-        // const housesQuery = ()=> {
-        //     switch (houseFormat) {
-        //         case Typedef.HouseFormat.ENTIRE:
-        //             return common.QueryEntire(projectId, query,
-        //                 [
-        //                     {
-        //                         model: MySQL.HouseDevices,
-        //                         as: 'Devices'
-        //                     },
-        //                 ]
-        //             );
-        //             break;
-        //         default:
-        //             break;
-        //     }
-        // };
-        // housesQuery().then(
-        //     data=>{
-        //         res.send(data)
-        //     },
-        //     err=>{
-        //         log.error(err, projectId, query);
-        //         res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC));
-        //     }
-        // );
     }
 };
