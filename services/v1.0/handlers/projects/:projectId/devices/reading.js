@@ -287,7 +287,7 @@ module.exports = {
                                                 endDate: fp.getOr(0)('contract.endDate')(detail),
                                             },
                                         },
-                                        detail.price.item ? {
+                                        fp.getOr(null)('price.item')(detail) ? {
                                             usage: parseInt( fp.getOr(0)('price.item.usage')(detail))/10000,
                                             price: parseInt( fp.getOr(0)('price.item.price')(detail))/100,
                                             amount: parseInt( fp.getOr(0)('price.item.amount')(detail))/100
