@@ -557,3 +557,22 @@ exports.moveFundChannelToRoot = result => {
 
     return fp.pipe(requireServiceCharge, fromFundChannel, moveToRoot, cleanUp);
 };
+
+exports.districtLocation = (query)=>{
+    if(query.locationId){
+        // geoLocationIds = [query.locationId];
+        return {'$building.location.id$': query.locationId};
+    }
+    else if(query.districtId){
+        if(Util.IsParentDivision(query.districtId)){
+            return {
+                '$building.location.divisionId$': {$regexp: Util.ParentDivision(query.districtId)}
+            };
+        }
+        else{
+            return {
+                '$building.location.divisionId$': query.districtId
+            };
+        }
+    }
+};

@@ -125,7 +125,7 @@ module.exports = {
 
             const houseFormat = req.query.houseFormat;
 
-            const pagingInfo = Util.PagingInfo(req.query.pageindex, req.query.pagesize, false);
+            const pagingInfo = Util.PagingInfo(req.query.index, req.query.size, false);
 
             const districtLocation = ()=>{
                 if(query.locationId){
