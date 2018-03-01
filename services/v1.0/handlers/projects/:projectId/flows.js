@@ -103,7 +103,7 @@ module.exports = {
                 '  0 as topup,\n' +
                 '  0 as topupFee,\n' +
                 '  sum(case\n' +
-                '      when f.category=\'final\' then fee else 0\n' +
+                '      when f.category=\'final\' then f.amount else 0\n' +
                 '      end) as final\n' +
                 'from\n' +
                 '  billpayment b,\n' +
