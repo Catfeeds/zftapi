@@ -24,7 +24,7 @@ module.exports = {
             const query = req.query;
 
             const power = query.switch || 'ALL';
-            const status = query.status || 'ALL';
+            const service = query.status || 'ALL';
             const q = query.q;
 
             if(!Util.ParameterCheck(query,
@@ -41,8 +41,8 @@ module.exports = {
                 };
             };
             const getQueryStatus = ()=>{
-                return status === 'ALL' ? {} : {
-                    updatedAt: status === 'OFFLINE' ?
+                return service === 'ALL' ? {} : {
+                    updatedAt: service === 'OFFLINE' ?
                         {$lt: MySQL.Sequelize.literal(`FROM_UNIXTIMESTAMP(${nowTime}-freq)`)} :
                         {$gt: MySQL.Sequelize.literal(`FROM_UNIXTIMESTAMP(${nowTime}-freq)`)}
                 };
@@ -78,7 +78,7 @@ module.exports = {
                             model: MySQL.Building
                             , as: 'building'
                             , required: true
-                            , attributes: ['building', 'unit']
+                            , attributes: ['building', 'unit', 'roomNumber']
                             , include:[{
                                 model: MySQL.GeoLocation
                                 , as: 'location'
@@ -94,9 +94,7 @@ module.exports = {
                             , include: [{
                                 model: MySQL.Contracts
                                 , as: 'contracts'
-                                , where:{
-                                }
-                                , attributes: []
+                                , attributes: ['userId']
                                 , include: [{
                                     model: MySQL.Users
                                     , as: 'user'
