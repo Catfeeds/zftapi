@@ -100,8 +100,7 @@ function reGroupDetail(devices, contracts, devicePrices, timeTo) {
         }
     });
 
-
-    return details;
+    return fp.reverse(details);
 }
 
 module.exports = {
