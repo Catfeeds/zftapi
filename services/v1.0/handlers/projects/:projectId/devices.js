@@ -72,13 +72,13 @@ module.exports = {
                             ]
                         } : {}
                     ]),
-                    attributes:['id'],
+                    attributes:['id', 'roomNumber'],
                     include: [
                         {
                             model: MySQL.Building
                             , as: 'building'
                             , required: true
-                            , attributes: ['building', 'unit', 'roomNumber']
+                            , attributes: ['building', 'unit']
                             , include:[{
                                 model: MySQL.GeoLocation
                                 , as: 'location'
@@ -114,6 +114,7 @@ module.exports = {
                         return [room.id, {
                             id: room.id,
                             building: house.building,
+                            roomNumber: house.roomNumber,
                             contract: fp.getOr(null)('contracts[0]')(room)
                         }];
                     })(house.rooms));
@@ -151,6 +152,7 @@ module.exports = {
                         , scale: fp.getOr(0)('channels[0].scale')(device)
                         , updatedAt: moment(device.updatedAt).unix()
                         , building: fp.getOr({})('building')(roomIns)
+                        , roomNumber: fp.getOr('')('roomNumber')(roomIns)
                         , contract: fp.getOr({})('contract')(roomIns)
                     };
                 })(devices.rows);
