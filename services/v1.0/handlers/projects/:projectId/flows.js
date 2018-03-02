@@ -92,8 +92,9 @@ module.exports = {
                 '  sum(rentPartFee) as rentFee,\n' +
                 '  sum(topupPart) as topup,\n' +
                 '  sum(topupFeePart) as topupFee,\n' +
-                '  sum(finalPart) as final, \n' +
-                '  (select sum(rentPart) - sum(rentPartFee) + sum(topupPart) - sum(topupFeePart) - sum(finalPart)) as balance ' +
+                '  sum(finalPayPart) as finalPay, \n' +
+                '  sum(finalReceivePart) as finalReceive, \n' +
+                '  (select sum(rentPart) - sum(rentPartFee) + sum(topupPart) - sum(topupFeePart) - sum(finalPayPart) + sum(finalReceivePart)) as balance ' +
                 ' from (select l.id, l.name,\n' +
                 '  sum(case\n' +
                 '      when f.category=\'rent\' then f.amount else 0\n' +
@@ -104,10 +105,11 @@ module.exports = {
                 '  0 as topupPart,\n' +
                 '  0 as topupFeePart,\n' +
                 '  sum(case\n' +
-                '      when (f.category=\'final\' and f.direction=\'receive\') then f.amount \n' +
-                '      when (f.category=\'final\' and f.direction=\'pay\') then -f.amount ' +
-                '      else 0\n' +
-                '      end) as finalPart\n' +
+                '      when (f.category=\'final\' and f.direction=\'pay\') then f.amount else 0\n' +
+                '      end) as finalPayPart, \n' +
+                '  sum(case\n' +
+                '      when (f.category=\'final\' and f.direction=\'receive\') then f.amount else 0\n' +
+                '      end) as finalReceivePart\n' +
                 'from\n' +
                 '  billpayment b,\n' +
                 '  bills b2,\n' +
@@ -138,7 +140,8 @@ module.exports = {
                 '  sum(case\n' +
                 '      when f.category=\'topup\' then fee else 0\n' +
                 '      end) as topupPartFee,\n' +
-                '  0 as finalPart\n' +
+                '  0 as finalPayPart, \n' +
+                '  0 as finalReceivePart \n' +
                 'from\n' +
                 '  topup t,\n' +
                 '  flows f,\n' +

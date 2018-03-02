@@ -213,7 +213,7 @@ exports.deviceStatus = (device)=>{
     return fp.assign(device.status || {}, {service: runStatus()});
 };
 
-exports.payBills = (sequelizeModel) => async (bills, projectId, fundChannel, userId, orderNo, category='rent') => {
+exports.payBills = (sequelizeModel) => async (bills, projectId, fundChannel, userId, orderNo, category='rent', flowDirection='receive') => {
     if(fp.isEmpty(bills)) {
         return ErrorCode.ack(ErrorCode.OK, {message: 'No bills were paid.'});
     }
@@ -234,7 +234,7 @@ exports.payBills = (sequelizeModel) => async (bills, projectId, fundChannel, use
         id: bill.flowId,
         projectId,
         category,
-        direction: 'pay',
+        direction: flowDirection,
         amount: bill.amount,
         fee: bill.serviceCharge.shareAmount,
     }))(billsToPay);

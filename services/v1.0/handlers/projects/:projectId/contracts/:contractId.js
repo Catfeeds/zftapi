@@ -123,7 +123,7 @@ module.exports = {
                     );
 
                     const finalFlow = payBills(MySQL)(finalPayment.bills, finalPayment.projectId,
-                        finalPayment.fundChannel, finalPayment.operator, null, 'final');
+                        finalPayment.fundChannel, finalPayment.operator, null, 'final', newBill.flow);
 
                     const operations = Typedef.OperationStatus.PAUSED === roomStatus ? [
                         SuspendingRooms.create(suspending, {transaction: t})
