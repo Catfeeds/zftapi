@@ -234,6 +234,7 @@ exports.payBills = (sequelizeModel) => async (bills, projectId, fundChannel, use
         id: bill.flowId,
         projectId,
         category,
+        direction: 'pay',
         amount: bill.amount,
         fee: bill.serviceCharge.shareAmount,
     }))(billsToPay);

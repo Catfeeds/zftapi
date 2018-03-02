@@ -3,9 +3,12 @@
  * Operations on /contracts/:contractId
  */
 const fp = require('lodash/fp');
-const {assignNewId, omitSingleNulls, innerValues, jsonProcess, payBills} = require('../../../../common');
-const finalBillOf = require('../../../../../../transformers/billGenerator').finalBill;
-const finalPaymentOf = require('../../../../../../transformers/paymentGenerator').finalPayment;
+const {assignNewId, omitSingleNulls, innerValues, jsonProcess, payBills} = require(
+    '../../../../common');
+const {finalBill: finalBillOf} = require(
+    '../../../../../../transformers/billGenerator');
+const {finalPayment: finalPaymentOf} = require(
+    '../../../../../../transformers/paymentGenerator');
 
 const omitFields = fp.omit(['userId', 'createdAt', 'updatedAt']);
 const translate = contract => fp.pipe(innerValues, omitSingleNulls, omitFields, jsonProcess)(contract);
@@ -70,6 +73,11 @@ module.exports = {
             return res.send(400, ErrorCode.ack(ErrorCode.PARAMETERERROR, {roomStatus, allowedStatus}));
         }
 
+        const settlement = fp.defaults(fp.get('body.transaction')(req))({projectId, contractId});
+        if (settlement.amount < 0) {
+            return res.send(400, ErrorCode.ack(ErrorCode.PARAMETERERROR, {error: '`amount` should always be positive, use `flow` to indicate the payment direction: (pay or receive)'}));
+        }
+
         const Sequelize = MySQL.Sequelize;
         const serviceCharge = await ServiceCharge.findAll({
             where: {
@@ -97,7 +105,7 @@ module.exports = {
                         roomId: contract.dataValues.room.id
                     });
 
-                    const settlement = fp.defaults(fp.get('body.transaction')(req))({projectId, contractId});
+
                     const newBill = finalBillOf(settlement);
 
                     const finalBill = Bills.create(newBill, {transaction: t});

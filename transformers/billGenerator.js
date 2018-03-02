@@ -113,7 +113,7 @@ const generate = contract => {
 const finalBill = (settlement) => {
     const now = moment().unix();
     return assignNewId({
-        flow: fp.getOr('receive', 'flow', settlement),
+        flow: fp.getOr('pay', 'flow', settlement),
         entityType: 'property',
         projectId: settlement.projectId,
         contractId: settlement.contractId,
