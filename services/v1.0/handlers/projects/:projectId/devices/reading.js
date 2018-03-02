@@ -22,9 +22,6 @@ function reGroupDetail(devices, contracts, devicePrices, timeFrom, timeTo) {
             const item = items[i];
 
             const itemDate = getDate(item);
-            // const startDate = moment.unix(item.startDate || item.from).startOf('days').unix();
-            // const endDate = moment.unix(item.endDate || item.to).startOf('days').unix();
-
             if(dateBase[0] > itemDate[1] || dateBase[1] < itemDate[0]){
                 continue;
             }
@@ -240,38 +237,6 @@ module.exports = {
                 );
 
                 const houseAndRooms = fp.flatten(fp.map(house=>{
-                    // const getPublicDevice = ()=>{
-                    //     if(houseFormat !== Typedef.HouseFormat.SHARE){
-                    //         return null;
-                    //     }
-                    //
-                    //     //
-                    //     const publicDevices = fp.map(device=>{
-                    //         return [
-                    //             house.id ,
-                    //             {
-                    //                 houseId: house.id
-                    //                 , deviceId: device.deviceId
-                    //             }
-                    //         ];
-                    //     })(house.devices);
-                    //
-                    //     return publicDevices;
-                    // };
-                    //
-                    //
-                    // const rooms = fp.map(room=>{
-                    //     return [
-                    //         room.id,
-                    //         {
-                    //             roomId: room.id
-                    //             , room: room
-                    //         }
-                    //     ];
-                    // })(house.rooms);
-                    //
-                    // return fp.fromPairs(fp.compact(fp.union(getPublicDevice(), rooms)));
-
                     const plain = house.toJSON();
 
                     const rooms = fp.map(room=>{ return fp.extendAll([ room, {building: house.building}, {roomNumber: house.roomNumber} ]); })(plain.rooms);
