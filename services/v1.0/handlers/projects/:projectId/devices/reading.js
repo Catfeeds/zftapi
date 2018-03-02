@@ -7,31 +7,32 @@ const fp = require('lodash/fp');
 const moment = require('moment');
 // const common = Include('/services/v1.0/common');
 
-function reGroupDetail(devices, contracts, devicePrices, timeTo) {
+function reGroupDetail(devices, contracts, devicePrices, timeFrom, timeTo) {
 
-    const ONEDAY = 86400;
+    if(!contracts.length && !devicePrices.length){
+        return [];
+    }
+
     const belongTo = (dateA, dateB)=>{
         return !(dateA[0] > dateB[1] || dateA[1] < dateB[0]);
-    };
-    const subtractDay = (date)=>{
-        return date - ONEDAY;
     };
     const matchItem = (dateBase, items)=>{
         const length = items.length;
         for(let i=0; i<length; i++){
             const item = items[i];
 
-            const startDate = item.startDate || item.from;
-            const endDate = item.endDate || item.to || timeTo;
+            const itemDate = getDate(item);
+            // const startDate = moment.unix(item.startDate || item.from).startOf('days').unix();
+            // const endDate = moment.unix(item.endDate || item.to).startOf('days').unix();
 
-            if(dateBase[0] > endDate || dateBase[1] < startDate){
+            if(dateBase[0] > itemDate[1] || dateBase[1] < itemDate[0]){
                 continue;
             }
 
-            if(dateBase[0] < startDate){
+            if(dateBase[0] < itemDate[0]){
                 return {
                     startDate: dateBase[0],
-                    endDate: subtractDay(startDate)
+                    endDate: dateBase[1]
                 };
             }
 
@@ -62,9 +63,13 @@ function reGroupDetail(devices, contracts, devicePrices, timeTo) {
         if(!obj){
             return [];
         }
+
+        const originStartDate = obj.startDate || obj.from || timeFrom;
+        const originEndDate = obj.endDate || obj.to || timeTo;
+
         return [
-            obj.startDate || obj.from || 0,
-            obj.endDate || obj.to || timeTo
+            moment.unix(originStartDate < timeFrom ? timeFrom : originStartDate).startOf('days').unix(),
+            moment.unix(originEndDate > timeTo ? timeTo : originEndDate).startOf('days').unix()
         ];
     };
 
@@ -75,14 +80,12 @@ function reGroupDetail(devices, contracts, devicePrices, timeTo) {
         const dateBase = getDate(device);
         for(;;) {
             const contract = matchItem(dateBase, contracts);
-            // console.info(debugLog(contract));
 
             const housePrice = matchItem(dateBase, devicePrices);
-            // console.info(debugLog(housePrice));
 
             const date = minDate(getDate(contract), getDate(housePrice));
 
-            // console.info(date, device.deviceId, contract && contract.item.id, fp.getOr(null)('item.price')(housePrice));
+            console.info(date, device.deviceId, fp.getOr(null)('item.id')(contract), fp.getOr(null)('item.price')(housePrice));
             details.push({
                 date: date,
                 device: device,
@@ -100,7 +103,8 @@ function reGroupDetail(devices, contracts, devicePrices, timeTo) {
         }
     });
 
-    return fp.reverse(details);
+
+    return fp.reverse( details );
 }
 
 module.exports = {
@@ -116,16 +120,19 @@ module.exports = {
             const projectId = req.params.projectId;
             const roomId = query.roomId;
             // const deviceType = req.query.deviceType;
-            if (!Util.ParameterCheck(query, ['startDate', 'endDate'])) {
+            if (!Util.ParameterCheck(query, ['houseFormat', 'startDate', 'endDate'])) {
                 return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED, {error: 'missing starteDate/endDate'}));
             }
 
             const timeFrom = moment.unix(req.query.startDate).startOf('days').unix();
-            const timeTo = moment.unix(req.query.endDate).endOf('days').unix();
+            const timeTo = moment.unix(req.query.endDate).startOf('days').unix();
+
+            const ymdTimeFrom = parseInt( moment.unix(req.query.startDate).startOf('days').format('YYYYMMDD') );
+            const ymdTimeTo = parseInt( moment.unix(req.query.endDate).startOf('days').format('YYYYMMDD') );
 
             const houseFormat = req.query.houseFormat;
 
-            const pagingInfo = Util.PagingInfo(req.query.index, req.query.size, false);
+            const pagingInfo = Util.PagingInfo(req.query.index, req.query.size, true);
 
             const districtLocation = ()=>{
                 if(query.locationId){
@@ -157,166 +164,278 @@ module.exports = {
             );
             try {
                 const houses = await MySQL.Houses.findAll(
-                    fp.assign(
-                        {
-                            where: where,
-                            include: [
-                                fp.assign(
-                                    {
-                                        model: MySQL.Rooms
-                                        , as: 'rooms'
-                                        , required: true
-                                        , include:[
-                                            {
-                                                model: MySQL.HouseDevices,
-                                                as: 'devices',
-                                                required: false,
-                                                where:{
-                                                    startDate:{$lte: timeFrom},
-                                                    endDate:{
-                                                        $or:[
-                                                            {$gte: timeTo},
-                                                            {$eq: 0}
-                                                        ]
-                                                    },
-                                                }
-                                            },
-                                            {
-                                                model: MySQL.Contracts,
-                                                as: 'contracts',
-                                                required: false,
-                                                where:{
-                                                    from: {$lt: timeFrom},
-                                                    to: {$gt: timeTo},
-                                                },
-                                                include:[
-                                                    {
-                                                        model: MySQL.Users,
-                                                        as: 'user',
-                                                        required: true
+                    {
+                        where: where,
+                        include: [
+                            fp.assign(
+                                {
+                                    model: MySQL.Rooms
+                                    , as: 'rooms'
+                                    , required: true
+                                    , include:[
+                                        {
+                                            model: MySQL.HouseDevices,
+                                            as: 'devices',
+                                            required: false,
+                                            where:{
+                                                $or:[
+                                                    {startDate:{$lte: timeTo}}
+                                                    ,{
+                                                        endDate:{
+                                                            $or:[
+                                                                {$gte: timeFrom},
+                                                                {$eq: 0}
+                                                            ]
+                                                        }
                                                     }
                                                 ]
                                             }
-                                        ]
-                                    },
-                                    roomId ? {
-                                        where:{
-                                            id: roomId
+                                        },
+                                        {
+                                            model: MySQL.Contracts,
+                                            as: 'contracts',
+                                            required: false,
+                                            where:{
+                                                $or:[
+                                                    {from: {$lte: timeFrom}, to: {$gte: timeFrom}},
+                                                    {from: {$lte: timeTo}, to: {$gte: timeTo}},
+                                                    {from: {$gte: timeFrom}, to: {$lte: timeTo}},
+                                                ],
+                                            },
+                                            include:[
+                                                {
+                                                    model: MySQL.Users,
+                                                    as: 'user',
+                                                    required: true
+                                                }
+                                            ]
                                         }
-                                    } : {}
-                                )
-                                , {
-                                    model: MySQL.Building, as: 'building'
-                                    , include: [{
-                                        model: MySQL.GeoLocation, as: 'location', required: true
-                                    }]
-                                    , required: true
-                                    , attributes: ['group', 'building', 'unit'],
-                                }
-                                // {
-                                //     model: MySQL.HouseDevices,
-                                //     as: 'devices',
-                                //     required: false,
-                                //     attributes: ['deviceId', 'public'],
-                                //     where:{
-                                //         endDate: 0,
-                                //         public: true
-                                //     }
-                                // },
-                                , {
-                                    model: MySQL.HouseDevicePrice,
-                                    as: 'prices',
-                                    required: false,
+                                    ]
+                                },
+                                roomId ? {
                                     where:{
-                                        endDate: 0
+                                        id: roomId
                                     }
+                                } : {}
+                            )
+                            , {
+                                model: MySQL.Building, as: 'building'
+                                , include: [{
+                                    model: MySQL.GeoLocation, as: 'location', required: true
+                                }]
+                                , required: true
+                                , attributes: ['group', 'building', 'unit'],
+                            }
+                            , {
+                                model: MySQL.HouseDevices,
+                                as: 'devices',
+                                required: false,
+                                where:{
+                                    endDate: 0,
+                                    public: true
                                 }
-                            ]
-                        },
-                        pagingInfo ? {offset: pagingInfo.skip, limit: pagingInfo.size} : {}
-                    )
+                            },
+                        ]
+                    }
                 );
 
-                const contractIds = fp.flattenDeep(fp.map(house=>{
+                const houseAndRooms = fp.flatten(fp.map(house=>{
+                    // const getPublicDevice = ()=>{
+                    //     if(houseFormat !== Typedef.HouseFormat.SHARE){
+                    //         return null;
+                    //     }
                     //
-                    return fp.map(room=>{
-                        //
-                        return fp.map(contract=>{return contract.id;})(room.contracts);
-                    })(house.rooms);
+                    //     //
+                    //     const publicDevices = fp.map(device=>{
+                    //         return [
+                    //             house.id ,
+                    //             {
+                    //                 houseId: house.id
+                    //                 , deviceId: device.deviceId
+                    //             }
+                    //         ];
+                    //     })(house.devices);
+                    //
+                    //     return publicDevices;
+                    // };
+                    //
+                    //
+                    // const rooms = fp.map(room=>{
+                    //     return [
+                    //         room.id,
+                    //         {
+                    //             roomId: room.id
+                    //             , room: room
+                    //         }
+                    //     ];
+                    // })(house.rooms);
+                    //
+                    // return fp.fromPairs(fp.compact(fp.union(getPublicDevice(), rooms)));
+
+                    const plain = house.toJSON();
+
+                    const rooms = fp.map(room=>{ return fp.extendAll([ room, {building: house.building}, {roomNumber: house.roomNumber} ]); })(plain.rooms);
+
+                    if(houseFormat !== Typedef.HouseFormat.SHARE || roomId){
+                        return rooms;
+                    }
+                    else {
+                        return fp.flatten([plain, rooms]);
+                    }
+
                 })(houses));
+
+                //
+                const doPaging = (data)=>{
+                    return data.slice(pagingInfo.skip, pagingInfo.skip+pagingInfo.size);
+                };
+                const pagedHouseRooms = doPaging(houseAndRooms);
+
+                const contractIds = fp.flattenDeep(fp.compact(fp.map(slot=>{
+                    //
+                    if(slot.rooms){
+                        return null;
+                    }
+                    else{
+                        return fp.map(contract=>{ return contract.id; })(slot.contracts);
+                    }
+                })(pagedHouseRooms)));
+                const houseIds = fp.compact(fp.map(slot=>{
+                    if(slot.rooms){
+                        return slot.id;
+                    }
+                    return null;
+                })(pagedHouseRooms));
 
                 const sql = `select dpp.contractId, sum(amount) as amount, sum(\`usage\`) as \`usage\`, price
                     , min(createdAt) as startDate, max(createdAt) as endDate, max(scale) as scale
                     from(
                     select contractId, amount,\`usage\`,price, scale, createdAt
                     from devicePrePaid
-                        where contractId IN (${contractIds.toString()}) and createdAt BETWEEN ${timeFrom} and ${timeTo}
+                        where projectId=${projectId} and contractId IN (${contractIds.toString()}) and createdAt BETWEEN ${timeFrom} and ${timeTo}
                      order by createdAt desc 
                     ) as dpp group by contractId, price order by startDate asc`;
-                MySQL.Exec(sql).then(
+                const houseBillsQuery = `select deviceId, houseId, sum(amount) as amount, sum(\`usage\`) as \`usage\`, price
+                    , min(createdAt) as startDate, max(createdAt) as endDate, max(scale) as scale
+                    from(
+                    select hb.houseId, deviceId, hbf.amount,\`usage\`,price, scale, hbf.createdAt
+                    from housesBillsFlows as hbf inner join housesBills as hb on hbf.billId=hb.billId
+                        where hb.projectId=${projectId} and hb.houseId IN (${houseIds.toString()}) and hbf.createdAt BETWEEN ${ymdTimeFrom} and ${ymdTimeTo}
+                     order by createdAt desc 
+                    ) as hbfs group by deviceId, price order by startDate asc`;
+
+                Promise.all([
+                    MySQL.Exec(sql),
+                    MySQL.Exec(houseBillsQuery)
+                ]).then(
                     result=>{
                         //
-                        const returnRoom = fp.flatten(fp.map(house=>{
-                            return fp.compact(fp.map(room=>{
-                                const devices = room.devices;
-                                const contracts = room.contracts;
-                                const devicePrices = fp.flatten(fp.map(contract=>{
-                                    return fp.compact(fp.map(price=>{
-                                        return price.contractId === contract.id ? price : null;
-                                    })(result));
-                                })(contracts));
+                        const devicePrePaid = result[0];
+                        const housePaid = fp.map(paid=>{
+                            paid.startDate = moment(paid.startDate, 'YYYYMMDD').unix();
+                            paid.endDate = moment(paid.endDate, 'YYYYMMDD').unix();
+                            return paid;
+                        })(result[1]);
 
-                                let groupedDetails;
-                                try{
-                                    groupedDetails = reGroupDetail(devices, contracts, devicePrices, parseInt(timeTo));
-                                }
-                                catch(e){
-                                    log.error(e, groupedDetails, room);
-                                }
+                        const returnData = fp.map(slot=>{
 
-                                const details = fp.map(detail=>{
+                            const getDetails = (groupedDetails)=>{
+                                return fp.map(detail=>{
+                                    const startDate = fp.getOr(0)('date[0]')(detail);
+                                    const endDate = fp.getOr(0)('date[1]')(detail);
 
                                     const usage = parseInt( fp.getOr(0)('price.item.usage')(detail));
                                     const startScale = (fp.getOr(0)('price.item.scale')(detail)-usage)/10000;
                                     const endScale = (fp.getOr(0)('price.item.scale')(detail))/10000;
-                                    return fp.assign(
+                                    return fp.extendAll([
                                         {
+                                            statDate: startDate > timeFrom ? startDate:timeFrom,
+                                            endDate: endDate > timeTo ? timeTo:endDate,
                                             device:{
-                                                deviceId: fp.getOr('')('device.deviceId')(detail),
-                                                startDate: fp.getOr(0)('device.startDate')(detail),
-                                                endDate: fp.getOr(0)('device.endDate')(detail),
+                                                deviceId: fp.getOr('')('device.deviceId')(detail)
                                             },
+                                        }
+                                        , detail.contract ? {
                                             contract:{
                                                 userId: fp.getOr(0)('contract.item.userId')(detail),
                                                 userName: fp.getOr('')('contract.item.user.name')(detail),
                                                 startDate: fp.getOr(0)('contract.startDate')(detail),
                                                 endDate: fp.getOr(0)('contract.endDate')(detail),
-                                            },
-                                        },
-                                        fp.getOr(null)('price.item')(detail) ? {
-                                            startScale,
-                                            endScale,
-                                            usage: usage/10000,
-                                            price: parseInt( fp.getOr(0)('price.item.price')(detail))/100,
-                                            amount: parseInt( fp.getOr(0)('price.item.amount')(detail))/100
+                                            }
                                         } : {}
-                                    );
+                                        , detail.price ? {
+                                            price: parseInt( fp.getOr(0)('price.item.price')(detail))/100
+                                            , amount: parseInt( fp.getOr(0)('price.item.amount')(detail))/100
+                                            , usage: usage
+                                            , startScale: startScale
+                                            , endScale: endScale
+                                        } : {}
+                                    ]);
                                 })(groupedDetails);
+                            };
 
+                            if(slot.rooms){
+                                //public device
+                                const house = slot;
+                                const devices = house.devices;
+                                const houseDeviceIds = fp.map(device=>{return device.deviceId;})(house.devices);
+                                const housePrices = fp.compact(fp.map(paid=>{
+                                    if(fp.contains(houseDeviceIds, paid.deviceId)){
+                                        paid.endDate++;
+                                        return paid;
+                                    }
+                                    return null;
+                                })(housePaid));
+
+                                const groupedDetails = reGroupDetail(devices, [], housePrices, timeFrom, timeTo);
                                 return {
-                                    roomId: room.id,
                                     building: house.building.building,
                                     unit: house.building.unit,
                                     roomNumber: house.roomNumber,
-                                    roomName: room.name,
                                     location: house.building.location,
-                                    details: details,
+                                    details: getDetails(groupedDetails),
                                 };
 
-                            })(house.rooms));
-                        })(houses));
+                            }
+                            else{
+                                const room = slot;
+                                //room
+                                const devices = room.devices;
+                                //end of contract have to subtract 1 day
+                                const contracts = room.contracts;
+                                const devicePrices = fp.flatten(fp.map(contract=>{
+                                    return fp.compact(fp.map(price=>{
+                                        if( price.contractId === contract.id ){
+                                            price.endDate ++;
+                                            return price;
+                                        }
+                                        return null;
+                                    })(devicePrePaid));
+                                })(contracts));
+                                const groupedDetails = reGroupDetail(devices, contracts, devicePrices, timeFrom, timeTo);
 
-                        res.send(returnRoom);
+                                return {
+                                    roomId: room.id,
+                                    building: room.building.building,
+                                    unit: room.building.unit,
+                                    roomNumber: room.roomNumber,
+                                    roomName: room.name,
+                                    location: room.building.location,
+                                    details: getDetails(groupedDetails),
+                                };
+                            }
+
+                        })(pagedHouseRooms);
+
+
+                        res.send({
+                            paging:{
+                                count: houseAndRooms.length,
+                                index: pagingInfo.index,
+                                size: pagingInfo.size
+                            },
+                            data: returnData
+                        });
                     }
                 );
             }
