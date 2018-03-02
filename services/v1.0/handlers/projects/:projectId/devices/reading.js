@@ -117,7 +117,7 @@ module.exports = {
             const projectId = req.params.projectId;
             const roomId = query.roomId;
             // const deviceType = req.query.deviceType;
-            if (!Util.ParameterCheck(query, ['startDate', 'endDate'])) {
+            if (!Util.ParameterCheck(query, ['houseFormat', 'startDate', 'endDate'])) {
                 return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED, {error: 'missing starteDate/endDate'}));
             }
 
@@ -173,13 +173,17 @@ module.exports = {
                                                 as: 'devices',
                                                 required: false,
                                                 where:{
-                                                    startDate:{$lte: timeFrom},
-                                                    endDate:{
-                                                        $or:[
-                                                            {$gte: timeTo},
-                                                            {$eq: 0}
-                                                        ]
-                                                    },
+                                                    $or:[
+                                                        {startDate:{$lte: timeTo}}
+                                                        ,{
+                                                            endDate:{
+                                                                $or:[
+                                                                    {$gte: timeFrom},
+                                                                    {$eq: 0}
+                                                                ]
+                                                            }
+                                                        }
+                                                    ]
                                                 }
                                             },
                                             {
@@ -187,8 +191,10 @@ module.exports = {
                                                 as: 'contracts',
                                                 required: false,
                                                 where:{
-                                                    from: {$lt: timeFrom},
-                                                    to: {$gt: timeTo},
+                                                    $or:[
+                                                        {from: {$lte: timeTo}},
+                                                        {to: {$gte: timeFrom}}
+                                                    ],
                                                 },
                                                 include:[
                                                     {
@@ -214,29 +220,33 @@ module.exports = {
                                     , required: true
                                     , attributes: ['group', 'building', 'unit'],
                                 }
-                                // {
-                                //     model: MySQL.HouseDevices,
-                                //     as: 'devices',
-                                //     required: false,
-                                //     attributes: ['deviceId', 'public'],
-                                //     where:{
-                                //         endDate: 0,
-                                //         public: true
-                                //     }
-                                // },
                                 , {
-                                    model: MySQL.HouseDevicePrice,
-                                    as: 'prices',
+                                    model: MySQL.HouseDevices,
+                                    as: 'devices',
                                     required: false,
+                                    attributes: ['deviceId', 'public'],
                                     where:{
-                                        endDate: 0
+                                        endDate: 0,
+                                        public: true
                                     }
-                                }
+                                },
                             ]
                         },
                         pagingInfo ? {offset: pagingInfo.skip, limit: pagingInfo.size} : {}
                     )
                 );
+
+
+                fp.map(house=>{
+
+                    if(houseFormat === Typedef.HouseFormat.SHARE){
+                        //need public device
+                    }
+
+                    fp.map(room=>{
+                    })(house.rooms);
+                })(houses);
+
 
                 const contractIds = fp.flattenDeep(fp.map(house=>{
                     //

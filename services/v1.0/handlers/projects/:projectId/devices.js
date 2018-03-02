@@ -78,7 +78,7 @@ module.exports = {
                             model: MySQL.Building
                             , as: 'building'
                             , required: true
-                            , attributes: ['building', 'unit', 'roomNumber']
+                            , attributes: ['building', 'unit']
                             , include:[{
                                 model: MySQL.GeoLocation
                                 , as: 'location'
