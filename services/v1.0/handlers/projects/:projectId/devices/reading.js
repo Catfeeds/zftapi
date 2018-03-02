@@ -82,7 +82,7 @@ function reGroupDetail(devices, contracts, devicePrices, timeFrom, timeTo) {
 
             const date = minDate(getDate(contract), getDate(housePrice));
 
-            console.info(date, device.deviceId, fp.getOr(null)('item.id')(contract), fp.getOr(null)('item.price')(housePrice));
+            // console.info(date, device.deviceId, fp.getOr(null)('item.id')(contract), fp.getOr(null)('item.price')(housePrice));
             details.push({
                 date: date,
                 device: device,
@@ -92,6 +92,9 @@ function reGroupDetail(devices, contracts, devicePrices, timeFrom, timeTo) {
             if(date) {
                 dateBase[0] = date[1];
                 dateBase[0] = moment.unix(dateBase[0]).add(1, 'days').unix();
+            }
+            else{
+                break;
             }
 
             if(date[1] >= deviceDate[1]){
