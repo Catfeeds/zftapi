@@ -88,23 +88,26 @@ module.exports = {
             const sequelize = MySQL.Sequelize;
             const sql = 'select\n' +
                 '  id, name,\n' +
-                '  sum(rent) as rent,\n' +
-                '  sum(rentFee) as rentFee,\n' +
-                '  sum(topup) as topup,\n' +
-                '  sum(topupFee) as topupFee,\n' +
-                '  sum(final) as final\n' +
-                'from (select l.id, l.name,\n' +
+                '  sum(rentPart) as rent,\n' +
+                '  sum(rentPartFee) as rentFee,\n' +
+                '  sum(topupPart) as topup,\n' +
+                '  sum(topupFeePart) as topupFee,\n' +
+                '  sum(finalPart) as final, \n' +
+                '  (select sum(rentPart) - sum(rentPartFee) + sum(topupPart) - sum(topupFeePart) - sum(finalPart)) as balance ' +
+                ' from (select l.id, l.name,\n' +
                 '  sum(case\n' +
                 '      when f.category=\'rent\' then f.amount else 0\n' +
-                '      end) as rent,\n' +
+                '      end) as rentPart,\n' +
                 '  sum(case\n' +
                 '      when f.category=\'rent\' then fee else 0\n' +
-                '      end) as rentFee,\n' +
-                '  0 as topup,\n' +
-                '  0 as topupFee,\n' +
+                '      end) as rentPartFee,\n' +
+                '  0 as topupPart,\n' +
+                '  0 as topupFeePart,\n' +
                 '  sum(case\n' +
-                '      when f.category=\'final\' then f.amount else 0\n' +
-                '      end) as final\n' +
+                '      when (f.category=\'final\' and f.direction=\'receive\') then f.amount \n' +
+                '      when (f.category=\'final\' and f.direction=\'pay\') then -f.amount ' +
+                '      else 0\n' +
+                '      end) as finalPart\n' +
                 'from\n' +
                 '  billpayment b,\n' +
                 '  bills b2,\n' +
@@ -127,15 +130,15 @@ module.exports = {
                 'GROUP BY l.id, l.name\n' +
                 ' UNION\n' +
                 'select l.id, l.name,\n' +
-                '  0 as rent,\n' +
-                '  0 as rentFee,\n' +
+                '  0 as rentPart,\n' +
+                '  0 as rentPartFee,\n' +
                 '  sum(case\n' +
                 '      when f.category=\'topup\' then f.amount else 0\n' +
-                '      end) as topup,\n' +
+                '      end) as topupPart,\n' +
                 '  sum(case\n' +
                 '      when f.category=\'topup\' then fee else 0\n' +
-                '      end) as topupFee,\n' +
-                '  0 as final\n' +
+                '      end) as topupPartFee,\n' +
+                '  0 as finalPart\n' +
                 'from\n' +
                 '  topup t,\n' +
                 '  flows f,\n' +
