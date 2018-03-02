@@ -178,7 +178,7 @@ module.exports = {
                 const deviceIds = fp.map(device=>{return device.deviceId;})(houseDevices);
 
                 const nowTime = moment().unix();
-                const devices = await MySQL.Devices.findAll(
+                const devices = await MySQL.Devices.findAndCountAll(
                     fp.assign(
                         {
                             where: fp.extendAll(
@@ -217,9 +217,16 @@ module.exports = {
                         , scale: fp.getOr(0)('channels[0].scale')(device)
                         , updatedAt: updatedAt.unix()
                     };
-                })(devices);
+                })(devices.rows);
 
-                res.send(returnDevices);
+                res.send({
+                    paging:{
+                        count: devices.count,
+                        index: pagingInfo.index,
+                        size: pagingInfo.size
+                    },
+                    data: returnDevices
+                });
             }
 
         })();
