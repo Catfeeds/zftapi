@@ -64,6 +64,7 @@ const translate = (models, pagingInfo) => {
     };
 };
 
+const sqlDateTime = stamp => moment.unix(stamp).format('YYYY-MM-DD HH:mm:ss');
 module.exports = {
     get: async (req, res) => {
         const BillPayment = MySQL.BillPayment;
@@ -83,6 +84,11 @@ module.exports = {
         const from = query.from;
         const to = query.to;
         const view = query.view;
+
+        if (to < from) {
+            return res.send(400, ErrorCode.ack(ErrorCode.PARAMETERERROR,
+                {error: 'please provide valid from / to timestamp.'}));
+        }
 
         const groupByCategory = async (req, res) => {
             const sequelize = MySQL.Sequelize;
@@ -121,6 +127,7 @@ module.exports = {
                 '  buildings\n' +
                 'where\n' +
                 '  f.id = b.flowId\n' +
+                (from && to ? '  and f.createdAt > :from  and f.createdAt < :to \n' : '') +
                 '  and b2.id = b.billId\n' +
                 '  and c.id = b2.contractId\n' +
                 '  and b.projectId = :projectId \n' +
@@ -152,6 +159,7 @@ module.exports = {
                 '  buildings\n' +
                 'where\n' +
                 '  f.id = t.flowId\n' +
+                (from && to ? '  and f.createdAt > :from  and f.createdAt < :to \n' : '') +
                 '  and c.id = t.contractId\n' +
                 '  and t.projectId = :projectId \n' +
                 '  and c.roomId = r.id\n' +
@@ -162,19 +170,24 @@ module.exports = {
                 'GROUP BY l.id, l.name\n' +
                 '     ) as f2\n' +
                 'GROUP BY id, name';
-            console.log('flow group sql', sql);
-            const replacements = {projectId, locationIds};
-            return sequelize.query(sql, { replacements,
-                type: sequelize.QueryTypes.SELECT}).
+            const replacements = fp.defaults({projectId, locationIds})(
+                from && to ?
+                    {
+                        from: sqlDateTime(from),
+                        to: sqlDateTime(to),
+                    } :
+                    {});
+            return sequelize.query(sql, {
+                replacements,
+                type: sequelize.QueryTypes.SELECT,
+            }).
                 then(flows => res.send(flows)).
                 catch(err => res.send(500,
-                    ErrorCode.ack(ErrorCode.DATABASEEXEC, {error: err.message})));
+                    ErrorCode.ack(ErrorCode.DATABASEEXEC,
+                        {error: err.message})));
         };
 
-        if (to < from) {
-            return res.send(400, ErrorCode.ack(ErrorCode.PARAMETERERROR,
-                {error: 'please provide valid from / to timestamp.'}));
-        }
+
 
         if(view === 'category') {
             return groupByCategory(req, res);
