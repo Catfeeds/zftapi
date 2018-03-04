@@ -251,7 +251,7 @@ module.exports = {
 
         const projectId = req.params.projectId;
 
-        const deviceIds = req.body;
+        const deviceIds = req.body.deviceIds;
 
         MySQL.HouseDevices.count({
             where:{
