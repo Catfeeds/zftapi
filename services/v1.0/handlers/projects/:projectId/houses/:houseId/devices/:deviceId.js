@@ -63,7 +63,7 @@ module.exports = {
             try {
                 t = await MySQL.Sequelize.transaction({autocommit: false});
                 const current = fp.find(deviceId)(houseDevices);
-                if (isUndefined(current)) {
+                if (fp.isUndefined(current)) {
                     //create
                     await MySQL.HouseDevices.create({
                         projectId: projectId,

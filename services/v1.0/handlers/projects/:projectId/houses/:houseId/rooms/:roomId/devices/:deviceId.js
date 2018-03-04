@@ -51,7 +51,7 @@ module.exports = {
         }).then(
             houseDevices=>{
                 const currentDevice = fp.find({deviceId})(houseDevices);
-                if (isUndefined(currentDevice)) {
+                if (fp.isUndefined(currentDevice)) {
                     //create
                     const now = moment().unix();
                     const bulkCreate = [
