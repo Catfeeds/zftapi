@@ -228,7 +228,7 @@ module.exports = {
                     // const power = fp.getOr('EMC_OFF')('status.switch')(device);
 
                     return {
-                        deviceId: device.deviceId.substr(3)
+                        deviceId: device.deviceId
                         , status: getDeviceStatus(device, nowTime)
                         , scale: fp.getOr(0)('channels[0].scale')(device)
                         , updatedAt: updatedAt.unix()
