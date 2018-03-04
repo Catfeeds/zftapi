@@ -158,7 +158,7 @@ module.exports = {
                 const nowTime = moment().unix();
                 const rows = fp.map(device=>{
                     const roomIns = sourceIdMapping[fp.getOr(0)('houseRelation[0].sourceId')(device)];
-                    
+
                     return {
                         deviceId: device.deviceId
                         , status: getDeviceStatus(device, nowTime)

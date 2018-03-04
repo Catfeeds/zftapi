@@ -4,13 +4,7 @@
  */
 const fp = require('lodash/fp');
 const moment = require('moment');
-
-const getBuildingId = (deviceId)=>{
-    return deviceId.substr(0, 10);
-};
-const getAddrId = (deviceId)=>{
-    return deviceId.substr(3);
-}
+const common = Include('/services/v1.0/common');
 
 const makeSwitchMessage = (devices, mode)=>{
     return {
@@ -20,8 +14,8 @@ const makeSwitchMessage = (devices, mode)=>{
         param: fp.map(device=>{
             const deviceId = device.deviceId || device.device.deviceId;
             return {
-                buildingid:getBuildingId(deviceId),
-                addrid: getAddrId(deviceId),
+                buildingid:common.getBuildingId(deviceId),
+                addrid: common.getAddrId(deviceId),
                 id: SnowFlake.next(),
                 driver: device.driver || device.device.driver,
                 deviceId: deviceId,

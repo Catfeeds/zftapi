@@ -3,6 +3,7 @@
  * Sync the device reading
  */
 const moment = require('moment');
+const common = Include('/services/v1.0/common');
 
 module.exports = {
     patch: (req, res)=>{
@@ -24,18 +25,26 @@ module.exports = {
         }).then(
             device=>{
                 //
+                if(!device){
+                    return res.send(ErrorCode.ack(ErrorCode.DEVICENOTEXISTS));
+                }
+
                 const paramId = SnowFlake.next();
                 const evt = {
                     timestamp: moment().unix(),
                     messageTypeId: 7200,
-                    param: [{
-                        id: paramId,
-                        driver: device.driver,
-                        ext: device.ext,
-                        deviceId: device.deviceId,
-                        command: Typedef.DriverCommand.EMC_STATUS,
+                    type: 502,
+                    buildingid:common.getBuildingId(deviceId),
+                    addrid: common.getAddrId(deviceId),
+                    id: paramId,
+                    driver: device.driver,
+                    ext: device.ext,
+                    deviceId: device.deviceId,
+                    command: Typedef.DriverCommand.EMC_STATUS,
+                    mode: Typedef.DriverCommand.EMC_SYNC,
+                    param: {
                         mode: Typedef.DriverCommand.EMC_SYNC,
-                    }]
+                    }
                 };
 
                 Message.Collector.send(evt);
@@ -57,8 +66,8 @@ module.exports = {
                         this._acked = true;
                         Message.Collector.unRegister(this);
                         res.send({
-                            deviceId: data.param.deviceId,
-                            scale: data.param.scale
+                            deviceId: 'YTL'+data.param.addrid,
+                            scale: data.param.lasttotal
                         });
                     }
                     Timing(sec){
