@@ -435,7 +435,7 @@ function SequelizeDefine()
             defaultValue: ''
         },
         name: {
-            type: Sequelize.STRING(16),     //查询结果名称
+            type: Sequelize.STRING(32),     //查询结果名称
             allowNull: false
         },
         address: {

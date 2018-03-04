@@ -195,7 +195,7 @@ create table if not exists location
 	`code` varchar(12) NOT NULL DEFAULT '',
 	`divisionId` bigint(20) UNSIGNED NOT NULL,
 	`district` varchar(16) NOT NULL DEFAULT '',
-	`name` varchar(16) NOT NULL,
+	`name` varchar(32) NOT NULL,
 	`address` varchar(32) NOT NULL,
 	`longitude` decimal(9, 5) NOT NULL,
 	`latitude` decimal(9, 5) NOT NULL,
