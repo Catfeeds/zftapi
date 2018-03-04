@@ -1566,12 +1566,20 @@ function SequelizeDefine()
             autoIncrement:true,
             primaryKey: true
         },
-        channelId:{
+        deviceId:{
             type: Sequelize.STRING(32),
-            primaryKey: true
+            allowNull: false,
+        },
+        channelId:{
+            type: Sequelize.STRING(3),
+            allowNull: false
         },
         reading: {
-            type: Sequelize.INTEGER.UNSIGNED,
+            type: Sequelize.BIGINT,
+            allowNull: false
+        },
+        rateReading: {
+            type: Sequelize.BIGINT,
             allowNull: false
         },
         time: {
