@@ -40,7 +40,7 @@
     "q": "^1.5.1",
     "redis": "^2.8.0",
     "restify": "^6.3.2",
-    "sequelize": "^4.22.6",
+    "sequelize": "^4.35.1",
     "tracer": "^0.8.11",
     "underscore": "^1.8.3",
     "validator": "^9.1.1"
