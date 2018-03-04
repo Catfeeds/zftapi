@@ -577,3 +577,13 @@ exports.districtLocation = (query)=>{
         }
     }
 };
+
+exports.getDeviceId = (deviceId)=>{
+    return exports.getAddrId(deviceId);
+};
+exports.getBuildingId = (deviceId)=>{
+    return deviceId.substr(0, 10);
+};
+exports.getAddrId = (deviceId)=>{
+    return deviceId.substr(3);
+};

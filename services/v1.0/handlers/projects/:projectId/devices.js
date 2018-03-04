@@ -109,6 +109,14 @@ module.exports = {
                     return fp.map(room=>{ return room.id; })(house.rooms);
                 })(houses));
 
+                const houseIdMapping = fp.fromPairs(fp.map(house=>{
+                    return [house.id, {
+                        id: house.id,
+                        building: house.building,
+                        contract: null
+                    }];
+                })(houses));
+
                 const roomIdMapping = fp.extendAll(fp.map(house => {
                     return fp.fromPairs(fp.map(room => {
                         return [room.id, {
@@ -119,6 +127,11 @@ module.exports = {
                         }];
                     })(house.rooms));
                 })(houses));
+
+                const sourceIdMapping = fp.extendAll([
+                    houseIdMapping,
+                    roomIdMapping
+                ]);
 
                 const devices = await MySQL.Devices.findAndCountAll({
                     where: fp.extendAll([
@@ -145,7 +158,8 @@ module.exports = {
 
                 const nowTime = moment().unix();
                 const rows = fp.map(device=>{
-                    const roomIns = roomIdMapping[fp.getOr(0)('houseRelation[0].sourceId')(device)];
+                    const roomIns = sourceIdMapping[fp.getOr(0)('houseRelation[0].sourceId')(device)];
+
                     return {
                         deviceId: device.deviceId
                         , status: getDeviceStatus(device, nowTime)
@@ -233,4 +247,43 @@ module.exports = {
 
         })();
     }
+    , delete: async(req, res)=>{
+
+        const projectId = req.params.projectId;
+
+        const deviceIds = req.body;
+
+        MySQL.HouseDevices.count({
+            where:{
+                projectId: projectId,
+                deviceId: {$in: deviceIds},
+                endDate: 0
+            }
+        }).then(
+            count=>{
+                if(count){
+                    return res.send(ErrorCode.ack(ErrorCode.DEVICEINBIND));
+                }
+
+                MySQL.Devices.destroy({
+                    where:{
+                        projectId: projectId,
+                        deviceId: {$in: deviceIds}
+                    }
+                }).then(
+                    ()=>{
+                        res.send(204);
+                    },
+                    err=>{
+                        log.error(err, projectId, deviceIds);
+                        res.send(ErrorCode.ack(ErrorCode.DATABASEEXEC));
+                    }
+                );
+            },
+            err=>{
+                log.error(err, projectId, deviceIds);
+                res.send(ErrorCode.ack(ErrorCode.DATABASEEXEC));
+            }
+        );
+    },
 };

@@ -83,6 +83,7 @@ var ErrorCodeList = {
     'CONTROLAUTHFAILED':    60000010,   //控制校验失败
     'PROTOCOLUNSUPPORT':    60000011,   //协议不支持,
     'CHANNELPARAMLACK':     60000012,   //通道参数不足
+    'DEVICEINBIND':         60000013,   //仪表未解绑
 };
 
 var ErrorMessageList = {
@@ -161,6 +162,7 @@ var ErrorMessageList = {
     'CONTROLAUTHFAILED': '控制校验失败',
     'PROTOCOLUNSUPPORT': '协议不支持',
     'CHANNELPARAMLACK': '通道参数不足',
+    'DEVICEINBIND': '仪表未解绑',
 };
 
 var ErrorCode2Message = {};
