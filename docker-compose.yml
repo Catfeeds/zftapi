@@ -7,6 +7,7 @@ services:
         command: --init-file /db/init.sql --character-set-server=utf8
         environment:
           - MYSQL_ROOT_PASSWORD=example
+          - TZ=Asia/Shanghai
         ports:
           - "33061:3306"
         volumes:
@@ -20,7 +21,7 @@ services:
         build:
           context: .
           dockerfile: Dockerfile-dev
-        entrypoint: /wait-for-it.sh db:3306 -- 
+        entrypoint: /wait-for-it.sh db:3306 --
         command: npm run dev
         ports:
           - 8000:8000
@@ -28,6 +29,7 @@ services:
           - ".:/src"
           - "./node_modules:/src/node_modules"
         environment:
+          - TZ=Asia/Shanghai
           - ZFT_AMAP_KEY
           - ZFT_EM_READ=[{"host":"db","port":3306,"username":"root","password":"example","database":"zft"}]
           - ZFT_EM_WRITE={"host":"db","port":3306,"username":"root","password":"example","database":"zft"}
