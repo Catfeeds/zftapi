@@ -532,10 +532,9 @@ async function Gethouses(params, query) {
             where: where,
             subQuery: false,
             include: include,
-            order:[['rooms', 'name', 'ASC']],
+            order:[['id', 'ASC'], ['rooms', 'name', 'ASC']],
             offset: pagingInfo.skip,
             limit: pagingInfo.size,
-            distinct: true,
         });
 
         //
@@ -794,18 +793,5 @@ module.exports = {
                 res.send(422, ErrorCode.ack(ErrorCode.DATABASEEXEC));
             }
         })();
-
-        // if(!promise){
-        // 	return res.send(500, ErrorCode.ack(ErrorCode.REQUESTUNMATCH));
-        // }
-        //
-        // promise.then(
-        // 	resolve=>{
-        // 		res.send(resolve);
-        // 	},
-        // 	err=>{
-        // 		res.send(422, err)
-        // 	}
-        // );
     }
 };
