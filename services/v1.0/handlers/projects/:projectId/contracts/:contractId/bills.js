@@ -4,34 +4,40 @@
  */
 
 const fp = require('lodash/fp');
-const removeNullValues = require('../../../../../../../transformers/billItemsCleaner').clearUpFields;
+const {clearUpFields: removeNullValues} = require(
+    '../../../../../../../transformers/billItemsCleaner');
+const {fundFlowConnection} = require('../../../../../models');
 
-const translate = bills => fp.map(bill => removeNullValues(bill.dataValues))(bills);
+const translate = bills => fp.map(bill => removeNullValues(bill.dataValues))(
+    bills);
 
 module.exports = {
     get: function getContractBills(req, res) {
         const Bills = MySQL.Bills;
         const BillFlows = MySQL.BillFlows;
-        const FundChannelFlows = MySQL.FundChannelFlows;
-
-        const fundFlowConnection = {
-            model: FundChannelFlows,
-            required: false,
-            attributes: ['id', 'category', 'orderNo', 'from', 'to', 'amount'],
-        };
 
         Bills.findAll({
-            include: [{model: BillFlows,
-                as: 'billItems' ,
-                attributes: ['configId', 'relevantId', 'amount', 'createdAt', 'id']},
-            fundFlowConnection],
+            include: [
+                {
+                    model: BillFlows,
+                    as: 'billItems',
+                    attributes: [
+                        'configId',
+                        'relevantId',
+                        'amount',
+                        'createdAt',
+                        'id'],
+                },
+                fundFlowConnection(MySQL)()],
             where: {
                 entityType: 'property',
                 contractId: req.params.contractId,
-                projectId: req.params.projectId
-            }
-        }).then(translate)
-            .then(bills => res.send(bills))
-            .catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, {error: err.message})));
-    }
+                projectId: req.params.projectId,
+            },
+        }).
+            then(translate).
+            then(bills => res.send(bills)).
+            catch(err => res.send(500,
+                ErrorCode.ack(ErrorCode.DATABASEEXEC, {error: err.message})));
+    },
 };

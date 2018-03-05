@@ -8,6 +8,7 @@ const {
     omitSingleNulls, innerValues,
     singleRoomTranslate, includeContracts,
 } = require('../../../common');
+const {fundFlowConnection} = require('../../../models');
 
 const omitFields = fp.omit(['metadata', 'createdAt', 'updatedAt']);
 const formatRoom = item => fp.defaults(item)(
@@ -48,7 +49,6 @@ module.exports = {
         const query = req.query;
 
         const Sequelize = MySQL.Sequelize;
-        const FundChannelFlows = MySQL.FundChannelFlows;
 
         const projectId = req.params.projectId;
         const houseFormat = query.houseFormat;
@@ -65,12 +65,6 @@ module.exports = {
                 {$in: billPaymentFilter}
                 : {$notIn: billPaymentFilter};
         })(fp.get('query.paid')(req));
-
-        const fundFlowConnection = {
-            model: FundChannelFlows,
-            required: false,
-            attributes: ['id', 'category', 'orderNo', 'from', 'to', 'amount'],
-        };
 
         const pagingInfo = Util.PagingInfo(query.index, query.size, true);
 
@@ -95,7 +89,7 @@ module.exports = {
                         'status'],
                 },
                 contractFilter(houseFormat, undefined, locationCondition),
-                fundFlowConnection],
+                fundFlowConnection(MySQL)()],
             distinct: true,
             where: fp.defaults({
                 entityType: 'property',
