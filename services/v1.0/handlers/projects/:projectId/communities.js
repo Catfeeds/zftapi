@@ -54,23 +54,11 @@ module.exports = {
                 houseFormat: houseFormat,
                 projectId: projectId
             };
-            //
-            // switch(houseFormat){
-            //     case Typedef.HouseFormat.ENTIRE:
-            //         sql = `select distinct(geoLocation) from ${MySQL.Entire.name} where projectId=:projectId `;
-            //         break;
-            //     case Typedef.HouseFormat.SOLE:
-            //     case Typedef.HouseFormat.SHARE:
-            //         sql = `select distinct(geoLocation) from ${MySQL.Soles.name} where projectId=:projectId and houseFormat=:houseFormat `;
-            //         break;
-            // }
-
-
 
             try {
                 const sql = `select distinct(bu.locationId),bu.id as buildingId from ${MySQL.Houses.name} as h 
                     inner join buildings as bu on h.buildingId=bu.id 
-                     where h.houseFormat=:houseFormat and h.projectId=:projectId`;
+                     where h.deleteAt=0 and  bu.deleteAt=0 and h.houseFormat=:houseFormat and h.projectId=:projectId`;
                 const locations = await MySQL.Exec(sql, replacements);
                 let geoLocationIds = [];
                 let locationBuilding = {};

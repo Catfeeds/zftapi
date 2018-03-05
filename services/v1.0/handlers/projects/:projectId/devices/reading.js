@@ -5,7 +5,7 @@
 const fp = require('lodash/fp');
 // const _ = require('lodash');
 const moment = require('moment');
-// const common = Include('/services/v1.0/common');
+const common = Include('/services/v1.0/common');
 
 function reGroupDetail(devices, contracts, devicePrices, timeFrom, timeTo) {
 
@@ -334,7 +334,7 @@ module.exports = {
                                         , detail.price ? {
                                             price: parseInt( fp.getOr(0)('price.item.price')(detail))/100
                                             , amount: parseInt( fp.getOr(0)('price.item.amount')(detail))/100
-                                            , usage: usage
+                                            , usage: parseInt( common.scaleDown(usage) )
                                             , startScale: startScale
                                             , endScale: endScale
                                         } : {}

@@ -785,7 +785,7 @@ module.exports = {
                 }
                 else {
                     await t.commit();
-                    res.send();
+                    res.send(body);
                 }
             }
             catch(e){
