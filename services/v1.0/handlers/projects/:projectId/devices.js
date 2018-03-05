@@ -139,7 +139,7 @@ module.exports = {
                         , getQueryStatus()
                         , {projectId: projectId}
                     ])
-                    , include:[
+                    , include: [
                         {
                             model: MySQL.DevicesChannels,
                             as: 'channels',
@@ -150,10 +150,12 @@ module.exports = {
                             as: 'houseRelation',
                             required: true,
                             where: {
-                                sourceId:{$in: sourceIds}
+                                sourceId: {$in: sourceIds}
                             }
                         }
                     ]
+                    , offset: pagingInfo.skip
+                    , limit: pagingInfo.size
                 });
 
                 const nowTime = moment().unix();
