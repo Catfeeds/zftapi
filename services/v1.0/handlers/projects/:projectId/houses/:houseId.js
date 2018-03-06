@@ -21,17 +21,10 @@ module.exports = {
          * For response `default` status 200 is used.
          */
         (async()=>{
-            const query = req.query;
             const params = req.params;
 
             const id = params.houseId;
             const projectId = params.projectId;
-
-            if(!Util.ParameterCheck(query,
-                ['houseFormat']
-            )){
-                return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED));
-            }
 
             const houseIns = await MySQL.Houses.findOne({
                 where: {
