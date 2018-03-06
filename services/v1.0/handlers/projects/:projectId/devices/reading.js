@@ -313,8 +313,8 @@ module.exports = {
                                     const endDate = fp.getOr(0)('date[1]')(detail);
 
                                     const usage = parseInt( fp.getOr(0)('price.item.usage')(detail));
-                                    const startScale = (fp.getOr(0)('price.item.scale')(detail)-usage)/10000;
-                                    const endScale = (fp.getOr(0)('price.item.scale')(detail))/10000;
+                                    const startScale = common.scaleDown(fp.getOr(0)('price.item.scale')(detail)-usage);
+                                    const endScale = common.scaleDown(fp.getOr(0)('price.item.scale')(detail));
                                     return fp.extendAll([
                                         {
                                             statDate: startDate > timeFrom ? startDate:timeFrom,
@@ -332,8 +332,8 @@ module.exports = {
                                             }
                                         } : {}
                                         , detail.price ? {
-                                            price: parseInt( fp.getOr(0)('price.item.price')(detail))/100
-                                            , amount: parseInt( fp.getOr(0)('price.item.amount')(detail))/100
+                                            price: fp.getOr(0)('price.item.price')(detail)
+                                            , amount: fp.getOr(0)('price.item.amount')(detail)
                                             , usage: parseInt( common.scaleDown(usage) )
                                             , startScale: startScale
                                             , endScale: endScale

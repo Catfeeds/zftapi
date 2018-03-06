@@ -30,7 +30,6 @@ module.exports = {
             ]
         }).then(
             user=>{
-                user.cashAccount.balance = Number( (user.cashAccount.balance/100).toFixed(2) );
                 res.send(user);
             },
             err=>{
