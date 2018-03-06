@@ -119,6 +119,8 @@ module.exports = {
 
             const projectId = req.params.projectId;
             const roomId = query.roomId;
+            const houseId = query.houseId;
+
             // const deviceType = req.query.deviceType;
             if (!Util.ParameterCheck(query, ['houseFormat', 'startDate', 'endDate'])) {
                 return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED, {error: 'missing starteDate/endDate'}));
@@ -155,87 +157,92 @@ module.exports = {
                 return {};
             };
 
-            const where = fp.assign(
+            const where = fp.extendAll([
                 {
                     projectId: projectId,
                     houseFormat: houseFormat,
                 }
                 , districtLocation()
-            );
+                , houseId ? { id: houseId } : {}
+            ]);
             try {
+                const getIncludeRoom = ()=>{
+                    return roomId ? fp.assign(
+                        {
+                            model: MySQL.Rooms
+                            , as: 'rooms'
+                            , required: true
+                            , include:[
+                                {
+                                    model: MySQL.HouseDevices,
+                                    as: 'devices',
+                                    required: false,
+                                    where:{
+                                        $or:[
+                                            {startDate:{$lte: timeTo}}
+                                            ,{
+                                                endDate:{
+                                                    $or:[
+                                                        {$gte: timeFrom},
+                                                        {$eq: 0}
+                                                    ]
+                                                }
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    model: MySQL.Contracts,
+                                    as: 'contracts',
+                                    required: false,
+                                    where:{
+                                        $or:[
+                                            {from: {$lte: timeFrom}, to: {$gte: timeFrom}},
+                                            {from: {$lte: timeTo}, to: {$gte: timeTo}},
+                                            {from: {$gte: timeFrom}, to: {$lte: timeTo}},
+                                        ],
+                                    },
+                                    include:[
+                                        {
+                                            model: MySQL.Users,
+                                            as: 'user',
+                                            required: true
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        roomId ? {
+                            where:{
+                                id: roomId
+                            }
+                        } : {}
+                    ):null;
+                };
+                const houseInclude = fp.compact([
+                    getIncludeRoom()
+                    , {
+                        model: MySQL.Building, as: 'building'
+                        , include: [{
+                            model: MySQL.GeoLocation, as: 'location', required: true
+                        }]
+                        , required: true
+                        , attributes: ['group', 'building', 'unit'],
+                    }
+                    , {
+                        model: MySQL.HouseDevices,
+                        as: 'devices',
+                        required: false,
+                        where:{
+                            endDate: 0,
+                            public: true
+                        }
+                    },
+                ]);
                 const houses = await MySQL.Houses.findAll(
                     {
                         where: where,
-                        include: [
-                            fp.assign(
-                                {
-                                    model: MySQL.Rooms
-                                    , as: 'rooms'
-                                    , required: true
-                                    , include:[
-                                        {
-                                            model: MySQL.HouseDevices,
-                                            as: 'devices',
-                                            required: false,
-                                            where:{
-                                                $or:[
-                                                    {startDate:{$lte: timeTo}}
-                                                    ,{
-                                                        endDate:{
-                                                            $or:[
-                                                                {$gte: timeFrom},
-                                                                {$eq: 0}
-                                                            ]
-                                                        }
-                                                    }
-                                                ]
-                                            }
-                                        },
-                                        {
-                                            model: MySQL.Contracts,
-                                            as: 'contracts',
-                                            required: false,
-                                            where:{
-                                                $or:[
-                                                    {from: {$lte: timeFrom}, to: {$gte: timeFrom}},
-                                                    {from: {$lte: timeTo}, to: {$gte: timeTo}},
-                                                    {from: {$gte: timeFrom}, to: {$lte: timeTo}},
-                                                ],
-                                            },
-                                            include:[
-                                                {
-                                                    model: MySQL.Users,
-                                                    as: 'user',
-                                                    required: true
-                                                }
-                                            ]
-                                        }
-                                    ]
-                                },
-                                roomId ? {
-                                    where:{
-                                        id: roomId
-                                    }
-                                } : {}
-                            )
-                            , {
-                                model: MySQL.Building, as: 'building'
-                                , include: [{
-                                    model: MySQL.GeoLocation, as: 'location', required: true
-                                }]
-                                , required: true
-                                , attributes: ['group', 'building', 'unit'],
-                            }
-                            , {
-                                model: MySQL.HouseDevices,
-                                as: 'devices',
-                                required: false,
-                                where:{
-                                    endDate: 0,
-                                    public: true
-                                }
-                            },
-                        ]
+                        include: houseInclude
                     }
                 );
 
@@ -269,11 +276,16 @@ module.exports = {
                     }
                 })(pagedHouseRooms)));
                 const houseIds = fp.compact(fp.map(slot=>{
+                    if(houseId){
+                        return slot.id;
+                    }
+
                     if(slot.rooms){
                         return slot.id;
                     }
                     return null;
                 })(pagedHouseRooms));
+
 
                 const sql = `select dpp.contractId, sum(amount) as amount, sum(\`usage\`) as \`usage\`, price
                     , min(createdAt) as startDate, max(createdAt) as endDate, max(scale) as scale
@@ -292,18 +304,44 @@ module.exports = {
                      order by createdAt desc 
                     ) as hbfs group by deviceId, price order by startDate asc`;
 
-                Promise.all([
-                    MySQL.Exec(sql),
-                    MySQL.Exec(houseBillsQuery)
-                ]).then(
+                const getHouseRoomQuery = ()=>{
+                    return fp.compact([
+                        roomId ? MySQL.Exec(sql):null
+                        , houseId ? MySQL.Exec(houseBillsQuery):null
+                    ]);
+                };
+                const promiseQuery = fp.flatten(fp.compact([
+                    (!roomId && !houseId) ? [MySQL.Exec(sql), MySQL.Exec(houseBillsQuery)] : getHouseRoomQuery()
+                ]));
+
+                Promise.all(promiseQuery).then(
                     result=>{
                         //
-                        const devicePrePaid = result[0];
+                        const getDevicePrePaid = ()=>{
+                            if(!roomId && !houseId){
+                                return result[0];
+                            }
+                            else if(roomId){
+                                return result[0];
+                            }
+                            return [];
+                        };
+                        const getHousePaid = ()=>{
+                            if(!roomId && !houseId){
+                                return result[1];
+                            }
+                            else if(houseId){
+                                return result[0];
+                            }
+                            return [];
+                        };
+
+                        const devicePrePaid = getDevicePrePaid();
                         const housePaid = fp.map(paid=>{
                             paid.startDate = moment(paid.startDate, 'YYYYMMDD').unix();
                             paid.endDate = moment(paid.endDate, 'YYYYMMDD').unix();
                             return paid;
-                        })(result[1]);
+                        })(getHousePaid());
 
                         const returnData = fp.map(slot=>{
 
@@ -333,8 +371,8 @@ module.exports = {
                                         } : {}
                                         , detail.price ? {
                                             price: fp.getOr(0)('price.item.price')(detail)
-                                            , amount: fp.getOr(0)('price.item.amount')(detail)
-                                            , usage: parseInt( common.scaleDown(usage) )
+                                            , amount: parseInt( fp.getOr(0)('price.item.amount')(detail) )
+                                            , usage: usage
                                             , startScale: startScale
                                             , endScale: endScale
                                         } : {}
@@ -342,7 +380,7 @@ module.exports = {
                                 })(groupedDetails);
                             };
 
-                            if(slot.rooms){
+                            if(houseId || slot.rooms){
                                 //public device
                                 const house = slot;
                                 const devices = house.devices;
@@ -357,6 +395,7 @@ module.exports = {
 
                                 const groupedDetails = reGroupDetail(devices, [], housePrices, timeFrom, timeTo);
                                 return {
+                                    houseId: house.id,
                                     building: house.building.building,
                                     unit: house.building.unit,
                                     roomNumber: house.roomNumber,
@@ -394,7 +433,6 @@ module.exports = {
                             }
 
                         })(pagedHouseRooms);
-
 
                         res.send({
                             paging:{
