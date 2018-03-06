@@ -3,5 +3,5 @@
 exports.fundFlowConnection = (sequelizeModel) => () => ({
     model: sequelizeModel.FundChannelFlows,
     required: false,
-    attributes: ['id', 'category', 'orderNo', 'from', 'to', 'amount'],
+    attributes: ['id', 'category', 'orderNo', 'from', 'to', 'amount', 'createdAt'],
 });

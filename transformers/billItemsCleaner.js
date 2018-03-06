@@ -1,10 +1,10 @@
 'use strict';
 
 const fp = require('lodash/fp');
-const {omitNulls, omitSingleNulls} = require('../services/v1.0/common');
+const {omitSingleNulls} = require('../services/v1.0/common');
 
 const clearUpFields = bill => {
-    const billItems = omitNulls(bill.billItems);
+    const billItems = fp.map(omitSingleNulls)(bill.billItems);
     return fp.defaults(omitSingleNulls(bill))({billItems});
 };
 

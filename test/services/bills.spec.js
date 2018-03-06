@@ -182,6 +182,7 @@ describe('Bills', function() {
                         'from',
                         'to',
                         'amount',
+                        'createdAt'
                     ],
                     model: FundChannelFlows,
                     required: false,

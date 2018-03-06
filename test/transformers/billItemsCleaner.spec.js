@@ -10,7 +10,7 @@ describe('Bill generator', () => {
     it('should omit null fields even in billItems array', () => {
         const origin = {dead: null, survive: 1, keepMe: 0};
         const after = {survive: 1, keepMe: 0};
-        clearUpFields({billItems: [{dataValues: origin}, {dataValues: origin}]})
+        clearUpFields({billItems: [origin, origin]})
             .should.eql({billItems: [after, after]});
     });
 

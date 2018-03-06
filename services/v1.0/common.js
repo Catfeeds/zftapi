@@ -549,6 +549,7 @@ exports.autoApportionment = async(projectId, houseId)=>{
 };
 
 exports.formatMysqlDateTime = seconds => moment(seconds * 1000).format('YYYY-MM-DD HH:mm:ss');
+exports.mysqlDateTimeToStamp = time => moment(time).unix();
 
 exports.moveFundChannelToRoot = result => {
     const requireServiceCharge= fp.concat('serviceCharge');
