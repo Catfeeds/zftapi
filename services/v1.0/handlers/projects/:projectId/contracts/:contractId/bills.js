@@ -7,9 +7,14 @@ const fp = require('lodash/fp');
 const {clearUpFields: removeNullValues} = require(
     '../../../../../../../transformers/billItemsCleaner');
 const {fundFlowConnection} = require('../../../../../models');
-
-const translate = bills => fp.map(bill => removeNullValues(bill.dataValues))(
-    bills);
+const {mysqlDateTimeToStamp} = require('../../../../../common');
+const innerValues = model => model.toJSON();
+const translate = bills => {
+    const timeConvert = payment => fp.defaults(payment)({createdAt: mysqlDateTimeToStamp(payment.createdAt)});
+    const fundChange = bill => fp.defaults({payments: fp.map(timeConvert)(bill.fundChannelFlows)})(bill);
+    const flow = fp.pipe(innerValues, removeNullValues, fundChange, fp.omit('fundChannelFlows'));
+    return fp.map(flow)(bills);
+};
 
 module.exports = {
     get: function getContractBills(req, res) {
