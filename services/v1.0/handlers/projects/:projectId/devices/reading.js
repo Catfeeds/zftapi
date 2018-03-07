@@ -167,7 +167,7 @@ module.exports = {
             ]);
             try {
                 const getIncludeRoom = ()=>{
-                    return roomId ? fp.assign(
+                    return !houseId ? fp.assign(
                         {
                             model: MySQL.Rooms
                             , as: 'rooms'

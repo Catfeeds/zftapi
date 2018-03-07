@@ -1,5 +1,6 @@
 FROM node:8.9.4-alpine
 
+RUN apk update && apk add tzdata
 RUN npm i -g pm2
 RUN mkdir /app
 
