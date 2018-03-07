@@ -1,6 +1,7 @@
 FROM node:8.9.4-alpine
 
 RUN apk update && apk add tzdata
+RUN cp /usr/share/zoneinfo/Asia/Shanghai  /etc/localtime
 RUN npm i -g pm2
 RUN mkdir /app
 
