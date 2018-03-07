@@ -355,7 +355,7 @@ module.exports = {
                                     const endScale = common.scaleDown(fp.getOr(0)('price.item.scale')(detail));
                                     return fp.extendAll([
                                         {
-                                            statDate: startDate > timeFrom ? startDate:timeFrom,
+                                            startDate: startDate > timeFrom ? startDate:timeFrom,
                                             endDate: endDate > timeTo ? timeTo:endDate,
                                             device:{
                                                 deviceId: fp.getOr('')('device.deviceId')(detail)

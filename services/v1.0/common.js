@@ -113,7 +113,7 @@ exports.scaleUp = (v) => {
     return v * 10000;
 };
 exports.scaleDown = (v) => {
-    return v / 10000;
+    return Number( (v / 10000).toFixed(4) );
 };
 
 exports.singleRoomTranslate = model => {
