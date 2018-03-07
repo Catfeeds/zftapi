@@ -350,8 +350,8 @@ module.exports = {
                                     const startDate = fp.getOr(0)('date[0]')(detail);
                                     const endDate = fp.getOr(0)('date[1]')(detail);
 
-                                    const usage = parseInt( fp.getOr(0)('price.item.usage')(detail));
-                                    const startScale = common.scaleDown(fp.getOr(0)('price.item.scale')(detail)-usage);
+                                    const usage = common.scaleDown(fp.getOr(0)('price.item.usage')(detail));
+                                    const startScale = common.scaleDown(fp.getOr(0)('price.item.scale')(detail))-usage;
                                     const endScale = common.scaleDown(fp.getOr(0)('price.item.scale')(detail));
                                     return fp.extendAll([
                                         {
