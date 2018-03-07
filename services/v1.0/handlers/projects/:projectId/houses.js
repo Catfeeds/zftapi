@@ -747,23 +747,39 @@ module.exports = {
 
             let t;
             try{
-                const location = await MySQL.GeoLocation.findOne({
-                    where:{
-                        code: body.location.code
-                    },
-                    attributes:['id']
-                });
-
                 t = await MySQL.Sequelize.transaction({autocommit: false});
-                if(!location){
-                    // await SaveHouses(params, body, location.id);
-                    const newLocation = await common.AsyncUpsertGeoLocation(body.location, t);
-                    body.location = MySQL.Plain( newLocation[0] );
-                }
-                else{
-                    body.location.id = location.id;
-                }
 
+                const createLocation = async()=>{
+                    if(body.location.code){
+                        const location = await MySQL.GeoLocation.findOne({
+                            where:{
+                                code: body.location.code
+                            },
+                            attributes:['id']
+                        });
+
+
+                        if(!location){
+                            // await SaveHouses(params, body, location.id);
+                            const newLocation = await common.AsyncUpsertGeoLocation(body.location, t);
+                            body.location = MySQL.Plain( newLocation[0] );
+                        }
+                        else{
+                            body.location.id = location.id;
+                        }
+                    }
+                    else{
+                        const newLocation = await MySQL.GeoLocation.create(exports.assignNewId({
+
+                            divisionId: body.location.divisionId
+                            , name: body.location.name
+                        }), {transaction: t});
+                        body.location = newLocation;
+                    }
+                };
+
+
+                await createLocation();
 
                 let ack;
                 switch(houseFormat){
