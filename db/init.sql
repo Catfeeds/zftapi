@@ -164,7 +164,7 @@ create table if not exists layouts
   `bathRoom` int(11) NOT NULL DEFAULT 0,
   `orientation` varchar(2) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT 'N',
   `roomArea` int(11) NOT NULL DEFAULT 0,
-  `createdAt` bigint(20) UNSIGNED NOT NULL DEFAULT 0,
+  `createdAt` bigint(20) UNSIGNED NOT NULL DEFAUL		T 0,
   `deleteAt` bigint(20) UNSIGNED NOT NULL DEFAULT 0,
   `remark` varchar(255) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '',
   PRIMARY KEY (`id`) USING BTREE
@@ -339,6 +339,7 @@ create table if not exists `devices`
 	`type` varchar(16) NOT NULL,
 	`freq` int(11) NOT NULL,
 	`driver` varchar(128) NOT NULL DEFAULT '',
+	`memo` varchar(255) NOT NULL DEFAULT '',
 	`status` text NULL,
 	`createdAt` datetime(0) NULL,
 	`updatedAt` datetime(0) NULL,

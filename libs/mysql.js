@@ -1501,6 +1501,11 @@ function SequelizeDefine()
             allowNull: false,
             defaultValue: ''
         },
+        memo:{
+            type: Sequelize.STRING(255),
+            allowNull: false,
+            defaultValue: ''
+        },
         status:{
             type: Sequelize.TEXT,
             get: function(){

@@ -2,6 +2,7 @@
 /**
  * Operations on /houses
  */
+const fp = require('lodash/fp');
 
 module.exports = {
     delete: async(req, res)=>{
@@ -42,4 +43,27 @@ module.exports = {
             }
         );
     },
+    put: async(req, res)=>{
+        const projectId = req.params.projectId;
+        const deviceId = req.params.deviceId;
+
+        const body = fp.pick('memo')(req.body);
+
+        MySQL.Devices.update(
+            body
+            , {
+                where:{
+                    deviceId: deviceId,
+                    projectId: projectId
+                }
+            }
+        ).then(
+            ()=>{
+                res.send(204);
+            },
+            err=>{
+                log.error(err, projectId, deviceId, body);
+            }
+        );
+    }
 };
