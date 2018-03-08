@@ -66,17 +66,8 @@ const translate = (models, pagingInfo) => {
 
 const sqlDateTime = stamp => moment.unix(stamp).format('YYYY-MM-DD HH:mm:ss');
 
-const  groupByLocationId = (from, to, locationCondition) => {
-    return 'select\n' +
-        '  id, name,\n' +
-        '  sum(rentPart) as rent,\n' +
-        '  sum(rentPartFee) as rentFee,\n' +
-        '  sum(topupPart) as topup,\n' +
-        '  sum(topupFeePart) as topupFee,\n' +
-        '  sum(finalPayPart) as finalPay, \n' +
-        '  sum(finalReceivePart) as finalReceive, \n' +
-        '  (select sum(rentPart) - sum(rentPartFee) + sum(topupPart) - sum(topupFeePart) - sum(finalPayPart) + sum(finalReceivePart)) as balance ' +
-        ' from (select l.id, l.name,\n' +
+const groupByLocationId = (from, to, locationCondition) => {
+    const billPaymentFlow = 'select l.id, l.name,\n' +
         '  sum(case\n' +
         '      when f.category=\'rent\' then f.amount else 0\n' +
         '      end) as rentPart,\n' +
@@ -113,9 +104,9 @@ const  groupByLocationId = (from, to, locationCondition) => {
         '  and h.buildingId = buildings.id\n' +
         '  and buildings.locationId = l.id\n' +
         locationCondition +
-        'GROUP BY l.id, l.name\n' +
-        ' UNION\n' +
-        'select l.id, l.name,\n' +
+        'GROUP BY l.id, l.name\n';
+
+    const topupFlow = 'select l.id, l.name,\n' +
         '  0 as rentPart,\n' +
         '  0 as rentPartFee,\n' +
         '  sum(case\n' +
@@ -146,7 +137,100 @@ const  groupByLocationId = (from, to, locationCondition) => {
         '  and h.buildingId = buildings.id\n' +
         '  and buildings.locationId = l.id\n' +
         locationCondition +
-        'GROUP BY l.id, l.name\n' +
+        'GROUP BY l.id, l.name\n';
+
+    return 'select\n' +
+        '  id, name,\n' +
+        '  sum(rentPart) as rent,\n' +
+        '  sum(rentPartFee) as rentFee,\n' +
+        '  sum(topupPart) as topup,\n' +
+        '  sum(topupFeePart) as topupFee,\n' +
+        '  sum(finalPayPart) as finalPay, \n' +
+        '  sum(finalReceivePart) as finalReceive, \n' +
+        '  (select sum(rentPart) - sum(rentPartFee) + sum(topupPart) - sum(topupFeePart) - sum(finalPayPart) + sum(finalReceivePart)) as balance ' +
+        ' from (' +
+        billPaymentFlow +
+        ' UNION\n' +
+        topupFlow +
+        '     ) as f2\n' +
+        'GROUP BY id, name';
+};
+
+const groupMonthByLocationId = (year, from, to, locationCondition) => {
+    const billPaymentFlow = 'select l.id, l.name,\n' +
+    '  sum(case\n' +
+    '      when f.category=\'rent\' then f.amount else 0\n' +
+    '      end) as m1p,\n' +
+    '  sum(case\n' +
+    '      when f.category=\'rent\' then fee else 0\n' +
+    '      end) as m2p\n' +
+    'from\n' +
+    '  billpayment b,\n' +
+    '  bills b2,\n' +
+    '  flows f,\n' +
+    '  contracts c,\n' +
+    '  houses h,\n' +
+    '  rooms r,\n' +
+    '  location l,\n' +
+    '  buildings\n' +
+    'where\n' +
+    '  f.id = b.flowId\n' +
+    (from && to ?
+        '  and f.createdAt > :from  and f.createdAt < :to \n' :
+        '') +
+    '  and b2.id = b.billId\n' +
+    '  and c.id = b2.contractId\n' +
+    '  and b.projectId = :projectId \n' +
+    '  and c.roomId = r.id\n' +
+    '  and r.houseId = h.id\n' +
+    '  and h.buildingId = buildings.id\n' +
+    '  and buildings.locationId = l.id\n' +
+    locationCondition +
+    'GROUP BY l.id, l.name\n';
+
+    const topupFlow = 'select l.id, l.name,\n' +
+        '  0 as m1p,\n' +
+        '  0 as m2p\n' +
+        'from\n' +
+        '  topup t,\n' +
+        '  flows f,\n' +
+        '  contracts c,\n' +
+        '  houses h,\n' +
+        '  rooms r,\n' +
+        '  location l,\n' +
+        '  buildings\n' +
+        'where\n' +
+        '  f.id = t.flowId\n' +
+        (from && to ?
+            '  and f.createdAt > :from  and f.createdAt < :to \n' :
+            '') +
+        '  and c.id = t.contractId\n' +
+        '  and t.projectId = :projectId \n' +
+        '  and c.roomId = r.id\n' +
+        '  and r.houseId = h.id\n' +
+        '  and h.buildingId = buildings.id\n' +
+        '  and buildings.locationId = l.id\n' +
+        locationCondition +
+        'GROUP BY l.id, l.name\n';
+
+    return 'select\n' +
+        '  id, name,\n' +
+        `  sum(m1p) as '${year}-01',\n` +
+        `  sum(m2p) as '${year}-02',\n` +
+        `  sum(0) as '${year}-03',\n` +
+        `  sum(0) as '${year}-04',\n` +
+        `  sum(0) as '${year}-05',\n` +
+        `  sum(0) as '${year}-06',\n` +
+        `  sum(0) as '${year}-07',\n` +
+        `  sum(0) as '${year}-08',\n` +
+        `  sum(0) as '${year}-09',\n` +
+        `  sum(0) as '${year}-10',\n` +
+        `  sum(0) as '${year}-11',\n` +
+        `  sum(0) as '${year}-12' \n` +
+        ' from (' +
+        billPaymentFlow +
+        ' UNION\n' +
+        topupFlow +
         '     ) as f2\n' +
         'GROUP BY id, name';
 };
@@ -252,6 +336,7 @@ module.exports = {
         const from = query.from;
         const to = query.to;
         const view = query.view;
+        const year = query.year;
 
         if (to < from) {
             return res.send(400, ErrorCode.ack(ErrorCode.PARAMETERERROR,
@@ -280,10 +365,41 @@ module.exports = {
                         {error: err.message})));
         };
 
+        const groupByMonth = async (req, res) => {
+            const sequelize = MySQL.Sequelize;
+            const locationCondition = (locationIds ? '  and l.id in (:locationIds)' : '');
+            const sql = housesInLocation ? housesGroupByLocationId(from, to, ` and buildings.locationId = ${housesInLocation}`)
+                : groupMonthByLocationId(year, from, to, locationCondition);
+            const replacements = fp.defaults({projectId, locationIds})(
+                from && to ?
+                    {
+                        from: sqlDateTime(from),
+                        to: sqlDateTime(to),
+                    } :
+                    {});
+            return sequelize.query(sql, {
+                replacements,
+                type: sequelize.QueryTypes.SELECT,
+            }).
+                then(flows => res.send(flows)).
+                catch(err => res.send(500,
+                    ErrorCode.ack(ErrorCode.DATABASEEXEC,
+                        {error: err.message})));
+        };
+
 
 
         if(view === 'category') {
             return groupByCategory(req, res);
+        }
+
+        if (!year && view === 'month') {
+            return res.send(400, ErrorCode.ack(ErrorCode.PARAMETERERROR,
+                {error: 'please provide a valid year parameter, eg. year=2018'}));
+        }
+
+        if(year && view === 'month') {
+            return groupByMonth(req, res);
         }
 
         const pagingInfo = Util.PagingInfo(query.index, query.size, true);
