@@ -120,6 +120,7 @@ module.exports = {
             const projectId = req.params.projectId;
             const roomId = query.roomId;
             const houseId = query.houseId;
+            const q = query.q;
 
             // const deviceType = req.query.deviceType;
             if (!Util.ParameterCheck(query, ['houseFormat', 'startDate', 'endDate'])) {
@@ -164,6 +165,19 @@ module.exports = {
                 }
                 , districtLocation()
                 , houseId ? { id: houseId } : {}
+                , q ? {
+                    $or: [
+                        {'$building.location.name$': {$regexp: q}}
+                        , {roomNumber: {$regexp: q}}
+                        , {'$rooms.contracts.user.name$': {$regexp: q}}
+                        , {
+                            $or:[
+                                {'$rooms.devices.deviceId$': {$regexp: q}}
+                                , {'$devices.deviceId$': {$regexp: q}}
+                            ]
+                        }
+                    ]
+                } : {}
             ]);
             try {
                 const getIncludeRoom = ()=>{
@@ -255,7 +269,10 @@ module.exports = {
                         return rooms;
                     }
                     else {
-                        return fp.flatten([plain, rooms]);
+                        return fp.flatten(fp.union(
+                            !q || house.devices.length ? house : []
+                            , rooms
+                        ));
                     }
 
                 })(houses));
@@ -350,9 +367,10 @@ module.exports = {
                                     const startDate = fp.getOr(0)('date[0]')(detail);
                                     const endDate = fp.getOr(0)('date[1]')(detail);
 
+                                    const scaleUpUsage = fp.getOr(0)('price.item.usage')(detail);
+                                    const startScale = common.scaleDown(fp.getOr(0)('price.item.scale')(detail) - scaleUpUsage);
+                                    const endScale = common.scaleDown(fp.getOr(0)('price.item.scale')(detail) - scaleUpUsage);
                                     const usage = common.scaleDown(fp.getOr(0)('price.item.usage')(detail));
-                                    const startScale = common.scaleDown(fp.getOr(0)('price.item.scale')(detail))-usage;
-                                    const endScale = common.scaleDown(fp.getOr(0)('price.item.scale')(detail));
                                     return fp.extendAll([
                                         {
                                             startDate: startDate > timeFrom ? startDate:timeFrom,
