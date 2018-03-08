@@ -1,6 +1,6 @@
 FROM node:8.9.1-slim
 
-RUN apk update && apk add tzdata
+RUN apt-get update && apt-get install tzdata
 RUN mkdir /src
 
 WORKDIR /src
