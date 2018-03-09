@@ -61,6 +61,7 @@ var ErrorCodeList = {
     'BILLNOTEXISTS':        21000005,   //账单不存在
     'ROOMNOTMATCH':         21000006,   //房间不存在
     'HOUSENOTEXISTS':       21000007,   //房屋不存在
+    'HOUSECODEEXISTS':      21000008,   //房屋编码已存在
 
     'ORDERTYPENOTALLOWED':  30000001,  //业务类型不允许
     'ORDERNOTEXISTS':       30000002,  //账单不存在
@@ -149,6 +150,7 @@ var ErrorMessageList = {
     'BILLNOTEXISTS': '账单不存在',
     'ROOMNOTMATCH': '房间不存在',
     'HOUSENOTEXISTS': '房屋不存在',
+    'HOUSECODEEXISTS': '房屋编码已存在',
 
     'DEVICENOTEXISTS': '仪表未找到',
     'SERIALCONFNOTEXISTS': '仪表对应的串口参数未配置',
