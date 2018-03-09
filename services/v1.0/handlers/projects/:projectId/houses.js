@@ -676,6 +676,9 @@ module.exports = {
         (async()=>{
             const params = req.params;
             const body = req.body;
+
+            const projectId = params.projectId;
+
             if(!Util.ParameterCheck(body,
                 ['houseFormat']
             )){
@@ -701,11 +704,12 @@ module.exports = {
             }
 
 
-            const isExists = async()=>{
+            const isRoomNumberExists = async()=>{
                 try {
                     const count = await MySQL.Houses.count({
                         where: {
-                            roomNumber: body.roomNumber
+                            roomNumber: body.roomNumber,
+                            projectId: projectId,
                         },
                         include: [
                             {
@@ -735,15 +739,35 @@ module.exports = {
                     log.error(e);
                 }
             };
+            const isCodeExists = async(code)=>{
+                try{
+                    const count = await MySQL.Houses.count({
+                        where:{
+                            projectId: projectId,
+                            code: code
+                        }
+                    });
+                    return count > 0;
+                }
+                catch (e){
+                    log.error(e);
+                    return true;
+                }
+            };
 
             const houseFormat = body.houseFormat;
             if (fp.includes(houseFormat)(
                 [Typedef.HouseFormat.SOLE, Typedef.HouseFormat.SHARE])) {
-                const houseCount = await isExists();
+                const houseCount = await isRoomNumberExists();
                 if (houseCount) {
                     return res.send(403, ErrorCode.ack(ErrorCode.HOUSEEXISTS));
                 }
             }
+
+            if(await isCodeExists(body.code)){
+                return res.send(403, ErrorCode.ack(ErrorCode.HOUSECODEEXISTS));
+            }
+
 
             let t;
             try{
