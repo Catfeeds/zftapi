@@ -492,6 +492,20 @@ create table if not exists `houseApportionment`
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB;
 
+create table if not exists `withDraw`
+(
+	`id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+	`projectId` bigint(20) UNSIGNED NOT NULL,
+	`amount` bigint(20) NOT NULL,
+	`operator` bigint(20) UNSIGNED NOT NULL,
+	`auditor` bigint(20) UNSIGNED NOT NULL,
+	`status` varchar(16) NULL DEFAULT 'PENDING',
+	`createdAt` datetime(0) NULL,
+	`updatedAt` datetime(0) NULL,
+	`deletedAt` datetime(0) NULL DEFAULT NULL,
+	PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB AUTO_INCREMENT = 1 ROW_FORMAT = Dynamic;
+
 #project demo record
 INSERT INTO `zft`.`projects` (`pid`, `externalId`) VALUES ('100', '5938bb4f4d3684627bcabd7f');
 INSERT INTO `zft`.`auth` (`projectId`, `username`, `password`, createdAt, updatedAt)

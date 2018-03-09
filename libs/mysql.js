@@ -1800,6 +1800,41 @@ function SequelizeDefine()
         freezeTableName: true
     });
     exports.HouseApportionment.belongsTo(Rooms, {as:'room', foreignKey: 'roomId'});
+
+    const withDraw = sequelizeInstance.define('withDraw', {
+        id:{
+            type: Sequelize.BIGINT.UNSIGNED,
+            primaryKey: true,
+            autoIncrement: true
+        },
+        projectId: {
+            type: Sequelize.BIGINT.UNSIGNED,  //项目ID
+            allowNull: false,
+        },
+        amount: {
+            type: Sequelize.BIGINT,
+            allowNull: false
+        },
+        operator: {
+            type: Sequelize.BIGINT.UNSIGNED,
+            allowNull: false
+        },
+        auditor: {
+            type: Sequelize.BIGINT.UNSIGNED,
+            allowNull: false,
+            defaultValue: 0
+        },
+        status: {
+            type: Sequelize.STRING(16),
+            defaultValue: 'PENDING'
+        }
+    },{
+        timestamps: true,
+        paranoid: true,
+        freezeTableName: true
+    });
+
+    exports.WithDraw = withDraw;
 }
 
 /*

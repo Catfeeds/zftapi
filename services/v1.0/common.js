@@ -108,6 +108,12 @@ exports.innerValues = fp.getOr({})('dataValues');
 exports.omitNulls = fp.map(item => fp.omitBy(fp.isNull)(exports.innerValues(item)));
 exports.assignFieldId = field => item => fp.defaults({[field]: SnowFlake.next()})(item);
 exports.assignNewId = item => exports.assignFieldId('id')(item);
+exports.translateBalance = (balance) => {
+    if( fp.isNull(balance) || fp.isNaN(balance) ){
+        return 0;
+    }
+    return balance;
+};
 
 exports.scaleUp = (v) => {
     return v * 10000;
