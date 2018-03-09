@@ -196,22 +196,25 @@ module.exports = {
                 const deviceIds = fp.map(device=>{return device.deviceId;})(houseDevices);
 
                 const nowTime = moment().unix();
+                const where = fp.extendAll(
+                    [
+                        {
+                            projectId: projectId,
+                            deviceId:fp.assign(
+                                {
+                                    $notIn: deviceIds
+                                }
+                                , q ? {$regexp: q} : {}
+                            )
+                        }
+                        , getQueryPower()
+                        , getQueryStatus()
+                    ]
+                );
                 const devices = await MySQL.Devices.findAndCountAll(
                     fp.assign(
                         {
-                            where: fp.extendAll(
-                                [
-                                    {
-                                        projectId: projectId,
-                                        deviceId:{$notIn: deviceIds}
-                                    }
-                                    , getQueryPower()
-                                    , getQueryStatus()
-                                    , q ? {
-                                        deviceId:{$regexp: q}
-                                    } : {}
-                                ]
-                            ),
+                            where: where,
                             include:[
                                 {
                                     model: MySQL.DevicesChannels,
