@@ -741,12 +741,13 @@ module.exports = {
             };
             const isCodeExists = async(code)=>{
                 try{
-                    return await MySQL.Houses.count({
+                    const count = await MySQL.Houses.count({
                         where:{
                             projectId: projectId,
                             code: code
                         }
-                    }) > 0;
+                    });
+                    return count > 0;
                 }
                 catch (e){
                     log.error(e);
@@ -763,7 +764,7 @@ module.exports = {
                 }
             }
 
-            if(isCodeExists(body.code)){
+            if(await isCodeExists(body.code)){
                 return res.send(403, ErrorCode.ack(ErrorCode.HOUSECODEEXISTS));
             }
 
