@@ -114,8 +114,7 @@ module.exports = {
             const sql = housesInLocation ?
                 housesGroupByLocationId(from, to,
                     ` and buildings.locationId = ${housesInLocation}`)
-                :
-                groupByLocationId(from, to, locationCondition);
+                : groupByLocationId(from, to, locationCondition);
             const replacements = fp.defaults({projectId, locationIds})(
                 from && to ?
                     {

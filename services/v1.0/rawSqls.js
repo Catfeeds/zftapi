@@ -125,7 +125,16 @@ const groupMonthByLocationId = (year, locationCondition) => {
 };
 
 const housesGroupByLocationId = (from, to, locationCondition) => {
-    return 'select id, \n' +
+    return 'select id,\n' +
+        '  sum(rentPart) as rent,\n' +
+        '  sum(rentPartFee) as rentFee,\n' +
+        '  sum(topupPart) as topup,\n' +
+        '  sum(topupFeePart) as topupFee,\n' +
+        '  sum(finalPayPart) as finalPay, \n' +
+        '  sum(finalReceivePart) as finalReceive, \n' +
+        '  (select sum(rentPart) - sum(rentPartFee) + sum(topupPart) - sum(topupFeePart) - sum(finalPayPart) + sum(finalReceivePart)) as balance ' +
+        ' from (' +
+        'select h.id,\n' +
         billPaymentSqlLogic(from && to ?
             '  and f.createdAt > :from  and f.createdAt < :to \n' :
             '', locationCondition) +
