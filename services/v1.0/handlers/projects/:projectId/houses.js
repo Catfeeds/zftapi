@@ -606,6 +606,7 @@ async function Gethouses(params, query) {
                 currentFloor: house.currentFloor,
                 rooms: rooms,
                 layout: house.layouts,
+                houseKeeper: house.houseKeeper,
                 devices: getDevices(house.devices),
                 prices: fp.map(fp.pick(['category', 'type', 'price']))(house.prices)
             };

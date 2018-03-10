@@ -35,6 +35,7 @@ describe('Houses', function() {
                                     currentFloor: 'currentFloor',
                                     layouts: 'layouts',
                                     houseFormat: 'SHARE',
+                                    houseKeeper: 0,
                                     building: {
                                         group: 'group',
                                         building: 'building',
@@ -64,6 +65,7 @@ describe('Houses', function() {
                         houseId: 'id',
                         layout: 'layouts',
                         location: 'location',
+                        houseKeeper: 0,
                         prices: [],
                         roomNumber: 'roomNumber',
                         rooms: [],
