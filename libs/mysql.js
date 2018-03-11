@@ -1044,6 +1044,11 @@ function SequelizeDefine()
             type: Sequelize.BIGINT,
             allowNull: false
         },
+        share: {
+            type: Sequelize.INTEGER,
+            allowNull: false,
+            defaultValue: 100
+        },
         usage: {
             type: Sequelize.BIGINT,
             allowNull: false
