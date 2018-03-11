@@ -9,7 +9,7 @@ const {
     '../../../common');
 
 const {
-    groupByLocationId, groupMonthByLocationId, housesGroupByLocationId
+    groupByLocationId, groupMonthByLocationId, housesGroupByLocationId,
 } = require(
     '../../../rawSqls');
 
@@ -72,11 +72,20 @@ const translate = (models, pagingInfo) => {
     };
 };
 
-const groupResultByMonth = (year) => (res) => {
+const groupLocationIdInMonths = (year, reduceCondition) => (res) => {
+    const itemMaps = fp.groupBy('id')(res);
     const allMonths = fp.map(
-        m => ({[`${year}-${fp.padCharsStart('0')(2)(m)}`]: []}))(
+        m => ({[`${year}-${fp.padCharsStart('0')(2)(m)}`]: 0}))(
         fp.range(1)(13));
-    return fp.defaults(fp.extendAll(allMonths))(fp.groupBy('month')(res));
+    const valueTransform = fp.pipe(fp.groupBy('month'),
+        fp.mapValues(reduceCondition),
+        fp.defaults(fp.extendAll(allMonths)));
+
+    return fp.map(entry => {
+        const firstLocation = fp.head(itemMaps[fp.head(entry)]);
+        return fp.defaults(fp.pick(['id', 'name'])(firstLocation))(
+            {months: fp.last(entry)});
+    })(fp.toPairs(fp.mapValues(valueTransform)(itemMaps)));
 };
 
 module.exports = {
@@ -134,6 +143,7 @@ module.exports = {
 
         const groupByMonth = async (req, res) => {
             const sequelize = MySQL.Sequelize;
+            const reduceCondition = fp.sumBy('balance');
             const locationCondition = (locationIds ?
                 '  and l.id in (:locationIds)' :
                 '');
@@ -149,7 +159,7 @@ module.exports = {
                 replacements,
                 type: sequelize.QueryTypes.SELECT,
             }).
-                then(groupResultByMonth(year)).
+                then(groupLocationIdInMonths(year, reduceCondition)).
                 then(flows => res.send(flows)).
                 catch(err => res.send(500,
                     ErrorCode.ack(ErrorCode.DATABASEEXEC,
@@ -160,7 +170,7 @@ module.exports = {
             return groupByCategory(req, res);
         }
 
-        if (!year && view === 'month') {
+        if (view === 'month' && !year) {
             return res.send(400, ErrorCode.ack(ErrorCode.PARAMETERERROR,
                 {error: 'please provide a valid year parameter, eg. year=2018'}));
         }
