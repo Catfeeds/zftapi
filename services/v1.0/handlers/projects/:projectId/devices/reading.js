@@ -193,15 +193,9 @@ module.exports = {
                                     required: false,
                                     where:{
                                         $or:[
-                                            {startDate:{$lte: timeTo}}
-                                            ,{
-                                                endDate:{
-                                                    $or:[
-                                                        {$gte: timeFrom},
-                                                        {$eq: 0}
-                                                    ]
-                                                }
-                                            }
+                                            {startDate: {$lte: timeFrom}, endDate: {$gte: timeFrom}},
+                                            {startDate: {$lte: timeTo}, endDate: {$gte: timeTo}},
+                                            {startDate: {$gte: timeFrom}, endDate: {$lte: timeTo}},
                                         ]
                                     }
                                 },
