@@ -568,6 +568,7 @@ async function Gethouses(params, query) {
                             to: contract.to,
                             userId: contract.user.id,
                             name: contract.user.name,
+                            contractNumber: contract.contractNumber,
                             rent: fp.get('strategy.freq.rent')(contract)
                         };
                     }
