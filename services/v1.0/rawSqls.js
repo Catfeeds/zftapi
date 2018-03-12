@@ -62,7 +62,7 @@ const topupSqlLogic = (
     '  and h.buildingId = buildings.id\n' +
     '  and buildings.locationId = l.id\n' + timeCondition + locationCondition;
 
-const groupByLocationId = (from, to, locationCondition) => {
+const groupByLocationIds = (from, to, locationCondition) => {
     const billPaymentFlow = 'select l.id, l.name,\n' +
         billPaymentSqlLogic(
             (from && to ?
@@ -93,7 +93,7 @@ const groupByLocationId = (from, to, locationCondition) => {
         'GROUP BY id, name';
 };
 
-const groupMonthByLocationId = (year, locationCondition) => {
+const groupMonthByLocationIds = (year, locationCondition) => {
     const topupFlow = 'select l.id, l.name, ' +
         '  DATE_FORMAT(f.createdAt, \'%Y-%m\') as month,\n' +
         topupSqlLogic('  and f.createdAt > :from  and f.createdAt < :to \n',
@@ -124,7 +124,7 @@ const groupMonthByLocationId = (year, locationCondition) => {
         'GROUP BY id, name, month';
 };
 
-const housesGroupByLocationId = (from, to, locationCondition) => {
+const groupHousesByLocationId = (from, to, locationCondition) => {
     return 'select id,\n' +
         '  sum(rentPart) as rent,\n' +
         '  sum(rentPartFee) as rentFee,\n' +
@@ -149,8 +149,36 @@ const housesGroupByLocationId = (from, to, locationCondition) => {
         ' GROUP BY id';
 };
 
+const groupHousesMonthlyByLocationId = locationCondition => {
+    return 'select id,\n' +
+        '  month,' +
+        '  sum(rentPart) as rent,\n' +
+        '  sum(rentPartFee) as rentFee,\n' +
+        '  sum(topupPart) as topup,\n' +
+        '  sum(topupFeePart) as topupFee,\n' +
+        '  sum(finalPayPart) as finalPay, \n' +
+        '  sum(finalReceivePart) as finalReceive, \n' +
+        '  (select sum(rentPart) - sum(rentPartFee) + sum(topupPart) - sum(topupFeePart) - sum(finalPayPart) + sum(finalReceivePart)) as balance ' +
+        ' from (' +
+        'select h.id,\n' +
+        '  DATE_FORMAT(f.createdAt, \'%Y-%m\') month,' +
+        billPaymentSqlLogic(
+            '  and f.createdAt > :from  and f.createdAt < :to \n',
+            locationCondition) +
+        ' GROUP BY h.id, month\n' +
+        ' UNION\n' +
+        'select h.id,\n' +
+        '  DATE_FORMAT(f.createdAt, \'%Y-%m\') month,' +
+        topupSqlLogic('  and f.createdAt > :from  and f.createdAt < :to \n',
+            locationCondition) +
+        ' GROUP BY h.id, DATE_FORMAT(createdAt, \'%Y-%m\')\n' +
+        '     ) as f2\n' +
+        ' GROUP BY id, month';
+};
+
 module.exports = {
-    groupMonthByLocationId,
-    housesGroupByLocationId,
-    groupByLocationId
+    groupHousesByLocationId,
+    groupByLocationIds,
+    groupMonthByLocationIds,
+    groupHousesMonthlyByLocationId,
 };
