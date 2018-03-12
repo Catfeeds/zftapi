@@ -687,7 +687,7 @@ module.exports = {
                 return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED, {error: 'missing query params houseFormat'}));
             }
 
-            if(!Util.ParameterCheck(body.location, ['code', 'divisionId', 'name', 'district', 'address', 'latitude', 'longitude'])){
+            if(!Util.ParameterCheck(body.location, ['divisionId', 'name'])){
                 return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED, {error: 'please check fields in query params location', location: body.location}));
             }
 
