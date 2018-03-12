@@ -46,16 +46,19 @@ const formatFundChannelFlows = fundFlows => item => fp.defaults(item)({
 const formatOperator = operator => item => fp.defaults(item)(
     {operator: fp.get(operator)(item)});
 
+const inheritRemark = item => fp.defaults(item)(
+    {remark: fp.get('remark')(item)});
+
 const translate = (models, pagingInfo) => {
     const singleBillPayment = fp.pipe(innerValues, omitSingleNulls,
         formatRoom('bill.contract.room'),
         formatOperator('auth'), formatUser('bill.contract.user'),
         formatContract('bill.contract'), formatBillItems('bill.billItems'),
-        formatFundChannelFlows('bill.fundChannelFlows'), omitFields);
+        formatFundChannelFlows('bill.fundChannelFlows'), inheritRemark, omitFields);
     const singleTopUp = fp.pipe(innerValues, omitSingleNulls,
         formatRoom('contract.room'),
         formatUser('contract.user'), formatContract('contract'),
-        formatOperator('operatorInfo'), formatTime('createdAt'), omitFields);
+        formatOperator('operatorInfo'), formatTime('createdAt'), inheritRemark, omitFields);
 
     const single = (item) => fp.pipe(omitSingleNulls, omitFields)(
         fp.defaults(

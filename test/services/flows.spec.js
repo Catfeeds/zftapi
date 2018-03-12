@@ -270,7 +270,7 @@ describe('Flows', function() {
                                             'fundChannelId': 3,
                                             'operator': 1,
                                             'paidAt': 1516699996,
-                                            'remark': '',
+                                            'remark': 'payment is good',
                                             'status': 'pending',
                                             'createdAt': '2018-01-23T09:33:17.000Z',
                                             'updatedAt': '2018-01-23T09:33:17.000Z',
@@ -390,7 +390,7 @@ describe('Flows', function() {
                     },
                     'paidAt': 1516699996,
                     'projectId': 100,
-                    'remark': '',
+                    'remark': 'payment is good',
                     room: {
                         'building': '一幢',
                         'group': '某',
@@ -458,6 +458,7 @@ describe('Flows', function() {
                                             'createdAt': '2018-01-24T03:06:08.000Z',
                                             'updatedAt': '2018-01-24T03:06:08.000Z',
                                             'deletedAt': null,
+                                            'remark': 'topup is good',
                                             contract: {
                                                 user: {
                                                     'id': 1,
@@ -568,12 +569,13 @@ describe('Flows', function() {
                         'status': 'IDLE',
                         'unit': '1单元',
                     },
-                    'user': {
+                    user: {
                         'accountName': 'f1',
                         'name': 'www',
                         'id': 1,
                         'mobile': '',
                     },
+                    remark: 'topup is good'
                 });
             });
         });
