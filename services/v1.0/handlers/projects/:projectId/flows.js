@@ -9,7 +9,8 @@ const {
     '../../../common');
 
 const {
-    groupByLocationId, groupMonthByLocationId, housesGroupByLocationId,
+    groupByLocationIds, groupMonthByLocationIds, groupHousesByLocationId,
+    groupHousesMonthlyByLocationId,
 } = require(
     '../../../rawSqls');
 
@@ -74,8 +75,9 @@ const translate = (models, pagingInfo) => {
 
 const groupLocationIdInMonths = (year, reduceCondition) => (res) => {
     const itemMaps = fp.groupBy('id')(res);
+    console.log(itemMaps);
     const allMonths = fp.map(
-        m => ({[`${year}-${fp.padCharsStart('0')(2)(m)}`]: 0}))(
+        m => ({[`${year}-${fp.padCharsStart('0')(2)(m)}`]: '-'}))(
         fp.range(1)(13));
     const valueTransform = fp.pipe(fp.groupBy('month'),
         fp.mapValues(reduceCondition),
@@ -121,10 +123,13 @@ module.exports = {
                 '  and l.id in (:locationIds)' :
                 '');
             const sql = housesInLocation ?
-                housesGroupByLocationId(from, to,
+                groupHousesByLocationId(from, to,
                     ` and buildings.locationId = ${housesInLocation}`)
-                : groupByLocationId(from, to, locationCondition);
-            const replacements = fp.defaults({projectId, locationIds})(
+                : groupByLocationIds(from, to, locationCondition);
+            const replacements = fp.defaults({
+                projectId,
+                locationIds: fp.split(',')(locationIds),
+            })(
                 from && to ?
                     {
                         from: formatMysqlDateTime(from),
@@ -145,13 +150,16 @@ module.exports = {
             const sequelize = MySQL.Sequelize;
             const reduceCondition = fp.sumBy('balance');
             const locationCondition = (locationIds ?
-                '  and l.id in (:locationIds)' :
+                '  and l.id in (:locationIds) ' :
                 '');
             const sql = housesInLocation ?
-                housesGroupByLocationId(from, to,
+                groupHousesMonthlyByLocationId(
                     ` and buildings.locationId = ${housesInLocation}`)
-                : groupMonthByLocationId(year, locationCondition);
-            const replacements = fp.defaults({projectId, locationIds})({
+                : groupMonthByLocationIds(year, locationCondition);
+            const replacements = fp.defaults({
+                projectId,
+                locationIds: fp.split(',')(locationIds),
+            })({
                 from: formatMysqlDateTime(moment(`${year}-01-01`).unix()),
                 to: formatMysqlDateTime(moment(`${year}-12-31`).unix()),
             });

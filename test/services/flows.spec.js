@@ -678,7 +678,7 @@ describe('Flows', function() {
                 ;
                 option.should.be.eql({
                     replacements: {
-                        locationIds: undefined,
+                        locationIds: [''],
                         projectId: 100,
                     }, type: 'SELECT',
                 });
@@ -737,7 +737,7 @@ describe('Flows', function() {
                 ;
                 option.should.be.eql({
                     replacements: {
-                        locationIds: undefined,
+                        locationIds: [''],
                         projectId: 100,
                     }, type: 'SELECT',
                 });
