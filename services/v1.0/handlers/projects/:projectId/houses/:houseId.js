@@ -45,6 +45,7 @@ module.exports = {
                     {
                         model: MySQL.HouseDevicePrice,
                         as: 'prices',
+                        required: false,
                         where:{
                             endDate: 0
                         },
