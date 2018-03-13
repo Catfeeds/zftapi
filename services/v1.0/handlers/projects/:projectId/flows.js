@@ -4,7 +4,7 @@ const fp = require('lodash/fp');
 const moment = require('moment');
 const {
     innerValues, omitSingleNulls, formatMysqlDateTime,
-    includeContracts, singleRoomTranslate,
+    includeContracts, singleRoomTranslate, districtLocation,
 } = require(
     '../../../common');
 
@@ -56,11 +56,13 @@ const translate = (models, pagingInfo) => {
         formatRoom('bill.contract.room'),
         formatOperator('auth'), formatUser('bill.contract.user'),
         formatContract('bill.contract'), formatBillItems('bill.billItems'),
-        formatFundChannelFlows('bill.fundChannelFlows'), inheritRemark, omitFields);
+        formatFundChannelFlows('bill.fundChannelFlows'), inheritRemark,
+        omitFields);
     const singleTopUp = fp.pipe(innerValues, omitSingleNulls,
         formatRoom('contract.room'),
         formatUser('contract.user'), formatContract('contract'),
-        formatOperator('operatorInfo'), formatTime('createdAt'), inheritRemark, omitFields);
+        formatOperator('operatorInfo'), formatTime('createdAt'), inheritRemark,
+        omitFields);
 
     const single = (item) => fp.pipe(omitSingleNulls, omitFields)(
         fp.defaults(
@@ -117,7 +119,6 @@ module.exports = {
         const view = query.view;
         const year = query.year;
 
-
         if (to < from) {
             return res.send(400, ErrorCode.ack(ErrorCode.PARAMETERERROR,
                 {error: 'please provide valid from / to timestamp.'}));
@@ -125,15 +126,20 @@ module.exports = {
 
         const locationCondition = locationIds ?
             '  and l.id in (:locationIds) ' : '';
-        const districtCondition = districtId ? generateDivisionCondition(districtId) : '';
-        const houseFormatCondition = houseFormat ? ' and h.houseFormat=:houseFormat ' : '';
+        const districtCondition = districtId ?
+            generateDivisionCondition(districtId) :
+            '';
+        const houseFormatCondition = houseFormat ?
+            ' and h.houseFormat=:houseFormat ' :
+            '';
 
         const groupByCategory = async (req, res) => {
             const sequelize = MySQL.Sequelize;
             const sql = housesInLocation ?
                 groupHousesByLocationId(from, to,
                     ` and buildings.locationId = ${housesInLocation}`)
-                : groupByLocationIds(from, to, [locationCondition,
+                : groupByLocationIds(from, to, [
+                    locationCondition,
                     districtCondition, houseFormatCondition]);
             const replacements = fp.extendAll([
                 {
@@ -168,7 +174,8 @@ module.exports = {
             const sql = housesInLocation ?
                 groupHousesMonthlyByLocationId(
                     ` and buildings.locationId = ${housesInLocation}`)
-                : groupMonthByLocationIds(year, [locationCondition,
+                : groupMonthByLocationIds(year, [
+                    locationCondition,
                     districtCondition, houseFormatCondition]);
             const replacements = fp.extendAll([
                 {
@@ -195,6 +202,96 @@ module.exports = {
                         {error: err.message})));
         };
 
+        function normalFlow() {
+            const pagingInfo = Util.PagingInfo(query.index, query.size, true);
+            //TODO: in cash case, the operator is the manager, otherwise it's user themselves
+            const operatorConnection = {
+                model: Auth,
+                attributes: ['id', 'username'],
+            };
+
+            const locationConditionOf = (query) => {
+                const condition = districtLocation(query);
+                const billKey = fp.replace(/^\$/)(
+                    '$billpayment.bill.contract.room.house.')(
+                    fp.head(fp.keys(condition)));
+                const topupKey = fp.replace(/^\$/)(
+                    '$topup.contract.room.house.')(fp.head(fp.keys(condition)));
+                return {
+                    $or: [
+                        {[billKey]: fp.head(fp.values(condition))},
+                        {[topupKey]: fp.head(fp.values(condition))},
+                    ],
+                };
+            };
+            const fundFlowConnection = {
+                model: FundChannelFlows,
+                required: false,
+                attributes: [
+                    'id',
+                    'category',
+                    'orderNo',
+                    'from',
+                    'to',
+                    'amount'],
+            };
+            const flowOption = {
+                include: [
+                    {
+                        model: BillPayment,
+                        required: false,
+                        include: [
+                            {
+                                model: Bills,
+                                include: [
+                                    contractFilter(houseFormat, {}), {
+                                        model: BillFlows,
+                                        as: 'billItems',
+                                        attributes: [
+                                            'configId',
+                                            'amount',
+                                            'createdAt',
+                                            'id'],
+                                    }, fundFlowConnection],
+                                attributes: ['id', 'type'],
+                            }, operatorConnection],
+                    }, {
+                        model: Topup,
+                        required: false,
+                        include: [
+                            contractFilter(houseFormat, {}), fp.merge({
+                                as: 'operatorInfo',
+                            }, operatorConnection)],
+                    },
+                ],
+                where: fp.extendAll([
+                    {
+                        projectId,
+                    }, from && to ? {
+                        createdAt: {
+                            $gte: formatMysqlDateTime(from),
+                            $lte: formatMysqlDateTime(to),
+                        },
+                    } : {},
+                    locationConditionOf(query),
+                ]),
+                distinct: true,
+                offset: pagingInfo.skip,
+                limit: pagingInfo.size,
+                order: [
+                    ['createdAt', 'DESC'],
+                ],
+                subQuery: false,
+            };
+            console.log(flowOption.where);
+            return Flows.findAndCountAll(flowOption).
+                then(models => translate(models, pagingInfo)).
+                then(flows => res.send(flows)).
+                catch(err => res.send(500,
+                    ErrorCode.ack(ErrorCode.DATABASEEXEC,
+                        {error: err.message})));
+        }
+
         if (view === 'category') {
             return groupByCategory(req, res);
         }
@@ -208,65 +305,6 @@ module.exports = {
             return groupByMonth(req, res);
         }
 
-        const pagingInfo = Util.PagingInfo(query.index, query.size, true);
-        //TODO: in cash case, the operator is the manager, otherwise it's user themselves
-        const operatorConnection = {
-            model: Auth,
-            attributes: ['id', 'username'],
-        };
-        const fundFlowConnection = {
-            model: FundChannelFlows,
-            required: false,
-            attributes: ['id', 'category', 'orderNo', 'from', 'to', 'amount'],
-        };
-        const flowOption = {
-            include: [
-                {
-                    model: BillPayment,
-                    required: false,
-                    include: [
-                        {
-                            model: Bills,
-                            include: [
-                                contractFilter(houseFormat, {}), {
-                                    model: BillFlows,
-                                    as: 'billItems',
-                                    attributes: [
-                                        'configId',
-                                        'amount',
-                                        'createdAt',
-                                        'id'],
-                                }, fundFlowConnection],
-                            attributes: ['id', 'type'],
-                        }, operatorConnection],
-                }, {
-                    model: Topup,
-                    required: false,
-                    include: [
-                        contractFilter(houseFormat, {}), fp.merge({
-                            as: 'operatorInfo',
-                        }, operatorConnection)],
-                },
-            ],
-            where: fp.merge({
-                projectId,
-            }, from && to ? {
-                createdAt: {
-                    $gte: formatMysqlDateTime(from),
-                    $lte: formatMysqlDateTime(to),
-                },
-            } : {}),
-            distinct: true,
-            offset: pagingInfo.skip,
-            limit: pagingInfo.size,
-            order: [
-                ['createdAt', 'DESC'],
-            ],
-        };
-        return Flows.findAndCountAll(flowOption).
-            then(models => translate(models, pagingInfo)).
-            then(flows => res.send(flows)).
-            catch(err => res.send(500,
-                ErrorCode.ack(ErrorCode.DATABASEEXEC, {error: err.message})));
+        return normalFlow();
     },
 };
