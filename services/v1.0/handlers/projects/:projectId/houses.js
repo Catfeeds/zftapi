@@ -795,7 +795,7 @@ module.exports = {
                         }
                     }
                     else{
-                        const newLocation = await MySQL.GeoLocation.create(exports.assignNewId({
+                        const newLocation = await MySQL.GeoLocation.create(common.assignNewId({
 
                             divisionId: body.location.divisionId
                             , name: body.location.name

@@ -1,23 +1,23 @@
 const Q = require('q');
-const _  = require('underscore');
+const _ = require('underscore');
 const Sequelize = require('sequelize');
-const moment = require('moment');
-const UUID = require('uuid');
+// const moment = require('moment');
+// const UUID = require('uuid');
 const config = require('config');
 
-let connection;
-let pool;
+// let connection;
+// let pool;
 let sequelizeInstance;
 
-exports = module.exports = function(host, port, user, passwd, database, isReadOnly){
+exports = module.exports = function (host, port, user, passwd, database, isReadOnly) {
 };
 
-exports.Literal = (str)=>{
+exports.Literal = (str) => {
     return sequelizeInstance.literal(str);
 };
 
 exports.Load = () => {
-    return new Promise((resolve, reject)=>{
+    return new Promise((resolve, reject) => {
         const read = JSON.parse(config.RDS.read);
         const write = JSON.parse(config.RDS.write);
         const options = _.assign(
@@ -27,27 +27,27 @@ exports.Load = () => {
                     read,
                     write
                 },
-                timezone: "+08:00",
-                retry:{
+                timezone: '+08:00',
+                retry: {
                     max: 0
                 },
-                pool:{
+                pool: {
                     maxConnections: 20,
                     minConnections: 5,
                     maxIdleTime: 1000
                 }
             },
-            config.ENV === 'DEVELOPMENT' ? {logging: true}:{}
+            config.ENV === 'DEVELOPMENT' ? {logging: true} : {}
         );
-		sequelizeInstance = new Sequelize(null, null, null, options);
-		sequelizeInstance.authenticate().then(
-            function (err) {
+        sequelizeInstance = new Sequelize(null, null, null, options);
+        sequelizeInstance.authenticate().then(
+            ()=>{
                 log.info('RDS EM Connection Successful...');
                 resolve();
 
-				exports.Sequelize = sequelizeInstance;
+                exports.Sequelize = sequelizeInstance;
 
-				SequelizeDefine();
+                SequelizeDefine();
             }
         ).catch(function (err) {
             log.error(err);
@@ -57,10 +57,9 @@ exports.Load = () => {
 };
 
 
-exports.Exec = function(sql, replacements)
-{
+exports.Exec = function (sql, replacements) {
     //
-    if(!sql || !sql.length){
+    if (!sql || !sql.length) {
         return null;
     }
 
@@ -69,7 +68,7 @@ exports.Exec = function(sql, replacements)
     {
         var blankIndex = sql.indexOf(" ");
         var types = sql.substr(0, blankIndex);
-        switch(types){
+        switch (types) {
             case "SELECT":
             case "select":
                 queryTypes = Sequelize.QueryTypes.SELECT;
@@ -94,7 +93,7 @@ exports.Exec = function(sql, replacements)
 
     var deferred = Q.defer();
     let options = {};
-    if(replacements){
+    if (replacements) {
         options.replacements = replacements;
     }
     options.type = queryTypes;
@@ -111,10 +110,9 @@ exports.Exec = function(sql, replacements)
     return deferred.promise;
 };
 
-exports.ExecT = function(sql, t)
-{
+exports.ExecT = function (sql, t) {
     //
-    if(!sql || !sql.length){
+    if (!sql || !sql.length) {
         return null;
     }
 
@@ -123,7 +121,7 @@ exports.ExecT = function(sql, t)
     {
         var blankIndex = sql.indexOf(" ");
         var types = sql.substr(0, blankIndex);
-        switch(types){
+        switch (types) {
             case "SELECT":
             case "select":
                 queryTypes = Sequelize.QueryTypes.SELECT;
@@ -145,13 +143,12 @@ exports.ExecT = function(sql, t)
         }
     }
 
-    return sequelizeInstance.query(sql, { type: queryTypes, transaction: t});
+    return sequelizeInstance.query(sql, {type: queryTypes, transaction: t});
 };
 
-function SequelizeDefine()
-{
+function SequelizeDefine() {
     const Building = sequelizeInstance.define('buildings', {
-        id:{
+        id: {
             type: Sequelize.BIGINT.UNSIGNED,
             primaryKey: true,
             allowNull: false,
@@ -184,24 +181,24 @@ function SequelizeDefine()
             , allowNull: false
             , defaultValue: 0
         },
-        houseCountOnFloor:{
+        houseCountOnFloor: {
             type: Sequelize.INTEGER // 总层高
             , allowNull: false
             , defaultValue: 0
         },
         config: {
             type: Sequelize.TEXT,   //房屋拥有配置
-            get: function(){
+            get: function () {
                 let config;
-                try{
+                try {
                     config = JSON.parse(this.getDataValue('config'));
                 }
-                catch(e){
+                catch (e) {
                     config = {};
                 }
                 return config;
             },
-            set : function (value) {
+            set: function (value) {
                 this.setDataValue('config', JSON.stringify(value));
             }
         },
@@ -215,16 +212,16 @@ function SequelizeDefine()
             , allowNull: false
             , defaultValue: 0
         },
-    },{
+    }, {
         timestamps: false,
         freezeTableName: true
     });
     const Houses = sequelizeInstance.define('houses', {
-        id:{
+        id: {
             type: Sequelize.BIGINT.UNSIGNED,
             primaryKey: true,
         },
-        houseFormat:{
+        houseFormat: {
             type: Sequelize.STRING(8),
             allowNull: false
         },
@@ -232,7 +229,7 @@ function SequelizeDefine()
             type: Sequelize.BIGINT.UNSIGNED,  //项目ID
             allowNull: false
         },
-        buildingId:{
+        buildingId: {
             type: Sequelize.BIGINT.UNSIGNED,  //建筑ID
             allowNull: false
         },
@@ -241,7 +238,7 @@ function SequelizeDefine()
             allowNull: false,
             defaultValue: ''
         },
-        layoutId:{
+        layoutId: {
             type: Sequelize.BIGINT.UNSIGNED,  //项目ID
             allowNull: false,
             defaultValue: 0
@@ -256,7 +253,7 @@ function SequelizeDefine()
             , allowNull: false
             , defaultValue: 0
         },
-        houseKeeper:{
+        houseKeeper: {
             type: Sequelize.BIGINT.UNSIGNED,
             defaultValue: 0
         },
@@ -271,17 +268,17 @@ function SequelizeDefine()
         },
         config: {
             type: Sequelize.TEXT,   //房屋拥有配置
-            get: function(){
+            get: function () {
                 let config;
-                try{
+                try {
                     config = JSON.parse(this.getDataValue('config'));
                 }
-                catch(e){
+                catch (e) {
                     config = {};
                 }
                 return config;
             },
-            set : function (value) {
+            set: function (value) {
                 this.setDataValue('config', JSON.stringify(value));
             }
         },
@@ -295,32 +292,32 @@ function SequelizeDefine()
             , allowNull: false
             , defaultValue: 0
         },
-    },{
+    }, {
         timestamps: false,
         freezeTableName: true
     });
     const Rooms = sequelizeInstance.define('rooms', {
-        id:{
+        id: {
             type: Sequelize.BIGINT.UNSIGNED,
             primaryKey: true,
         },
-        houseId:{
+        houseId: {
             type: Sequelize.BIGINT.UNSIGNED,
             allowNull: false,
         },
         name: {
             type: Sequelize.STRING(10),
-			allowNull: false,
-			validate: {
-				notEmpty: true
-			}
-		},
+            allowNull: false,
+            validate: {
+                notEmpty: true
+            }
+        },
         people: {
             type: Sequelize.INTEGER,
             allowNull: false,
             defaultValue: 0
         },
-        type:{
+        type: {
             type: Sequelize.STRING(8),
             allowNull: false,
             defaultValue: ''
@@ -337,21 +334,21 @@ function SequelizeDefine()
         },
         config: {
             type: Sequelize.TEXT,   //房屋拥有配置
-            get: function(){
+            get: function () {
                 let config;
-                try{
+                try {
                     config = JSON.parse(this.getDataValue('config'));
                 }
-                catch(e){
+                catch (e) {
                     config = {};
                 }
                 return config;
             },
-            set : function (value) {
+            set: function (value) {
                 this.setDataValue('config', JSON.stringify(value));
             }
         }
-    },{
+    }, {
         timestamps: true,
         paranoid: true,
         freezeTableName: true
@@ -406,17 +403,17 @@ function SequelizeDefine()
             , allowNull: false
             , defaultValue: 0
         },
-        remark:{
+        remark: {
             type: Sequelize.STRING(255),
             allowNull: false,
             defaultValue: ''
         }
-    },{
+    }, {
         timestamps: false,
         freezeTableName: true
     });
     const GeoLocation = sequelizeInstance.define('location', {
-        id:{
+        id: {
             type: Sequelize.BIGINT.UNSIGNED,
             primaryKey: true,
         },
@@ -430,7 +427,7 @@ function SequelizeDefine()
             allowNull: false
         },
         district: {
-            type:Sequelize.STRING(16),
+            type: Sequelize.STRING(16),
             allowNull: false,
             defaultValue: ''
         },
@@ -440,23 +437,26 @@ function SequelizeDefine()
         },
         address: {
             type: Sequelize.STRING(32),     //查询结果地址
-            allowNull: false
+            allowNull: false,
+            defaultValue: ''
         },
         longitude: {
-            type: Sequelize.DECIMAL(9,5),   //经纬度 seperate longitude latitude by ','
-            allowNull: false
+            type: Sequelize.DECIMAL(9, 5),   //经纬度 seperate longitude latitude by ','
+            allowNull: false,
+            defaultValue: 0.0
         },
         latitude: {
-            type: Sequelize.DECIMAL(9,5),   //经纬度 seperate longitude latitude by ','
-            allowNull: false
+            type: Sequelize.DECIMAL(9, 5),   //经纬度 seperate longitude latitude by ','
+            allowNull: false,
+            defaultValue: 0.0
         }
-    },{
+    }, {
         timestamps: false,
         freezeTableName: true
     });
 
     Houses.belongsTo(Building, {as: 'building'});
-    Building.hasMany(Houses, {as: 'houses', foreignKey:'buildingId'});
+    Building.hasMany(Houses, {as: 'houses', foreignKey: 'buildingId'});
 
     Houses.hasMany(Rooms, {as: 'rooms', foreignKey: 'houseId'});
     Rooms.belongsTo(Houses, {as: 'house'});
@@ -474,8 +474,8 @@ function SequelizeDefine()
 
     exports.Settings = sequelizeInstance.define('settings', {
         projectId: {
-			type: Sequelize.BIGINT.UNSIGNED,
-			allowNull: true // null 为 全局配置
+            type: Sequelize.BIGINT.UNSIGNED,
+            allowNull: true // null 为 全局配置
         },
         group: {
             type: Sequelize.STRING(128),  //分组名
@@ -492,46 +492,46 @@ function SequelizeDefine()
             allowNull: false,
             defaultValue: ''
         },
-		valueRange: {
-			type: Sequelize.TEXT,   //付款方式
-			get: function(){
-				try{
-					return JSON.parse(this.getDataValue('valueRange'));
-				}
-				catch(e){
-					return [];
-				}
-			},
-			set : function (value) {
-				this.setDataValue('valueRange', JSON.stringify(value));
-			}
+        valueRange: {
+            type: Sequelize.TEXT,   //付款方式
+            get: function () {
+                try {
+                    return JSON.parse(this.getDataValue('valueRange'));
+                }
+                catch (e) {
+                    return [];
+                }
+            },
+            set: function (value) {
+                this.setDataValue('valueRange', JSON.stringify(value));
+            }
         },
         enabled: {
             type: Sequelize.BOOLEAN,  //是否激活
             allowNull: false,
             defaultValue: true
         }
-    },{
+    }, {
         timestamps: false,
         freezeTableName: true
     });
 
 
     exports.SuspendingRooms = sequelizeInstance.define('suspendingRooms', {
-		id: {
-			type: Sequelize.BIGINT.UNSIGNED,     //id
-			allowNull: false,
-			primaryKey: true
-		},
+        id: {
+            type: Sequelize.BIGINT.UNSIGNED,     //id
+            allowNull: false,
+            primaryKey: true
+        },
         roomId: {
             type: Sequelize.BIGINT.UNSIGNED,     //room ID
             allowNull: false,
             defaultValue: 0
         },
-		projectId: {    //项目ID
-			type: Sequelize.BIGINT.UNSIGNED,
-			allowNull: false
-		},
+        projectId: {    //项目ID
+            type: Sequelize.BIGINT.UNSIGNED,
+            allowNull: false
+        },
         from: {
             type: Sequelize.BIGINT.UNSIGNED,     //暂停开始时间
             allowNull: false,
@@ -543,30 +543,30 @@ function SequelizeDefine()
         memo: {
             type: Sequelize.TEXT   //备注
         }
-    },{
+    }, {
         timestamps: true,
-		paranoid: true,
+        paranoid: true,
         freezeTableName: true
     });
 
-	Rooms.hasMany(exports.SuspendingRooms);
-	exports.SuspendingRooms.belongsTo(Rooms);
+    Rooms.hasMany(exports.SuspendingRooms);
+    exports.SuspendingRooms.belongsTo(Rooms);
 
     const Contracts = sequelizeInstance.define('contracts', {
-		id: {
-			type: Sequelize.BIGINT.UNSIGNED,     //合约ID
-			allowNull: false,
-			primaryKey: true
-		},
+        id: {
+            type: Sequelize.BIGINT.UNSIGNED,     //合约ID
+            allowNull: false,
+            primaryKey: true
+        },
         roomId: {
             type: Sequelize.BIGINT.UNSIGNED,     //房源ID
             allowNull: false,
             defaultValue: 0
         },
-		projectId: {    //项目ID
-			type: Sequelize.BIGINT.UNSIGNED,
-			allowNull: false
-		},
+        projectId: {    //项目ID
+            type: Sequelize.BIGINT.UNSIGNED,
+            allowNull: false
+        },
         from: {
             type: Sequelize.BIGINT.UNSIGNED,     //起租时间
             allowNull: false,
@@ -579,123 +579,123 @@ function SequelizeDefine()
         },
         strategy: {
             type: Sequelize.TEXT,   //付款方式
-            get: function(){
+            get: function () {
                 let strategy;
-                try{
+                try {
                     strategy = JSON.parse(this.getDataValue('strategy'));
                 }
-                catch(e){
+                catch (e) {
                     strategy = {};
                 }
                 return strategy;
             },
-            set : function (value) {
+            set: function (value) {
                 this.setDataValue('strategy', JSON.stringify(value));
             }
         },
         expenses: {
             type: Sequelize.TEXT,   //加收费用
-            get: function(){
+            get: function () {
                 let expenses;
-                try{
+                try {
                     expenses = JSON.parse(this.getDataValue('expenses'));
                 }
-                catch(e){
+                catch (e) {
                     expenses = {};
                 }
                 return expenses;
             },
-            set : function (value) {
+            set: function (value) {
                 this.setDataValue('expenses', JSON.stringify(value));
             }
         },
-	    contractNumber: {
+        contractNumber: {
             type: Sequelize.STRING(50),      //合同号
             allowNull: false,
-		    defaultValue: ''
+            defaultValue: ''
         },
-	    paymentPlan: {
+        paymentPlan: {
             type: Sequelize.STRING(3),      //支付时间 (账单提前-02/账单固定+02/账单前一个月固定F03)
             allowNull: false
         },
-	    signUpTime: {
+        signUpTime: {
             type: Sequelize.BIGINT.UNSIGNED,    //签约时间
             allowNull: false,
             defaultValue: 0
         },
-		status: {
-			type: Sequelize.STRING(20),   //状态
-			allowNull: false,
-			defaultValue: 'ONGOING',
-			validate: { //执行中，已退租
-				isIn: [['ONGOING', 'TERMINATED']]
-			}
-		},
-		actualEndDate: {
-			type: Sequelize.BIGINT.UNSIGNED,     //实际退租时间
-			allowNull: true
+        status: {
+            type: Sequelize.STRING(20),   //状态
+            allowNull: false,
+            defaultValue: 'ONGOING',
+            validate: { //执行中，已退租
+                isIn: [['ONGOING', 'TERMINATED']]
+            }
+        },
+        actualEndDate: {
+            type: Sequelize.BIGINT.UNSIGNED,     //实际退租时间
+            allowNull: true
         }
-    },{
+    }, {
         timestamps: true,
-		paranoid: true,
+        paranoid: true,
         freezeTableName: true
     });
 
-	Rooms.hasMany(Contracts);
-	Contracts.belongsTo(Rooms);
+    Rooms.hasMany(Contracts);
+    Contracts.belongsTo(Rooms);
 
 
-	const Users = sequelizeInstance.define('users', {
-	    id: {
-	        type: Sequelize.BIGINT.UNSIGNED,
+    const Users = sequelizeInstance.define('users', {
+        id: {
+            type: Sequelize.BIGINT.UNSIGNED,
             allowNull: false,
-			primaryKey: true
-        },
-		accountName: {
-			type: Sequelize.STRING(32),     //账号
-			allowNull: false,
-			unique: true
-		},
-        name: {
-			type: Sequelize.STRING(24),     //姓名
-			allowNull: false
-		},
-		mobile: {
-			type: Sequelize.STRING(13),     //手机
-			allowNull: false
-		},
-		documentId: {
-			type: Sequelize.TEXT,   //证件号
-			allowNull: true
-		},
-		documentType: {
-			type: Sequelize.INTEGER,   //证件类型
-			allowNull: true,
-			defaultValue: 1,
-			validate: {
-				max: 8,                  // 1 '身份证', 2 '护照', 3 '港澳通行证', 4 '台胞证', 5 '居住证', 6 '临时居住证', 7 '营业执照', 8 '其他证件'
-				min: 1
-			}
-		},
-		gender: {
-			type: Sequelize.STRING(1),   //性别
-			allowNull: false,
-			defaultValue: 'M',
-			validate: {
-				isIn: [['M', 'F']]
-			}
-		}
-	},{
-		timestamps: false,
-		freezeTableName: true
-	});
-
-	const CashAccount = sequelizeInstance.define('cashAccount', {
-	    id: {
-	        type: Sequelize.BIGINT.UNSIGNED,
             primaryKey: true
         },
-        userId:{
+        accountName: {
+            type: Sequelize.STRING(32),     //账号
+            allowNull: false,
+            unique: true
+        },
+        name: {
+            type: Sequelize.STRING(24),     //姓名
+            allowNull: false
+        },
+        mobile: {
+            type: Sequelize.STRING(13),     //手机
+            allowNull: false
+        },
+        documentId: {
+            type: Sequelize.TEXT,   //证件号
+            allowNull: true
+        },
+        documentType: {
+            type: Sequelize.INTEGER,   //证件类型
+            allowNull: true,
+            defaultValue: 1,
+            validate: {
+                max: 8,                  // 1 '身份证', 2 '护照', 3 '港澳通行证', 4 '台胞证', 5 '居住证', 6 '临时居住证', 7 '营业执照', 8 '其他证件'
+                min: 1
+            }
+        },
+        gender: {
+            type: Sequelize.STRING(1),   //性别
+            allowNull: false,
+            defaultValue: 'M',
+            validate: {
+                isIn: [['M', 'F']]
+            }
+        }
+    }, {
+        timestamps: false,
+        freezeTableName: true
+    });
+
+    const CashAccount = sequelizeInstance.define('cashAccount', {
+        id: {
+            type: Sequelize.BIGINT.UNSIGNED,
+            primaryKey: true
+        },
+        userId: {
             type: Sequelize.BIGINT.UNSIGNED,
             allowNull: false,
         },
@@ -708,92 +708,92 @@ function SequelizeDefine()
             defaultValue: 0
         },
         locker: {
-	        type: Sequelize.INTEGER.UNSIGNED,
+            type: Sequelize.INTEGER.UNSIGNED,
             defaultValue: 0
         }
-    },{
+    }, {
         timestamps: true,
         paranoid: true,
         freezeTableName: true
     });
 
-	Contracts.belongsTo(Users);
-	Users.hasOne(CashAccount, {as: 'cashAccount', foreignKey: 'userId'});
-	CashAccount.belongsTo(Users);
+    Contracts.belongsTo(Users);
+    Users.hasOne(CashAccount, {as: 'cashAccount', foreignKey: 'userId'});
+    CashAccount.belongsTo(Users);
 
-	exports.Contracts = Contracts;
-	exports.Users = Users;
-	exports.GeoLocation = GeoLocation;
-	exports.CashAccount = CashAccount;
+    exports.Contracts = Contracts;
+    exports.Users = Users;
+    exports.GeoLocation = GeoLocation;
+    exports.CashAccount = CashAccount;
 
-	exports.Auth = sequelizeInstance.define('auth', {
-		level: {
-			type: Sequelize.STRING(24),     //权限
-			allowNull: false,
-			defaultValue: 'user',
-			validate: { //管理员，管家，财务
-				isIn: [['ADMIN', 'MANAGER', 'ACCOUNTANT']]
-			}
-		},
-	    username: {
-			type: Sequelize.STRING(32),     //账号
-			allowNull: false,
-			unique: true
-		},
-        password: {
-			type: Sequelize.STRING(32),     //密码
-			allowNull: false,
-		},
-        email: {
-			type: Sequelize.STRING(255),     //email
-			allowNull: false,
-            validate: {
-				isEmail: true
+    exports.Auth = sequelizeInstance.define('auth', {
+        level: {
+            type: Sequelize.STRING(24),     //权限
+            allowNull: false,
+            defaultValue: 'user',
+            validate: { //管理员，管家，财务
+                isIn: [['ADMIN', 'MANAGER', 'ACCOUNTANT']]
             }
-		},
+        },
+        username: {
+            type: Sequelize.STRING(32),     //账号
+            allowNull: false,
+            unique: true
+        },
+        password: {
+            type: Sequelize.STRING(32),     //密码
+            allowNull: false,
+        },
+        email: {
+            type: Sequelize.STRING(255),     //email
+            allowNull: false,
+            validate: {
+                isEmail: true
+            }
+        },
         mobile: {
-			type: Sequelize.STRING(20),     //mobile phone
-			allowNull: true
-		},
+            type: Sequelize.STRING(20),     //mobile phone
+            allowNull: true
+        },
         allowReceiveFrom: {
-			type: Sequelize.STRING(10),     //receive news via media
-			allowNull: false,
+            type: Sequelize.STRING(10),     //receive news via media
+            allowNull: false,
             defaultValue: 'BOTH',
             validation: {
-				isIn: [['EMAIL', 'MOBILE', 'BOTH', 'NONE']]
+                isIn: [['EMAIL', 'MOBILE', 'BOTH', 'NONE']]
             }
-		},
-		lastLoggedIn: {
-			type: Sequelize.BIGINT.UNSIGNED,    //上次登录时间
-			allowNull: true
-		}
-	},{
-		timestamps: true,
-		paranoid: true,
-		freezeTableName: true
-	});
+        },
+        lastLoggedIn: {
+            type: Sequelize.BIGINT.UNSIGNED,    //上次登录时间
+            allowNull: true
+        }
+    }, {
+        timestamps: true,
+        paranoid: true,
+        freezeTableName: true
+    });
 
     exports.Bills = sequelizeInstance.define('bills', {
-		id: {
-			type: Sequelize.BIGINT.UNSIGNED,
-			allowNull: false,
-			primaryKey: true
-		},
+        id: {
+            type: Sequelize.BIGINT.UNSIGNED,
+            allowNull: false,
+            primaryKey: true
+        },
         flow: { //资金流向(收入/支出)
             type: Sequelize.STRING(10),
             allowNull: false,
             defaultValue: 'receive',
-			validate: {
-				isIn: [['pay', 'receive']]
-			}
+            validate: {
+                isIn: [['pay', 'receive']]
+            }
         },
         entityType: { //实体类型(租客/业主/房源)
             type: Sequelize.STRING(10),
             allowNull: false,
-			defaultValue: 'property',
-			validate: {
-				isIn: [['tenant', 'landlord', 'property']]
-			}
+            defaultValue: 'property',
+            validate: {
+                isIn: [['tenant', 'landlord', 'property']]
+            }
         },
         contractId: {   //类型关联ID(房源=>contractid)
             type: Sequelize.BIGINT.UNSIGNED,
@@ -803,25 +803,25 @@ function SequelizeDefine()
             type: Sequelize.BIGINT.UNSIGNED,
             allowNull: true
         },
-		projectId: {    //项目ID
+        projectId: {    //项目ID
             type: Sequelize.BIGINT.UNSIGNED,
             allowNull: false
         },
         source: {   //来源
-			type: Sequelize.STRING(10),
+            type: Sequelize.STRING(10),
             allowNull: false,
-			defaultValue: 'contract',
-			validate: {
-				isIn: [['topup', 'accounting', 'device', 'contract']]
-			}
+            defaultValue: 'contract',
+            validate: {
+                isIn: [['topup', 'accounting', 'device', 'contract']]
+            }
         },
         type: {   //账单类型(bill type)
-			type: Sequelize.STRING(20),
+            type: Sequelize.STRING(20),
             allowNull: false,
-			validate: {
-				isIn: [['bond', 'deposit', 'rent', 'extra',
+            validate: {
+                isIn: [['bond', 'deposit', 'rent', 'extra',
                     'bond-refund', 'deposit-refund', 'rent-refund', 'extra-refund', 'final']]
-			}
+            }
         },
         startDate: {
             type: Sequelize.BIGINT.UNSIGNED,    //开始账期
@@ -837,8 +837,8 @@ function SequelizeDefine()
         },
         dueAmount: {   //应付金额 单位： 分
             type: Sequelize.BIGINT.UNSIGNED,
-			allowNull: false,
-			defaultValue: 0
+            allowNull: false,
+            defaultValue: 0
         },
         createdAt: {
             type: Sequelize.BIGINT.UNSIGNED,    //创建时间
@@ -851,35 +851,35 @@ function SequelizeDefine()
         },
         metadata: {
             type: Sequelize.TEXT,   //对象信息（批次等）
-            get: function(){
+            get: function () {
                 let metadata;
-                try{
+                try {
                     metadata = JSON.parse(this.getDataValue('metadata'));
                 }
-                catch(e){
+                catch (e) {
                     metadata = {};
                 }
                 return metadata;
             },
-            set : function (value) {
+            set: function (value) {
                 this.setDataValue('metadata', JSON.stringify(value));
             }
         },
         index: {
-			type: Sequelize.INTEGER.UNSIGNED,    //账单期数
-			allowNull: true,
+            type: Sequelize.INTEGER.UNSIGNED,    //账单期数
+            allowNull: true,
         }
-    },{
+    }, {
         timestamps: false,
         freezeTableName: true
     });
 
     exports.BillFlows = sequelizeInstance.define('billflows', {
-		id: {
-			type: Sequelize.BIGINT.UNSIGNED,
-			allowNull: false,
-			primaryKey: true
-		},
+        id: {
+            type: Sequelize.BIGINT.UNSIGNED,
+            allowNull: false,
+            primaryKey: true
+        },
         billId: {
             type: Sequelize.BIGINT.UNSIGNED,    // 账单ID
             allowNull: false
@@ -906,81 +906,81 @@ function SequelizeDefine()
             type: Sequelize.BIGINT.UNSIGNED,    // 创建时间
             allowNull: false
         }
-    },{
+    }, {
         timestamps: false,
         freezeTableName: true
     });
 
-	exports.BillPayment = sequelizeInstance.define('billpayment', {
-		billId: {
-			type: Sequelize.BIGINT.UNSIGNED,    // 账单ID
-			allowNull: false
-		},
-		projectId: {
-			type: Sequelize.BIGINT.UNSIGNED,  //项目ID
-			allowNull: false
-		},
-        orderNo:{
+    exports.BillPayment = sequelizeInstance.define('billpayment', {
+        billId: {
+            type: Sequelize.BIGINT.UNSIGNED,    // 账单ID
+            allowNull: false
+        },
+        projectId: {
+            type: Sequelize.BIGINT.UNSIGNED,  //项目ID
+            allowNull: false
+        },
+        orderNo: {
             type: Sequelize.BIGINT.UNSIGNED,  //订单号
             allowNull: false
         },
         flowId: {
-			type: Sequelize.BIGINT.UNSIGNED,  //流水ID
-			allowNull: false
-		},
-		amount: {
-			type: Sequelize.BIGINT.UNSIGNED,    //金额 单位：分
-			allowNull: false,
-			defaultValue: 0
-		},
-		fundChannelId: {
-			type: Sequelize.BIGINT.UNSIGNED,    //资金渠道
-			allowNull: false
-		},
-		operator: {
-			type: Sequelize.BIGINT.UNSIGNED,    // 经办人
-			allowNull: true
-		},
-		paidAt: {
-			type: Sequelize.BIGINT.UNSIGNED,    // 支付发生时间
-			allowNull: false,
-			defaultValue: 0
-		},
-		remark: {
-			type: Sequelize.TEXT    // 备注
-		},
-		status: {
-			type: Sequelize.STRING(10),    //状态
-			allowNull: false,
-			defaultValue: 'pending',
-			validate: {
-				isIn: [['pending', 'approved', 'declined']]
-			}
-		}
-	}, {
-		timestamps: true,
-		paranoid: true,
-		freezeTableName: true
-	});
+            type: Sequelize.BIGINT.UNSIGNED,  //流水ID
+            allowNull: false
+        },
+        amount: {
+            type: Sequelize.BIGINT.UNSIGNED,    //金额 单位：分
+            allowNull: false,
+            defaultValue: 0
+        },
+        fundChannelId: {
+            type: Sequelize.BIGINT.UNSIGNED,    //资金渠道
+            allowNull: false
+        },
+        operator: {
+            type: Sequelize.BIGINT.UNSIGNED,    // 经办人
+            allowNull: true
+        },
+        paidAt: {
+            type: Sequelize.BIGINT.UNSIGNED,    // 支付发生时间
+            allowNull: false,
+            defaultValue: 0
+        },
+        remark: {
+            type: Sequelize.TEXT    // 备注
+        },
+        status: {
+            type: Sequelize.STRING(10),    //状态
+            allowNull: false,
+            defaultValue: 'pending',
+            validate: {
+                isIn: [['pending', 'approved', 'declined']]
+            }
+        }
+    }, {
+        timestamps: true,
+        paranoid: true,
+        freezeTableName: true
+    });
 
     const Topup = sequelizeInstance.define('topup', {
-        id:{
+        id: {
             type: Sequelize.BIGINT.UNSIGNED,
             primaryKey: true
         },
-        orderNo:{
+        orderNo: {
             type: Sequelize.BIGINT.UNSIGNED,     //充值订单号
             allowNull: false
         },
-        userId:{
+        userId: {
             type: Sequelize.BIGINT.UNSIGNED,
             allowNull: false
         },
-        flowId:{
+        flowId: {
             type: Sequelize.BIGINT.UNSIGNED,
             allowNull: false
         },
-        externalId:{
+        externalId: {
             type: Sequelize.STRING(64),     //外部订单号
             allowNull: false,
             defaultValue: ''
@@ -1006,7 +1006,7 @@ function SequelizeDefine()
             type: Sequelize.BIGINT.UNSIGNED,    // 经办人
             allowNull: true
         },
-    },{
+    }, {
         timestamps: true,
         paranoid: true,
         freezeTableName: true
@@ -1019,19 +1019,19 @@ function SequelizeDefine()
             autoIncrement: true,
             primaryKey: true
         },
-        type:{
+        type: {
             type: Sequelize.STRING(16),
             allowNull: false
         },
-        contractId:{
+        contractId: {
             type: Sequelize.BIGINT.UNSIGNED,
             allowNull: false
         },
-        projectId:{
+        projectId: {
             type: Sequelize.BIGINT.UNSIGNED,  //项目ID
             allowNull: false
         },
-        deviceId:{
+        deviceId: {
             type: Sequelize.STRING(32),
             allowNull: false
         },
@@ -1053,34 +1053,34 @@ function SequelizeDefine()
             type: Sequelize.BIGINT,
             allowNull: false
         },
-        createdAt:{
+        createdAt: {
             type: Sequelize.BIGINT.UNSIGNED,
             allowNull: false
         }
-    },{
+    }, {
         timestamps: false,
         freezeTableName: true
     });
     exports.DevicePrePaid = devicePrePaid;
     exports.Contracts.hasMany(exports.DevicePrePaid, {as: 'devicePrePaid'});
 
-	exports.Flows = sequelizeInstance.define('flows', {
-		id: {
-			type: Sequelize.BIGINT.UNSIGNED,
-			primaryKey: true
-		},
-		projectId:{
-			type: Sequelize.BIGINT.UNSIGNED,  //项目ID
-			allowNull: false
-		},
-        category:{
-			type: Sequelize.STRING,  //流水业务类型
-			allowNull: false,
+    exports.Flows = sequelizeInstance.define('flows', {
+        id: {
+            type: Sequelize.BIGINT.UNSIGNED,
+            primaryKey: true
+        },
+        projectId: {
+            type: Sequelize.BIGINT.UNSIGNED,  //项目ID
+            allowNull: false
+        },
+        category: {
+            type: Sequelize.STRING,  //流水业务类型
+            allowNull: false,
             defaultValue: 'rent',
-			validate: {
-				isIn: [['rent', 'final', 'topup']]
-			}
-		},
+            validate: {
+                isIn: [['rent', 'final', 'topup']]
+            }
+        },
         amount: {
             type: Sequelize.BIGINT.UNSIGNED,    //金额 扩大100
             allowNull: false,
@@ -1109,29 +1109,29 @@ function SequelizeDefine()
             allowNull: true,
         }
     }, {
-		timestamps: true,
-		paranoid: true,
-		freezeTableName: true
-	});
+        timestamps: true,
+        paranoid: true,
+        freezeTableName: true
+    });
 
-	exports.BillFlows.belongsTo(exports.Bills);
-	exports.Bills.hasMany(exports.BillFlows, {as: 'billItems'});
-	exports.BillPayment.belongsTo(exports.Bills);
+    exports.BillFlows.belongsTo(exports.Bills);
+    exports.Bills.hasMany(exports.BillFlows, {as: 'billItems'});
+    exports.BillPayment.belongsTo(exports.Bills);
 
-	exports.BillPayment.belongsTo(exports.Flows);
-	exports.Flows.hasOne(exports.BillPayment);
-	exports.Topup.belongsTo(exports.Flows);
-	exports.Topup.belongsTo(exports.Contracts);
-	exports.Flows.hasOne(exports.Topup);
+    exports.BillPayment.belongsTo(exports.Flows);
+    exports.Flows.hasOne(exports.BillPayment);
+    exports.Topup.belongsTo(exports.Flows);
+    exports.Topup.belongsTo(exports.Contracts);
+    exports.Flows.hasOne(exports.Topup);
 
-	exports.Topup.belongsTo(exports.Users);
+    exports.Topup.belongsTo(exports.Users);
 
-	exports.Bills.hasMany(exports.BillPayment , {as: 'payments'});
-	exports.BillPayment.belongsTo(exports.Auth, {foreignKey: 'operator'});
-	exports.Topup.belongsTo(exports.Auth, {as: 'operatorInfo', foreignKey: 'operator'});
+    exports.Bills.hasMany(exports.BillPayment, {as: 'payments'});
+    exports.BillPayment.belongsTo(exports.Auth, {foreignKey: 'operator'});
+    exports.Topup.belongsTo(exports.Auth, {as: 'operatorInfo', foreignKey: 'operator'});
 
-	exports.Contracts.hasMany(exports.Bills);
-	exports.Bills.belongsTo(exports.Contracts);
+    exports.Contracts.hasMany(exports.Bills);
+    exports.Bills.belongsTo(exports.Contracts);
 
     //资金渠道
     const FundChannels = sequelizeInstance.define('fundChannels', {
@@ -1152,11 +1152,11 @@ function SequelizeDefine()
             type: Sequelize.BIGINT.UNSIGNED,  //项目ID
             allowNull: false
         },
-        category:{
+        category: {
             type: Sequelize.STRING(10),
             allowNull: false
         },
-        tag:{   //渠道标识 alipay/wx/wx_pub/manual
+        tag: {   //渠道标识 alipay/wx/wx_pub/manual
             type: Sequelize.STRING(8),
             allowNull: false
         },
@@ -1164,12 +1164,12 @@ function SequelizeDefine()
             type: Sequelize.STRING(8),
             allowNull: false
         },
-        status:{    //PENDING/PASSED/DELETED/PAUSE
+        status: {    //PENDING/PASSED/DELETED/PAUSE
             type: Sequelize.STRING(8),
             allowNull: false,
             defaultValue: 'PENDING'
         }
-    },{
+    }, {
         timestamps: true,
         paranoid: true,
         freezeTableName: true
@@ -1180,47 +1180,47 @@ function SequelizeDefine()
             autoIncrement: true,
             primaryKey: true
         },
-        fundChannelId:{
+        fundChannelId: {
             type: Sequelize.BIGINT.UNSIGNED,
             allowNull: false
         },
-        fee:{   //渠道手续费
+        fee: {   //渠道手续费
             type: Sequelize.INTEGER,
             allowNull: false,
         },
-        share:{   //手续费分摊配置
+        share: {   //手续费分摊配置
             type: Sequelize.TEXT,
-            get: function(){
+            get: function () {
                 let share;
-                try{
+                try {
                     share = JSON.parse(this.getDataValue('share'));
                 }
-                catch(e){
+                catch (e) {
                     share = {};
                 }
                 return share;
             },
-            set : function (value) {
+            set: function (value) {
                 this.setDataValue('share', JSON.stringify(value));
             }
         },
-        setting:{   //渠道配置
+        setting: {   //渠道配置
             type: Sequelize.TEXT,
-            get: function(){
+            get: function () {
                 let setting;
-                try{
+                try {
                     setting = JSON.parse(this.getDataValue('setting'));
                 }
-                catch(e){
+                catch (e) {
                     setting = {};
                 }
                 return setting;
             },
-            set : function (value) {
+            set: function (value) {
                 this.setDataValue('setting', JSON.stringify(value));
             }
         },
-    },{
+    }, {
         timestamps: true,
         paranoid: true,
         freezeTableName: true
@@ -1231,7 +1231,7 @@ function SequelizeDefine()
             autoIncrement: true,
             primaryKey: true
         },
-        fundChannelId:{
+        fundChannelId: {
             type: Sequelize.BIGINT.UNSIGNED,
             allowNull: false
         },
@@ -1248,7 +1248,7 @@ function SequelizeDefine()
                 min: 1
             }
         },
-        account:{   //账户名(银行卡号)
+        account: {   //账户名(银行卡号)
             type: Sequelize.STRING(64),
             allowNull: false
         },
@@ -1258,18 +1258,18 @@ function SequelizeDefine()
         },
         locate: {   //渠道地理信息
             type: Sequelize.TEXT,
-            get: function(){
+            get: function () {
                 let locate;
-                try{
+                try {
                     locate = JSON.parse(this.getDataValue('locate'));
                 }
-                catch(e){
+                catch (e) {
                     locate = {};
                 }
 
                 return locate;
             },
-            set : function (value) {
+            set: function (value) {
                 this.setDataValue('locate', JSON.stringify(value));
             }
         },
@@ -1288,7 +1288,7 @@ function SequelizeDefine()
             allowNull: false,
             defaultValue: ''
         },
-    },{
+    }, {
         timestamps: true,
         paranoid: true,
         freezeTableName: true
@@ -1324,12 +1324,12 @@ function SequelizeDefine()
             allowNull: false,
             defaultValue: 0
         },
-        latitude:{
+        latitude: {
             type: Sequelize.DECIMAL(9, 5),
             allowNull: false,
             defaultValue: 0.0
         },
-        longitude:{
+        longitude: {
             type: Sequelize.DECIMAL(9, 5),
             allowNull: false,
             defaultValue: 0.0
@@ -1339,7 +1339,7 @@ function SequelizeDefine()
             allowNull: false,
             defaultValue: 0
         }
-    },{
+    }, {
         timestamps: false,
         freezeTableName: true
     });
@@ -1353,31 +1353,31 @@ function SequelizeDefine()
             autoIncrement: true,
             primaryKey: true
         },
-        projectId:{
+        projectId: {
             type: Sequelize.BIGINT.UNSIGNED,
             allowNull: true
         },
-        sourceId:{
+        sourceId: {
             type: Sequelize.BIGINT.UNSIGNED,
             allowNull: false,
         },
-        deviceId:{
+        deviceId: {
             type: Sequelize.STRING(32),
             allowNull: false,
         },
-        startDate:{
+        startDate: {
             type: Sequelize.BIGINT.UNSIGNED,
             defaultValue: 0
         },
-        endDate:{
+        endDate: {
             type: Sequelize.BIGINT.UNSIGNED,
             defaultValue: 0
         },
-        public:{
+        public: {
             type: Sequelize.BOOLEAN,
             defaultValue: 0
         }
-    },{
+    }, {
         timestamps: true,
         paranoid: true,
         freezeTableName: true
@@ -1389,16 +1389,16 @@ function SequelizeDefine()
             autoIncrement: true,
             primaryKey: true
         },
-        projectId:{
+        projectId: {
             type: Sequelize.BIGINT.UNSIGNED,
             allowNull: false
         },
-        category:{
+        category: {
             type: Sequelize.STRING(8),
             allowNull: false,
             defaultValue: 'HOST'
         },
-        houseId:{
+        houseId: {
             type: Sequelize.BIGINT.UNSIGNED,
             allowNull: false,
         },
@@ -1411,7 +1411,7 @@ function SequelizeDefine()
             allowNull: false,
             defaultValue: 0
         },
-        startDate:{
+        startDate: {
             type: Sequelize.BIGINT.UNSIGNED,
             allowNull: false,
         },
@@ -1420,7 +1420,7 @@ function SequelizeDefine()
             allowNull: false,
             defaultValue: 0
         }
-    },{
+    }, {
         timestamps: true,
         paranoid: true,
         freezeTableName: true
@@ -1439,35 +1439,35 @@ function SequelizeDefine()
             type: Sequelize.BIGINT.UNSIGNED,
             primaryKey: true
         },
-		logoUrl: {
-			type: Sequelize.STRING(255),     //logo image url
-			allowNull: true
-		},
-		name: {
-			type: Sequelize.STRING(32),     //公寓名称
-			allowNull: true,
-		},
-		address: {
-			type: Sequelize.STRING(255),     //公寓地址
-			allowNull: true,
-		},
-		description: {
-			type: Sequelize.TEXT,     //公寓介绍
-			allowNull: true
-		},
-		telephone: {
-			type: Sequelize.STRING(20),     //telephone number
-			allowNull: true
-		}
-    },{
+        logoUrl: {
+            type: Sequelize.STRING(255),     //logo image url
+            allowNull: true
+        },
+        name: {
+            type: Sequelize.STRING(32),     //公寓名称
+            allowNull: true,
+        },
+        address: {
+            type: Sequelize.STRING(255),     //公寓地址
+            allowNull: true,
+        },
+        description: {
+            type: Sequelize.TEXT,     //公寓介绍
+            allowNull: true
+        },
+        telephone: {
+            type: Sequelize.STRING(20),     //telephone number
+            allowNull: true
+        }
+    }, {
         timestamps: true,
         paranoid: true,
         freezeTableName: true
     });
     exports.Projects = Projects;
 
-	exports.Projects.hasMany(exports.Auth);
-	exports.Auth.belongsTo(exports.Projects);
+    exports.Projects.hasMany(exports.Auth);
+    exports.Auth.belongsTo(exports.Projects);
 
     const Devices = sequelizeInstance.define('devices', {
         id: {
@@ -1475,11 +1475,11 @@ function SequelizeDefine()
             autoIncrement: true,
             primaryKey: true
         },
-        deviceId:{
+        deviceId: {
             type: Sequelize.STRING(32),
             allowNull: false
         },
-        projectId:{
+        projectId: {
             type: Sequelize.BIGINT.UNSIGNED,
             allowNull: false
         },
@@ -1506,28 +1506,28 @@ function SequelizeDefine()
             allowNull: false,
             defaultValue: ''
         },
-        memo:{
+        memo: {
             type: Sequelize.STRING(255),
             allowNull: false,
             defaultValue: ''
         },
-        status:{
+        status: {
             type: Sequelize.TEXT,
-            get: function(){
+            get: function () {
                 let status;
-                try{
+                try {
                     status = JSON.parse(this.getDataValue('status'));
                 }
-                catch(e){
+                catch (e) {
                     status = {};
                 }
                 return status;
             },
-            set : function (value) {
+            set: function (value) {
                 this.setDataValue('status', JSON.stringify(value));
             }
         }
-    },{
+    }, {
         timestamps: true,
         paranoid: true,
         freezeTableName: true
@@ -1538,27 +1538,27 @@ function SequelizeDefine()
             autoIncrement: true,
             primaryKey: true
         },
-        deviceId:{
+        deviceId: {
             type: Sequelize.STRING(32),
             allowNull: false
         },
-        channelId:{
+        channelId: {
             type: Sequelize.STRING(3),
             allowNull: false
         },
         comi: {
-            type: Sequelize.DECIMAL(10,6),
+            type: Sequelize.DECIMAL(10, 6),
             allowNull: false
         },
-        scale:{
+        scale: {
             type: Sequelize.BIGINT
         },
-        updatedAt:{
+        updatedAt: {
             type: Sequelize.BIGINT.UNSIGNED,
             allowNull: false,
             defaultValue: 0
         }
-    },{
+    }, {
         timestamps: false,
         freezeTableName: true
     });
@@ -1571,16 +1571,16 @@ function SequelizeDefine()
     exports.DevicesChannels = DevicesChannels;
 
     const DevicesData = sequelizeInstance.define('devicesData', {
-        id:{
+        id: {
             type: Sequelize.BIGINT.UNSIGNED,
-            autoIncrement:true,
+            autoIncrement: true,
             primaryKey: true
         },
-        deviceId:{
+        deviceId: {
             type: Sequelize.STRING(32),
             allowNull: false,
         },
-        channelId:{
+        channelId: {
             type: Sequelize.STRING(3),
             allowNull: false
         },
@@ -1596,7 +1596,7 @@ function SequelizeDefine()
             type: Sequelize.BIGINT.UNSIGNED,
             allowNull: false
         }
-    },{
+    }, {
         timestamps: false,
         freezeTableName: true
     });
@@ -1604,7 +1604,7 @@ function SequelizeDefine()
 
     exports.EventQueue = sequelizeInstance.define('eventqueue',
         {
-            id:{
+            id: {
                 type: Sequelize.BIGINT.UNSIGNED,
                 primaryKey: true
             },
@@ -1618,18 +1618,18 @@ function SequelizeDefine()
             },
             param: {
                 type: Sequelize.TEXT,
-                get: function(){
+                get: function () {
                     var param;
-                    try{
+                    try {
                         param = JSON.parse(this.getDataValue('param'));
                     }
-                    catch(e){
+                    catch (e) {
                         param = {};
                     }
 
                     return param;
                 },
-                set : function (value) {
+                set: function (value) {
                     this.setDataValue('param', JSON.stringify(value));
                 }
             }
@@ -1639,11 +1639,11 @@ function SequelizeDefine()
         }
     );
 
-	exports.Projects.hasMany(exports.Auth);
-	exports.Auth.belongsTo(exports.Projects);
+    exports.Projects.hasMany(exports.Auth);
+    exports.Auth.belongsTo(exports.Projects);
 
     exports.WXUser = sequelizeInstance.define('wxUser', {
-        id:{
+        id: {
             type: Sequelize.BIGINT.UNSIGNED,
             primaryKey: true
         },
@@ -1656,14 +1656,14 @@ function SequelizeDefine()
             type: Sequelize.BIGINT.UNSIGNED,
             allowNull: false
         }
-    },{
+    }, {
         timestamps: false,
         freezeTableName: true
     });
 
 
     exports.WXUser = sequelizeInstance.define('wxUser', {
-        id:{
+        id: {
             type: Sequelize.BIGINT.UNSIGNED,
             primaryKey: true
         },
@@ -1676,13 +1676,13 @@ function SequelizeDefine()
             type: Sequelize.BIGINT.UNSIGNED,
             allowNull: false
         }
-    },{
+    }, {
         timestamps: false,
         freezeTableName: true
     });
 
     exports.ServiceCharge = sequelizeInstance.define('serviceCharge', {
-        id:{
+        id: {
             type: Sequelize.BIGINT.UNSIGNED,
             primaryKey: true,
             autoIncrement: true
@@ -1691,31 +1691,31 @@ function SequelizeDefine()
             type: Sequelize.BIGINT.UNSIGNED,  //项目ID
             allowNull: false,
         },
-        fundChannelId:{
+        fundChannelId: {
             type: Sequelize.BIGINT.UNSIGNED,    //渠道ID
             allowNull: false
         },
-        type:{
+        type: {
             type: Sequelize.STRING(16),
             allowNull: false
         },
         strategy: {
             type: Sequelize.TEXT,   //付款方式
-            get: function(){
+            get: function () {
                 let strategy;
-                try{
+                try {
                     strategy = JSON.parse(this.getDataValue('strategy'));
                 }
-                catch(e){
+                catch (e) {
                     strategy = {};
                 }
                 return strategy;
             },
-            set : function (value) {
+            set: function (value) {
                 this.setDataValue('strategy', JSON.stringify(value));
             }
         }
-    },{
+    }, {
         timestamps: true,
         paranoid: true,
         freezeTableName: true
@@ -1725,19 +1725,19 @@ function SequelizeDefine()
     exports.FundChannels.hasMany(exports.ServiceCharge, {as: 'serviceCharge', foreignKey: 'fundChannelId'})
 
     exports.FundChannelFlows = sequelizeInstance.define('fundChannelFlows', {
-        id:{
+        id: {
             type: Sequelize.BIGINT.UNSIGNED,
             primaryKey: true,
         },
-        category:{
+        category: {
             type: Sequelize.STRING(16),
             allowNull: false
         },
-        orderNo:{
+        orderNo: {
             type: Sequelize.BIGINT.UNSIGNED,
             allowNull: false
         },
-        billId:{
+        billId: {
             type: Sequelize.BIGINT.UNSIGNED,
             allowNull: true
         },
@@ -1749,7 +1749,7 @@ function SequelizeDefine()
             type: Sequelize.BIGINT.UNSIGNED,  //项目ID
             allowNull: false,
         },
-        fundChannelId:{
+        fundChannelId: {
             type: Sequelize.BIGINT.UNSIGNED,    //渠道ID
             allowNull: false
         },
@@ -1765,7 +1765,7 @@ function SequelizeDefine()
             type: Sequelize.BIGINT,          //金额
             allowNull: false
         }
-    },{
+    }, {
         timestamps: true,
         paranoid: true,
         freezeTableName: true
@@ -1778,7 +1778,7 @@ function SequelizeDefine()
     // exports.FundChannelFlows.belongsTo(exports.Topup);
 
     exports.HouseApportionment = sequelizeInstance.define('houseApportionment', {
-        id:{
+        id: {
             type: Sequelize.BIGINT.UNSIGNED,
             primaryKey: true,
             autoIncrement: true
@@ -1787,11 +1787,11 @@ function SequelizeDefine()
             type: Sequelize.BIGINT.UNSIGNED,  //项目ID
             allowNull: false,
         },
-        houseId:{
+        houseId: {
             type: Sequelize.BIGINT.UNSIGNED,
             allowNull: false
         },
-        roomId:{
+        roomId: {
             type: Sequelize.BIGINT.UNSIGNED,
             allowNull: false
         },
@@ -1799,25 +1799,24 @@ function SequelizeDefine()
             type: Sequelize.BOOLEAN,
             allowNull: false
         }
-    },{
+    }, {
         timestamps: true,
         paranoid: true,
         freezeTableName: true
     });
-    exports.HouseApportionment.belongsTo(Rooms, {as:'room', foreignKey: 'roomId'});
+    exports.HouseApportionment.belongsTo(Rooms, {as: 'room', foreignKey: 'roomId'});
 }
 
 /*
  * 数组转换成 SQL 语句 IN 适用的
  * */
-exports.GenerateSQLInArray = function(array)
-{
+exports.GenerateSQLInArray = function (array) {
     var idsArray = [];
     _.each(array, function (id) {
-        if(_.isString(id)) {
+        if (_.isString(id)) {
             idsArray.push("'" + id + "'");
         }
-        else{
+        else {
             idsArray.push(id);
         }
     });
@@ -1827,14 +1826,13 @@ exports.GenerateSQLInArray = function(array)
 /*
  * 组成SQL语句
  * */
-exports.GenerateSQL = function(sql, queryArray)
-{
+exports.GenerateSQL = function (sql, queryArray) {
     var sqlSentence = sql;
-    if(queryArray.length){
+    if (queryArray.length) {
 
         sqlSentence += " WHERE ";
         _.each(queryArray, function (query, index) {
-            if(index){
+            if (index) {
                 sqlSentence += " AND ";
             }
             sqlSentence += query;
@@ -1847,51 +1845,48 @@ exports.GenerateSQL = function(sql, queryArray)
 /*
 * 获取纯数据
 * */
-exports.Plain = function (data)
-{
+exports.Plain = function (data) {
     return data.toJSON();
 };
 
 /*
 * 获取能耗表
 * */
-exports.EnergyConsumptionTable = function(time)
-{
-    return "ecdaily"+time.format('YYYYMM');
+exports.EnergyConsumptionTable = function (time) {
+    return "ecdaily" + time.format('YYYYMM');
 };
 /*
 * 获取原始能耗
 * */
 exports.OriginEnergyConsumptionTable = function (time) {
-    return "origindaily"+time.format('YYYYMM');
+    return "origindaily" + time.format('YYYYMM');
 };
 /*
  * 获取费用表
  * */
-exports.CostTable = function(time)
-{
-    return "costdaily"+time.format('YYYYMM');
+exports.CostTable = function (time) {
+    return "costdaily" + time.format('YYYYMM');
 };
 
-class Paging{
-    constructor(area){
+class Paging {
+    constructor(area) {
         this.area = area;
     }
 
-    calc(paging){
-        let lowerbound = (paging.pageindex-1) * paging.pagesize;
+    calc(paging) {
+        let lowerbound = (paging.pageindex - 1) * paging.pagesize;
         let upperbound = lowerbound + paging.pagesize;
         let _this = this;
         let areaPaging = [];
 
         let i = 0;
-        for(;i<_this.area.length;i++){
+        for (; i < _this.area.length; i++) {
             let item = _this.area[i];
             const v = item.count;
             const k = item.key;
 
             upperbound -= v;
-            if(lowerbound < v){
+            if (lowerbound < v) {
                 const left = v - lowerbound;
                 console.info(k, lowerbound, left);
                 areaPaging.push({
@@ -1899,7 +1894,7 @@ class Paging{
                     offset: lowerbound,
                     limit: left
                 });
-                if(left >= paging.pagesize){
+                if (left >= paging.pagesize) {
                     return;
                 }
                 break;
@@ -1908,11 +1903,11 @@ class Paging{
         }
         i++;
 
-        for(;i< _this.area.length&&upperbound;i++){
+        for (; i < _this.area.length && upperbound; i++) {
             let item = _this.area[i];
             const v = item.count;
             const k = item.key;
-            if(upperbound < v){
+            if (upperbound < v) {
                 console.info(k, 0, upperbound);
                 areaPaging.push({
                     key: k,
@@ -1934,43 +1929,43 @@ class Paging{
     }
 }
 
-exports.QueryFundDetails = (fields, timeFrom, timeTo, where, paging, groupby, orderby)=>{
-    return new Promise((resolve, reject)=>{
+exports.QueryFundDetails = (fields, timeFrom, timeTo, where, paging, groupby, orderby) => {
+    return new Promise((resolve, reject) => {
         //
-        let tablename = (time)=>{
+        let tablename = (time) => {
             return `funddetails${time.format('YYYYMM')}`;
         };
 
-        if(!timeFrom.isValid() || !timeTo.isValid() ){
+        if (!timeFrom.isValid() || !timeTo.isValid()) {
             return reject(ErrorCode.ack(ErrorCode.TIMETYPEERROR));
         }
 
-        if(_.isArray(fields)){
+        if (_.isArray(fields)) {
             fields = fields.toString();
         }
 
         //paging info
-        if(!paging || !paging.pageindex || !paging.pagesize ){
+        if (!paging || !paging.pageindex || !paging.pagesize) {
             return reject(ErrorCode.ack(ErrorCode.PARAMETERMISSED));
         }
 
         //get time
-        if(!_.isArray(where)){
+        if (!_.isArray(where)) {
             return reject(ErrorCode.ack(ErrorCode.PARAMETERMISSED));
         }
 
         where.push(`timecreate between ${timeFrom.unix()} AND ${timeTo.unix()}`);
 
 
-        let buildQuery = (tablePaging)=>{
+        let buildQuery = (tablePaging) => {
             let queryArray = [];
-            tablePaging.map(p=>{
+            tablePaging.map(p => {
                 let sql = `select ${fields} from ${tablePaging.key} `;
                 sql = MySQL.GenerateSQL(sql, where);
-                if(groupby){
+                if (groupby) {
                     sql += ` group by ${groupby}`;
                 }
-                if(orderby){
+                if (orderby) {
                     sql += ` order by ${orderby} `;
                 }
                 sql += ` limit ${p.offset},${p.limit}`;
@@ -1979,24 +1974,23 @@ exports.QueryFundDetails = (fields, timeFrom, timeTo, where, paging, groupby, or
             });
             return queryArray;
         };
-        let process = (allQuery)=>{
+        let process = (allQuery) => {
             Promise.all(allQuery).then(
-                records=>{
+                records => {
                     let data = [];
-                    records.map(rec=>{
-                        rec.map(r=>{
+                    records.map(rec => {
+                        rec.map(r => {
                             data.push(r);
                         });
                     });
 
                     resolve(data);
-                },err=>{
+                }, err => {
                     log.error(err);
                 }
-
             );
         };
-        if(timeFrom.format('YYYYMM') != timeTo.format('YYYYMM')){
+        if (timeFrom.format('YYYYMM') != timeTo.format('YYYYMM')) {
             //跨表
             const tableA = tablename(timeFrom);
             const tableB = tablename(timeTo);
@@ -2007,7 +2001,7 @@ exports.QueryFundDetails = (fields, timeFrom, timeTo, where, paging, groupby, or
                 MySQL.Exec(queryA),
                 MySQL.Exec(queryB),
             ]).then(
-                result=>{
+                result => {
                     let area = [
                         {key: tableA, count: result[0][0].count},
                         {key: tableA, count: result[0][0].count},
@@ -2016,17 +2010,17 @@ exports.QueryFundDetails = (fields, timeFrom, timeTo, where, paging, groupby, or
                     let pagingObj = new Paging(area);
                     let areaSeg = pagingObj.calc(paging);
 
-                    process( buildQuery(areaSeg) );
+                    process(buildQuery(areaSeg));
                 }
             );
         }
-        else{
+        else {
             //未跨表
             let areaSeg = [
                 {key: `funddetails${timeFrom.format('YYYYMM')}`, offset: paging.pageindex, limit: paging.pagesize}
             ];
 
-            process( buildQuery(areaSeg) );
+            process(buildQuery(areaSeg));
         }
     });
 };
