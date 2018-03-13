@@ -8,9 +8,11 @@ const {
 } = require(
     '../../../common');
 
+const {ParentDivision} = require('../../../../../libs/util');
+
 const {
     groupByLocationIds, groupMonthByLocationIds, groupHousesByLocationId,
-    groupHousesMonthlyByLocationId,
+    groupHousesMonthlyByLocationId, generateDivisionCondition,
 } = require(
     '../../../rawSqls');
 
@@ -78,7 +80,6 @@ const translate = (models, pagingInfo) => {
 
 const groupLocationIdInMonths = (year, reduceCondition) => (res) => {
     const itemMaps = fp.groupBy('id')(res);
-    console.log(itemMaps);
     const allMonths = fp.map(
         m => ({[`${year}-${fp.padCharsStart('0')(2)(m)}`]: '-'}))(
         fp.range(1)(13));
@@ -110,35 +111,46 @@ module.exports = {
         const locationIds = fp.get('locationIds')(query);
         const housesInLocation = fp.get('housesInLocation')(query);
         const houseFormat = query.houseFormat;
+        const districtId = query.districtId;
         const from = query.from;
         const to = query.to;
         const view = query.view;
         const year = query.year;
+
 
         if (to < from) {
             return res.send(400, ErrorCode.ack(ErrorCode.PARAMETERERROR,
                 {error: 'please provide valid from / to timestamp.'}));
         }
 
+        const locationCondition = locationIds ?
+            '  and l.id in (:locationIds) ' : '';
+        const districtCondition = districtId ? generateDivisionCondition(districtId) : '';
+        const houseFormatCondition = houseFormat ? ' and h.houseFormat=:houseFormat ' : '';
+
         const groupByCategory = async (req, res) => {
             const sequelize = MySQL.Sequelize;
-            const locationCondition = (locationIds ?
-                '  and l.id in (:locationIds)' :
-                '');
             const sql = housesInLocation ?
                 groupHousesByLocationId(from, to,
                     ` and buildings.locationId = ${housesInLocation}`)
-                : groupByLocationIds(from, to, locationCondition);
-            const replacements = fp.defaults({
-                projectId,
-                locationIds: fp.split(',')(locationIds),
-            })(
-                from && to ?
+                : groupByLocationIds(from, to, [locationCondition,
+                    districtCondition, houseFormatCondition]);
+            const replacements = fp.extendAll([
+                {
+                    projectId,
+                    locationIds: fp.split(',')(locationIds),
+                }, from && to ?
                     {
                         from: formatMysqlDateTime(from),
                         to: formatMysqlDateTime(to),
-                    } :
-                    {});
+                    } : {},
+                districtCondition ?
+                    {
+                        districtId,
+                        parentDivisionId: ParentDivision(districtId) + '%',
+                    } : {},
+                houseFormatCondition ? {houseFormat} : {},
+            ]);
             return sequelize.query(sql, {
                 replacements,
                 type: sequelize.QueryTypes.SELECT,
@@ -152,20 +164,26 @@ module.exports = {
         const groupByMonth = async (req, res) => {
             const sequelize = MySQL.Sequelize;
             const reduceCondition = fp.sumBy('balance');
-            const locationCondition = (locationIds ?
-                '  and l.id in (:locationIds) ' :
-                '');
+
             const sql = housesInLocation ?
                 groupHousesMonthlyByLocationId(
                     ` and buildings.locationId = ${housesInLocation}`)
-                : groupMonthByLocationIds(year, locationCondition);
-            const replacements = fp.defaults({
-                projectId,
-                locationIds: fp.split(',')(locationIds),
-            })({
-                from: formatMysqlDateTime(moment(`${year}-01-01`).unix()),
-                to: formatMysqlDateTime(moment(`${year}-12-31`).unix()),
-            });
+                : groupMonthByLocationIds(year, [locationCondition,
+                    districtCondition, houseFormatCondition]);
+            const replacements = fp.extendAll([
+                {
+                    projectId,
+                    locationIds: fp.split(',')(locationIds),
+                    from: formatMysqlDateTime(moment(`${year}-01-01`).unix()),
+                    to: formatMysqlDateTime(moment(`${year}-12-31`).unix()),
+                },
+                districtCondition ?
+                    {
+                        districtId,
+                        parentDivisionId: ParentDivision(districtId) + '%',
+                    } : {},
+                houseFormatCondition ? {houseFormat} : {},
+            ]);
             return sequelize.query(sql, {
                 replacements,
                 type: sequelize.QueryTypes.SELECT,
