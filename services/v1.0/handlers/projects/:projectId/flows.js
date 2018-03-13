@@ -137,7 +137,7 @@ module.exports = {
             const sequelize = MySQL.Sequelize;
             const sql = housesInLocation ?
                 groupHousesByLocationId(from, to,
-                    ` and buildings.locationId = ${housesInLocation}`)
+                    [` and buildings.locationId = ${housesInLocation}`])
                 : groupByLocationIds(from, to, [
                     locationCondition,
                     districtCondition, houseFormatCondition]);
@@ -173,7 +173,7 @@ module.exports = {
 
             const sql = housesInLocation ?
                 groupHousesMonthlyByLocationId(
-                    ` and buildings.locationId = ${housesInLocation}`)
+                    [` and buildings.locationId = ${housesInLocation}`])
                 : groupMonthByLocationIds(year, [
                     locationCondition,
                     districtCondition, houseFormatCondition]);
@@ -217,12 +217,12 @@ module.exports = {
                     fp.head(fp.keys(condition)));
                 const topupKey = fp.replace(/^\$/)(
                     '$topup.contract.room.house.')(fp.head(fp.keys(condition)));
-                return {
+                return condition ? {
                     $or: [
                         {[billKey]: fp.head(fp.values(condition))},
                         {[topupKey]: fp.head(fp.values(condition))},
                     ],
-                };
+                } : {};
             };
             const fundFlowConnection = {
                 model: FundChannelFlows,

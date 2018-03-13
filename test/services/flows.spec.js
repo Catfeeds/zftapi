@@ -222,6 +222,7 @@ describe('Flows', function() {
                             model: Topup,
                         },
                     ],
+                    subQuery: false,
                     limit: 10,
                     offset: 0,
                     where: {

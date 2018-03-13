@@ -1,6 +1,6 @@
 'use strict';
 const fp = require('lodash/fp');
-const {IsParentDivision, ParentDivision} = require('../../libs/util');
+const {IsParentDivision} = require('../../libs/util');
 
 const billPaymentSqlLogic = conditions => '  sum(case\n' +
     '      when f.category=\'rent\' then f.amount else 0\n' +
@@ -65,16 +65,18 @@ const topupSqlLogic = conditions => '  0 as rentPart,\n' +
 const groupByLocationIds = (from, to, conditions) => {
     const billPaymentFlow = 'select l.id, l.name,\n' +
         billPaymentSqlLogic(
-             fp.compact(fp.concat([from && to ?
-                 '  and f.createdAt > :from  and f.createdAt < :to \n' :
-                 ''], conditions))) +
+            fp.compact(fp.concat([
+                from && to ?
+                    '  and f.createdAt > :from  and f.createdAt < :to \n' :
+                    ''], conditions))) +
         'GROUP BY l.id, l.name\n';
 
     const topupFlow = 'select l.id, l.name,\n' +
         topupSqlLogic(
-            fp.compact(fp.concat([from && to ?
-            '  and f.createdAt > :from  and f.createdAt < :to \n' :
-            ''], conditions))) +
+            fp.compact(fp.concat([
+                from && to ?
+                    '  and f.createdAt > :from  and f.createdAt < :to \n' :
+                    ''], conditions))) +
         'GROUP BY l.id, l.name\n';
 
     return 'select\n' +
@@ -97,15 +99,16 @@ const groupByLocationIds = (from, to, conditions) => {
 const groupMonthByLocationIds = (year, conditions) => {
     const topupFlow = 'select l.id, l.name, ' +
         '  DATE_FORMAT(f.createdAt, \'%Y-%m\') as month,\n' +
-        topupSqlLogic(fp.concat(['  and f.createdAt > :from  and f.createdAt < :to \n'],
-            conditions)) +
+        topupSqlLogic(
+            fp.compact(fp.concat(['  and f.createdAt > :from  and f.createdAt < :to \n'],
+                conditions))) +
         'GROUP BY l.id, l.name, DATE_FORMAT(f.createdAt, \'%Y-%m\')\n';
 
     const billPaymentFlow = 'select l.id, l.name, ' +
         '  DATE_FORMAT(f.createdAt, \'%Y-%m\') as month, \n' +
         billPaymentSqlLogic(
-            fp.concat(['  and f.createdAt > :from  and f.createdAt < :to \n'],
-            conditions)) +
+            fp.compact(fp.concat(['  and f.createdAt > :from  and f.createdAt < :to \n'],
+                conditions))) +
         'GROUP BY l.id, l.name, DATE_FORMAT(createdAt, \'%Y-%m\')\n';
 
     return 'select\n' +
@@ -136,15 +139,17 @@ const groupHousesByLocationId = (from, to, locationCondition) => {
         '  (select sum(rentPart) - sum(rentPartFee) + sum(topupPart) - sum(topupFeePart) - sum(finalPayPart) + sum(finalReceivePart)) as balance ' +
         ' from (' +
         'select h.id,\n' +
-        billPaymentSqlLogic(from && to ?
-            '  and f.createdAt > :from  and f.createdAt < :to \n' :
-            '', locationCondition) +
+        billPaymentSqlLogic(fp.compact(fp.concat([
+            from && to ?
+                '  and f.createdAt > :from  and f.createdAt < :to \n' :
+                ''], locationCondition))) +
         ' GROUP BY h.id\n' +
         ' UNION\n' +
         'select h.id,\n' +
-        topupSqlLogic(from && to ?
-            '  and f.createdAt > :from  and f.createdAt < :to \n' :
-            '', locationCondition) +
+        topupSqlLogic(fp.compact(fp.concat([
+            from && to ?
+                '  and f.createdAt > :from  and f.createdAt < :to \n' :
+                ''], locationCondition))) +
         ' GROUP BY h.id\n' +
         '     ) as f2\n' +
         ' GROUP BY id';
@@ -164,14 +169,15 @@ const groupHousesMonthlyByLocationId = locationCondition => {
         'select h.id,\n' +
         '  DATE_FORMAT(f.createdAt, \'%Y-%m\') month,' +
         billPaymentSqlLogic(
-            '  and f.createdAt > :from  and f.createdAt < :to \n',
-            locationCondition) +
+            fp.compact(fp.concat(['  and f.createdAt > :from  and f.createdAt < :to \n'],
+                locationCondition))) +
         ' GROUP BY h.id, month\n' +
         ' UNION\n' +
         'select h.id,\n' +
         '  DATE_FORMAT(f.createdAt, \'%Y-%m\') month,' +
-        topupSqlLogic('  and f.createdAt > :from  and f.createdAt < :to \n',
-            locationCondition) +
+        topupSqlLogic(
+            fp.compact(fp.concat(['  and f.createdAt > :from  and f.createdAt < :to \n'],
+                locationCondition))) +
         ' GROUP BY h.id, DATE_FORMAT(createdAt, \'%Y-%m\')\n' +
         '     ) as f2\n' +
         ' GROUP BY id, month';
