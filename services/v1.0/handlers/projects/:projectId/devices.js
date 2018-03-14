@@ -69,6 +69,8 @@ module.exports = {
                                 {roomNumber: {$regexp: query.q}},
                                 {code: {$regexp: query.q}},
                                 {'$rooms.contracts.user.name$': {$regexp: query.q}},
+                                {'$rooms.devices.deviceId$': {$regexp: query.q}},
+                                {'$devices.deviceId$': {$regexp: query.q}},
                             ]
                         } : {}
                     ]),
@@ -91,16 +93,35 @@ module.exports = {
                             , as: 'rooms'
                             , required: true
                             , attributes: ['id']
-                            , include: [{
-                                model: MySQL.Contracts
-                                , as: 'contracts'
-                                , attributes: ['userId']
-                                , include: [{
-                                    model: MySQL.Users
-                                    , as: 'user'
-                                    , attributes: ['name']
-                                }]
-                            }]
+                            , include: [
+                                {
+                                    model: MySQL.Contracts
+                                    , as: 'contracts'
+                                    , attributes: ['userId']
+                                    , include: [{
+                                        model: MySQL.Users
+                                        , as: 'user'
+                                        , attributes: ['name']
+                                    }]
+                                }
+                                ,{
+                                    model: MySQL.HouseDevices,
+                                    as: 'devices',
+                                    required: true,
+                                    where:{
+                                        endDate: 0
+                                    }
+                                }
+                            ]
+                        }
+                        ,{
+                            model: MySQL.HouseDevices,
+                            as: 'devices',
+                            required: false,
+                            where:{
+                                endDate: 0,
+                                public: true
+                            }
                         }
                     ]
                 });
@@ -133,6 +154,20 @@ module.exports = {
                     roomIdMapping
                 ]);
 
+                // const deletedAtTime = moment().format('YYYY-MM-DD HH:mm:ss');
+                // const queryDevices = `select devices.*, hDevices.sourceId, hDevices.startDate, hDevices.endDate, hDevices.public
+                //         from
+                //             \`devices\` as \`devices\`
+                //             inner join devicesChannels as channels on devices.deviceId=channels.deviceId
+                //             inner join housesDevices as hDevices on devices.deviceId=hDevices.deviceId
+                //         where
+                //             \`devices\`.\`projectId\`='6367598515924897792'
+                //             and hDevices.endDate=0
+                //             and (\`devices\`.\`deletedAt\` > '${deletedAtTime}' OR \`devices\`.\`deletedAt\` IS NULL)
+                //             and (\`hDevices\`.deletedAt > '${deletedAtTime}' OR \`hDevices\`.\`deletedAt\` IS NULL)
+                //             and （\`devices\`.\`deviceId\` REGEXP :q ${sourceIds.length ? `or housesDevices.sourceId IN (${sourceIds.toString()})`: ''} )`;
+                // const devices = await MySQL.Sequelize.query(queryDevices, {replacements: {q: q}, type: MySQL.Sequelize.QueryTypes.SELECT})
+
                 const devices = await MySQL.Devices.findAndCountAll({
                     where: fp.extendAll([
                         getQueryPower()
@@ -149,8 +184,9 @@ module.exports = {
                             model: MySQL.HouseDevices,
                             as: 'houseRelation',
                             required: true,
-                            where: {
-                                sourceId: {$in: sourceIds}
+                            where:{
+                                endDate: 0
+                                , sourceId: {$in: sourceIds}
                             }
                         }
                     ]
@@ -160,7 +196,7 @@ module.exports = {
 
                 const nowTime = moment().unix();
                 const rows = fp.map(device=>{
-                    const roomIns = sourceIdMapping[fp.getOr(0)('houseRelation[0].sourceId')(device)];
+                    const roomIns = sourceIdMapping[fp.getOr(0)('houseRelation.sourceId')(device)];
 
                     return {
                         deviceId: device.deviceId

@@ -1563,7 +1563,7 @@ function SequelizeDefine() {
         freezeTableName: true
     });
     Devices.hasMany(DevicesChannels, {as: 'channels', foreignKey: 'deviceId', sourceKey: 'deviceId'});
-    Devices.hasMany(HouseDevices, {as: 'houseRelation', foreignKey: 'deviceId', sourceKey: 'deviceId'});
+    Devices.belongsTo(HouseDevices, {as: 'houseRelation', foreignKey: 'deviceId', targetKey: 'deviceId'});
 
     HouseDevices.belongsTo(Devices, {as: 'device', foreignKey: 'deviceId', targetKey: 'deviceId'});
 

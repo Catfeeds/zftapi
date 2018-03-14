@@ -57,8 +57,6 @@ module.exports = {
                 return res.send(403, ErrorCode.ack(ErrorCode.DUPLICATEREQUEST));
             }
 
-
-
             let t;
             try {
                 t = await MySQL.Sequelize.transaction({autocommit: false});

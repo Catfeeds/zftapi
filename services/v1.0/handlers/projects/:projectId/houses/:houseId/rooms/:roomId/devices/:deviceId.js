@@ -55,12 +55,12 @@ module.exports = {
                     //create
                     const now = moment().unix();
                     const bulkCreate = [
-                        {
-                            projectId: projectId,
-                            sourceId: houseId,
-                            deviceId: deviceId,
-                            startDate: now
-                        },
+                        // {
+                        //     projectId: projectId,
+                        //     sourceId: houseId,
+                        //     deviceId: deviceId,
+                        //     startDate: now
+                        // },
                         {
                             projectId: projectId,
                             sourceId: roomId,
