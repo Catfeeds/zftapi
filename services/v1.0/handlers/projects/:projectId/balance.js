@@ -2,8 +2,7 @@
 /**
  * Operations on /balance
  */
-const fp = require('lodash/fp');
-const moment = require('moment');
+// const fp = require('lodash/fp');
 const common = Include('/services/v1.0/common');
 
 async function getBalance(projectId){
@@ -23,8 +22,15 @@ async function getBalance(projectId){
             }
         }));
 
+        const withdrawOfProject = common.translateBalance(await MySQL.WithDraw.sum('amount', {
+            where: {
+                projectId: projectId,
+                status: {$in: [Typedef.WithDrawStatus.DONE]}
+            }
+        }));
+
         return ErrorCode.ack(ErrorCode.OK, {
-            balance: sumOfProject - frozenOfProject,
+            balance: sumOfProject - frozenOfProject - withdrawOfProject,
             frozen: frozenOfProject
         });
     }

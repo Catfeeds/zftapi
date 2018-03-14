@@ -34,6 +34,7 @@ module.exports = {
                     status: status
                 }:{}
             ]),
+            order:[['updatedAt', 'DESC']],
             offset: pagingInfo.skip,
             limit: pagingInfo.size
         }).then(
