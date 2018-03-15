@@ -50,5 +50,49 @@ module.exports = {
                 res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC));
             }
         );
+    },
+    post: (req, res)=>{
+        const projectId = req.params.projectId;
+        const body = req.body;
+
+        if(!Util.ParameterCheck(body,['flow', 'tag', 'name', 'account'])){
+            return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED));
+        }
+
+        const fundChannel = {
+            flow: body.flow,
+            projectId: projectId,
+            category: Typedef.FundChannelCategory.ONLINE,
+            tag: body.tag,
+            name: body.name
+        };
+
+        MySQL.Sequelize.transaction(t=>{
+            return MySQL.FundChannels.create(fundChannel, {transaction: t}).then(
+                result=>{
+                    const payChannel = {
+                        fundChannelId: result.id,
+                        account: body.account,
+                        subbranch: body.subbranch,
+                        locate: body.locate
+                    };
+                    if(body.flow === Typedef.FundFlow.PAY){
+                        return MySQL.PayChannels.create(payChannel, {transaction: t});
+                    }
+                    else if(body.flow === Typedef.FundFlow.RECEIVE){
+                        return MySQL.PayChannels.create(payChannel, {transaction: t});
+                    }
+                }
+            );
+        }).then(
+            ()=>{
+                res.send(204);
+            }
+        ).catch(
+            err=>{
+                log.error(err, projectId, body);
+                res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC));
+            }
+        );
     }
 };

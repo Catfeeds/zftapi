@@ -129,6 +129,14 @@ const FundChannelFlowCategory = {
     COMMISSION: 'COMMISSION'
 };
 
+const WithDrawStatus = {
+    PENDING: 'PENDING',
+    AUDITFAILURE: 'AUDITFAILURE',
+    PROCESSING: 'PROCESSING',
+    PROCESSFAILURE: 'PROCESSFAILURE',
+    DONE: 'DONE'
+};
+
 const PlatformId = 1;
 
 const IsHouseFormat = (status)=>{
@@ -166,5 +174,6 @@ module.exports = {
     DriverCommand,
     ServiceChargeType,
     FundChannelFlowCategory,
-    PlatformId
+    PlatformId,
+    WithDrawStatus
 };
