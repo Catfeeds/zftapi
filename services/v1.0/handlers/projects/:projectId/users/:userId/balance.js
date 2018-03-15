@@ -1,5 +1,5 @@
 'use strict';
-const {assignNewId, moveFundChannelToRoot, topUp} = require('../../../../../../../common');
+const {assignNewId, moveFundChannelToRoot, topUp} = require('../../../../../common');
 
 /**
  * Operations on /fundChannels/{fundChannelId}
@@ -22,15 +22,13 @@ module.exports = {
         (async()=>{
             const projectId = req.params.projectId;
             const userId = req.params.userId;
-            const contractId = req.params.contractId;
 
             const body = req.body;
-            const amount = req.body.amount;
-            const fundChannelId = req.body.fundChannelId;
+            const amount = body.amount;
+            const contractId = body.contractId;
+            const fundChannelId = body.fundChannelId;
 
-            if(!Util.ParameterCheck(body,
-                ['amount', 'fundChannelId']
-            )){
+            if(!Util.ParameterCheck(body, ['amount', 'fundChannelId'])){
                 return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED, 'please provide amount & fundChannelId.'));
             }
 
@@ -77,7 +75,7 @@ module.exports = {
                 try {
                     const result = await Util.charge(fundChannel, amount, orderNo, 'subject', 'body', {
                         fundChannelId: fundChannel.id,
-                        contractId: contractId,
+                        contractId: contractId || 0,
                         orderNo: orderNo,
                         projectId: projectId,
                         userId: userId,
