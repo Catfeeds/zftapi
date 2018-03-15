@@ -31,7 +31,8 @@ module.exports = {
                     },
                     attributes:['fundChannelId', 'createdAt', 'amount'],
                     offset: pagingInfo.skip,
-                    limit: pagingInfo.size
+                    limit: pagingInfo.size,
+                    order:[['createdAt', 'DESC']]
                 }).then(
                     result=>{
                         const fundChannelId = fp.map(row=>{return row.fundChannelId;})(result.rows);
