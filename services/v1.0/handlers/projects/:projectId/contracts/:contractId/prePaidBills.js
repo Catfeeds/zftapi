@@ -18,17 +18,40 @@ module.exports = {
             return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED));
         }
 
+        const checkDate = (date)=>{
+            if(date){
+                const momentObj = moment.unix(date);
+                if(!momentObj.isValid()){
+                    return res.send(400, ErrorCode.ack(ErrorCode.PARAMETERERROR, {parameter: date}));
+                }
+            }
+        };
+
+        checkDate(query.startDate);
+        checkDate(query.endDate);
+
+        const dateFilter = ()=>{
+            return fp.assignAll([
+                query.startDate ? {createdAt:{$gte: moment.unix(query.startDate).toDate()}} : {}
+                , query.endDate ? {createdAt:{$lte: moment.unix(query.endDate).toDate()}} : {}
+            ]);
+        };
+
         const mode = query.mode;
         const pagingInfo = Util.PagingInfo(query.index, query.size, true);
         //
         switch(mode){
         case 'topup':
             {
-                MySQL.Topup.findAndCountAll({
-                    where:{
+                const where = fp.assign(
+                    {
                         projectId: projectId,
                         contractId: contractId
                     },
+                    dateFilter()
+                );
+                MySQL.Topup.findAndCountAll({
+                    where: where,
                     attributes:['fundChannelId', 'createdAt', 'amount'],
                     offset: pagingInfo.skip,
                     limit: pagingInfo.size,
