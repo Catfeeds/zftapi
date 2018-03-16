@@ -44,10 +44,21 @@ module.exports = {
         const user = fp.getOr({})('user')(req);
 
         const Auth = MySQL.Auth;
-        return Auth.findById(user.id).then(auth =>
-            res.send(fp.compact(fp.concat(environments,
-                [{key: 'user', value: translate(auth)}]))),
-        );
+
+        return Auth.findById(user.id).then(auth => {
+            MySQL.Banks.findAll({
+                attributes: ['tag', 'name']
+            }).then(
+                banks=>{
+                    const data = fp.compact(fp.concat(environments,
+                        [
+                            {key: 'user', value: translate(auth)}
+                            , {key: 'banks', value: banks}
+                        ]));
+                    res.send(data);
+                }
+            );
+        });
 
     },
 };

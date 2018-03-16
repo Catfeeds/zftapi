@@ -74,7 +74,8 @@ module.exports = {
                         fundChannelId: result.id,
                         account: body.account,
                         subbranch: body.subbranch,
-                        locate: body.locate
+                        locate: body.locate,
+                        linkman: body.linkman,
                     };
                     if(body.flow === Typedef.FundFlow.PAY){
                         return MySQL.PayChannels.create(payChannel, {transaction: t});

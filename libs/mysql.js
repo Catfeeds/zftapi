@@ -1840,6 +1840,26 @@ function SequelizeDefine() {
     });
 
     exports.WithDraw = withDraw;
+
+    const banks = sequelizeInstance.define('banks', {
+        id:{
+            type: Sequelize.BIGINT.UNSIGNED,
+            primaryKey: true,
+            autoIncrement: true
+        },
+        tag: {
+            type: Sequelize.STRING(16),
+            allowNull: false,
+        },
+        name: {
+            type: Sequelize.STRING(16),
+            allowNull: false,
+        }
+    },{
+        timestamps: false,
+        freezeTableName: true
+    });
+    exports.Banks = banks;
 }
 
 /*
