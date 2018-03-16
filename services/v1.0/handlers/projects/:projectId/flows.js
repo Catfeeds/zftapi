@@ -80,6 +80,15 @@ const translate = (models, pagingInfo) => {
     };
 };
 
+const reduceBySource = (source) => {
+    const sourceMap = {
+        topup: fp.sumBy('topup'),
+        rent: fp.sumBy('rent'),
+        final: fp.sumBy(ob => ob.finalReceive - ob.finalPay)
+    };
+    return fp.getOr(fp.sumBy('balance'))(`[${source}]`)(sourceMap);
+};
+
 const groupLocationIdInMonths = (year, reduceCondition) => (res) => {
     const itemMaps = fp.groupBy('id')(res);
     const allMonths = fp.map(
@@ -118,6 +127,7 @@ module.exports = {
         const to = query.to;
         const view = query.view;
         const year = query.year;
+        const source = query.source;
 
         if (to < from) {
             return res.send(400, ErrorCode.ack(ErrorCode.PARAMETERERROR,
@@ -169,7 +179,7 @@ module.exports = {
 
         const groupByMonth = async (req, res) => {
             const sequelize = MySQL.Sequelize;
-            const reduceCondition = fp.sumBy('balance');
+            const reduceCondition = reduceBySource(source);
 
             const sql = housesInLocation ?
                 groupHousesMonthlyByLocationId(
