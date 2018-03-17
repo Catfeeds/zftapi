@@ -1,6 +1,8 @@
 'use strict';
 
 const {get} = require('../../services/v1.0/handlers/projects/:projectId/bills');
+const {get: contractGet} = require(
+    '../../services/v1.0/handlers/projects/:projectId/contracts/:contractId/bills');
 require('include-node');
 const {spy, stub} = require('sinon');
 const fp = require('lodash/fp');
@@ -152,7 +154,7 @@ describe('Bills', function() {
                                                         'name',
                                                     ],
                                                     model: GeoLocation,
-                                                    where: {}
+                                                    where: {},
                                                 },
                                             ],
                                             model: Building,
@@ -182,11 +184,114 @@ describe('Bills', function() {
                         'from',
                         'to',
                         'amount',
-                        'createdAt'
+                        'createdAt',
                     ],
                     model: FundChannelFlows,
                     required: false,
                 }]);
+        });
+    });
+    it('should filter out unPaid bill if paid=true', async () => {
+        const req = {
+            params: {
+                projectId: 100,
+            },
+            query: {
+                houseFormat: 'SOLE',
+                paid: 'true',
+            },
+        };
+        const sequelizeFindSpy = stub().resolves([]);
+        const BillPayment = {id: 'BillPayment'};
+        const Users = {id: 'Users'};
+        const Rooms = {id: 'Rooms'};
+        const Houses = {id: 'Houses'};
+        const Building = {id: 'Building'};
+        const GeoLocation = {id: 'GeoLocation'};
+        const BillFlows = {id: 'BillFlows'};
+        const Contracts = {id: 'Contracts'};
+        const FundChannelFlows = {id: 'FundChannelFlows'};
+        global.MySQL = {
+            Bills: {
+                findAndCountAll: sequelizeFindSpy,
+            },
+            Users,
+            Rooms,
+            Houses,
+            Building,
+            GeoLocation,
+            BillFlows,
+            BillPayment,
+            Contracts,
+            FundChannelFlows,
+            Sequelize: {
+                literal: fp.identity,
+            },
+        };
+
+        await get(req, {send: fp.noop}).then(() => {
+            sequelizeFindSpy.should.have.been.called;
+            const modelOptions = sequelizeFindSpy.getCall(0).args[0];
+            fp.omit('startDate')(modelOptions.where).should.be.eql({
+                entityType: 'property',
+                id: {
+                    $in: '( select billId from billpayment where projectId = 100 )',
+                },
+                projectId: 100,
+            });
+        });
+    });
+
+    it('should filter out unPaid bill in contracts/bills', async () => {
+        const req = {
+            params: {
+                projectId: 100,
+                contractId: 999,
+            },
+            query: {
+                houseFormat: 'SOLE',
+                paid: 'true',
+            },
+        };
+        const sequelizeFindSpy = stub().resolves([]);
+        const BillPayment = {id: 'BillPayment'};
+        const Users = {id: 'Users'};
+        const Rooms = {id: 'Rooms'};
+        const Houses = {id: 'Houses'};
+        const Building = {id: 'Building'};
+        const GeoLocation = {id: 'GeoLocation'};
+        const BillFlows = {id: 'BillFlows'};
+        const Contracts = {id: 'Contracts'};
+        const FundChannelFlows = {id: 'FundChannelFlows'};
+        global.MySQL = {
+            Bills: {
+                findAll: sequelizeFindSpy,
+            },
+            Users,
+            Rooms,
+            Houses,
+            Building,
+            GeoLocation,
+            BillFlows,
+            BillPayment,
+            Contracts,
+            FundChannelFlows,
+            Sequelize: {
+                literal: fp.identity,
+            },
+        };
+
+        await contractGet(req, {send: fp.noop}).then(() => {
+            sequelizeFindSpy.should.have.been.called;
+            const modelOptions = sequelizeFindSpy.getCall(0).args[0];
+            fp.omit('startDate')(modelOptions.where).should.be.eql({
+                entityType: 'property',
+                id: {
+                    $in: '( select billId from billpayment where projectId = 100 )',
+                },
+                projectId: 100,
+                contractId: 999
+            });
         });
     });
 });
