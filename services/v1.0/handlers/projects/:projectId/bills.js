@@ -8,7 +8,7 @@ const {
     omitSingleNulls, innerValues,
     singleRoomTranslate, includeContracts,
 } = require('../../../common');
-const {fundFlowConnection} = require('../../../models');
+const {fundFlowConnection, paymentsFilter} = require('../../../models');
 
 const omitFields = fp.omit(['metadata', 'createdAt', 'updatedAt']);
 const formatRoom = item => fp.defaults(item)(
@@ -48,24 +48,12 @@ module.exports = {
 
         const query = req.query;
 
-        const Sequelize = MySQL.Sequelize;
-
         const projectId = req.params.projectId;
         const houseFormat = query.houseFormat;
         const locationId = query.locationId;
         const locationCondition = locationId ? {where: {id: locationId}} : null;
 
-        const paymentsFilter = (flag => {
-            if (fp.isUndefined(flag)) {
-                return undefined;
-            }
-            const billPaymentFilter = Sequelize.literal(
-                `( select billId from billpayment where projectId = ${projectId} )`);
-            return flag === 'true' ?
-                {$in: billPaymentFilter}
-                : {$notIn: billPaymentFilter};
-        })(fp.get('query.paid')(req));
-
+        const paidFilter = paymentsFilter(MySQL)(fp.get('query.paid')(req), projectId);
         const pagingInfo = Util.PagingInfo(query.index, query.size, true);
 
         const billOptions = {
@@ -97,9 +85,8 @@ module.exports = {
                 startDate: {
                     $lt: moment().unix(),
                 },
-            })(fp.isEmpty(paymentsFilter) ? {} : {
-                id: paymentsFilter,
-                projectId,
+            })(fp.isEmpty(paidFilter) ? {} : {
+                id: paidFilter
             }),
             offset: pagingInfo.skip,
             limit: pagingInfo.size,
