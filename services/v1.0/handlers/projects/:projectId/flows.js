@@ -7,12 +7,14 @@ const {
     includeContracts, singleRoomTranslate, districtLocation,
 } = require(
     '../../../common');
+const {fundFlowConnection} = require('../../../models');
 
 const {ParentDivision} = require('../../../../../libs/util');
 
 const {
     groupByLocationIds, groupMonthByLocationIds, groupHousesByLocationId,
     groupHousesMonthlyByLocationId, generateDivisionCondition,
+    groupChannelByLocationIds,
 } = require(
     '../../../rawSqls');
 
@@ -80,11 +82,30 @@ const translate = (models, pagingInfo) => {
     };
 };
 
-const reduceBySource = (source) => {
+const reduceByParams = (source, category) => {
+    if (fp.includes(source)(['topup', 'rent']) && category === 'fee') {
+        return fp.sumBy(`${source}Fee`);
+    }
+
+    if (fp.includes(source)(['topup', 'rent']) && category === 'income') {
+        return fp.sumBy(`${source}`);
+    }
+    if (source === 'all' && category === 'fee') {
+        return fp.sumBy(ob => ob.rentFee + ob.topupFee);
+    }
+
+    if (source === 'all' && category === 'income') {
+        return fp.sumBy(ob => ob.rent + ob.topup);
+    }
+
+    if (source === 'final' && !fp.isUndefined(category)) {
+        return fp.sumBy(category);
+    }
+
     const sourceMap = {
         topup: fp.sumBy('topup'),
         rent: fp.sumBy('rent'),
-        final: fp.sumBy(ob => ob.finalReceive - ob.finalPay)
+        final: fp.sumBy(ob => ob.finalReceive - ob.finalPay),
     };
     return fp.getOr(fp.sumBy('balance'))(`[${source}]`)(sourceMap);
 };
@@ -95,7 +116,7 @@ const groupLocationIdInMonths = (year, reduceCondition) => (res) => {
         m => ({[`${year}-${fp.padCharsStart('0')(2)(m)}`]: '-'}))(
         fp.range(1)(13));
     const valueTransform = fp.pipe(fp.groupBy('month'),
-        fp.mapValues(reduceCondition),
+        fp.mapValues(fp.pipe(reduceCondition, fp.parseInt(10))),
         fp.defaults(fp.extendAll(allMonths)));
 
     return fp.map(entry => {
@@ -105,6 +126,19 @@ const groupLocationIdInMonths = (year, reduceCondition) => (res) => {
     })(fp.toPairs(fp.mapValues(valueTransform)(itemMaps)));
 };
 
+const groupChannelByTimespan = (timespan, reduceCondition) => (res) => {
+    const allFundChannelIds = fp.map('fundChannelId')(
+        fp.uniqBy('fundChannelId')(res));
+    const fillUp = fp.map(id => ({[id]: 0}))(allFundChannelIds);
+    const valueTransform = fp.pipe(fp.groupBy('fundChannelId'),
+        fp.mapValues(fp.pipe(reduceCondition, fp.parseInt(10))),
+        fp.defaults(fp.extendAll(fillUp)));
+
+    return fp.sortBy('timespan')(fp.map(([k, v]) =>
+        ({timespan: k, channels: v}),
+    )(fp.entries(fp.mapValues(valueTransform)(fp.groupBy('timespan')(res))))).
+        reverse();
+};
 module.exports = {
     get: async (req, res) => {
         const BillPayment = MySQL.BillPayment;
@@ -113,25 +147,45 @@ module.exports = {
         const Flows = MySQL.Flows;
         const Topup = MySQL.Topup;
         const BillFlows = MySQL.BillFlows;
-        const FundChannelFlows = MySQL.FundChannelFlows;
-        const forceRequired = {required: false};
-        const contractFilter = includeContracts(MySQL, forceRequired);
+        const notRequired = {required: false};
+        const contractFilter = includeContracts(MySQL, notRequired);
 
-        const query = req.query;
         const projectId = req.params.projectId;
-        const locationIds = fp.get('locationIds')(query);
-        const housesInLocation = fp.get('housesInLocation')(query);
-        const houseFormat = query.houseFormat;
-        const districtId = query.districtId;
-        const from = query.from;
-        const to = query.to;
-        const view = query.view;
-        const year = query.year;
-        const source = query.source;
+        const {
+            source, category, locationIds,
+            housesInLocation, houseFormat, districtId,
+            from, to, view, year, timespan, index: pageIndex, size: pageSize,
+        } = req.query;
 
         if (to < from) {
             return res.send(400, ErrorCode.ack(ErrorCode.PARAMETERERROR,
                 {error: 'please provide valid from / to timestamp.'}));
+        }
+
+        if (view && !fp.includes(view)(['category', 'month', 'channel'])) {
+            return res.send(400, ErrorCode.ack(ErrorCode.PARAMETERERROR,
+                {error: `unrecognised view mode: ${view}`}));
+        }
+
+        if (source && !fp.includes(source)(['rent', 'all', 'final', 'topup'])) {
+            return res.send(400, ErrorCode.ack(ErrorCode.PARAMETERERROR,
+                {error: `unrecognised source : ${source}`}));
+        }
+
+        if (category &&
+            !fp.includes(category)(['finalPay', 'income', 'fee', 'balance'])) {
+            return res.send(400, ErrorCode.ack(ErrorCode.PARAMETERERROR,
+                {error: `unrecognised category : ${source}`}));
+        }
+
+        if (timespan && !fp.includes(timespan)(['month', 'day'])) {
+            return res.send(400, ErrorCode.ack(ErrorCode.PARAMETERERROR,
+                {error: `unrecognised timespan : ${timespan}`}));
+        }
+
+        if (!(from && to) && view === 'channel') {
+            return res.send(400, ErrorCode.ack(ErrorCode.PARAMETERERROR,
+                {error: 'please provide valid from / to timestamp for channel view.'}));
         }
 
         const locationCondition = locationIds ?
@@ -179,7 +233,7 @@ module.exports = {
 
         const groupByMonth = async (req, res) => {
             const sequelize = MySQL.Sequelize;
-            const reduceCondition = reduceBySource(source);
+            const reduceCondition = reduceByParams(source, category);
 
             const sql = housesInLocation ?
                 groupHousesMonthlyByLocationId(
@@ -212,8 +266,40 @@ module.exports = {
                         {error: err.message})));
         };
 
-        function normalFlow() {
-            const pagingInfo = Util.PagingInfo(query.index, query.size, true);
+        const groupByChannel = async (req, res) => {
+            const sequelize = MySQL.Sequelize;
+            const reduceCondition = reduceByParams(source, category);
+
+            const sql = groupChannelByLocationIds(timespan, [
+                locationCondition,
+                districtCondition, houseFormatCondition]);
+            const replacements = fp.extendAll([
+                {
+                    projectId,
+                    locationIds: fp.split(',')(locationIds),
+                    from: formatMysqlDateTime(from),
+                    to: formatMysqlDateTime(to),
+                },
+                districtCondition ?
+                    {
+                        districtId,
+                        parentDivisionId: ParentDivision(districtId) + '%',
+                    } : {},
+                houseFormatCondition ? {houseFormat} : {},
+            ]);
+            return sequelize.query(sql, {
+                replacements,
+                type: sequelize.QueryTypes.SELECT,
+            }).
+                then(groupChannelByTimespan(timespan, reduceCondition)).
+                then(flows => res.send(flows)).
+                catch(err => res.send(500,
+                    ErrorCode.ack(ErrorCode.DATABASEEXEC,
+                        {error: err.message})));
+        };
+
+        const normalFlow = async () => {
+            const pagingInfo = Util.PagingInfo(pageIndex, pageSize, true);
             //TODO: in cash case, the operator is the manager, otherwise it's user themselves
             const operatorConnection = {
                 model: Auth,
@@ -234,17 +320,6 @@ module.exports = {
                     ],
                 } : {};
             };
-            const fundFlowConnection = {
-                model: FundChannelFlows,
-                required: false,
-                attributes: [
-                    'id',
-                    'category',
-                    'orderNo',
-                    'from',
-                    'to',
-                    'amount'],
-            };
             const flowOption = {
                 include: [
                     {
@@ -262,7 +337,7 @@ module.exports = {
                                             'amount',
                                             'createdAt',
                                             'id'],
-                                    }, fundFlowConnection],
+                                    }, fundFlowConnection(MySQL)()],
                                 attributes: ['id', 'type'],
                             }, operatorConnection],
                     }, {
@@ -283,7 +358,7 @@ module.exports = {
                             $lte: formatMysqlDateTime(to),
                         },
                     } : {},
-                    locationConditionOf(query),
+                    locationConditionOf(req.query),
                 ]),
                 distinct: true,
                 offset: pagingInfo.skip,
@@ -293,14 +368,14 @@ module.exports = {
                 ],
                 subQuery: false,
             };
-            console.log(flowOption.where);
+
             return Flows.findAndCountAll(flowOption).
                 then(models => translate(models, pagingInfo)).
                 then(flows => res.send(flows)).
                 catch(err => res.send(500,
                     ErrorCode.ack(ErrorCode.DATABASEEXEC,
                         {error: err.message})));
-        }
+        };
 
         if (view === 'category') {
             return groupByCategory(req, res);
@@ -313,6 +388,10 @@ module.exports = {
 
         if (year && view === 'month') {
             return groupByMonth(req, res);
+        }
+
+        if (from && to && view === 'channel') {
+            return groupByChannel(req, res);
         }
 
         return normalFlow();
