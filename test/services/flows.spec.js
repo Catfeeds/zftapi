@@ -1061,7 +1061,7 @@ describe('Flows', function() {
                     view: 'month',
                     year: 2018,
                     source: 'final',
-                    category: 'finalPay'
+                    category: 'finalPay',
                 },
             };
             const sendSpy = spy();
@@ -1128,7 +1128,7 @@ describe('Flows', function() {
                     view: 'month',
                     year: 2018,
                     source: 'rent',
-                    category: 'fee'
+                    category: 'fee',
                 },
             };
             const sendSpy = spy();
@@ -1195,7 +1195,7 @@ describe('Flows', function() {
                     view: 'month',
                     year: 2018,
                     source: 'all',
-                    category: 'fee'
+                    category: 'fee',
                 },
             };
             const sendSpy = spy();
@@ -1262,7 +1262,7 @@ describe('Flows', function() {
                     view: 'month',
                     year: 2018,
                     source: 'all',
-                    category: 'income'
+                    category: 'income',
                 },
             };
             const sendSpy = spy();
@@ -1314,6 +1314,134 @@ describe('Flows', function() {
                                     '2018-12': '-',
                                 },
                                 'name': '新帝朗郡',
+                            },
+                        ],
+                    ],
+                );
+            });
+        });
+    });
+    describe('By channel', function() {
+        it('should reduce amount of balance by default', async () => {
+            const req = {
+                params: {
+                    projectId: 100,
+                },
+                query: {
+                    view: 'channel',
+                    from: 1,
+                    to: 2,
+                },
+            };
+            const sendSpy = spy();
+            const sequelizeQuerySpy = stub().resolves([
+                {
+                    fundChannelId: 1,
+                    rent: 1000,
+                    rentFee: 10,
+                    topup: 2000,
+                    topupFee: 20,
+                    finalPay: 20000,
+                    finalReceive: 30000,
+                    balance: 12970,
+                    timespan: '2018-01',
+                }]);
+
+            global.MySQL = {
+                Sequelize: {
+                    query: sequelizeQuerySpy,
+                    QueryTypes: {
+                        SELECT: 'SELECT',
+                    },
+                },
+
+            };
+
+            await get(req, {send: sendSpy}).then(() => {
+                sequelizeQuerySpy.should.have.been.called;
+                sendSpy.should.have.been.called;
+                const channelData = sendSpy.getCall(0).args;
+                channelData.should.be.eql(
+                    [
+                        [
+                            {
+                                timespan: '2018-01',
+                                channels: {
+                                    '1': 12970,
+                                },
+                            },
+                        ],
+                    ],
+                );
+            });
+        });
+        it('should can group data by day', async () => {
+            const req = {
+                params: {
+                    projectId: 100,
+                },
+                query: {
+                    view: 'channel',
+                    from: 1,
+                    to: 2,
+                    timespan: 'day',
+                },
+            };
+            const sendSpy = spy();
+            const sequelizeQuerySpy = stub().resolves([
+                {
+                    fundChannelId: 1,
+                    rent: 1000,
+                    rentFee: 10,
+                    topup: 2000,
+                    topupFee: 20,
+                    finalPay: 20000,
+                    finalReceive: 30000,
+                    balance: 12970,
+                    timespan: '2018-01-01',
+                },
+                {
+                    fundChannelId: 2,
+                    rent: 3000,
+                    rentFee: 10,
+                    topup: 2000,
+                    topupFee: 20,
+                    finalPay: 20000,
+                    finalReceive: 30000,
+                    balance: 15970,
+                    timespan: '2018-03-01',
+                }]);
+
+            global.MySQL = {
+                Sequelize: {
+                    query: sequelizeQuerySpy,
+                    QueryTypes: {
+                        SELECT: 'SELECT',
+                    },
+                },
+
+            };
+
+            await get(req, {send: sendSpy}).then(() => {
+                sequelizeQuerySpy.should.have.been.called;
+                sendSpy.should.have.been.called;
+                const channelData = sendSpy.getCall(0).args;
+                channelData.should.be.eql(
+                    [
+                        [
+                            {
+                                timespan: '2018-03-01',
+                                channels: {
+                                    '1': 0,
+                                    '2': 15970,
+                                },
+                            },
+                            {
+                                timespan: '2018-01-01',
+                                channels: {
+                                    '1': 12970,
+                                    '2': 0,
+                                },
                             },
                         ],
                     ],

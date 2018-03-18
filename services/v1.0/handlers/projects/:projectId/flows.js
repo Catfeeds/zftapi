@@ -105,7 +105,7 @@ const reduceByParams = (source, category) => {
     const sourceMap = {
         topup: fp.sumBy('topup'),
         rent: fp.sumBy('rent'),
-        final: fp.sumBy(ob => ob.finalReceive - ob.finalPay)
+        final: fp.sumBy(ob => ob.finalReceive - ob.finalPay),
     };
     return fp.getOr(fp.sumBy('balance'))(`[${source}]`)(sourceMap);
 };
@@ -116,7 +116,7 @@ const groupLocationIdInMonths = (year, reduceCondition) => (res) => {
         m => ({[`${year}-${fp.padCharsStart('0')(2)(m)}`]: '-'}))(
         fp.range(1)(13));
     const valueTransform = fp.pipe(fp.groupBy('month'),
-        fp.mapValues(reduceCondition),
+        fp.mapValues(fp.pipe(reduceCondition, fp.parseInt(10))),
         fp.defaults(fp.extendAll(allMonths)));
 
     return fp.map(entry => {
@@ -127,14 +127,17 @@ const groupLocationIdInMonths = (year, reduceCondition) => (res) => {
 };
 
 const groupChannelByTimespan = (timespan, reduceCondition) => (res) => {
-    const allFundChannelIds = fp.map('fundChannelId')(fp.uniqBy('fundChannelId')(res));
+    const allFundChannelIds = fp.map('fundChannelId')(
+        fp.uniqBy('fundChannelId')(res));
     const fillUp = fp.map(id => ({[id]: 0}))(allFundChannelIds);
     const valueTransform = fp.pipe(fp.groupBy('fundChannelId'),
-        fp.mapValues(reduceCondition),
-        fp.map(Number),
+        fp.mapValues(fp.pipe(reduceCondition, fp.parseInt(10))),
         fp.defaults(fp.extendAll(fillUp)));
 
-    return fp.mapValues(valueTransform)(fp.groupBy('timespan')(res));
+    return fp.sortBy('timespan')(fp.map(([k, v]) =>
+        ({timespan: k, channels: v}),
+    )(fp.entries(fp.mapValues(valueTransform)(fp.groupBy('timespan')(res))))).
+        reverse();
 };
 module.exports = {
     get: async (req, res) => {
@@ -151,7 +154,7 @@ module.exports = {
         const {
             source, category, locationIds,
             housesInLocation, houseFormat, districtId,
-            from, to, view, year, timespan, index: pageIndex, size: pageSize
+            from, to, view, year, timespan, index: pageIndex, size: pageSize,
         } = req.query;
 
         if (to < from) {
@@ -159,27 +162,28 @@ module.exports = {
                 {error: 'please provide valid from / to timestamp.'}));
         }
 
-        if(view && !fp.includes(view)(['category', 'month', 'channel'])) {
+        if (view && !fp.includes(view)(['category', 'month', 'channel'])) {
             return res.send(400, ErrorCode.ack(ErrorCode.PARAMETERERROR,
                 {error: `unrecognised view mode: ${view}`}));
         }
 
-        if(source && !fp.includes(source)(['rent', 'all', 'final', 'topup'])) {
+        if (source && !fp.includes(source)(['rent', 'all', 'final', 'topup'])) {
             return res.send(400, ErrorCode.ack(ErrorCode.PARAMETERERROR,
                 {error: `unrecognised source : ${source}`}));
         }
 
-        if(category && !fp.includes(category)(['finalPay', 'income', 'fee', 'balance'])) {
+        if (category &&
+            !fp.includes(category)(['finalPay', 'income', 'fee', 'balance'])) {
             return res.send(400, ErrorCode.ack(ErrorCode.PARAMETERERROR,
                 {error: `unrecognised category : ${source}`}));
         }
 
-        if(timespan && !fp.includes(timespan)(['month', 'day'])) {
+        if (timespan && !fp.includes(timespan)(['month', 'day'])) {
             return res.send(400, ErrorCode.ack(ErrorCode.PARAMETERERROR,
                 {error: `unrecognised timespan : ${timespan}`}));
         }
 
-        if(!(from && to) && view === 'channel') {
+        if (!(from && to) && view === 'channel') {
             return res.send(400, ErrorCode.ack(ErrorCode.PARAMETERERROR,
                 {error: 'please provide valid from / to timestamp for channel view.'}));
         }
