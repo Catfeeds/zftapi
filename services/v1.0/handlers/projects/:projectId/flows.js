@@ -14,6 +14,7 @@ const {ParentDivision} = require('../../../../../libs/util');
 const {
     groupByLocationIds, groupMonthByLocationIds, groupHousesByLocationId,
     groupHousesMonthlyByLocationId, generateDivisionCondition,
+    groupChannelByLocationIds,
 } = require(
     '../../../rawSqls');
 
@@ -125,6 +126,16 @@ const groupLocationIdInMonths = (year, reduceCondition) => (res) => {
     })(fp.toPairs(fp.mapValues(valueTransform)(itemMaps)));
 };
 
+const groupChannelByTimespan = (timespan, reduceCondition) => (res) => {
+    const allFundChannelIds = fp.map('fundChannelId')(fp.uniqBy('fundChannelId')(res));
+    const fillUp = fp.map(id => ({[id]: 0}))(allFundChannelIds);
+    const valueTransform = fp.pipe(fp.groupBy('fundChannelId'),
+        fp.mapValues(reduceCondition),
+        fp.map(Number),
+        fp.defaults(fp.extendAll(fillUp)));
+
+    return fp.mapValues(valueTransform)(fp.groupBy('timespan')(res));
+};
 module.exports = {
     get: async (req, res) => {
         const BillPayment = MySQL.BillPayment;
@@ -140,7 +151,7 @@ module.exports = {
         const {
             source, category, locationIds,
             housesInLocation, houseFormat, districtId,
-            from, to, view, year, index: pageIndex, size: pageSize
+            from, to, view, year, timespan, index: pageIndex, size: pageSize
         } = req.query;
 
         if (to < from) {
@@ -148,7 +159,7 @@ module.exports = {
                 {error: 'please provide valid from / to timestamp.'}));
         }
 
-        if(view && !fp.includes(view)(['category', 'month'])) {
+        if(view && !fp.includes(view)(['category', 'month', 'channel'])) {
             return res.send(400, ErrorCode.ack(ErrorCode.PARAMETERERROR,
                 {error: `unrecognised view mode: ${view}`}));
         }
@@ -160,7 +171,17 @@ module.exports = {
 
         if(category && !fp.includes(category)(['finalPay', 'income', 'fee', 'balance'])) {
             return res.send(400, ErrorCode.ack(ErrorCode.PARAMETERERROR,
-                {error: `unrecognised source : ${source}`}));
+                {error: `unrecognised category : ${source}`}));
+        }
+
+        if(timespan && !fp.includes(timespan)(['month', 'day'])) {
+            return res.send(400, ErrorCode.ack(ErrorCode.PARAMETERERROR,
+                {error: `unrecognised timespan : ${timespan}`}));
+        }
+
+        if(!(from && to) && view === 'channel') {
+            return res.send(400, ErrorCode.ack(ErrorCode.PARAMETERERROR,
+                {error: 'please provide valid from / to timestamp for channel view.'}));
         }
 
         const locationCondition = locationIds ?
@@ -235,6 +256,38 @@ module.exports = {
                 type: sequelize.QueryTypes.SELECT,
             }).
                 then(groupLocationIdInMonths(year, reduceCondition)).
+                then(flows => res.send(flows)).
+                catch(err => res.send(500,
+                    ErrorCode.ack(ErrorCode.DATABASEEXEC,
+                        {error: err.message})));
+        };
+
+        const groupByChannel = async (req, res) => {
+            const sequelize = MySQL.Sequelize;
+            const reduceCondition = reduceByParams(source, category);
+
+            const sql = groupChannelByLocationIds(timespan, [
+                locationCondition,
+                districtCondition, houseFormatCondition]);
+            const replacements = fp.extendAll([
+                {
+                    projectId,
+                    locationIds: fp.split(',')(locationIds),
+                    from: formatMysqlDateTime(from),
+                    to: formatMysqlDateTime(to),
+                },
+                districtCondition ?
+                    {
+                        districtId,
+                        parentDivisionId: ParentDivision(districtId) + '%',
+                    } : {},
+                houseFormatCondition ? {houseFormat} : {},
+            ]);
+            return sequelize.query(sql, {
+                replacements,
+                type: sequelize.QueryTypes.SELECT,
+            }).
+                then(groupChannelByTimespan(timespan, reduceCondition)).
                 then(flows => res.send(flows)).
                 catch(err => res.send(500,
                     ErrorCode.ack(ErrorCode.DATABASEEXEC,
@@ -331,6 +384,10 @@ module.exports = {
 
         if (year && view === 'month') {
             return groupByMonth(req, res);
+        }
+
+        if (from && to && view === 'channel') {
+            return groupByChannel(req, res);
         }
 
         return normalFlow();

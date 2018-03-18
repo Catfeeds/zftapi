@@ -790,13 +790,13 @@ describe('Flows', function() {
                     '      end) as finalReceivePart\nfrom\n  billpayment b,\n  bills b2,\n  flows f,\n  contracts c,\n' +
                     '  houses h,\n  rooms r,\n  location l,\n  buildings\nwhere\n  f.id = b.flowId\n  and b2.id = b.billId\n' +
                     '  and c.id = b2.contractId\n  and b.projectId = :projectId \n  and c.roomId = r.id\n  and r.houseId = h.id\n' +
-                    '  and h.buildingId = buildings.id\n  and buildings.locationId = l.id\n  and f.createdAt > :from  and f.createdAt < :to \nGROUP BY l.id, l.name, DATE_FORMAT(createdAt, \'%Y-%m\')\n' +
+                    '  and h.buildingId = buildings.id\n  and buildings.locationId = l.id\n  and f.createdAt > :from  and f.createdAt < :to \nGROUP BY l.id, l.name, month\n' +
                     ' UNION\nselect l.id, l.name,   DATE_FORMAT(f.createdAt, \'%Y-%m\') as month,\n' +
                     '  0 as rentPart,\n  0 as rentPartFee,\n  sum(case\n      when f.category=\'topup\' then f.amount else 0\n      end) as topupPart,\n' +
                     '  sum(case\n      when f.category=\'topup\' then fee else 0\n      end) as topupPartFee,\n  0 as finalPayPart, \n  0 as finalReceivePart \n' +
                     'from\n  topup t,\n  flows f,\n  contracts c,\n  houses h,\n  rooms r,\n  location l,\n  buildings\nwhere\n  f.id = t.flowId\n' +
                     '  and c.id = t.contractId\n  and t.projectId = :projectId \n  and c.roomId = r.id\n  and r.houseId = h.id\n' +
-                    '  and h.buildingId = buildings.id\n  and buildings.locationId = l.id\n  and f.createdAt > :from  and f.createdAt < :to \nGROUP BY l.id, l.name, DATE_FORMAT(f.createdAt, \'%Y-%m\')\n     ) as f2\n' +
+                    '  and h.buildingId = buildings.id\n  and buildings.locationId = l.id\n  and f.createdAt > :from  and f.createdAt < :to \nGROUP BY l.id, l.name, month\n     ) as f2\n' +
                     'GROUP BY id, name, month',
                 );
             });
@@ -849,7 +849,7 @@ describe('Flows', function() {
                     '  sum(case\n      when f.category=\'topup\' then fee else 0\n      end) as topupPartFee,\n  0 as finalPayPart, \n  0 as finalReceivePart \n' +
                     'from\n  topup t,\n  flows f,\n  contracts c,\n  houses h,\n  rooms r,\n  location l,\n  buildings\nwhere\n  f.id = t.flowId\n' +
                     '  and c.id = t.contractId\n  and t.projectId = :projectId \n  and c.roomId = r.id\n  and r.houseId = h.id\n' +
-                    '  and h.buildingId = buildings.id\n  and buildings.locationId = l.id\n  and f.createdAt > :from  and f.createdAt < :to \n\n and buildings.locationId = 321 GROUP BY h.id, DATE_FORMAT(createdAt, \'%Y-%m\')\n     ) as f2\n' +
+                    '  and h.buildingId = buildings.id\n  and buildings.locationId = l.id\n  and f.createdAt > :from  and f.createdAt < :to \n\n and buildings.locationId = 321 GROUP BY h.id, month\n     ) as f2\n' +
                     ' GROUP BY id, month',
                 );
             });
