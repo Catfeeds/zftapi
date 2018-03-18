@@ -50,12 +50,47 @@ module.exports = {
                             endDate: 0
                         },
                         attributes:['type', 'price']
+                    },
+                    {
+                        model: MySQL.HouseDevices,
+                        as: 'devices',
+                        required: false,
+                        where:{
+                            endDate: 0,
+                            public: true
+                        },
+                        include:[
+                            {
+                                model: MySQL.Devices,
+                                as: 'device',
+                                include:[
+                                    {
+                                        model: MySQL.DevicesChannels,
+                                        as: 'channels'
+                                    }
+                                ]
+                            }
+                        ]
                     }
                 ]
             });
             if(!houseIns){
                 return res.send(404, ErrorCode.ack(ErrorCode.REQUESTUNMATCH));
             }
+
+            const getDevices = (devices)=>{
+                const whichHasDevice = fp.reject(fp.flow(fp.get('device'), fp.isEmpty));
+                const transform = fp.map(device=> ({
+                    deviceId: device.device.deviceId,
+                    public: device.public,
+                    title: device.device.name,
+                    scale: device.device.channels && common.scaleDown(device.device.channels[0].scale),
+                    type: device.device.type,
+                    updatedAt: moment(device.device.updatedAt).unix(),
+                    status: common.deviceStatus(device.device)
+                }));
+                return transform(whichHasDevice(devices));
+            };
 
             res.send({
                 code: houseIns.code,
@@ -69,7 +104,8 @@ module.exports = {
                 currentFloor: houseIns.currentFloor,
                 totalFloor: houseIns.building.totalFloor,
                 layout: houseIns.layouts,
-                config: houseIns.config
+                config: houseIns.config,
+                devices: getDevices(houseIns.devices)
             });
         })();
     },

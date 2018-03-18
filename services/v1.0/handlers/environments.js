@@ -45,20 +45,32 @@ module.exports = {
 
         const Auth = MySQL.Auth;
 
-        return Auth.findById(user.id).then(auth => {
-            MySQL.Banks.findAll({
-                attributes: ['tag', 'name']
-            }).then(
-                banks=>{
-                    const data = fp.compact(fp.concat(environments,
-                        [
-                            {key: 'user', value: translate(auth)}
-                            , {key: 'banks', value: banks}
-                        ]));
-                    res.send(data);
+        try {
+            const contract = await  MySQL.Contracts.findOne({
+                where: {
+                    userId: user.id
+                    , status: Typedef.ContractStatus.ONGOING
                 }
-            );
-        });
+            });
+            const auth = await Auth.findById(user.id);
+            const banks = await MySQL.Banks.findAll({
+                attributes: ['tag', 'name']
+            });
+            const projectId = fp.getOr(null)('projectId')(auth);
 
+            const data = fp.compact(fp.concat(environments,
+                [
+                    {key: 'user', value: translate(auth)}
+                    , {key: 'banks', value: banks}
+                    , contract ? {key: 'contract', value: contract} : null
+                    , projectId ? {key: 'projectId', value: projectId} : null
+                ]
+            ));
+            res.send(data);
+        }
+        catch(e){
+            log.error(e);
+            res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC));
+        }
     },
 };
