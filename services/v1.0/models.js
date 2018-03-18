@@ -1,6 +1,7 @@
 'use strict';
 
 const fp = require('lodash/fp');
+const {FundChannelStatus} = require('../../libs/typedef');
 
 exports.fundFlowConnection = (sequelizeModel) => (required = false) => ({
     required,
@@ -24,4 +25,35 @@ exports.paymentsFilter = sequelizeModel => (flag, projectId) => {
     return flag === 'true' ?
         {$in: billPaymentFilter}
         : {$notIn: billPaymentFilter};
+};
+
+exports.fundChannelById = SequelizeModels => async ({projectId, fundChannelId}) => {
+    return SequelizeModels.ReceiveChannels.findOne({
+        where: {
+            fundChannelId,
+        },
+        attributes: ['fee', 'setting', 'share'],
+        include: [
+            {
+                model: SequelizeModels.FundChannels,
+                as: 'fundChannel',
+                where: {
+                    status: FundChannelStatus.PASSED,
+                    projectId,
+                },
+                attributes: [
+                    'category',
+                    'flow',
+                    'name',
+                    'tag',
+                    'id'],
+                include: [
+                    {
+                        model: SequelizeModels.ServiceCharge,
+                        as: 'serviceCharge',
+                    },
+                ],
+            },
+        ],
+    });
 };

@@ -7,6 +7,7 @@ const {
     includeContracts, singleRoomTranslate, districtLocation,
 } = require(
     '../../../common');
+const {fundFlowConnection} = require('../../../models');
 
 const {ParentDivision} = require('../../../../../libs/util');
 
@@ -234,17 +235,6 @@ module.exports = {
                     ],
                 } : {};
             };
-            const fundFlowConnection = {
-                model: FundChannelFlows,
-                required: false,
-                attributes: [
-                    'id',
-                    'category',
-                    'orderNo',
-                    'from',
-                    'to',
-                    'amount'],
-            };
             const flowOption = {
                 include: [
                     {
@@ -262,7 +252,7 @@ module.exports = {
                                             'amount',
                                             'createdAt',
                                             'id'],
-                                    }, fundFlowConnection],
+                                    }, fundFlowConnection(MySQL)()],
                                 attributes: ['id', 'type'],
                             }, operatorConnection],
                     }, {
@@ -283,7 +273,7 @@ module.exports = {
                             $lte: formatMysqlDateTime(to),
                         },
                     } : {},
-                    locationConditionOf(query),
+                    locationConditionOf(req.query),
                 ]),
                 distinct: true,
                 offset: pagingInfo.skip,
@@ -293,14 +283,14 @@ module.exports = {
                 ],
                 subQuery: false,
             };
-            console.log(flowOption.where);
+
             return Flows.findAndCountAll(flowOption).
                 then(models => translate(models, pagingInfo)).
                 then(flows => res.send(flows)).
                 catch(err => res.send(500,
                     ErrorCode.ack(ErrorCode.DATABASEEXEC,
                         {error: err.message})));
-        }
+        };
 
         if (view === 'category') {
             return groupByCategory(req, res);
