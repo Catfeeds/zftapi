@@ -747,7 +747,6 @@ exports.translateDevices = (devices)=>{
 };
 exports.translateRooms = (rooms)=> {
     return fp.map(room => {
-        room = room.toJSON();
         const getContract = () => {
             if (!room.contracts || !room.contracts.length) {
                 return {};

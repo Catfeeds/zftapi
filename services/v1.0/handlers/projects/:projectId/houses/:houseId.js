@@ -58,21 +58,23 @@ module.exports = {
                 return res.send(404, ErrorCode.ack(ErrorCode.REQUESTUNMATCH));
             }
 
+            const house = houseIns.toJSON();
+
             res.send({
-                code: houseIns.code,
-                location: houseIns.building.location,
-                houseKeeper: houseIns.houseKeeper,
-                group: houseIns.building.group,
-                building: houseIns.building.building,
-                unit: houseIns.building.unit,
-                price: houseIns.prices,
-                roomNumber: houseIns.roomNumber,
-                currentFloor: houseIns.currentFloor,
-                totalFloor: houseIns.building.totalFloor,
-                layout: houseIns.layouts,
-                config: houseIns.config,
-                rooms: common.translateRooms(houseIns.rooms),
-                devices: common.translateDevices(houseIns.devices)
+                code: house.code,
+                location: house.building.location,
+                houseKeeper: house.houseKeeper,
+                group: house.building.group,
+                building: house.building.building,
+                unit: house.building.unit,
+                price: house.prices,
+                roomNumber: house.roomNumber,
+                currentFloor: house.currentFloor,
+                totalFloor: house.building.totalFloor,
+                layout: house.layouts,
+                config: house.config,
+                rooms: common.translateRooms(house.rooms),
+                devices: common.translateDevices(house.devices)
             });
         })();
     },
