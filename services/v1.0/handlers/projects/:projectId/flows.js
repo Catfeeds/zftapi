@@ -85,8 +85,16 @@ const reduceByParams = (source, category) => {
     if (fp.includes(source)(['topup', 'rent']) && category === 'fee') {
         return fp.sumBy(`${source}Fee`);
     }
+
+    if (fp.includes(source)(['topup', 'rent']) && category === 'income') {
+        return fp.sumBy(`${source}`);
+    }
     if (source === 'all' && category === 'fee') {
         return fp.sumBy(ob => ob.rentFee + ob.topupFee);
+    }
+
+    if (source === 'all' && category === 'income') {
+        return fp.sumBy(ob => ob.rent + ob.topup);
     }
 
     if (source === 'final' && !fp.isUndefined(category)) {

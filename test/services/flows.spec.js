@@ -1253,5 +1253,72 @@ describe('Flows', function() {
                 );
             });
         });
+        it('should reduce amount of all income', async () => {
+            const req = {
+                params: {
+                    projectId: 100,
+                },
+                query: {
+                    view: 'month',
+                    year: 2018,
+                    source: 'all',
+                    category: 'income'
+                },
+            };
+            const sendSpy = spy();
+            const sequelizeQuerySpy = stub().resolves([
+                {
+                    id: '6380921449204551680',
+                    name: '新帝朗郡',
+                    rent: 1000,
+                    rentFee: 10,
+                    topup: 2000,
+                    topupFee: 20,
+                    finalPay: 20000,
+                    finalReceive: 30000,
+                    balance: 12970,
+                    month: '2018-01',
+                }]);
+
+            global.MySQL = {
+                Sequelize: {
+                    query: sequelizeQuerySpy,
+                    QueryTypes: {
+                        SELECT: 'SELECT',
+                    },
+                },
+
+            };
+
+            await get(req, {send: sendSpy}).then(() => {
+                sequelizeQuerySpy.should.have.been.called;
+                sendSpy.should.have.been.called;
+                const monthData = sendSpy.getCall(0).args;
+                monthData.should.be.eql(
+                    [
+                        [
+                            {
+                                'id': '6380921449204551680',
+                                'months': {
+                                    '2018-01': 3000,
+                                    '2018-02': '-',
+                                    '2018-03': '-',
+                                    '2018-04': '-',
+                                    '2018-05': '-',
+                                    '2018-06': '-',
+                                    '2018-07': '-',
+                                    '2018-08': '-',
+                                    '2018-09': '-',
+                                    '2018-10': '-',
+                                    '2018-11': '-',
+                                    '2018-12': '-',
+                                },
+                                'name': '新帝朗郡',
+                            },
+                        ],
+                    ],
+                );
+            });
+        });
     });
 });
