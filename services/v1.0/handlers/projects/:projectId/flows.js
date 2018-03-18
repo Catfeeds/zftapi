@@ -81,7 +81,18 @@ const translate = (models, pagingInfo) => {
     };
 };
 
-const reduceBySource = (source) => {
+const reduceByParams = (source, category) => {
+    if (fp.includes(source)(['topup', 'rent']) && category === 'fee') {
+        return fp.sumBy(`${source}Fee`);
+    }
+    if (source === 'all' && category === 'fee') {
+        return fp.sumBy(ob => ob.rentFee + ob.topupFee);
+    }
+
+    if (source === 'final' && !fp.isUndefined(category)) {
+        return fp.sumBy(category);
+    }
+
     const sourceMap = {
         topup: fp.sumBy('topup'),
         rent: fp.sumBy('rent'),
@@ -114,25 +125,34 @@ module.exports = {
         const Flows = MySQL.Flows;
         const Topup = MySQL.Topup;
         const BillFlows = MySQL.BillFlows;
-        const FundChannelFlows = MySQL.FundChannelFlows;
-        const forceRequired = {required: false};
-        const contractFilter = includeContracts(MySQL, forceRequired);
+        const notRequired = {required: false};
+        const contractFilter = includeContracts(MySQL, notRequired);
 
-        const query = req.query;
         const projectId = req.params.projectId;
-        const locationIds = fp.get('locationIds')(query);
-        const housesInLocation = fp.get('housesInLocation')(query);
-        const houseFormat = query.houseFormat;
-        const districtId = query.districtId;
-        const from = query.from;
-        const to = query.to;
-        const view = query.view;
-        const year = query.year;
-        const source = query.source;
+        const {
+            source, category, locationIds,
+            housesInLocation, houseFormat, districtId,
+            from, to, view, year, index: pageIndex, size: pageSize
+        } = req.query;
 
         if (to < from) {
             return res.send(400, ErrorCode.ack(ErrorCode.PARAMETERERROR,
                 {error: 'please provide valid from / to timestamp.'}));
+        }
+
+        if(view && !fp.includes(view)(['category', 'month'])) {
+            return res.send(400, ErrorCode.ack(ErrorCode.PARAMETERERROR,
+                {error: `unrecognised view mode: ${view}`}));
+        }
+
+        if(source && !fp.includes(source)(['rent', 'all', 'final', 'topup'])) {
+            return res.send(400, ErrorCode.ack(ErrorCode.PARAMETERERROR,
+                {error: `unrecognised source : ${source}`}));
+        }
+
+        if(category && !fp.includes(category)(['finalPay', 'income', 'fee', 'balance'])) {
+            return res.send(400, ErrorCode.ack(ErrorCode.PARAMETERERROR,
+                {error: `unrecognised source : ${source}`}));
         }
 
         const locationCondition = locationIds ?
@@ -180,7 +200,7 @@ module.exports = {
 
         const groupByMonth = async (req, res) => {
             const sequelize = MySQL.Sequelize;
-            const reduceCondition = reduceBySource(source);
+            const reduceCondition = reduceByParams(source, category);
 
             const sql = housesInLocation ?
                 groupHousesMonthlyByLocationId(
@@ -213,8 +233,8 @@ module.exports = {
                         {error: err.message})));
         };
 
-        function normalFlow() {
-            const pagingInfo = Util.PagingInfo(query.index, query.size, true);
+        const normalFlow = async () => {
+            const pagingInfo = Util.PagingInfo(pageIndex, pageSize, true);
             //TODO: in cash case, the operator is the manager, otherwise it's user themselves
             const operatorConnection = {
                 model: Auth,

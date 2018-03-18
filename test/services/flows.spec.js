@@ -140,7 +140,8 @@ describe('Flows', function() {
                                                 'orderNo',
                                                 'from',
                                                 'to',
-                                                'amount'],
+                                                'amount',
+                                                'createdAt'],
                                         },
                                     ],
                                     model: Bills,
@@ -576,7 +577,7 @@ describe('Flows', function() {
                         'id': 1,
                         'mobile': '',
                     },
-                    remark: 'topup is good'
+                    remark: 'topup is good',
                 });
             });
         });
@@ -695,7 +696,7 @@ describe('Flows', function() {
                 },
                 query: {
                     view: 'category',
-                    housesInLocation: 321
+                    housesInLocation: 321,
                 },
             };
             const sequelizeQuerySpy = stub().resolves([]);
@@ -744,6 +745,512 @@ describe('Flows', function() {
                         projectId: 100,
                     }, type: 'SELECT',
                 });
+            });
+        });
+    });
+    describe('By month', function() {
+        it('should exec raw sql to database', async () => {
+            const req = {
+                params: {
+                    projectId: 100,
+                },
+                query: {
+                    view: 'month',
+                    year: 2018,
+                },
+            };
+            const sequelizeQuerySpy = stub().resolves([]);
+
+            global.MySQL = {
+                Sequelize: {
+                    query: sequelizeQuerySpy,
+                    QueryTypes: {
+                        SELECT: 'SELECT',
+                    },
+                },
+
+            };
+
+            await get(req, {send: fp.noop}).then(() => {
+                sequelizeQuerySpy.should.have.been.called;
+                const [sql] = sequelizeQuerySpy.getCall(0).args;
+                sql.should.be.eql(
+                    'select\n  id, name, month,\n  sum(rentPart) as rent,\n  ' +
+                    'sum(rentPartFee) as rentFee,\n  sum(topupPart) as topup,\n  ' +
+                    'sum(topupFeePart) as topupFee,\n  sum(finalPayPart) as finalPay, \n' +
+                    '  sum(finalReceivePart) as finalReceive, \n' +
+                    '  (select sum(rentPart) - sum(rentPartFee) + ' +
+                    'sum(topupPart) - sum(topupFeePart) - sum(finalPayPart) + ' +
+                    'sum(finalReceivePart)) as balance  from (select l.id, l.name,   DATE_FORMAT(f.createdAt, \'%Y-%m\') as month, \n' +
+                    '  sum(case\n      when f.category=\'rent\' then f.amount else 0\n' +
+                    '      end) as rentPart,\n  sum(case\n      when f.category=\'rent\' then fee else 0\n' +
+                    '      end) as rentPartFee,\n  0 as topupPart,\n  0 as topupFeePart,\n  sum(case\n' +
+                    '      when (f.category=\'final\' and f.direction=\'pay\') then f.amount else 0\n' +
+                    '      end) as finalPayPart, \n  sum(case\n      when (f.category=\'final\' and f.direction=\'receive\') then f.amount else 0\n' +
+                    '      end) as finalReceivePart\nfrom\n  billpayment b,\n  bills b2,\n  flows f,\n  contracts c,\n' +
+                    '  houses h,\n  rooms r,\n  location l,\n  buildings\nwhere\n  f.id = b.flowId\n  and b2.id = b.billId\n' +
+                    '  and c.id = b2.contractId\n  and b.projectId = :projectId \n  and c.roomId = r.id\n  and r.houseId = h.id\n' +
+                    '  and h.buildingId = buildings.id\n  and buildings.locationId = l.id\n  and f.createdAt > :from  and f.createdAt < :to \nGROUP BY l.id, l.name, DATE_FORMAT(createdAt, \'%Y-%m\')\n' +
+                    ' UNION\nselect l.id, l.name,   DATE_FORMAT(f.createdAt, \'%Y-%m\') as month,\n' +
+                    '  0 as rentPart,\n  0 as rentPartFee,\n  sum(case\n      when f.category=\'topup\' then f.amount else 0\n      end) as topupPart,\n' +
+                    '  sum(case\n      when f.category=\'topup\' then fee else 0\n      end) as topupPartFee,\n  0 as finalPayPart, \n  0 as finalReceivePart \n' +
+                    'from\n  topup t,\n  flows f,\n  contracts c,\n  houses h,\n  rooms r,\n  location l,\n  buildings\nwhere\n  f.id = t.flowId\n' +
+                    '  and c.id = t.contractId\n  and t.projectId = :projectId \n  and c.roomId = r.id\n  and r.houseId = h.id\n' +
+                    '  and h.buildingId = buildings.id\n  and buildings.locationId = l.id\n  and f.createdAt > :from  and f.createdAt < :to \nGROUP BY l.id, l.name, DATE_FORMAT(f.createdAt, \'%Y-%m\')\n     ) as f2\n' +
+                    'GROUP BY id, name, month',
+                );
+            });
+        });
+
+        it('should exec raw sql for grouping by houseId', async () => {
+            const req = {
+                params: {
+                    projectId: 100,
+                },
+                query: {
+                    view: 'month',
+                    year: 2018,
+                    housesInLocation: 321,
+                },
+            };
+            const sequelizeQuerySpy = stub().resolves([]);
+
+            global.MySQL = {
+                Sequelize: {
+                    query: sequelizeQuerySpy,
+                    QueryTypes: {
+                        SELECT: 'SELECT',
+                    },
+                },
+
+            };
+
+            await get(req, {send: fp.noop}).then(() => {
+                sequelizeQuerySpy.should.have.been.called;
+                const [sql] = sequelizeQuerySpy.getCall(0).args;
+                sql.should.be.eql(
+                    'select id,\n  month,  sum(rentPart) as rent,\n  ' +
+                    'sum(rentPartFee) as rentFee,\n  sum(topupPart) as topup,\n  ' +
+                    'sum(topupFeePart) as topupFee,\n  sum(finalPayPart) as finalPay, \n' +
+                    '  sum(finalReceivePart) as finalReceive, \n' +
+                    '  (select sum(rentPart) - sum(rentPartFee) + ' +
+                    'sum(topupPart) - sum(topupFeePart) - sum(finalPayPart) + ' +
+                    'sum(finalReceivePart)) as balance  from (select h.id,\n  DATE_FORMAT(f.createdAt, \'%Y-%m\') month,' +
+                    '  sum(case\n      when f.category=\'rent\' then f.amount else 0\n' +
+                    '      end) as rentPart,\n  sum(case\n      when f.category=\'rent\' then fee else 0\n' +
+                    '      end) as rentPartFee,\n  0 as topupPart,\n  0 as topupFeePart,\n  sum(case\n' +
+                    '      when (f.category=\'final\' and f.direction=\'pay\') then f.amount else 0\n' +
+                    '      end) as finalPayPart, \n  sum(case\n      when (f.category=\'final\' and f.direction=\'receive\') then f.amount else 0\n' +
+                    '      end) as finalReceivePart\nfrom\n  billpayment b,\n  bills b2,\n  flows f,\n  contracts c,\n' +
+                    '  houses h,\n  rooms r,\n  location l,\n  buildings\nwhere\n  f.id = b.flowId\n  and b2.id = b.billId\n' +
+                    '  and c.id = b2.contractId\n  and b.projectId = :projectId \n  and c.roomId = r.id\n  and r.houseId = h.id\n' +
+                    '  and h.buildingId = buildings.id\n  and buildings.locationId = l.id\n  and f.createdAt > :from  and f.createdAt < :to \n\n and buildings.locationId = 321 GROUP BY h.id, month\n UNION\nselect h.id,\n' +
+                    '  DATE_FORMAT(f.createdAt, \'%Y-%m\') month,  0 as rentPart,\n  0 as rentPartFee,\n  sum(case\n      when f.category=\'topup\' then f.amount else 0\n      end) as topupPart,\n' +
+                    '  sum(case\n      when f.category=\'topup\' then fee else 0\n      end) as topupPartFee,\n  0 as finalPayPart, \n  0 as finalReceivePart \n' +
+                    'from\n  topup t,\n  flows f,\n  contracts c,\n  houses h,\n  rooms r,\n  location l,\n  buildings\nwhere\n  f.id = t.flowId\n' +
+                    '  and c.id = t.contractId\n  and t.projectId = :projectId \n  and c.roomId = r.id\n  and r.houseId = h.id\n' +
+                    '  and h.buildingId = buildings.id\n  and buildings.locationId = l.id\n  and f.createdAt > :from  and f.createdAt < :to \n\n and buildings.locationId = 321 GROUP BY h.id, DATE_FORMAT(createdAt, \'%Y-%m\')\n     ) as f2\n' +
+                    ' GROUP BY id, month',
+                );
+            });
+        });
+        it('should reduce amount base on source', async () => {
+            const req = {
+                params: {
+                    projectId: 100,
+                },
+                query: {
+                    view: 'month',
+                    year: 2018,
+                    source: 'rent',
+                },
+            };
+            const sendSpy = spy();
+            const sequelizeQuerySpy = stub().resolves([
+                {
+                    id: '6380921449204551680',
+                    name: '新帝朗郡',
+                    rent: 1000,
+                    rentFee: 10,
+                    topup: 2000,
+                    topupFee: 20,
+                    finalPay: 20000,
+                    finalReceive: 30000,
+                    balance: 12970,
+                    month: '2018-01',
+                }]);
+
+            global.MySQL = {
+                Sequelize: {
+                    query: sequelizeQuerySpy,
+                    QueryTypes: {
+                        SELECT: 'SELECT',
+                    },
+                },
+
+            };
+
+            await get(req, {send: sendSpy}).then(() => {
+                sequelizeQuerySpy.should.have.been.called;
+                sendSpy.should.have.been.called;
+                const monthData = sendSpy.getCall(0).args;
+                monthData.should.be.eql(
+                    [
+                        [
+                            {
+                                'id': '6380921449204551680',
+                                'months': {
+                                    '2018-01': 1000,
+                                    '2018-02': '-',
+                                    '2018-03': '-',
+                                    '2018-04': '-',
+                                    '2018-05': '-',
+                                    '2018-06': '-',
+                                    '2018-07': '-',
+                                    '2018-08': '-',
+                                    '2018-09': '-',
+                                    '2018-10': '-',
+                                    '2018-11': '-',
+                                    '2018-12': '-',
+                                },
+                                'name': '新帝朗郡',
+                            },
+                        ],
+                    ],
+                );
+            });
+        });
+        it('should reduce amount of source topup', async () => {
+            const req = {
+                params: {
+                    projectId: 100,
+                },
+                query: {
+                    view: 'month',
+                    year: 2018,
+                    source: 'topup',
+                },
+            };
+            const sendSpy = spy();
+            const sequelizeQuerySpy = stub().resolves([
+                {
+                    id: '6380921449204551680',
+                    name: '新帝朗郡',
+                    rent: 1000,
+                    rentFee: 10,
+                    topup: 2000,
+                    topupFee: 20,
+                    finalPay: 20000,
+                    finalReceive: 30000,
+                    balance: 12970,
+                    month: '2018-01',
+                }]);
+
+            global.MySQL = {
+                Sequelize: {
+                    query: sequelizeQuerySpy,
+                    QueryTypes: {
+                        SELECT: 'SELECT',
+                    },
+                },
+
+            };
+
+            await get(req, {send: sendSpy}).then(() => {
+                sequelizeQuerySpy.should.have.been.called;
+                sendSpy.should.have.been.called;
+                const monthData = sendSpy.getCall(0).args;
+                monthData.should.be.eql(
+                    [
+                        [
+                            {
+                                'id': '6380921449204551680',
+                                'months': {
+                                    '2018-01': 2000,
+                                    '2018-02': '-',
+                                    '2018-03': '-',
+                                    '2018-04': '-',
+                                    '2018-05': '-',
+                                    '2018-06': '-',
+                                    '2018-07': '-',
+                                    '2018-08': '-',
+                                    '2018-09': '-',
+                                    '2018-10': '-',
+                                    '2018-11': '-',
+                                    '2018-12': '-',
+                                },
+                                'name': '新帝朗郡',
+                            },
+                        ],
+                    ],
+                );
+            });
+        });
+        it('should reduce amount of source final', async () => {
+            const req = {
+                params: {
+                    projectId: 100,
+                },
+                query: {
+                    view: 'month',
+                    year: 2018,
+                    source: 'final',
+                },
+            };
+            const sendSpy = spy();
+            const sequelizeQuerySpy = stub().resolves([
+                {
+                    id: '6380921449204551680',
+                    name: '新帝朗郡',
+                    rent: 1000,
+                    rentFee: 10,
+                    topup: 2000,
+                    topupFee: 20,
+                    finalPay: 20000,
+                    finalReceive: 30000,
+                    balance: 12970,
+                    month: '2018-01',
+                }]);
+
+            global.MySQL = {
+                Sequelize: {
+                    query: sequelizeQuerySpy,
+                    QueryTypes: {
+                        SELECT: 'SELECT',
+                    },
+                },
+
+            };
+
+            await get(req, {send: sendSpy}).then(() => {
+                sequelizeQuerySpy.should.have.been.called;
+                sendSpy.should.have.been.called;
+                const monthData = sendSpy.getCall(0).args;
+                monthData.should.be.eql(
+                    [
+                        [
+                            {
+                                'id': '6380921449204551680',
+                                'months': {
+                                    '2018-01': 10000,
+                                    '2018-02': '-',
+                                    '2018-03': '-',
+                                    '2018-04': '-',
+                                    '2018-05': '-',
+                                    '2018-06': '-',
+                                    '2018-07': '-',
+                                    '2018-08': '-',
+                                    '2018-09': '-',
+                                    '2018-10': '-',
+                                    '2018-11': '-',
+                                    '2018-12': '-',
+                                },
+                                'name': '新帝朗郡',
+                            },
+                        ],
+                    ],
+                );
+            });
+        });
+        it('should reduce amount of finalPay', async () => {
+            const req = {
+                params: {
+                    projectId: 100,
+                },
+                query: {
+                    view: 'month',
+                    year: 2018,
+                    source: 'final',
+                    category: 'finalPay'
+                },
+            };
+            const sendSpy = spy();
+            const sequelizeQuerySpy = stub().resolves([
+                {
+                    id: '6380921449204551680',
+                    name: '新帝朗郡',
+                    rent: 1000,
+                    rentFee: 10,
+                    topup: 2000,
+                    topupFee: 20,
+                    finalPay: 20000,
+                    finalReceive: 30000,
+                    balance: 12970,
+                    month: '2018-01',
+                }]);
+
+            global.MySQL = {
+                Sequelize: {
+                    query: sequelizeQuerySpy,
+                    QueryTypes: {
+                        SELECT: 'SELECT',
+                    },
+                },
+
+            };
+
+            await get(req, {send: sendSpy}).then(() => {
+                sequelizeQuerySpy.should.have.been.called;
+                sendSpy.should.have.been.called;
+                const monthData = sendSpy.getCall(0).args;
+                monthData.should.be.eql(
+                    [
+                        [
+                            {
+                                'id': '6380921449204551680',
+                                'months': {
+                                    '2018-01': 20000,
+                                    '2018-02': '-',
+                                    '2018-03': '-',
+                                    '2018-04': '-',
+                                    '2018-05': '-',
+                                    '2018-06': '-',
+                                    '2018-07': '-',
+                                    '2018-08': '-',
+                                    '2018-09': '-',
+                                    '2018-10': '-',
+                                    '2018-11': '-',
+                                    '2018-12': '-',
+                                },
+                                'name': '新帝朗郡',
+                            },
+                        ],
+                    ],
+                );
+            });
+        });
+        it('should reduce amount of rent fee', async () => {
+            const req = {
+                params: {
+                    projectId: 100,
+                },
+                query: {
+                    view: 'month',
+                    year: 2018,
+                    source: 'rent',
+                    category: 'fee'
+                },
+            };
+            const sendSpy = spy();
+            const sequelizeQuerySpy = stub().resolves([
+                {
+                    id: '6380921449204551680',
+                    name: '新帝朗郡',
+                    rent: 1000,
+                    rentFee: 10,
+                    topup: 2000,
+                    topupFee: 20,
+                    finalPay: 20000,
+                    finalReceive: 30000,
+                    balance: 12970,
+                    month: '2018-01',
+                }]);
+
+            global.MySQL = {
+                Sequelize: {
+                    query: sequelizeQuerySpy,
+                    QueryTypes: {
+                        SELECT: 'SELECT',
+                    },
+                },
+
+            };
+
+            await get(req, {send: sendSpy}).then(() => {
+                sequelizeQuerySpy.should.have.been.called;
+                sendSpy.should.have.been.called;
+                const monthData = sendSpy.getCall(0).args;
+                monthData.should.be.eql(
+                    [
+                        [
+                            {
+                                'id': '6380921449204551680',
+                                'months': {
+                                    '2018-01': 10,
+                                    '2018-02': '-',
+                                    '2018-03': '-',
+                                    '2018-04': '-',
+                                    '2018-05': '-',
+                                    '2018-06': '-',
+                                    '2018-07': '-',
+                                    '2018-08': '-',
+                                    '2018-09': '-',
+                                    '2018-10': '-',
+                                    '2018-11': '-',
+                                    '2018-12': '-',
+                                },
+                                'name': '新帝朗郡',
+                            },
+                        ],
+                    ],
+                );
+            });
+        });
+        it('should reduce amount of all fee', async () => {
+            const req = {
+                params: {
+                    projectId: 100,
+                },
+                query: {
+                    view: 'month',
+                    year: 2018,
+                    source: 'all',
+                    category: 'fee'
+                },
+            };
+            const sendSpy = spy();
+            const sequelizeQuerySpy = stub().resolves([
+                {
+                    id: '6380921449204551680',
+                    name: '新帝朗郡',
+                    rent: 1000,
+                    rentFee: 10,
+                    topup: 2000,
+                    topupFee: 20,
+                    finalPay: 20000,
+                    finalReceive: 30000,
+                    balance: 12970,
+                    month: '2018-01',
+                }]);
+
+            global.MySQL = {
+                Sequelize: {
+                    query: sequelizeQuerySpy,
+                    QueryTypes: {
+                        SELECT: 'SELECT',
+                    },
+                },
+
+            };
+
+            await get(req, {send: sendSpy}).then(() => {
+                sequelizeQuerySpy.should.have.been.called;
+                sendSpy.should.have.been.called;
+                const monthData = sendSpy.getCall(0).args;
+                monthData.should.be.eql(
+                    [
+                        [
+                            {
+                                'id': '6380921449204551680',
+                                'months': {
+                                    '2018-01': 30,
+                                    '2018-02': '-',
+                                    '2018-03': '-',
+                                    '2018-04': '-',
+                                    '2018-05': '-',
+                                    '2018-06': '-',
+                                    '2018-07': '-',
+                                    '2018-08': '-',
+                                    '2018-09': '-',
+                                    '2018-10': '-',
+                                    '2018-11': '-',
+                                    '2018-12': '-',
+                                },
+                                'name': '新帝朗郡',
+                            },
+                        ],
+                    ],
+                );
             });
         });
     });
