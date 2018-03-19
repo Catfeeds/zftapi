@@ -21,15 +21,16 @@ module.exports = {
         const query = req.query;
 
         if(!Util.ParameterCheck(query,
-            ['flow', 'category']
+            ['flow']
         )){
             return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED));
         }
 
-        if(!fp.includes(query.category)(Typedef.FundChannelCategory)){
+        const category = query.category;
+        const status = query.status;
+        if(category && !fp.includes(query.category)(Typedef.FundChannelCategory)){
             return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED, 'category'));
         }
-        const status = query.status;
         if(status && !Typedef.FundChannelStatus[status]){
             return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED, 'status'));
         }
@@ -39,9 +40,7 @@ module.exports = {
                 projectId: projectId,
                 flow: query.flow,
             }
-            , query.category === Typedef.FundChannelCategory.ALL ?
-                {} :
-                {category: query.category}
+            , query.category ? {category: query.category}: {}
             , status ? {status: status}:{}
         ]);
 
