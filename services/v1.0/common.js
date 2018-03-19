@@ -727,9 +727,7 @@ exports.includeRoom = async(status)=>{
                     attributes: ['id', 'from', 'to', 'memo'],
                 },
             ],
-        })(
-        where ? where : {},
-    );
+        })( where ? where : {} );
 };
 
 exports.translateDevices = (devices)=>{

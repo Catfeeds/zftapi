@@ -23,30 +23,29 @@ describe('Houses', function() {
         };
         global.MySQL = {
             Houses: {
-                async findAndCountAll() {
-                    return {
-                        count: 1,
-                        rows: [
-                            {
-                                toJSON: () => ({
-                                    id: 'id',
-                                    code: 'code',
-                                    roomNumber: 'roomNumber',
-                                    currentFloor: 'currentFloor',
-                                    layouts: 'layouts',
-                                    houseFormat: 'SHARE',
-                                    houseKeeper: 0,
-                                    building: {
-                                        group: 'group',
-                                        building: 'building',
-                                        location: 'location',
-                                        unit: 'unit',
-                                    },
+                async findAll() {
+                    return [
+                        {
+                            toJSON: () => ({
+                                id: 'id',
+                                code: 'code',
+                                roomNumber: 'roomNumber',
+                                currentFloor: 'currentFloor',
+                                layouts: 'layouts',
+                                houseFormat: 'SHARE',
+                                houseKeeper: 0,
+                                building: {
+                                    group: 'group',
+                                    building: 'building',
+                                    location: 'location',
+                                    unit: 'unit',
+                                },
 
-                                }),
-                            }],
-                    };
+                            }),
+                        }
+                    ];
                 },
+                count: fp.constant(1)
             },
         };
         const resSpy = spy();
@@ -92,29 +91,27 @@ describe('Houses', function() {
         };
         global.MySQL = {
             Houses: {
-                async findAndCountAll() {
-                    return {
-                        count: 1,
-                        rows: [
-                            {
-                                toJSON: () => ({
-                                    id: 'id',
-                                    code: 'code',
-                                    roomNumber: 'roomNumber',
-                                    currentFloor: 'currentFloor',
-                                    layouts: 'layouts',
-                                    building: {
-                                        group: 'group',
-                                        building: 'building',
-                                        location: 'location',
-                                        unit: 'unit',
-                                    },
-                                    devices: [{device: null}, {device: {deviceId: 'deviceId'}}],
-                                    rooms: null,
-                                }),
-                            }],
-                    };
+                async findAll() {
+                    return [
+                        {
+                            toJSON: () => ({
+                                id: 'id',
+                                code: 'code',
+                                roomNumber: 'roomNumber',
+                                currentFloor: 'currentFloor',
+                                layouts: 'layouts',
+                                building: {
+                                    group: 'group',
+                                    building: 'building',
+                                    location: 'location',
+                                    unit: 'unit',
+                                },
+                                devices: [{device: null}, {device: {deviceId: 'deviceId'}}],
+                                rooms: null,
+                            }),
+                        }];
                 },
+                count: fp.constant(1)
             },
         };
         const resSpy = spy();

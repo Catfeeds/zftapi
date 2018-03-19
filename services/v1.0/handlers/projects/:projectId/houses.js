@@ -364,46 +364,72 @@ async function Gethouses(params, query) {
                     {'$building.location.name$': {$regexp: query.q}},
                     {roomNumber: {$regexp: query.q}},
                     {code: {$regexp: query.q}},
+                    {'$rooms.contract.user.name': {$regexp: query.q}},
+                    {'$rooms.contract.user.mobile': {$regexp: query.q}},
                 ],
             } : {},
             query.bedRooms ? {'$layouts.bedRoom$': query.bedRooms} : {},
             query.device ? await deviceFilter() : {},
         ]);
 
-        const include = [
-            {
+        const includeBuilding = ()=>{
+            return {
                 model: MySQL.Building, as: 'building'
                 , include:[{
-                    model: MySQL.GeoLocation, as: 'location',
+                    model: MySQL.GeoLocation
+                    , as: 'location'
+                    // , order:[['divisionId', 'ASC'], ['name', 'ASC']],
                 }]
                 , attributes: ['group', 'building', 'unit'],
-            },
-            {
+            };
+        };
+        const includeLayouts = () => {
+            return {
                 model: MySQL.Layouts,
                 as: 'layouts',
                 attributes: ['name', 'bedRoom', 'livingRoom', 'bathRoom', 'orientation', 'roomArea', 'remark'],
-            },
-            // await getIncludeRoom(),
-            await common.includeRoom(query.status),
-            // getIncludeHouseDevices(true),
-            common.includeHouseDevices(true),
-            {
+            };
+        };
+        const includeHouseDevicePrice = ()=>{
+            return {
                 model: MySQL.HouseDevicePrice,
                 as: 'prices',
                 required: false,
                 where:{
                     endDate: 0
                 }
-            }
-        ];
+            };
+        };
 
-        const result = await MySQL.Houses.findAndCountAll({
+        const getInclude = async(forPaging)=>{
+            return [
+                includeBuilding(),
+                includeLayouts(),
+                await common.includeRoom(query.status, forPaging),
+                common.includeHouseDevices(true),
+                includeHouseDevicePrice()
+            ];
+        };
+
+
+        const count = await MySQL.Houses.count({
             where: where,
             subQuery: false,
-            include: include,
-            order:[['id', 'ASC'], ['rooms', 'name', 'ASC']],
+            include: await getInclude(),
+            distinct: true,
+            attributes:['id']
+        });
+        const rows = await MySQL.Houses.findAll({
+            where: where,
+            // subQuery: false,
+            include: await getInclude(),
+            order:[
+                ['building', 'location', 'divisionId', 'ASC']
+                , ['building', 'location',  'name', 'ASC']
+                , ['roomNumber', 'ASC']
+            ],
             offset: pagingInfo.skip,
-            limit: pagingInfo.size,
+            limit: pagingInfo.size
         });
 
         //
@@ -427,11 +453,11 @@ async function Gethouses(params, query) {
                 prices: fp.map(fp.pick(['category', 'type', 'price']))(house.prices)
             };
 
-        })(result.rows);
+        })(rows);
 
         return {
             paging:{
-                count: result.count,
+                count: count,
                 index: pagingInfo.index,
                 size: pagingInfo.size
             },
