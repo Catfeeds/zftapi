@@ -1369,6 +1369,7 @@ describe('Flows', function() {
                                 channels: {
                                     '1': 12970,
                                 },
+                                total: 12970
                             },
                         ],
                     ],
@@ -1435,6 +1436,7 @@ describe('Flows', function() {
                                     '1': 0,
                                     '2': 15970,
                                 },
+                                total: 15970
                             },
                             {
                                 timespan: '2018-01-01',
@@ -1442,6 +1444,7 @@ describe('Flows', function() {
                                     '1': 12970,
                                     '2': 0,
                                 },
+                                total: 12970
                             },
                         ],
                     ],
