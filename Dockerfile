@@ -1,6 +1,7 @@
-FROM node:8.9.4-alpine
+FROM node:8.9.1-slim
 
-RUN apk update && apk add tzdata
+RUN apt-get update && apt-get install tzdata
+
 RUN cp /usr/share/zoneinfo/Asia/Shanghai  /etc/localtime
 RUN npm i -g pm2
 RUN mkdir /app
