@@ -1820,6 +1820,10 @@ function SequelizeDefine() {
             type: Sequelize.BIGINT,
             allowNull: false
         },
+        fundChannelId: {
+            type: Sequelize.BIGINT.UNSIGNED,
+            allowNull: false
+        },
         operator: {
             type: Sequelize.BIGINT.UNSIGNED,
             allowNull: false
@@ -1838,6 +1842,7 @@ function SequelizeDefine() {
         paranoid: true,
         freezeTableName: true
     });
+    withDraw.belongsTo(FundChannels, {as: 'channel', foreignKey: 'fundChannelId'});
 
     exports.WithDraw = withDraw;
 

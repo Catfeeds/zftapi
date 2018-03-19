@@ -29,18 +29,25 @@ module.exports = {
         if(!fp.includes(query.category)(Typedef.FundChannelCategory)){
             return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED, 'category'));
         }
+        const status = query.status;
+        if(status && !Typedef.FundChannelStatus[status]){
+            return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED, 'status'));
+        }
 
-        const where = fp.assignIn({
-            projectId: projectId,
-            flow: query.flow,
-        })(
-            query.category === Typedef.FundChannelCategory.ALL ?
+        const where = fp.extendAll([
+            {
+                projectId: projectId,
+                flow: query.flow,
+            }
+            , query.category === Typedef.FundChannelCategory.ALL ?
                 {} :
-                {category: query.category});
+                {category: query.category}
+            , status ? {status: status}:{}
+        ]);
 
         MySQL.FundChannels.findAll({
             where: where,
-            attributes: ['id', 'tag', 'name']
+            attributes: ['id', 'tag', 'name', 'status']
         }).then(
             channels=>{
                 res.send(channels);

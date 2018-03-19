@@ -36,7 +36,14 @@ module.exports = {
             ]),
             order:[['updatedAt', 'DESC']],
             offset: pagingInfo.skip,
-            limit: pagingInfo.size
+            limit: pagingInfo.size,
+            include: [
+                {
+                    model: MySQL.FundChannels,
+                    as: 'channel',
+                    attributes: ['tag', 'name', 'category']
+                }
+            ]
         }).then(
             result=>{
                 const userIds = fp.flatten(
@@ -45,11 +52,11 @@ module.exports = {
                     })(result.rows)
                 );
 
-                MySQL.Users.findAll({
+                MySQL.Auth.findAll({
                     where:{
                         id:{$in: userIds}
                     },
-                    attributes:['id', 'accountName', 'name']
+                    attributes:['id', 'userName']
                 }).then(
                     users=>{
                         //

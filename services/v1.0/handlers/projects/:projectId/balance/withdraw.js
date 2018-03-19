@@ -14,8 +14,21 @@ module.exports = {
 
             const body = req.body;
 
-            if(!Util.ParameterCheck(body, ['balance'])){
+            if(!Util.ParameterCheck(body, ['balance', 'fundChannelId'])){
                 return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED));
+            }
+            const fundChannelId = body.fundChannelId;
+
+            const fundChannelExits = await MySQL.FundChannels.count({
+                where:{
+                    projectId: projectId,
+                    id: fundChannelId,
+                    flow: Typedef.FundFlow.PAY,
+                    status: Typedef.FundChannelStatus.PASSED
+                }
+            });
+            if(!fundChannelExits){
+                return res.send(404, ErrorCode.ack(ErrorCode.CHANNELNOTEXISTS));
             }
 
             const getWithDraw = Include('/services/v1.0/handlers/projects/:projectId/balance');
@@ -34,6 +47,7 @@ module.exports = {
                 //
                 const withDraw = {
                     projectId: projectId,
+                    fundChannelId: fundChannelId,
                     amount: requestForWithdraw,
                     operator: req.user.id,
                 };

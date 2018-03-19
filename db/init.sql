@@ -499,6 +499,7 @@ create table if not exists `withDraw`
 	`amount` bigint(20) NOT NULL,
 	`operator` bigint(20) UNSIGNED NOT NULL,
 	`auditor` bigint(20) UNSIGNED NOT NULL,
+	`fundChannelId` bigint(20) UNSIGNED NOT NULL,
 	`status` varchar(16) NULL DEFAULT 'PENDING',
 	`createdAt` datetime(0) NULL,
 	`updatedAt` datetime(0) NULL,
