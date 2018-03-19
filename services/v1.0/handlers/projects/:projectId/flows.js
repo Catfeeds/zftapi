@@ -135,7 +135,7 @@ const groupChannelByTimespan = (timespan, reduceCondition) => (res) => {
         fp.defaults(fp.extendAll(fillUp)));
 
     return fp.sortBy('timespan')(fp.map(([k, v]) =>
-        ({timespan: k, channels: v}),
+        ({timespan: k, channels: v, total: fp.sum(fp.values(v))})
     )(fp.entries(fp.mapValues(valueTransform)(fp.groupBy('timespan')(res))))).
         reverse();
 };
