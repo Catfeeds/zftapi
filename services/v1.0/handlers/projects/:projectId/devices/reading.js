@@ -170,6 +170,7 @@ module.exports = {
                         {'$building.location.name$': {$regexp: q}}
                         , {roomNumber: {$regexp: q}}
                         , {'$rooms.contracts.user.name$': {$regexp: q}}
+                        , {'$rooms.contracts.user.mobile': {$regexp: q}}
                         , {
                             $or:[
                                 {'$rooms.devices.deviceId$': {$regexp: q}}

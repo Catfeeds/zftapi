@@ -355,6 +355,7 @@ async function Gethouses(params, query) {
                 status: {$ne: Typedef.HouseStatus.DELETED},
             },
             query.buildingId ? {'$building.id$': query.buildingId} : {},
+            query.houseKeeper ? {houseKeeper: query.houseKeeper}:{},
             districtLocation() || {},
             query.houseFormat ? {houseFormat: query.houseFormat} : {},
             query.layoutId ? {'layoutId': query.layoutId} : {},
@@ -364,8 +365,8 @@ async function Gethouses(params, query) {
                     {'$building.location.name$': {$regexp: query.q}},
                     {roomNumber: {$regexp: query.q}},
                     {code: {$regexp: query.q}},
-                    {'$rooms.contract.user.name': {$regexp: query.q}},
-                    {'$rooms.contract.user.mobile': {$regexp: query.q}},
+                    {'$rooms.contracts.user.name$': {$regexp: query.q}},
+                    {'$rooms.contracts.user.mobile$': {$regexp: query.q}},
                 ],
             } : {},
             query.bedRooms ? {'$layouts.bedRoom$': query.bedRooms} : {},
@@ -421,7 +422,7 @@ async function Gethouses(params, query) {
         });
         const rows = await MySQL.Houses.findAll({
             where: where,
-            // subQuery: false,
+            subQuery: false,
             include: await getInclude(),
             order:[
                 ['building', 'location', 'divisionId', 'ASC']
