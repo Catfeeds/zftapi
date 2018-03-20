@@ -320,6 +320,15 @@ module.exports = {
                     ],
                 } : {};
             };
+
+            const houseFormatFilter = (query) => {
+                return query ? {
+                    $or: [
+                        {'$billpayment.bill.contract.room.house.houseFormat$': query},
+                        {'$topup.contract.room.house.houseFormat$': query},
+                    ],
+                } : {};
+            };
             const flowOption = {
                 include: [
                     {
@@ -359,6 +368,7 @@ module.exports = {
                         },
                     } : {},
                     locationConditionOf(req.query),
+                    houseFormatFilter(houseFormat),
                 ]),
                 distinct: true,
                 offset: pagingInfo.skip,

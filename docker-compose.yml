@@ -4,7 +4,7 @@ services:
     db:
         image: mysql:5.7
         restart: always
-        command: --init-file /db/init.sql --character-set-server=utf8
+        command: --init-file /db/init.sql --character-set-server=utf8 --explicit_defaults_for_timestamp
         environment:
           - MYSQL_ROOT_PASSWORD=example
           - TZ=Asia/Shanghai

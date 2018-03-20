@@ -238,6 +238,69 @@ describe('Flows', function() {
                 });
             });
         });
+        it('should filter houseFormat out while querying flows',
+            async function() {
+                const req = {
+                    params: {
+                        projectId: 100,
+                        roomId: 200,
+                    },
+                    query: {
+                        houseFormat: 'SOLE',
+                    },
+                };
+                const sequelizeFindSpy = stub().resolves([]);
+                const Users = {id: 'Users'};
+                const CashAccount = {
+                    findOrCreate: async () => ([
+                        {
+                            id: 321,
+                            userId: 1999,
+                        }]),
+                };
+                const Rooms = {id: 'Rooms'};
+                const Houses = {id: 'Houses'};
+                const Building = {id: 'Building'};
+                const GeoLocation = {id: 'GeoLocation'};
+                const Topup = {id: 'Topup'};
+                const Auth = {id: 'Auth'};
+                const BillPayment = {id: 'BillPayment'};
+                const Contracts = {id: 'Contracts'};
+                const Bills = {id: 'Bills'};
+                const BillFlows = {id: 'BillFlows'};
+                const FundChannelFlows = {id: 'FundChannelFlows'};
+                global.MySQL = {
+                    Flows: {
+                        findAndCountAll: sequelizeFindSpy,
+                    },
+                    Users,
+                    CashAccount,
+                    Rooms,
+                    Houses,
+                    Building,
+                    GeoLocation,
+                    Topup,
+                    Auth,
+                    Contracts,
+                    BillPayment,
+                    Bills,
+                    BillFlows,
+                    FundChannelFlows,
+                };
+
+                await get(req, {send: fp.noop}).then(() => {
+                    sequelizeFindSpy.should.have.been.called;
+                    const countingOption = sequelizeFindSpy.getCall(0).args[0];
+                    countingOption.where.should.be.eql({
+
+                        projectId: 100,
+                        $or: [
+                            {'$billpayment.bill.contract.room.house.houseFormat$': req.query.houseFormat},
+                            {'$topup.contract.room.house.houseFormat$': req.query.houseFormat},
+                        ],
+                    });
+                });
+            });
 
         it('should convert bill payments to flows', async function() {
             const req = {
@@ -1369,7 +1432,7 @@ describe('Flows', function() {
                                 channels: {
                                     '1': 12970,
                                 },
-                                total: 12970
+                                total: 12970,
                             },
                         ],
                     ],
@@ -1436,7 +1499,7 @@ describe('Flows', function() {
                                     '1': 0,
                                     '2': 15970,
                                 },
-                                total: 15970
+                                total: 15970,
                             },
                             {
                                 timespan: '2018-01-01',
@@ -1444,7 +1507,7 @@ describe('Flows', function() {
                                     '1': 12970,
                                     '2': 0,
                                 },
-                                total: 12970
+                                total: 12970,
                             },
                         ],
                     ],
