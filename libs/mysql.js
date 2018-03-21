@@ -651,11 +651,6 @@ function SequelizeDefine() {
             allowNull: false,
             primaryKey: true
         },
-        accountName: {
-            type: Sequelize.STRING(32),     //账号
-            allowNull: false,
-            unique: true
-        },
         name: {
             type: Sequelize.STRING(24),     //姓名
             allowNull: false
@@ -732,7 +727,7 @@ function SequelizeDefine() {
             allowNull: false,
             defaultValue: 'user',
             validate: { //管理员，管家，财务
-                isIn: [['ADMIN', 'MANAGER', 'ACCOUNTANT']]
+                isIn: [['ADMIN', 'MANAGER', 'ACCOUNTANT', 'USER']]
             }
         },
         username: {
@@ -746,7 +741,7 @@ function SequelizeDefine() {
         },
         email: {
             type: Sequelize.STRING(255),     //email
-            allowNull: false,
+            allowNull: true,
             validate: {
                 isEmail: true
             }

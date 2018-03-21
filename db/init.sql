@@ -124,14 +124,13 @@ create table if not exists billpayment
 create table if not exists users
 (
 	id bigint,
-	accountName varchar(32) not null,
+	authId bigint(20) UNSIGNED NOT NULL,
 	`name` varchar(24) not null,
 	mobile varchar(13) not null,
 	documentId text null,
 	documentType int default '1' null,
 	gender varchar(1) default 'M' not null,
-	constraint users_accountName_unique
-		unique (accountName),
+
 		primary key (`id`)
 ) engine=innodb default charset=utf8;
 
@@ -143,7 +142,7 @@ CREATE TABLE IF NOT EXISTS `auth`
 	`level` varchar(24) default 'ADMIN' not null,
 	`password` VARCHAR(32) NOT NULL,
 	`lastLoggedIn` BIGINT UNSIGNED,
-	`email` VARCHAR(255) NULL NOT NULL default '',
+	`email` VARCHAR(255) NULL,
 	`mobile` VARCHAR(20) NULL,
 	`allowReceiveFrom` VARCHAR(10) default 'BOTH' NOT NULL,
 	`createdAt` DATETIME NOT NULL,

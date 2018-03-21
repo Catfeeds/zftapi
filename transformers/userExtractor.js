@@ -1,7 +1,22 @@
 'use strict';
 
 const fp = require('lodash/fp');
+const crypto = require('crypto');
+const {assignNewId} = require('../services/v1.0/common');
 
-module.exports = {
-    extract: async (req) => fp.get('user', req.body)
+exports.extract = req => assignNewId(fp.get('user', req.body));
+
+exports.extractAuth = async (req) => {
+    const user = exports.extract(req);
+    const password = crypto.createHash('md5').
+        update(user.mobile).
+        digest('hex');
+    return assignNewId({
+        projectId: req.params.projectId,
+        password,
+        username: user.accountName,
+        email: user.email,
+        mobile: user.mobile,
+        level: 'USER',
+    });
 };

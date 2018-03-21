@@ -6,8 +6,8 @@ const fp = require('lodash/fp');
 const moment = require('moment');
 const extractContract = require(
     '../../../../../transformers/contractExtractor').extract;
-const extractUser = require(
-    '../../../../../transformers/userExtractor').extract;
+const {extract: extractUser, extractAuth} = require(
+    '../../../../../transformers/userExtractor');
 const generateBills = require(
     '../../../../../transformers/billGenerator').generate;
 const billItems = require(
@@ -94,6 +94,7 @@ module.exports = {
          */
         const Contracts = MySQL.Contracts;
         const Users = MySQL.Users;
+        const Auth = MySQL.Auth;
         const Bills = MySQL.Bills;
         const BillFlows = MySQL.BillFlows;
         const CashAccount = MySQL.CashAccount;
@@ -140,14 +141,23 @@ module.exports = {
         };
 
         return sequelize.transaction(t =>
-            extractUser(req).
-                then(user => Users.findOrCreate({
-                    where: {accountName: user.accountName, id: user.id},
-                    defaults: assignNewId(user),
+            extractAuth(req).
+                then(auth => Auth.findOrCreate({
+                    where: {id: auth.id},
+                    defaults: auth,
                     transaction: t,
                 })).
-                then(dbUsers => {
-                    const user = fp.head(dbUsers);
+                then(fp.head).
+                then(auth => {
+                    const user = fp.defaults({authId: auth.id})(extractUser(req));
+                    return Users.findOrCreate({
+                        where: {id: user.id},
+                        defaults: user,
+                        transaction: t,
+                    })
+                }).
+                then(fp.head).
+                then(user => {
                     return CashAccount.findOrCreate({
                         where: {userId: user.id},
                         defaults: assignNewId({userId: user.id}),
