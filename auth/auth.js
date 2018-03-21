@@ -33,7 +33,7 @@ const logOut = (req, res) => {
 
 const guard = (req, res, next) => {
     if (fp.includes(req.url)(
-            ['/v1.0/login', '/v1.0/healthCheck', '/v1.0/onCharge'])) {
+        ['/v1.0/login', '/v1.0/healthCheck', '/v1.0/onCharge'])) {
         return next();
     }
 

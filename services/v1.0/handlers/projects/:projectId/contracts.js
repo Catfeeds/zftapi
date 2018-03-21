@@ -149,12 +149,13 @@ module.exports = {
                 })).
                 then(fp.head).
                 then(auth => {
-                    const user = fp.defaults({authId: auth.id})(extractUser(req));
+                    const user = fp.defaults({authId: auth.id})(
+                        extractUser(req));
                     return Users.findOrCreate({
                         where: {id: user.id},
                         defaults: user,
                         transaction: t,
-                    })
+                    });
                 }).
                 then(fp.head).
                 then(user => {

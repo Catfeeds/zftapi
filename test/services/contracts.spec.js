@@ -227,7 +227,9 @@ describe('Contracts', function() {
                 body: {
                     from: 1000,
                     to: 2000,
-                    user: {},
+                    user: {
+                        mobile: ''
+                    },
                     roomId: 321,
                     strategy: {
                         freq: {
@@ -239,6 +241,7 @@ describe('Contracts', function() {
             };
             const sequelizeCountSpy = stub().resolves([]);
             const Users = {id: 'Users', findOrCreate: async () => [{id: 1999}]};
+            const Auth = {id: 'Auth', findOrCreate: async () => [{id: 2999}]};
             const CashAccount = {
                 findOrCreate: async () => ([
                     {
@@ -247,14 +250,16 @@ describe('Contracts', function() {
                     }]),
             };
             const Houses = {id: 'Houses'};
+            const Bills = {id: 'Bills', create: async () => ({})};
             const Building = {id: 'Building'};
             const GeoLocation = {id: 'GeoLocation'};
             const Rooms = {id: 'Rooms'};
             global.MySQL = {
                 Contracts: {
                     count: sequelizeCountSpy,
-                    create: async () => ({}),
+                    create: async () => req.body,
                 },
+                Bills,
                 CashAccount,
                 Users,
                 Rooms,
@@ -264,6 +269,7 @@ describe('Contracts', function() {
                 Sequelize: {
                     transaction: async func => func({}),
                 },
+                Auth,
             };
 
             await post(req, {send: fp.noop}).then(() => {
@@ -438,11 +444,12 @@ describe('Contracts', function() {
                 body: {
                     from: 2000,
                     to: 1000,
-                    user: {accountName: ''},
+                    user: {accountName: '', mobile: ''},
                 },
             };
 
             const Users = {id: 100, findOrCreate: async () => [{id: 1999}]};
+            const Auth = {id: 'Auth', findOrCreate: async () => [{id: 2999}]};
             const CashAccount = {
                 findOrCreate: async () => ([
                     {
@@ -462,6 +469,7 @@ describe('Contracts', function() {
                 Houses,
                 Building,
                 GeoLocation,
+                Auth,
                 Sequelize: {
                     transaction: async func => func({}),
                 },
@@ -489,11 +497,12 @@ describe('Contracts', function() {
                     },
                     from: 1000,
                     to: 2000,
-                    user: {accountName: ''},
+                    user: {accountName: '', mobile: ''},
                 },
             };
 
             const Users = {id: 100, findOrCreate: async () => [{id: 1999}]};
+            const Auth = {id: 'Auth', findOrCreate: async () => [{id: 2999}]};
             const CashAccount = {
                 findOrCreate: async () => ([
                     {
@@ -510,6 +519,7 @@ describe('Contracts', function() {
                 CashAccount,
                 Users,
                 Rooms,
+                Auth,
                 Houses,
                 Building,
                 GeoLocation,
@@ -541,11 +551,12 @@ describe('Contracts', function() {
                     },
                     from: 1000,
                     to: 2000,
-                    user: {accountName: ''},
+                    user: {accountName: '', mobile: ''},
                 },
             };
 
             const Users = {id: 100, findOrCreate: async () => [{id: 1999}]};
+            const Auth = {id: 'Auth', findOrCreate: async () => [{id: 2999}]};
             const CashAccount = {
                 findOrCreate: async () => ([
                     {
@@ -560,6 +571,7 @@ describe('Contracts', function() {
             global.MySQL = {
                 Contracts: {},
                 CashAccount,
+                Auth,
                 Users,
                 Rooms,
                 Houses,
@@ -597,11 +609,12 @@ describe('Contracts', function() {
                     }],
                     from: 1000,
                     to: 2000,
-                    user: {accountName: ''},
+                    user: {accountName: '', mobile: ''},
                 },
             };
 
             const Users = {id: 100, findOrCreate: async () => [{id: 1999}]};
+            const Auth = {id: 'Auth', findOrCreate: async () => [{id: 2999}]};
             const CashAccount = {
                 findOrCreate: async () => ([
                     {
@@ -616,6 +629,7 @@ describe('Contracts', function() {
             global.MySQL = {
                 Contracts: {},
                 CashAccount,
+                Auth,
                 Users,
                 Rooms,
                 Houses,
