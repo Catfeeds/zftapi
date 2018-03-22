@@ -19,6 +19,8 @@ const expectedRoom = {
     unit: undefined,
     status: undefined,
 };
+const user = {toJSON: () => ({auth: {username: 'u'}})};
+const expectedUser = {accountName: 'u'};
 
 const sandboxIns = sandbox.create();
 
@@ -33,7 +35,7 @@ describe('Contracts', function() {
         sandboxIns.restore();
     });
     it('should return all contracts from findAndCountAll', async function() {
-        const contract = {dataValues: {expenses: '[]', strategy: '{}', room}};
+        const contract = {dataValues: {expenses: '[]', strategy: '{}', room, user}};
         const req = {
             params: {
                 projectId: 100,
@@ -55,8 +57,9 @@ describe('Contracts', function() {
 
         await get(req, {send: resSpy}).then(() => {
             resSpy.should.have.been.called;
+            console.log(resSpy.getCall(0).args);
             resSpy.getCall(0).args[0].data.should.be.eql(
-                [{expenses: [], strategy: {}, room: expectedRoom}]);
+                [{expenses: [], strategy: {}, room: expectedRoom, user: expectedUser}]);
         });
     });
 
@@ -83,6 +86,7 @@ describe('Contracts', function() {
                                     expenses: '[]',
                                     strategy: '{}',
                                     room,
+                                    user,
                                 },
                             }],
                     };
@@ -100,6 +104,7 @@ describe('Contracts', function() {
                     expenses: [],
                     strategy: {},
                     room: expectedRoom,
+                    user: expectedUser
                 }]);
         });
     });
@@ -125,6 +130,7 @@ describe('Contracts', function() {
                                     expenses: '[]',
                                     strategy: '{}',
                                     room,
+                                    user
                                 },
                             }],
                     };
@@ -151,6 +157,7 @@ describe('Contracts', function() {
         const sequelizeFindSpy = stub().resolves([]);
         const CashAccount = {id: 'CashAccount'};
         const Users = {id: 'Users'};
+        const Auth = {id: 'Auth'};
         const Rooms = {id: 'Rooms'};
         const Houses = {id: 'Houses'};
         const Building = {id: 'Building'};
@@ -160,6 +167,7 @@ describe('Contracts', function() {
                 findAndCountAll: sequelizeFindSpy,
             },
             Users,
+            Auth,
             Rooms,
             Houses,
             Building,
@@ -178,6 +186,9 @@ describe('Contracts', function() {
                             as: 'cashAccount',
                             attributes: ['balance'],
                             model: CashAccount,
+                        },{
+                            attributes: ['username'],
+                            model: Auth,
                         },
                     ],
                 },

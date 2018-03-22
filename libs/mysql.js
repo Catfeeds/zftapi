@@ -768,6 +768,8 @@ function SequelizeDefine() {
         freezeTableName: true
     });
 
+    exports.Users.belongsTo(exports.Auth);
+
     exports.Bills = sequelizeInstance.define('bills', {
         id: {
             type: Sequelize.BIGINT.UNSIGNED,
@@ -1633,9 +1635,6 @@ function SequelizeDefine() {
             freezeTableName: true
         }
     );
-
-    exports.Projects.hasMany(exports.Auth);
-    exports.Auth.belongsTo(exports.Projects);
 
     exports.WXUser = sequelizeInstance.define('wxUser', {
         id: {

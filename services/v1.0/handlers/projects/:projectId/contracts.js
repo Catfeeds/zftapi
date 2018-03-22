@@ -14,17 +14,17 @@ const billItems = require(
     '../../../../../transformers/billItemsGenerator').generate;
 const {
     omitSingleNulls, innerValues, assignNewId, singleRoomTranslate,
-    jsonProcess, houseConnection,
+    jsonProcess, houseConnection, pickAccountName,
 } = require(
     '../../../common');
 
-const omitFields = fp.omit(['userId', 'createdAt', 'updatedAt']);
+const omitFields = fp.omit(['userId', 'createdAt', 'updatedAt', 'user.authId', 'user.auth']);
 const roomTranslate = item => fp.defaults(item)(
     {room: singleRoomTranslate(item.room)});
 
 const translate = (models, pagingInfo) => {
-    const single = fp.pipe(innerValues, omitSingleNulls, omitFields,
-        jsonProcess, roomTranslate);
+    const single = fp.pipe(innerValues, omitSingleNulls,
+        jsonProcess, roomTranslate, pickAccountName, omitFields);
     return {
         paging: {
             count: models.count,
@@ -183,6 +183,7 @@ module.exports = {
     get: async function getContracts(req, res) {
         const Contracts = MySQL.Contracts;
         const Users = MySQL.Users;
+        const Auth = MySQL.Auth;
         const CashAccount = MySQL.CashAccount;
         const projectId = req.params.projectId;
         const status = fp.getOr(Typedef.ContractStatus.ONGOING)(
@@ -205,6 +206,8 @@ module.exports = {
                             model: CashAccount,
                             as: 'cashAccount',
                             attributes: ['balance'],
+                        }, {
+                            model: Auth, attributes: ['username']
                         }],
                 },
                 houseConnection(MySQL)(

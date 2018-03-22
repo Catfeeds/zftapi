@@ -783,3 +783,9 @@ exports.translateRooms = (rooms)=> {
 
     })(rooms);
 };
+
+exports.pickAccountName = item => {
+    const json = item.user.toJSON();
+    return fp.defaults(item)({user: fp.defaults(json)(
+        {accountName: json.auth.username})});
+};
