@@ -9,7 +9,7 @@ exports.extract = req => assignNewId(fp.get('user', req.body));
 exports.extractAuth = async (req) => {
     const user = exports.extract(req);
     const password = crypto.createHash('md5').
-        update(user.mobile).
+        update(user.mobile.toString()).
         digest('hex');
     return assignNewId({
         projectId: req.params.projectId,
