@@ -1050,6 +1050,10 @@ function SequelizeDefine() {
             type: Sequelize.BIGINT,
             allowNull: false
         },
+        price: {
+            type: Sequelize.INTEGER,
+            allowNull: false
+        },
         paymentDay: {
             type: Sequelize.INTEGER,
             allowNull: false
