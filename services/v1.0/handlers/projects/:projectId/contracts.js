@@ -143,7 +143,7 @@ module.exports = {
         return sequelize.transaction(t =>
             extractAuth(req).
                 then(auth => Auth.findOrCreate({
-                    where: {id: auth.id},
+                    where: {id: auth.id, username: auth.username},
                     defaults: auth,
                     transaction: t,
                 })).
@@ -152,7 +152,7 @@ module.exports = {
                     const user = fp.defaults({authId: auth.id})(
                         extractUser(req));
                     return Users.findOrCreate({
-                        where: {id: user.id},
+                        where: {authId: auth.id},
                         defaults: user,
                         transaction: t,
                     });

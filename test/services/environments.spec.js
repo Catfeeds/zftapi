@@ -4,11 +4,11 @@ const {get} = require('../../services/v1.0/handlers/environments');
 require('include-node');
 const {spy} = require('sinon');
 
-describe('Environments', function () {
+describe('Environments', function() {
     before(() => {
         global.Typedef = Include('/libs/typedef');
     });
-    it('should return constants of zft project', async function () {
+    it('should return constants of zft project', async function() {
         const req = {isAuthenticated: () => false};
         const resSpy = spy();
 
@@ -24,10 +24,12 @@ describe('Environments', function () {
         });
     });
 
-    it('should return user info while user logged in', async function () {
-        const user = {projectId: 99};
+    it('should return user info while user logged in', async function() {
+        const user = {projectId: 99, id: 10};
+        const expectedUser = {projectId: 99};
         const banks = [{tag: 'alipay', name: '支付宝'}];
         const contract = {id: 1};
+        const expectedContract = {};
 
         const req = {isAuthenticated: () => true, user};
 
@@ -36,11 +38,14 @@ describe('Environments', function () {
                 findById: async () => ({dataValues: user}),
             },
             Banks: {
-                findAll: async () => {return banks;},
+                findAll: async () => banks,
             },
             Contracts: {
-                findOne: async () => {return contract;},
-            }
+                findAll: async () => [contract],
+            },
+            Users: {
+                findOne: async () => user,
+            },
         };
 
         const resSpy = spy();
@@ -53,9 +58,9 @@ describe('Environments', function () {
                 1: {key: 'roomType'},
                 2: {key: 'operationStatus'},
                 3: {key: 'orientation'},
-                4: {key: 'user', value: user},
+                4: {key: 'user', value: expectedUser},
                 5: {key: 'banks', value: banks},
-                6: {key: 'contract', value: contract},
+                6: {key: 'contracts', value: [expectedContract]},
             });
         });
     });

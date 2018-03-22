@@ -7,7 +7,8 @@ const fp = require('lodash/fp');
 const {omitSingleNulls, innerValues} = require('../common');
 
 const translate = fp.flow(innerValues,
-    fp.omit(['createdAt', 'updatedAt', 'password']), omitSingleNulls);
+    fp.omit(['createdAt', 'updatedAt', 'password',
+        'id', 'authId', 'strategy', 'expenses']), omitSingleNulls);
 
 module.exports = {
     get: async (req, res) => {
@@ -46,12 +47,19 @@ module.exports = {
         const Auth = MySQL.Auth;
 
         try {
-            const contract = await  MySQL.Contracts.findOne({
+            const userProfile = await MySQL.Users.findOne({
                 where: {
-                    userId: user.id
-                    , status: Typedef.ContractStatus.ONGOING
+                    authId: user.id
                 }
             });
+
+            const contracts = userProfile ? await  MySQL.Contracts.findAll({
+                where: {
+                    userId: userProfile.id
+                    , status: Typedef.ContractStatus.ONGOING
+                }
+            }) : null;
+
             const auth = await Auth.findById(user.id);
             const banks = await MySQL.Banks.findAll({
                 attributes: ['tag', 'name']
@@ -60,9 +68,10 @@ module.exports = {
 
             const data = fp.compact(fp.concat(environments,
                 [
-                    {key: 'user', value: translate(auth)}
+                    auth.level === 'USER' ? {key: 'user', value: translate(userProfile)} :
+                        {key: 'user', value: translate(auth)}
                     , {key: 'banks', value: banks}
-                    , contract ? {key: 'contract', value: contract} : null
+                    , contracts ? {key: 'contracts', value: fp.map(translate)(contracts)} : null
                     , projectId ? {key: 'projectId', value: projectId} : null
                 ]
             ));
