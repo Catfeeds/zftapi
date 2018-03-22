@@ -179,6 +179,7 @@ describe('Bills', function() {
                 {
                     attributes: [
                         'id',
+                        'fundChannelId',
                         'category',
                         'orderNo',
                         'from',

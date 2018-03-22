@@ -136,6 +136,7 @@ describe('Flows', function() {
                                             required: false,
                                             attributes: [
                                                 'id',
+                                                'fundChannelId',
                                                 'category',
                                                 'orderNo',
                                                 'from',
