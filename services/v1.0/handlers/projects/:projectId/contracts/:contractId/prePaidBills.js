@@ -27,13 +27,18 @@ module.exports = {
             }
         };
 
+        const startDate = parseInt(query.startDate);
+        const endDate = parseInt(query.endDate);
         checkDate(query.startDate);
         checkDate(query.endDate);
 
         const dateFilter = ()=>{
+            if(!startDate && !endDate){
+                return null;
+            }
             return fp.assignAll([
-                query.startDate ? {createdAt:{$gte: moment.unix(query.startDate).toDate()}} : {}
-                , query.endDate ? {createdAt:{$lte: moment.unix(query.endDate).toDate()}} : {}
+                startDate ? {$gte: parseInt(moment.unix(startDate).format('YYYYMMDD'))} : {}
+                , endDate ? {$lte: parseInt(moment.unix(endDate).format('YYYYMMDD'))} : {}
             ]);
         };
 
@@ -48,7 +53,7 @@ module.exports = {
                         projectId: projectId,
                         contractId: contractId
                     },
-                    dateFilter()
+                    dateFilter() ? {paymentDay: dateFilter()}:{}
                 );
                 MySQL.Topup.findAndCountAll({
                     where: where,
@@ -93,11 +98,15 @@ module.exports = {
             break;
         case 'prepaid':
             {
-                MySQL.DevicePrePaid.findAndCountAll({
-                    where:{
+                const where = fp.assign(
+                    {
                         projectId: projectId,
                         contractId: contractId
                     },
+                    dateFilter() ? {paymentDay: dateFilter()}:{}
+                );
+                MySQL.DevicePrePaid.findAndCountAll({
+                    where:where,
                     offset: pagingInfo.skip,
                     limit: pagingInfo.size
                 }).then(
