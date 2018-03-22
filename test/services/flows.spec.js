@@ -225,8 +225,6 @@ describe('Flows', function() {
                         },
                     ],
                     subQuery: false,
-                    limit: 10,
-                    offset: 0,
                     where: {
                         projectId: 100,
                     },

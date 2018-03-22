@@ -78,7 +78,8 @@ const translate = (models, pagingInfo) => {
             index: pagingInfo.index,
             size: pagingInfo.size,
         },
-        data: fp.map(single)(models.rows),
+        data: fp.map(single)(fp.take(pagingInfo.size)(
+            fp.drop(pagingInfo.skip)(models.rows))),
     };
 };
 
@@ -135,7 +136,7 @@ const groupChannelByTimespan = (timespan, reduceCondition) => (res) => {
         fp.defaults(fp.extendAll(fillUp)));
 
     return fp.sortBy('timespan')(fp.map(([k, v]) =>
-        ({timespan: k, channels: v, total: fp.sum(fp.values(v))})
+        ({timespan: k, channels: v, total: fp.sum(fp.values(v))}),
     )(fp.entries(fp.mapValues(valueTransform)(fp.groupBy('timespan')(res))))).
         reverse();
 };
@@ -371,8 +372,6 @@ module.exports = {
                     houseFormatFilter(houseFormat),
                 ]),
                 distinct: true,
-                offset: pagingInfo.skip,
-                limit: pagingInfo.size,
                 order: [
                     ['createdAt', 'DESC'],
                 ],
