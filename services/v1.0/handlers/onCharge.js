@@ -51,31 +51,6 @@ module.exports = {
                     return res.send(404, ErrorCode.ack(ErrorCode.CHANNELNOTEXISTS));
                 }
 
-                const contract = await MySQL.Contracts.findOne({
-                    where: {
-                        id: contractId,
-                        projectId: projectId
-                    },
-                    include: [
-                        {
-                            model: MySQL.Bills,
-                            as: 'bills',
-                            where: {
-                                id: {$in: billIds}
-                            },
-                            include: [
-                                {
-                                    model: MySQL.BillPayment,
-                                    as: 'payments',
-                                }
-                            ]
-                        }
-                    ]
-                });
-                if (!contract) {
-                    return res.send(404, ErrorCode.ack(ErrorCode.CONTRACTNOTEXISTS));
-                }
-
                 //
                 if(!billIds){
                     //
@@ -89,6 +64,31 @@ module.exports = {
                 }
                 else{
                     //
+                    const contract = await MySQL.Contracts.findOne({
+                        where: {
+                            id: contractId,
+                            projectId: projectId
+                        },
+                        include: [
+                            {
+                                model: MySQL.Bills,
+                                as: 'bills',
+                                where: {
+                                    id: {$in: billIds}
+                                },
+                                include: [
+                                    {
+                                        model: MySQL.BillPayment,
+                                        as: 'payments',
+                                    }
+                                ]
+                            }
+                        ]
+                    });
+                    if (!contract) {
+                        return res.send(404, ErrorCode.ack(ErrorCode.CONTRACTNOTEXISTS));
+                    }
+
                     await common.payBills(MySQL)(contract.bills, projectId, fundChannelId, userId, orderNo);
                     res.send();
                 }

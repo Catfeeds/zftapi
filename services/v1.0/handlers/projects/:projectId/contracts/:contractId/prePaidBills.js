@@ -32,18 +32,21 @@ module.exports = {
         checkDate(query.startDate);
         checkDate(query.endDate);
 
-        const dateFilter = ()=>{
+        const group = query.group;
+
+        const dateFilter = (startDate, endDate)=>{
             if(!startDate && !endDate){
                 return null;
             }
             return fp.assignAll([
-                startDate ? {$gte: parseInt(moment.unix(startDate).format('YYYYMMDD'))} : {}
-                , endDate ? {$lte: parseInt(moment.unix(endDate).format('YYYYMMDD'))} : {}
+                startDate ? {$gte: startDate} : {}
+                , endDate ? {$lte: endDate} : {}
             ]);
         };
 
+        const defaultPaging = !(startDate && endDate);
         const mode = query.mode;
-        const pagingInfo = Util.PagingInfo(query.index, query.size, true);
+        const pagingInfo = Util.PagingInfo(query.index, query.size, defaultPaging);
         //
         switch(mode){
         case 'topup':
@@ -53,15 +56,20 @@ module.exports = {
                         projectId: projectId,
                         contractId: contractId
                     },
-                    dateFilter() ? {paymentDay: dateFilter()}:{}
+                    dateFilter(startDate, endDate) ? {paymentDay: dateFilter(startDate, endDate)}:{}
                 );
-                MySQL.Topup.findAndCountAll({
-                    where: where,
-                    attributes:['fundChannelId', 'createdAt', 'amount'],
-                    offset: pagingInfo.skip,
-                    limit: pagingInfo.size,
-                    order:[['createdAt', 'DESC']]
-                }).then(
+                const options = fp.assign(
+                    {
+                        where: where,
+                        attributes:['fundChannelId', 'createdAt', 'amount'],
+                        order:[['createdAt', 'DESC']]
+                    },
+                    pagingInfo ? {offset: pagingInfo.skip, limit: pagingInfo.size}:{}
+                );
+
+                const model = pagingInfo ? MySQL.Topup.findAndCountAll(options) : MySQL.Topup.findAll(options);
+
+                model.then(
                     result=>{
                         const fundChannelId = fp.map(row=>{return row.fundChannelId;})(result.rows);
 
@@ -72,24 +80,27 @@ module.exports = {
                             attributes:['id', 'name']
                         }).then(
                             fundChannels=>{
-                                res.send({
-                                    paging: {
-                                        count: result.count,
-                                        index: pagingInfo.index,
-                                        size: pagingInfo.size
-                                    },
-                                    data: fp.map(row=>{
-                                        const channel = fp.find(channel =>
-                                            channel.id === row.fundChannelId)(
-                                            fundChannels);
+                                const data = fp.map(row=>{
+                                    const channel = fp.find(channel =>
+                                        channel.id === row.fundChannelId)(
+                                        fundChannels);
 
-                                        return {
-                                            time: moment(row.createdAt).unix(),
-                                            amount: row.amount,
-                                            fundChannelName: channel ? channel.name : ''
-                                        };
-                                    })(result.rows)
-                                });
+                                    return {
+                                        time: moment(row.createdAt).unix(),
+                                        amount: row.amount,
+                                        fundChannelName: channel ? channel.name : ''
+                                    };
+                                })(result.rows);
+                                res.send(
+                                    pagingInfo ? {
+                                        paging: {
+                                            count: result.count,
+                                            index: pagingInfo.index,
+                                            size: pagingInfo.size
+                                        },
+                                        data:data
+                                    }:data
+                                );
                             }
                         );
                     }
@@ -98,29 +109,108 @@ module.exports = {
             break;
         case 'prepaid':
             {
-                const where = fp.assign(
+                //
+                const dateWhere = dateFilter(startDate, endDate);
+
+                const flowOptions = fp.assign(
                     {
-                        projectId: projectId,
-                        contractId: contractId
-                    },
-                    dateFilter() ? {paymentDay: dateFilter()}:{}
-                );
-                MySQL.DevicePrePaid.findAndCountAll({
-                    where:where,
-                    offset: pagingInfo.skip,
-                    limit: pagingInfo.size
-                }).then(
-                    result=>{
-                        res.send({
-                            paging: {
-                                count: result.count,
-                                index: pagingInfo.index,
-                                size: pagingInfo.size
+                        where:fp.assign(
+                            {
+                                projectId: projectId,
+                                contractId: contractId
                             },
-                            data: result.rows
-                        });
+                            dateWhere ? {paymentDay: dateWhere}:{}
+                        ),
+                        order: [['createdAt', 'DESC']],
+                    },
+                    pagingInfo ? {offset: pagingInfo.skip,limit: pagingInfo.size}:{}
+                );
+
+                const model = pagingInfo ? MySQL.PrePaidFlows.findAndCountAll(flowOptions) : MySQL.PrePaidFlows.findAll(flowOptions);
+                model.then(
+                    result=>{
+                        const count = result.count;
+
+                        const flowId = fp.map(row=>{return row.id;})(result.rows || result);
+
+                        const options = {
+                            where:{
+                                flowId:{$in: flowId}
+                            },
+                            order: [['createdAt', 'DESC']],
+                        };
+
+                        const deviceOptions = fp.assign(
+                            options
+                            , group? {
+                                group: ['type']
+                                , attributes: [
+                                    [MySQL.Sequelize.fn('sum', MySQL.Sequelize.col('amount')), 'amount']
+                                    , 'type'
+                                ]
+                            } : {}
+                        );
+                        const dailyOptions = fp.assign(
+                            options
+                            , group? {
+                                group: ['configId']
+                                , attributes: [
+                                    [MySQL.Sequelize.fn('sum', MySQL.Sequelize.col('amount')), 'amount']
+                                    , 'configId'
+                                ]
+                            } : {}
+                        );
+                        Promise.all([
+                            MySQL.DevicePrePaid.findAll(deviceOptions),
+                            MySQL.DailyPrePaid.findAll(dailyOptions)
+                        ]).then(
+                            prePaidResult=>{
+                                const data = fp.orderBy(['paymentDay']
+                                    , ['DESC']
+                                )(fp.union(prePaidResult[0], prePaidResult[1]));
+
+                                res.send(
+                                    pagingInfo ? {
+                                        paging: {
+                                            count: count,
+                                            index: pagingInfo.index,
+                                            size: pagingInfo.size
+                                        },
+                                        data:data
+                                    }:data
+                                );
+                            }
+                        );
+                    },
+                    err=>{
+                        log.error(err);
                     }
                 );
+
+
+                // const where = fp.assign(
+                //     {
+                //         projectId: projectId,
+                //         contractId: contractId
+                //     },
+                //     dateFilter() ? {paymentDay: dateFilter()}:{}
+                // );
+                // MySQL.DevicePrePaid.findAndCountAll({
+                //     where:where,
+                //     offset: pagingInfo.skip,
+                //     limit: pagingInfo.size
+                // }).then(
+                //     result=>{
+                //         res.send({
+                //             paging: {
+                //                 count: result.count,
+                //                 index: pagingInfo.index,
+                //                 size: pagingInfo.size
+                //             },
+                //             data: result.rows
+                //         });
+                //     }
+                // );
             }
             break;
         }

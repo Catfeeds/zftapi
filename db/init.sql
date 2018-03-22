@@ -381,16 +381,32 @@ create table if not exists `devicePrePaid`
 (
   `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
   `type` varchar(16) NOT NULL,
+	`flowId` bigint(20) UNSIGNED NOT NULL,
   `contractId` bigint(20) UNSIGNED NOT NULL,
   `projectId` bigint(20) UNSIGNED NOT NULL,
   `deviceId` varchar(32) NOT NULL,
   `amount` int(11) NOT NULL DEFAULT 0,
   `scale` bigint(20) NOT NULL,
   `usage` bigint(20) NOT NULL,
+	`price` int(11) NOT NULL,
+	`paymentDay` bigint(20) UNSIGNED NOT NULL,
   `share` int(11) NOT NULL DEFAULT 100,
   `createdAt` bigint(20) UNSIGNED NOT NULL,
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB;
+
+create table if not exists `dailyPrePaid`
+(
+	`id` bigint(20) UNSIGNED NOT NULL,
+	`flowId` bigint(20) UNSIGNED NOT NULL,
+	`configId` bigint(20) UNSIGNED NOT NULL,
+	`contractId` bigint(20) UNSIGNED NOT NULL,
+	`projectId` bigint(20) UNSIGNED NOT NULL,
+	`amount` int(11) NOT NULL DEFAULT 0,
+	`paymentDay` int(11) NOT NULL,
+	`createdAt` bigint(20) UNSIGNED NOT NULL,
+	PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB ROW_FORMAT = Dynamic;
 
 create table if not exists `topup`
 (
@@ -513,6 +529,19 @@ create table if not exists `banks`
 	`name` varchar(16) NOT NULL,
 	PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB AUTO_INCREMENT = 1 ROW_FORMAT = Dynamic;
+
+create table if not exists `prePaidFlows`
+(
+	`id` bigint(20) UNSIGNED NOT NULL,
+	`projectId` bigint(20) UNSIGNED NOT NULL,
+	`contractId` bigint(20) NOT NULL,
+	`category` varchar(8) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
+	`paymentDay` bigint(20) NOT NULL,
+	`createdAt` datetime(0) NULL,
+	`updatedAt` datetime(0) NULL,
+	`deletedAt` datetime(0) NULL DEFAULT NULL,
+	PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB ROW_FORMAT = Dynamic;
 
 #project demo record
 INSERT INTO `zft`.`projects` (`pid`, `externalId`) VALUES ('100', '5938bb4f4d3684627bcabd7f');
