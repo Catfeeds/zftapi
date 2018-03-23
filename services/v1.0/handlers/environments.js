@@ -80,7 +80,7 @@ module.exports = {
             const data = fp.compact(fp.concat(environments,
                 [
                     auth.level === 'USER' ? {key: 'user',
-                        value: fp.defaults({authId: user.id, level: 'USER'})(translate(userProfile))} :
+                        value: fp.defaults(translate(userProfile))({authId: user.id, level: 'USER', mobile: auth.mobile})} :
                         {key: 'user', value: fp.defaults({authId: auth.id})(translate(auth))}
                     , {key: 'banks', value: banks}
                     , contracts ? {key: 'contracts', value:
