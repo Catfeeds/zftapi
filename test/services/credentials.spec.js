@@ -8,7 +8,7 @@ require('include-node');
 const {spy} = require('sinon');
 const fp = require('lodash/fp');
 
-describe('Environments', function() {
+describe('Credentials', function() {
     before(() => {
         global.Typedef = Include('/libs/typedef');
         global.ErrorCode = Include('/libs/errorCode');
@@ -160,11 +160,16 @@ describe('Environments', function() {
 
     it('should allow to patch partial fields', async function() {
         const req = {
+            isAuthenticated: () => true,
+            user: {
+                id: 1
+            },
             params: {
                 projectId: 100,
                 credentialId: 1,
             },
             body: {
+                oldPassword: '321',
                 password: '12312312312312312312312312312312',
                 email: 'a@b.c',
                 mobile: '123',
@@ -174,7 +179,7 @@ describe('Environments', function() {
         const updateSpy = spy();
         global.MySQL = {
             Auth: {
-                findById: async () => ({updateAttributes: updateSpy}),
+                findById: async () => ({password: '321', updateAttributes: updateSpy}),
             },
         };
 
@@ -189,6 +194,10 @@ describe('Environments', function() {
 
     it('should patch valid fields only', async function() {
         const req = {
+            isAuthenticated: () => true,
+            user: {
+                id: 1
+            },
             params: {
                 projectId: 100,
                 credentialId: 1,
@@ -212,6 +221,10 @@ describe('Environments', function() {
 
     it('should check password while patching', async function() {
         const req = {
+            isAuthenticated: () => true,
+            user: {
+                id: 1
+            },
             params: {
                 projectId: 100,
                 credentialId: 1,
@@ -235,6 +248,36 @@ describe('Environments', function() {
                 ErrorCode.ack(ErrorCode.PARAMETERERROR,
                     {error: 'please provide md5 encrypted password'}));
 
+        });
+    });
+
+    it('should check oldPassword while patching', async function() {
+        const req = {
+            isAuthenticated: () => true,
+            user: {
+                id: 1
+            },
+            params: {
+                projectId: 100,
+                credentialId: 1,
+            },
+            body: {
+                password: '12312312312312312312312312312312',
+            },
+        };
+
+        const updateSpy = spy();
+        global.MySQL = {
+            Auth: {
+                findById: async () => ({password: '', updateAttributes: updateSpy}),
+            },
+        };
+
+        const resSpy = spy();
+        await single.patch(req, {send: resSpy}).then(() => {
+            updateSpy.should.have.not.been.called;
+
+            resSpy.should.have.been.calledWith(500);
         });
     });
 
