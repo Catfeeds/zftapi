@@ -10,6 +10,8 @@ const translate = fp.flow(innerValues,
     fp.omit(['createdAt', 'updatedAt', 'password',
         'strategy', 'expenses']), omitSingleNulls);
 
+const pickHouseId = (obj) => fp.defaults({houseId: obj.room.house.id})(obj);
+const omitRoomEntry = fp.omit('room');
 module.exports = {
     get: async (req, res) => {
 
@@ -57,7 +59,16 @@ module.exports = {
                 where: {
                     userId: userProfile.id
                     , status: Typedef.ContractStatus.ONGOING
-                }
+                },
+                include: [{
+                    model: MySQL.Rooms,
+                    attributes: ['id'],
+                    include: [{
+                        model: MySQL.Houses,
+                        as: 'house',
+                        attributes: ['id']
+                    }]
+                }]
             }) : null;
 
             const auth = await Auth.findById(user.id);
@@ -69,10 +80,12 @@ module.exports = {
             const data = fp.compact(fp.concat(environments,
                 [
                     auth.level === 'USER' ? {key: 'user',
-                        value: fp.defaults({authId: user.id})(translate(userProfile))} :
-                        {key: 'user', value: translate(auth)}
+                        value: fp.defaults({authId: user.id, level: 'USER'})(translate(userProfile))} :
+                        {key: 'user', value: fp.defaults({authId: auth.id})(translate(auth))}
                     , {key: 'banks', value: banks}
-                    , contracts ? {key: 'contracts', value: fp.map(translate)(contracts)} : null
+                    , contracts ? {key: 'contracts', value:
+                        fp.map(fp.pipe(translate, pickHouseId, omitRoomEntry))(contracts)}
+                        : null
                     , projectId ? {key: 'projectId', value: projectId} : null
                 ]
             ));

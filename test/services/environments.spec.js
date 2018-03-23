@@ -27,7 +27,9 @@ describe('Environments', function() {
     it('should return user info while user logged in', async function() {
         const user = {projectId: 99, id: 10};
         const banks = [{tag: 'alipay', name: '支付宝'}];
-        const contract = {id: 123};
+        const house = {id: 321};
+        const contract = {id: 123, room: {house}};
+        const expectedContract = {id: 123, houseId: 321};
 
         const req = {isAuthenticated: () => true, user};
 
@@ -59,7 +61,7 @@ describe('Environments', function() {
                 3: {key: 'orientation'},
                 4: {key: 'user', value: user},
                 5: {key: 'banks', value: banks},
-                6: {key: 'contracts', value: [contract]},
+                6: {key: 'contracts', value: [expectedContract]},
             });
         });
     });
