@@ -207,6 +207,20 @@ module.exports = {
                         }
                     ]
                 }
+                , {
+                    model: MySQL.Houses,
+                    as: 'house'
+                    , include:[
+                        {
+                            model: MySQL.Building, as: 'building'
+                            , include:[{
+                                model: MySQL.GeoLocation
+                                , as: 'location'
+                            }]
+                            , attributes: ['group', 'building', 'unit'],
+                        }
+                    ]
+                }
             ]
         }).then(
             room=>{
