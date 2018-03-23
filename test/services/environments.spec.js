@@ -26,10 +26,8 @@ describe('Environments', function() {
 
     it('should return user info while user logged in', async function() {
         const user = {projectId: 99, id: 10};
-        const expectedUser = {projectId: 99};
         const banks = [{tag: 'alipay', name: '支付宝'}];
-        const contract = {id: 1};
-        const expectedContract = {};
+        const contract = {id: 123};
 
         const req = {isAuthenticated: () => true, user};
 
@@ -41,7 +39,7 @@ describe('Environments', function() {
                 findAll: async () => banks,
             },
             Contracts: {
-                findAll: async () => [contract],
+                findAll: async () => [{dataValues: contract}],
             },
             Users: {
                 findOne: async () => user,
@@ -52,15 +50,16 @@ describe('Environments', function() {
 
         await get(req, {send: resSpy}).then(() => {
             const response = resSpy.getCall(0).args[0];
+            console.log(response);
             response.should.shallowDeepEqual({
                 length: 7,
                 0: {key: 'houseFormat'},
                 1: {key: 'roomType'},
                 2: {key: 'operationStatus'},
                 3: {key: 'orientation'},
-                4: {key: 'user', value: expectedUser},
+                4: {key: 'user', value: user},
                 5: {key: 'banks', value: banks},
-                6: {key: 'contracts', value: [expectedContract]},
+                6: {key: 'contracts', value: [contract]},
             });
         });
     });

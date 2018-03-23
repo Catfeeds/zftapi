@@ -8,7 +8,7 @@ const {omitSingleNulls, innerValues} = require('../common');
 
 const translate = fp.flow(innerValues,
     fp.omit(['createdAt', 'updatedAt', 'password',
-        'id', 'authId', 'strategy', 'expenses']), omitSingleNulls);
+        'strategy', 'expenses']), omitSingleNulls);
 
 module.exports = {
     get: async (req, res) => {
@@ -68,7 +68,8 @@ module.exports = {
 
             const data = fp.compact(fp.concat(environments,
                 [
-                    auth.level === 'USER' ? {key: 'user', value: translate(userProfile)} :
+                    auth.level === 'USER' ? {key: 'user',
+                        value: fp.defaults({authId: user.id})(translate(userProfile))} :
                         {key: 'user', value: translate(auth)}
                     , {key: 'banks', value: banks}
                     , contracts ? {key: 'contracts', value: fp.map(translate)(contracts)} : null

@@ -57,7 +57,6 @@ describe('Contracts', function() {
 
         await get(req, {send: resSpy}).then(() => {
             resSpy.should.have.been.called;
-            console.log(resSpy.getCall(0).args);
             resSpy.getCall(0).args[0].data.should.be.eql(
                 [{expenses: [], strategy: {}, room: expectedRoom, user: expectedUser}]);
         });
