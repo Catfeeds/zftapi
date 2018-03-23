@@ -1126,6 +1126,10 @@ function SequelizeDefine() {
             type: Sequelize.BIGINT.UNSIGNED,
             allowNull: true
         },
+        paymentDay: {
+            type: Sequelize.BIGINT.UNSIGNED,
+            allowNull: false
+        },
         category:{
             type: Sequelize.STRING(8),
             allowNull: false,

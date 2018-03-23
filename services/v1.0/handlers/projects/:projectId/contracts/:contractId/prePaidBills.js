@@ -120,8 +120,9 @@ module.exports = {
                                 contractId: contractId
                             },
                             dateWhere ? {paymentDay: dateWhere}:{}
-                        ),
-                        order: [['createdAt', 'DESC']],
+                        )
+                        , order: [['paymentDay', 'DESC']]
+                        , attributes: ['id']
                     },
                     pagingInfo ? {offset: pagingInfo.skip,limit: pagingInfo.size}:{}
                 );
@@ -137,7 +138,7 @@ module.exports = {
                             where:{
                                 flowId:{$in: flowId}
                             },
-                            order: [['createdAt', 'DESC']],
+                            order: [['paymentDay', 'DESC']],
                         };
 
                         const deviceOptions = fp.assign(
@@ -166,7 +167,7 @@ module.exports = {
                         ]).then(
                             prePaidResult=>{
                                 const data = fp.orderBy(['paymentDay']
-                                    , ['DESC']
+                                    , ['desc']
                                 )(fp.union(prePaidResult[0], prePaidResult[1]));
 
                                 res.send(
