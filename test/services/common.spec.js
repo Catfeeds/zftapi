@@ -2,6 +2,7 @@
 const {
     includeContracts, payBills, serviceCharge,
     moveFundChannelToRoot, shareFlows, platformFlows, logFlows,
+    convertRoomNumber
 } = require(
     '../../services/v1.0/common');
 const {spy, stub} = require('sinon');
@@ -588,5 +589,28 @@ describe('Common', function() {
                 });
 
             });
+    });
+
+    describe('convertRoomNumber', ()=>{
+        it('when index is 1 then output should be  A',
+            async function() {
+                const roomNumber = convertRoomNumber(1);
+                roomNumber.should.be.eql('A');
+            }
+        );
+
+        it('when index is 26 then output should be AB',
+            async function() {
+                const roomNumber = convertRoomNumber(26);
+                roomNumber.should.be.eql('AB');
+            }
+        );
+
+        it('when index is 53 then output should be AAE',
+            async function() {
+                const roomNumber = convertRoomNumber(53);
+                roomNumber.should.be.eql('AAE');
+            }
+        );
     });
 });

@@ -789,3 +789,11 @@ exports.pickAccountName = item => {
     return fp.defaults(item)({user: fp.defaults(json)(
         {accountName: json.auth.username})});
 };
+
+exports.convertRoomNumber = (index)=>{
+    const ALPHACOUNT = 24;
+    const prefix = parseInt(index/ALPHACOUNT);
+    const suffix = index % ALPHACOUNT;
+
+    return fp.repeat(prefix)('A') + String.fromCharCode(64+suffix);
+};

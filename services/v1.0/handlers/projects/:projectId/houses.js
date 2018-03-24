@@ -147,7 +147,7 @@ async function SaveSole(t, params, body) {
         const roomId = SnowFlake.next();
         const room = {
             id: roomId,
-            name: fp.uniqueId('room'),
+            name: common.convertRoomNumber(1),
             houseId: house.id,
             roomArea: body.roomArea,
             status: Typedef.OperationStatus.IDLE,
@@ -234,7 +234,7 @@ async function SaveShare(t, params, body) {
         while(nowRoom <= body.layout.bedRoom){
             rooms.push({
                 id: SnowFlake.next(),
-                name: nowRoom.toString(),
+                name: common.convertRoomNumber(nowRoom),
                 houseId: house.id,
                 status: Typedef.OperationStatus.IDLE,
                 createdAt: createdAt
