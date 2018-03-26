@@ -281,6 +281,36 @@ describe('Credentials', function() {
         });
     });
 
+    it('should not check oldPassword if not changing password', async function() {
+        const req = {
+            isAuthenticated: () => true,
+            user: {
+                id: 1
+            },
+            params: {
+                projectId: 100,
+                credentialId: 1,
+            },
+            body: {
+                mobile: '321',
+            },
+        };
+
+        const updateSpy = spy();
+        global.MySQL = {
+            Auth: {
+                findById: async () => ({password: '', updateAttributes: updateSpy}),
+            },
+        };
+
+        const resSpy = spy();
+        await single.patch(req, {json: resSpy}).then(() => {
+            updateSpy.should.have.been.called;
+
+            resSpy.should.have.been.calledWith(ErrorCode.ack(ErrorCode.OK, {}));
+        });
+    });
+
     it('should allow admin to delete user', async function() {
         const req = {
             isAuthenticated: () => true,

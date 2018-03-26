@@ -33,7 +33,7 @@ module.exports = {
 
         return Auth.findById(credentialId).
             then(cred => {
-                if (cred.password === oldPassword) {
+                if (!password || cred.password === oldPassword) {
                     return cred;
                 }
                 throw Error(ErrorCode.AUTHFAILED);
