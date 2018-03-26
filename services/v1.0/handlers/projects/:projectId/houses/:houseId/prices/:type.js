@@ -25,11 +25,32 @@ module.exports = {
             }
         }).then(
             price=>{
+                const now = moment().unix();
+                if(!price){
+                    return MySQL.HouseDevicePrice.create(
+                        {
+                            projectId: projectId,
+                            houseId: houseId,
+                            type: type,
+                            category: body.category,
+                            price: body.price,
+                            startDate: now,
+                        }
+                    ).then(
+                        ()=>{
+                            res.send(201);
+                        },
+                        err=>{
+                            log.error(err, projectId, houseId, type, body);
+                            re.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC));
+                        }
+                    );
+                }
+
                 if(price.price === body.price){
                     return res.send(204);
                 }
 
-                const now = moment().unix();
                 if(price.startDate === now){
                     MySQL.HouseDevicePrice.update(
                         {
