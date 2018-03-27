@@ -4,11 +4,11 @@ const config = require('config');
 const ALY = require('aliyun-sdk');
 
 const push = new ALY.PUSH({
-        accessKeyId: config.ALICLOUD.key,
-        secretAccessKey: config.ALICLOUD.secret,
-        endpoint: 'http://cloudpush.aliyuncs.com',
-        apiVersion: '2016-08-01',
-    },
+    accessKeyId: config.ALICLOUD.key,
+    secretAccessKey: config.ALICLOUD.secret,
+    endpoint: 'http://cloudpush.aliyuncs.com',
+    apiVersion: '2016-08-01',
+},
 );
 
 module.exports = {
@@ -21,7 +21,7 @@ module.exports = {
         //     "Body": "nodejs ios message  Body"
         // }
 
-        const iOSKey = "24833443";
+        const iOSKey = '24833443';
         if (platform === 'ios' && type === 'message') {
             return push.pushMessageToiOS(fp.defaults(req.body)({AppKey: iOSKey}), function(err, result) {
                 console.log(err, result);
@@ -49,7 +49,7 @@ module.exports = {
         //     "Title": "nodejs android message Title",
         //     "Body": "nodejs android message  Body"
         // }
-        const androidKey = "24832995";
+        const androidKey = '24832995';
         if (platform === 'android' && type === 'message') {
             return push.pushMessageToAndroid(fp.defaults(req.body)({AppKey: androidKey}), function(err, result) {
                 console.log(err, result);
@@ -66,11 +66,11 @@ module.exports = {
         // }
         //
         if (platform === 'android' && type === 'notice') {
-           return push.pushNoticeToAndroid(fp.defaults(req.body)({AppKey: androidKey}), function(err, result) {
+            return push.pushNoticeToAndroid(fp.defaults(req.body)({AppKey: androidKey}), function(err, result) {
                 console.log(err, result);
-               return res.send(200, {err, result});
+                return res.send(200, {err, result});
             });
         }
-        return res.send(200, {result: 'not sending anything.'})
+        return res.send(200, {result: 'not sending anything.'});
     },
 };
