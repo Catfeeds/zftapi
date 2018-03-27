@@ -8,5 +8,9 @@
   "REDIS_PORT": "REDIS_PORT",
   "REDIS_PASSWD": "REDIS_PASSWD",
   "ENV": "ENV",
-  "logfile": "LOGFILE"
+  "logfile": "LOGFILE",
+  "ALICLOUD": {
+    "key": "ALI_KEY",
+    "secret": "ALI_SECRET"
+  }
 }
