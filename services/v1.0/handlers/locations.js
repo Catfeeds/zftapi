@@ -40,7 +40,7 @@ module.exports = {
         }
 
         const query = {
-            keywords: param.q,
+            keywords: decodeURIComponent(param.q),
             city: param.city
         };
         return Amap.InputTips(query).then(

@@ -618,34 +618,33 @@ module.exports = {
                 t = await MySQL.Sequelize.transaction({autocommit: false});
 
                 const createLocation = async()=>{
-                    if(body.location.code){
-                        const location = await MySQL.GeoLocation.findOne({
-                            where:{
-                                code: body.location.code
-                            },
-                            attributes:['id']
-                        });
 
+                    const where = fp.extendAll([
+                        body.location.code ? {code: body.location.code} : {name: body.location.name}
+                    ]);
 
-                        if(!location){
-                            // await SaveHouses(params, body, location.id);
+                    const location = await MySQL.GeoLocation.findOne({
+                        where: where,
+                        attributes:['id']
+                    });
+
+                    if(!location){
+                        if(body.location.code) {
                             const newLocation = await common.AsyncUpsertGeoLocation(body.location, t);
-                            body.location = MySQL.Plain( newLocation[0] );
+                            body.location = MySQL.Plain(newLocation[0]);
                         }
                         else{
-                            body.location.id = location.id;
+                            const newLocation = await MySQL.GeoLocation.create(common.assignNewId({
+                                divisionId: body.location.divisionId
+                                , name: body.location.name
+                            }), {transaction: t});
+                            body.location = newLocation;
                         }
                     }
                     else{
-                        const newLocation = await MySQL.GeoLocation.create(common.assignNewId({
-
-                            divisionId: body.location.divisionId
-                            , name: body.location.name
-                        }), {transaction: t});
-                        body.location = newLocation;
+                        body.location.id = location.id;
                     }
                 };
-
 
                 await createLocation();
 
