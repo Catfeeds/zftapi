@@ -47,6 +47,7 @@ module.exports = {
         const user = fp.getOr({})('user')(req);
 
         const Auth = MySQL.Auth;
+        const Projects = MySQL.Projects;
 
         try {
             const userProfile = await MySQL.Users.findOne({
@@ -72,10 +73,13 @@ module.exports = {
             }) : null;
 
             const auth = await Auth.findById(user.id);
+
             const banks = await MySQL.Banks.findAll({
                 attributes: ['tag', 'name']
             });
             const projectId = fp.getOr(null)('projectId')(auth);
+            const project = projectId && await Projects.findById(projectId,
+                {attributes: ['id', 'name']});
 
             const data = fp.compact(fp.concat(environments,
                 [
@@ -86,7 +90,7 @@ module.exports = {
                     , contracts ? {key: 'contracts', value:
                         fp.map(fp.pipe(translate, pickHouseId, omitRoomEntry))(contracts)}
                         : null
-                    , projectId ? {key: 'projectId', value: projectId} : null
+                    , projectId ? {key: 'project', value: project} : null
                 ]
             ));
             res.send(data);

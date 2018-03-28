@@ -30,12 +30,13 @@ describe('Environments', function() {
         const house = {id: 321};
         const contract = {id: 123, room: {house}};
         const expectedContract = {id: 123, houseId: 321};
+        const projectInfo = {id: 567, name: 'project name'};
 
         const req = {isAuthenticated: () => true, user};
 
         global.MySQL = {
             Auth: {
-                findById: async () => ({dataValues: user}),
+                findById: async () => ({projectId: 99, dataValues: user}),
             },
             Banks: {
                 findAll: async () => banks,
@@ -46,6 +47,9 @@ describe('Environments', function() {
             Users: {
                 findOne: async () => user,
             },
+            Projects: {
+                findById: async () => projectInfo,
+            },
         };
 
         const resSpy = spy();
@@ -54,7 +58,7 @@ describe('Environments', function() {
             const response = resSpy.getCall(0).args[0];
 
             response.should.shallowDeepEqual({
-                length: 7,
+                length: 8,
                 0: {key: 'houseFormat'},
                 1: {key: 'roomType'},
                 2: {key: 'operationStatus'},
@@ -62,6 +66,7 @@ describe('Environments', function() {
                 4: {key: 'user', value: user},
                 5: {key: 'banks', value: banks},
                 6: {key: 'contracts', value: [expectedContract]},
+                7: {key: 'project', value: projectInfo},
             });
         });
     });

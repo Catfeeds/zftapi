@@ -268,7 +268,6 @@ create table if not exists `housesDevicesPrice`
 create table if not exists `projects`
 (
 	`id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
-	`pid` bigint(20) UNSIGNED NOT NULL,
 	`externalId` varchar(32) NOT NULL,
 	`name` varchar(32) NULL,
 	`logoUrl` varchar(255) NULL,
@@ -276,8 +275,8 @@ create table if not exists `projects`
 	`description` TEXT,
 	`telephone` varchar(20) NULL,
 	`createdAt` datetime(0) NULL,
-  `updatedAt` datetime(0) NULL,
-  `deletedAt` datetime(0) NULL DEFAULT NULL,
+    `updatedAt` datetime(0) NULL,
+    `deletedAt` datetime(0) NULL DEFAULT NULL,
 	PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB;
 
@@ -544,7 +543,7 @@ create table if not exists `prePaidFlows`
 ) ENGINE = InnoDB ROW_FORMAT = Dynamic;
 
 #project demo record
-INSERT INTO `zft`.`projects` (`pid`, `externalId`) VALUES ('100', '5938bb4f4d3684627bcabd7f');
+INSERT INTO `zft`.`projects` (`id`, `name`, `externalId`) VALUES ('100', '加州项目', '5938bb4f4d3684627bcabd7f');
 INSERT INTO `zft`.`auth` (`projectId`, `username`, `password`, createdAt, updatedAt)
 VALUES (100, 'admin100', '5f4dcc3b5aa765d61d8327deb882cf99',  NOW(),  NOW()),
 	(101, 'admin101', '5f4dcc3b5aa765d61d8327deb882cf99',  NOW(),  NOW());
