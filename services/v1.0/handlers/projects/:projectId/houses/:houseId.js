@@ -135,8 +135,9 @@ module.exports = {
                 return res.send(400, ErrorCode.ack(ErrorCode.CONTRACTWORKING));
             }
 
+            let t;
             try {
-                const t = await MySQL.Sequelize.transaction();
+                t = await MySQL.Sequelize.transaction({autocommit: false});
 
                 const now = moment();
                 await MySQL.Houses.update(
@@ -171,12 +172,22 @@ module.exports = {
                         transaction: t
                     }
                 );
+                await MySQL.HouseDevices.destroy(
+                    {
+                        where:{
+                            sourceId: houseId,
+                            endDate: 0
+                        },
+                        transaction: t
+                    }
+                );
 
                 await t.commit();
                 res.send(201);
             }
             catch(e){
                 log.error(e, houseId);
+                await t.rollback();
                 res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC));
             }
         })();

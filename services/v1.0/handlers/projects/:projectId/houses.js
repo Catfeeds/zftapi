@@ -18,7 +18,6 @@ function SoleShareCheck(body) {
     && (fp.isObject(body.layout) && !fp.isArray(body.layout));
 }
 
-
 async function SaveEntire(t, params, body){
     const projectId = params.projectId;
     const createdAt = moment().unix();
@@ -63,6 +62,7 @@ async function SaveEntire(t, params, body){
                 rooms.push({
                     id: SnowFlake.next(),
                     houseId: house.id,
+                    name: common.convertRoomNumber(i),
                     status: Typedef.OperationStatus.IDLE,
                     createdAt: createdAt
                 });
@@ -348,6 +348,7 @@ async function Gethouses(params, query) {
     };
 
     const pagingInfo = Util.PagingInfo(query.index, query.size, true);
+    const q = decodeURIComponent(query.q);
     try {
         const where = fp.extendAll([
             {projectId: projectId},
@@ -360,13 +361,13 @@ async function Gethouses(params, query) {
             query.houseFormat ? {houseFormat: query.houseFormat} : {},
             query.layoutId ? {'layoutId': query.layoutId} : {},
             query.floor ? {'currentFloor': query.floor} : {},
-            query.q ? {
+            q ? {
                 $or: [
-                    {'$building.location.name$': {$regexp: query.q}},
-                    {roomNumber: {$regexp: query.q}},
-                    {code: {$regexp: query.q}},
-                    {'$rooms.contracts.user.name$': {$regexp: query.q}},
-                    {'$rooms.contracts.user.mobile$': {$regexp: query.q}},
+                    {'$building.location.name$': {$regexp: q}},
+                    {roomNumber: {$regexp: q}},
+                    {code: {$regexp: q}},
+                    {'$rooms.contracts.user.name$': {$regexp: q}},
+                    {'$rooms.contracts.user.mobile$': {$regexp: q}},
                 ],
             } : {},
             query.bedRooms ? {'$layouts.bedRoom$': query.bedRooms} : {},

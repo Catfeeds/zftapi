@@ -27,19 +27,35 @@ module.exports = {
             const houseID = req.params.houseId;
             const id = req.params.roomId;
 
+            let t;
             try {
+                t = await MySQL.Sequelize.transaction({autocommit: false});
+
                 await MySQL.Rooms.destroy(
                     {
                         where:{
                             id: id,
                             houseId: houseID,
-                        }
+                        },
+                        transaction: t
                     }
                 );
 
+                await MySQL.HouseDevices.destroy(
+                    {
+                        where:{
+                            sourceId: id,
+                            endDate: 0
+                        },
+                        transaction: t
+                    }
+                );
+
+                await t.commit();
                 res.send();
             }
             catch(e){
+                await t.rollback();
                 if(e.original.errno === 1065){
                     res.send(404, ErrorCode.ack(ErrorCode.REQUESTUNMATCH));
                 }
