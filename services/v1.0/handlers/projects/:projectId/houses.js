@@ -348,7 +348,7 @@ async function Gethouses(params, query) {
     };
 
     const pagingInfo = Util.PagingInfo(query.index, query.size, true);
-    const q = decodeURIComponent(query.q);
+    const q = query.q ? decodeURIComponent(query.q) : null;
     try {
         const where = fp.extendAll([
             {projectId: projectId},
