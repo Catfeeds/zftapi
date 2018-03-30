@@ -1,15 +1,6 @@
 'use strict';
 const fp = require('lodash/fp');
-const config = require('config');
 const {iOSKey, androidKey} = require('../pushService');
-const ALY = require('aliyun-sdk');
-
-const push = new ALY.PUSH({
-    accessKeyId: config.ALICLOUD.key,
-    secretAccessKey: config.ALICLOUD.secret,
-    endpoint: 'http://cloudpush.aliyuncs.com',
-    apiVersion: '2016-08-01',
-});
 
 module.exports = {
     post: async (req, res) => {
@@ -21,7 +12,7 @@ module.exports = {
         //     "Body": "nodejs ios message  Body"
         // }
         if (platform === 'ios' && type === 'message') {
-            return push.pushMessageToiOS(fp.defaults(req.body)({AppKey: iOSKey}), function(err, result) {
+            return Notifications.pushMessageToiOS(fp.defaults(req.body)({AppKey: iOSKey}), function(err, result) {
                 console.log(err, result);
                 return res.send(200, {err, result});
             });
@@ -35,7 +26,7 @@ module.exports = {
         //     "ExtParameters": "{\"key1\":\"value1\",\"key2\":\"value2\"}"
         // }
         if (platform === 'ios' && type === 'notice') {
-            return push.pushNoticeToiOS(fp.defaults(req.body)({AppKey: iOSKey}), function (err, result) {
+            return Notifications.pushNoticeToiOS(fp.defaults(req.body)({AppKey: iOSKey}), function (err, result) {
                 console.log(err, result);
                 return res.send(200, {err, result});
             });
@@ -49,7 +40,7 @@ module.exports = {
         // }
 
         if (platform === 'android' && type === 'message') {
-            return push.pushMessageToAndroid(fp.defaults(req.body)({AppKey: androidKey}), function(err, result) {
+            return Notifications.pushMessageToAndroid(fp.defaults(req.body)({AppKey: androidKey}), function(err, result) {
                 console.log(err, result);
                 return res.send(200, {err, result});
             });
@@ -64,7 +55,7 @@ module.exports = {
         // }
         //
         if (platform === 'android' && type === 'notice') {
-            return push.pushNoticeToAndroid(fp.defaults(req.body)({AppKey: androidKey}), function(err, result) {
+            return Notifications.pushNoticeToAndroid(fp.defaults(req.body)({AppKey: androidKey}), function(err, result) {
                 console.log(err, result);
                 return res.send(200, {err, result});
             });
