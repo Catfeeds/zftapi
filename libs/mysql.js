@@ -770,6 +770,36 @@ function SequelizeDefine() {
 
     exports.Users.belongsTo(exports.Auth);
 
+    exports.Bindings = sequelizeInstance.define('bindings', {
+        id: {
+            type: Sequelize.BIGINT.UNSIGNED,
+            allowNull: false,
+            primaryKey: true
+        },
+        authId: {                           //
+            type: Sequelize.BIGINT.UNSIGNED,
+            allowNull: false
+        },
+        platform: {
+            type: Sequelize.STRING(10),     //ios, android
+            allowNull: false,
+            validation: {
+                isIn: [['ios', 'android']]
+            }
+        },
+        deviceId: {
+            type: Sequelize.STRING(40),     //deviceId of Aliyun SDK, new concept
+            allowNull: false
+        }
+    }, {
+        timestamps: true,
+        paranoid: true,
+        freezeTableName: true
+    });
+
+    exports.Auth.hasOne(exports.Bindings);
+    exports.Bindings.belongsTo(exports.Auth);
+
     exports.Bills = sequelizeInstance.define('bills', {
         id: {
             type: Sequelize.BIGINT.UNSIGNED,

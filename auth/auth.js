@@ -2,8 +2,11 @@
 const fp = require('lodash/fp');
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
+const {assignNewId} = require('../services/v1.0/common');
 
 const authenticate = (req, res, next) => {
+    const platform = req.body.platform;
+    const deviceId = req.body.deviceId;
     passport.authenticate('local', function(err, user) {
         if (err) {
             req.session.destroy();
@@ -18,14 +21,24 @@ const authenticate = (req, res, next) => {
             }
 
             if (user.username) {
-                res.json(ErrorCode.ack(ErrorCode.OK,
-                    {success: 'Welcome ' + user.username + '!'}));
-                return next();
+                bind(user, platform, deviceId).then(bind =>
+                    bind ? res.json(ErrorCode.ack(ErrorCode.OK,
+                        {success: `Binding ${user.username} successfully: ${bind.id}!`}))
+                        : res.json(ErrorCode.ack(ErrorCode.OK,
+                            {success: 'Welcome ' + user.username + '!'})));
             }
         });
     })(req, res, next);
 };
 
+const bind = async (user, platform, deviceId) => {
+    if (!platform || !deviceId) return;
+    const Bindings = MySQL.Bindings;
+    return Bindings.findOrCreate({
+        where: {authId: user.id},
+        defaults: assignNewId({platform, deviceId, authId: user.id}),
+    }).then(fp.head).then(bind => bind.updateAttributes({platform, deviceId}));
+};
 const logOut = (req, res) => {
     req.session.destroy();
     res.json(ErrorCode.ack(ErrorCode.OK, {success: 'Logged out successfully'}));

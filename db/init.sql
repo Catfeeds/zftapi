@@ -134,6 +134,18 @@ create table if not exists users
 		primary key (`id`)
 ) engine=innodb default charset=utf8;
 
+create table if not exists bindings
+(
+	id bigint(20) UNSIGNED NOT NULL,
+	authId bigint(20) UNSIGNED NOT NULL,
+	platform varchar(10) not null,
+	deviceId varchar(40) not null,
+    `createdAt` DATETIME NOT NULL,
+	`updatedAt` DATETIME NOT NULL,
+	`deletedAt` DATETIME,
+	PRIMARY KEY (`id`)
+) engine=innodb default charset=utf8;
+
 CREATE TABLE IF NOT EXISTS `auth`
 (
 	`id` bigint auto_increment,
