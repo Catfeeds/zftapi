@@ -3,6 +3,7 @@
 const fp = require('lodash/fp');
 const moment = require('moment');
 const bigDecimal = require('bigdecimal');
+const {topupNotification} = require('./pushService');
 
 exports.UpsertGeoLocation = (location, t)=>{
     if(!location.id) {
@@ -471,6 +472,7 @@ exports.topUp = async(fundChannel, projectId, userId, operatorId, contractId, am
         await exports.logFlows(MySQL)(serviceCharge, orderNo, projectId
             , userId, 0, fundChannel, t, Typedef.FundChannelFlowCategory.TOPUP);
 
+        topupNotification(MySQL)(result.result);
         await t.commit();
 
         return result.result;

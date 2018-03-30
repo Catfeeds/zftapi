@@ -769,6 +769,7 @@ function SequelizeDefine() {
     });
 
     exports.Users.belongsTo(exports.Auth);
+    exports.Auth.hasOne(exports.Users);
 
     exports.Bindings = sequelizeInstance.define('bindings', {
         id: {

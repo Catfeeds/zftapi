@@ -1,6 +1,7 @@
 'use strict';
 const fp = require('lodash/fp');
 const config = require('config');
+const {iOSKey, androidKey} = require('../pushService');
 const ALY = require('aliyun-sdk');
 
 const push = new ALY.PUSH({
@@ -8,8 +9,7 @@ const push = new ALY.PUSH({
     secretAccessKey: config.ALICLOUD.secret,
     endpoint: 'http://cloudpush.aliyuncs.com',
     apiVersion: '2016-08-01',
-},
-);
+});
 
 module.exports = {
     post: async (req, res) => {
@@ -20,8 +20,6 @@ module.exports = {
         //     "Title": "nodejs ios message Title",
         //     "Body": "nodejs ios message  Body"
         // }
-
-        const iOSKey = '24833443';
         if (platform === 'ios' && type === 'message') {
             return push.pushMessageToiOS(fp.defaults(req.body)({AppKey: iOSKey}), function(err, result) {
                 console.log(err, result);
@@ -49,7 +47,7 @@ module.exports = {
         //     "Title": "nodejs android message Title",
         //     "Body": "nodejs android message  Body"
         // }
-        const androidKey = '24832995';
+
         if (platform === 'android' && type === 'message') {
             return push.pushMessageToAndroid(fp.defaults(req.body)({AppKey: androidKey}), function(err, result) {
                 console.log(err, result);
