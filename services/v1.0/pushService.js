@@ -36,7 +36,7 @@ exports.iOSKey = '24833443';
 exports.androidKey = '24832995';
 
 exports.notificationOf = platform => body => {
-    if (fp.isEmpty(platform)) return;
+    if (!fp.includes(platform)(['ios', 'android'])) return;
     const ApnsEnv = fp.getOr('PRODUCT')('ALICLOUD.ApnsEnv')(config);
     const Target = 'DEVICE';
     const refinedBody = {
@@ -45,13 +45,14 @@ exports.notificationOf = platform => body => {
         Body: body.content,
         ExtParameters: body.extras,
     };
-    platform === 'ios' ? Notifications.pushNoticeToiOS(fp.defaults(refinedBody)({
-        AppKey: exports.iOSKey,
-        Target,
-        ApnsEnv,
-    }), (err, result) => {
-        console.log(err, result);
-    }) :
+    platform === 'ios' ?
+        Notifications.pushNoticeToiOS(fp.defaults(refinedBody)({
+            AppKey: exports.iOSKey,
+            Target,
+            ApnsEnv,
+        }), (err, result) => {
+            console.log(err, result);
+        }) :
         Notifications.pushNoticeToAndroid(fp.defaults(refinedBody)({
             AppKey: exports.androidKey,
             Target,
