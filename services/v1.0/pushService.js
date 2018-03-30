@@ -4,8 +4,8 @@ const config = require('config');
 const ALY = require('aliyun-sdk');
 
 const push = new ALY.PUSH({
-    accessKeyId: config.ALICLOUD.key,
-    secretAccessKey: config.ALICLOUD.secret,
+    accessKeyId: fp.get('ALICLOUD.key')(config),
+    secretAccessKey: fp.get('ALICLOUD.secret')(config),
     endpoint: 'http://cloudpush.aliyuncs.com',
     apiVersion: '2016-08-01',
 },
