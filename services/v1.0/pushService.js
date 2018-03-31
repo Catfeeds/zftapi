@@ -14,7 +14,7 @@ exports.topupNotification = sequelizeModel => topup => {
         const platform = fp.get('auth.binding.platform')(user);
         const targetId = fp.get('auth.binding.deviceId')(user);
 
-        if (!platform || !TargetValue) return;
+        if (!platform || !targetId) return;
         const title = '充值成功提醒';
         const content = `用户${user.name}您好，\n2016年5月7日10:59您成功充值${topup.amount}元，当前您的充值账户余额为${topup.balance}元。`;
         const extras = JSON.stringify({
