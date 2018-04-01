@@ -3,6 +3,8 @@ const fp = require('lodash/fp');
 const config = require('config');
 const moment = require('moment');
 
+exports.iOSKey = '24833443';
+exports.androidKey = '24832995';
 
 exports.topupNotification = sequelizeModel => topup => {
     return sequelizeModel.Users.findById(topup.userId, {
@@ -34,8 +36,39 @@ exports.topupNotification = sequelizeModel => topup => {
     );
 
 };
-exports.iOSKey = '24833443';
-exports.androidKey = '24832995';
+
+exports.monthlyBillNotification = sequelizeModel => bill => {
+    return sequelizeModel.Users.findById(bill.id, {
+        include: [
+            {
+                model: sequelizeModel.Auth, required: true, include: [
+                    {model: sequelizeModel.Bindings, required: true},
+                ],
+            }],
+    }).then(user => user ? user.toJSON() : {}).then(user => {
+        const platform = fp.get('auth.binding.platform')(user);
+        const targetId = fp.get('auth.binding.deviceId')(user);
+
+        if (!platform || !targetId) return;
+        const start = moment().subtract(1, 'month').format('YYYY-MM-DD');
+        const end = moment().format('YYYY-MM-DD');
+        const title = '账单逾期';
+        const content = `您到账单已逾期，账期${start}至${end}，金额3000元。逾期将产生滞纳金，请立刻支付。`;
+        const extras = JSON.stringify({
+            userId: user.id,
+            url: 'http://testzft.cloudenergy.me/',
+        });
+
+        exports.notificationOf(platform)({
+            targetId,
+            title,
+            content,
+            extras,
+        });
+    },
+    );
+
+};
 
 exports.notificationOf = platform => body => {
     if (!fp.includes(platform)(['ios', 'android'])) return;
