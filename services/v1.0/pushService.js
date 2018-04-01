@@ -1,6 +1,8 @@
 'use strict';
 const fp = require('lodash/fp');
 const config = require('config');
+const moment = require('moment');
+
 
 exports.topupNotification = sequelizeModel => topup => {
     return sequelizeModel.Users.findById(topup.userId, {
@@ -16,7 +18,7 @@ exports.topupNotification = sequelizeModel => topup => {
 
         if (!platform || !targetId) return;
         const title = '充值成功提醒';
-        const content = `用户${user.name}您好，\n2016年5月7日10:59您成功充值${topup.amount}元，当前您的充值账户余额为${topup.balance}元。`;
+        const content = `用户${user.name}您好，\n${moment().format('YYYY年M月D日hh:mm')}您成功充值${topup.amount}元，当前您的充值账户余额为${topup.balance}元。`;
         const extras = JSON.stringify({
             userId: user.id,
             url: 'http://testzft.cloudenergy.me/',
