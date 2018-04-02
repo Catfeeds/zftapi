@@ -10,6 +10,10 @@ rule.second = 9;
 
 exports.job = () => schedule.scheduleJob(rule, async () => {
     console.log(`Monthly user bills notifications, start from ${moment().format('YYYY-MM-DD hh:mm:ss')}`);
+    return billOverdue();
+});
+
+const billOverdue = async () => {
     const bills = await MySQL.Bills.findAll({
         where: {
             dueDate: {
@@ -21,5 +25,5 @@ exports.job = () => schedule.scheduleJob(rule, async () => {
         const bill = b.toJSON();
         monthlyBillNotification(MySQL)(fp.defaults(bill)({userId: fp.get('user.id')(bill)}))
     })(bills);
+}
 
-});

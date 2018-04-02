@@ -39,9 +39,18 @@ const bind = async (user, platform, deviceId) => {
         defaults: assignNewId({platform, deviceId, authId: user.id}),
     }).then(fp.head).then(bind => bind.updateAttributes({platform, deviceId}));
 };
-const logOut = (req, res) => {
+const logOut = async (req, res) => {
     req.session.destroy();
-    res.json(ErrorCode.ack(ErrorCode.OK, {success: 'Logged out successfully'}));
+    return cleanUpBinding(req.user.id).then(() =>
+        res.json(ErrorCode.ack(ErrorCode.OK, {success: 'Logged out successfully'})));
+
+};
+
+const cleanUpBinding = async (authId) => {
+    const Bindings = MySQL.Bindings;
+    return Bindings.destroy({
+        where: {authId},
+    });
 };
 
 const guard = (req, res, next) => {
