@@ -38,7 +38,7 @@ exports.topupNotification = sequelizeModel => topup => {
 };
 
 exports.monthlyBillNotification = sequelizeModel => bill => {
-    return sequelizeModel.Users.findById(bill.id, {
+    return sequelizeModel.Users.findById(bill.userId, {
         include: [
             {
                 model: sequelizeModel.Auth, required: true, include: [
@@ -50,10 +50,10 @@ exports.monthlyBillNotification = sequelizeModel => bill => {
         const targetId = fp.get('auth.binding.deviceId')(user);
 
         if (!platform || !targetId) return;
-        const start = moment().subtract(1, 'month').format('YYYY-MM-DD');
-        const end = moment().format('YYYY-MM-DD');
+        const start = moment().unix(bill.startDate).format('YYYY-MM-DD');
+        const end = moment().unix(bill.endDate).format('YYYY-MM-DD');
         const title = '账单逾期';
-        const content = `您到账单已逾期，账期${start}至${end}，金额3000元。逾期将产生滞纳金，请立刻支付。`;
+        const content = `您到账单已逾期，账期${start}至${end}，金额${bill.dueAmount/100}元。逾期将产生滞纳金，请立刻支付。`;
         const extras = JSON.stringify({
             userId: user.id,
             url: 'http://testzft.cloudenergy.me/',
