@@ -82,7 +82,7 @@ module.exports = {
                     });
 
                     res.send({
-                        pingpp: result
+                        pingpp: result.result
                     });
                 }
                 catch(e){

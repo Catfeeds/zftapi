@@ -181,5 +181,5 @@ exports.charge = async(fundChannel, amount, orderNo, subject, body, metaData)=>{
         // extra: await pingppExtra(fundChannel.tag, userId),
         metadata: metaData
     };
-    return await pingXX.charges.create(chargesObj);
+    return ErrorCode.ack(ErrorCode.OK, await pingXX.charges.create(chargesObj));
 };

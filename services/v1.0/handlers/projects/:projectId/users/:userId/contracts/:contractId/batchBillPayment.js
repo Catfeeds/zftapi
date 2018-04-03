@@ -25,10 +25,9 @@ async function Pay(
         };
 
         try {
-            const result = await Util.charge(fundChannel,
+            return await Util.charge(fundChannel,
                 serviceCharge.amountForBill, orderNo, 'subject', 'body',
                 metadata);
-            return result;
         }
         catch (e) {
             log.error(e, serviceCharge, projectId, fundChannel, contractId,
@@ -37,9 +36,8 @@ async function Pay(
     }
     else {
         //
-        const result = await payBills(MySQL)(bills, projectId,
+        return await payBills(MySQL)(bills, projectId,
             fundChannel, userId, orderNo);
-        return result;
     }
 }
 
@@ -145,7 +143,7 @@ module.exports = {
                 const payResult = await Pay(serviceCharge, projectId,
                     fundChannel, contractId, contract.bills, userId);
                 if (payResult.code === ErrorCode.OK) {
-                    res.send();
+                    res.send(payResult.result);
                 }
                 else {
                     res.send(500, payResult);
