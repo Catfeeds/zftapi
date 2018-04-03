@@ -37,7 +37,7 @@ exports.topupNotification = sequelizeModel => topup => {
 
 };
 
-exports.monthlyBillNotification = sequelizeModel => bill => {
+exports.overdueBillNotification = sequelizeModel => bill => {
     return sequelizeModel.Users.findById(bill.userId, {
         include: [
             {
@@ -67,7 +67,35 @@ exports.monthlyBillNotification = sequelizeModel => bill => {
         });
     },
     );
+};
+exports.lowBalanceNotification = sequelizeModel => cashAccount => {
+    return sequelizeModel.Users.findById(cashAccount.userId, {
+        include: [
+            {
+                model: sequelizeModel.Auth, required: true, include: [
+                    {model: sequelizeModel.Bindings, required: true},
+                ],
+            }],
+    }).then(user => user ? user.toJSON() : {}).then(user => {
+        const platform = fp.get('auth.binding.platform')(user);
+        const targetId = fp.get('auth.binding.deviceId')(user);
 
+        if (!platform || !targetId) return;
+        const title = '余额不足提醒';
+        const content = `截止${moment().hours(8).minute(0).format('YYYY年M月D日hh:mm')}，您的账户余额已少于20元，为避免系统自动停电给您生活带来不便，请及时充值。`;
+        const extras = JSON.stringify({
+            userId: user.id,
+            url: 'http://testzft.cloudenergy.me/',
+        });
+
+        exports.notificationOf(platform)({
+            targetId,
+            title,
+            content,
+            extras,
+        });
+    },
+    );
 };
 
 exports.notificationOf = platform => body => {
