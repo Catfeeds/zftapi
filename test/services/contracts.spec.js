@@ -194,6 +194,7 @@ describe('Contracts', function() {
                 {
                     model: Rooms,
                     required: true,
+                    paranoid: false,
                     attributes: ['id', 'name', 'houseId'],
                     include: [
                         {
@@ -204,6 +205,7 @@ describe('Contracts', function() {
                                 houseFormat: 'SOLE',
                             },
                             required: true,
+                            paranoid: false,
                             include: [
                                 {
                                     as: 'building',
@@ -218,10 +220,12 @@ describe('Contracts', function() {
                                                 'name',
                                             ],
                                             model: GeoLocation,
+                                            paranoid: false,
                                             where: {}
                                         }],
                                     model: Building,
                                     required: true,
+                                    paranoid: false,
                                 }],
                         }],
                 }]);

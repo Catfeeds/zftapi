@@ -183,14 +183,17 @@ exports.houseConnection = (sequelizeModel, forceRequired) => (houseFormat, locat
         as: 'house',
         attributes: ['id', 'roomNumber', 'buildingId'],
         required: forceRequired ? forceRequired.required : true,
+        paranoid: false,
         include: [{
             model: sequelizeModel.Building, as: 'building',
             required: forceRequired ? forceRequired.required : true,
             attributes: ['building', 'unit'],
+            paranoid: false,
             include: [fp.defaults(locationCondition ? locationCondition : defaultWhere)({
                 model: sequelizeModel.GeoLocation,
                 as: 'location',
-                attributes: ['name']
+                attributes: ['name'],
+                paranoid: false,
             })]
         }]
     })(fp.isEmpty(houseFormat) ? {where: {}} : {where: {houseFormat}});
@@ -198,6 +201,7 @@ exports.houseConnection = (sequelizeModel, forceRequired) => (houseFormat, locat
         model: sequelizeModel.Rooms,
         attributes: ['id', 'name', 'houseId'],
         required: forceRequired ? forceRequired.required : true,
+        paranoid: false,
         include: [houseInclude]
     };
 };
