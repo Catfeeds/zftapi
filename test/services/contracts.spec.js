@@ -19,8 +19,8 @@ const expectedRoom = {
     unit: undefined,
     status: undefined,
 };
-const user = {toJSON: () => ({auth: {username: 'u'}})};
-const expectedUser = {accountName: 'u'};
+const user = {toJSON: () => ({auth: {username: 'u', id: 123}})};
+const expectedUser = {accountName: 'u', id: 123};
 
 const sandboxIns = sandbox.create();
 
@@ -186,7 +186,7 @@ describe('Contracts', function() {
                             attributes: ['balance'],
                             model: CashAccount,
                         },{
-                            attributes: ['username'],
+                            attributes: ['id', 'username'],
                             model: Auth,
                         },
                     ],

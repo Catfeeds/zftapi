@@ -14,7 +14,7 @@ const billItems = require(
     '../../../../../transformers/billItemsGenerator').generate;
 const {
     omitSingleNulls, innerValues, assignNewId, singleRoomTranslate,
-    jsonProcess, houseConnection, pickAccountName,
+    jsonProcess, houseConnection, pickAuthAttributes,
 } = require(
     '../../../common');
 
@@ -24,7 +24,7 @@ const roomTranslate = item => fp.defaults(item)(
 
 const translate = (models, pagingInfo) => {
     const single = fp.pipe(innerValues, omitSingleNulls,
-        jsonProcess, roomTranslate, pickAccountName, omitFields);
+        jsonProcess, roomTranslate, pickAuthAttributes, omitFields);
     return {
         paging: {
             count: models.count,
@@ -207,7 +207,7 @@ module.exports = {
                             as: 'cashAccount',
                             attributes: ['balance'],
                         }, {
-                            model: Auth, attributes: ['username']
+                            model: Auth, attributes: ['id', 'username']
                         }],
                 },
                 houseConnection(MySQL)(

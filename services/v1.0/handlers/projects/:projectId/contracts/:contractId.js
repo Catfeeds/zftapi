@@ -5,7 +5,7 @@
 const fp = require('lodash/fp');
 const {
     assignNewId, omitSingleNulls,
-    innerValues, jsonProcess, payBills, pickAccountName,
+    innerValues, jsonProcess, payBills, pickAuthAttributes,
 } = require(
     '../../../../common');
 const {finalBill: finalBillOf} = require(
@@ -16,7 +16,7 @@ const {finalPayment: finalPaymentOf} = require(
 const omitFields = fp.omit(['userId', 'createdAt', 'updatedAt',
     'user.authId', 'user.auth']);
 const translate = contract => fp.pipe(innerValues, omitSingleNulls,
-    pickAccountName, omitFields, jsonProcess)(contract);
+    pickAuthAttributes, omitFields, jsonProcess)(contract);
 
 module.exports = {
     get: function getContract(req, res) {
@@ -27,7 +27,7 @@ module.exports = {
             include: [
                 {
                     model: Users,
-                    include: [{model: Auth, attributes: ['username']}],
+                    include: [{model: Auth, attributes: ['username', 'id']}],
                 }],
         }).then(contract => {
             if (fp.isEmpty(contract)) {
