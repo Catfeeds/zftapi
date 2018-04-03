@@ -6,70 +6,55 @@ const moment = require('moment');
 exports.iOSKey = '24833443';
 exports.androidKey = '24832995';
 
-exports.topupNotification = sequelizeModel => topup => {
-    return sequelizeModel.Users.findById(topup.userId, {
-        include: [
-            {
-                model: sequelizeModel.Auth, required: true, include: [
-                    {model: sequelizeModel.Bindings, required: true},
-                ],
-            }],
-    }).then(user => user ? user.toJSON() : {}).then(user => {
-        const platform = fp.get('auth.binding.platform')(user);
-        const targetId = fp.get('auth.binding.deviceId')(user);
-
-        if (!platform || !targetId) return;
-        const title = '充值成功提醒';
-        const content = `用户${user.name}您好，\n${moment().format('YYYY年M月D日hh:mm')}您成功充值${topup.amount}元，当前您的充值账户余额为${topup.balance}元。`;
-        const extras = JSON.stringify({
-            userId: user.id,
-            url: 'http://testzft.cloudenergy.me/',
-        });
-
-        exports.notificationOf(platform)({
-            targetId,
-            title,
-            content,
-            extras,
-        });
-    },
-    );
-
-};
+exports.topupNotification =
+    sequelizeModel => topup => exports.commonNotification(sequelizeModel)({
+        userId: topup.userId,
+        titleOf: fp.constant('充值成功提醒'),
+        contentOf: user => `用户${user.name}您好，\n${moment().
+            format(
+                'YYYY年M月D日hh:mm')}您成功充值${topup.amount}元，当前您的充值账户余额为${topup.balance}元。`,
+        extrasOf: exports.commonExtra,
+    });
 
 exports.overdueBillNotification = sequelizeModel => bill => {
-    return sequelizeModel.Users.findById(bill.userId, {
-        include: [
-            {
-                model: sequelizeModel.Auth, required: true, include: [
-                    {model: sequelizeModel.Bindings, required: true},
-                ],
-            }],
-    }).then(user => user ? user.toJSON() : {}).then(user => {
-        const platform = fp.get('auth.binding.platform')(user);
-        const targetId = fp.get('auth.binding.deviceId')(user);
-
-        if (!platform || !targetId) return;
-        const start = moment().unix(bill.startDate).format('YYYY-MM-DD');
-        const end = moment().unix(bill.endDate).format('YYYY-MM-DD');
-        const title = '账单逾期';
-        const content = `您到账单已逾期，账期${start}至${end}，金额${bill.dueAmount/100}元。逾期将产生滞纳金，请立刻支付。`;
-        const extras = JSON.stringify({
-            userId: user.id,
-            url: 'http://testzft.cloudenergy.me/',
-        });
-
-        exports.notificationOf(platform)({
-            targetId,
-            title,
-            content,
-            extras,
-        });
-    },
-    );
+    const start = moment(bill.startDate * 1000).format('YYYY-MM-DD');
+    const end = moment(bill.endDate * 1000).format('YYYY-MM-DD');
+    return exports.commonNotification(sequelizeModel)({
+        userId: bill.userId,
+        titleOf: fp.constant('账单逾期'),
+        contentOf: fp.constant(`您的账单已逾期，账期${start}至${end}，金额${bill.dueAmount / 100}元。逾期将产生滞纳金，请立刻支付。`),
+        extrasOf: exports.commonExtra,
+    });
 };
-exports.lowBalanceNotification = sequelizeModel => cashAccount => {
-    return sequelizeModel.Users.findById(cashAccount.userId, {
+
+exports.lowBalanceNotification =
+    sequelizeModel => cashAccount => exports.commonNotification(sequelizeModel)(
+        {
+            userId: cashAccount.userId,
+            titleOf: fp.constant('余额不足提醒'),
+            contentOf: fp.constant(`截止${moment().
+                hours(8).
+                minute(0).
+                format(
+                    'YYYY年M月D日hh:mm')}，您的账户余额已少于20元，为避免系统自动停电给您生活带来不便，请及时充值。`),
+            extrasOf: exports.commonExtra,
+        });
+
+exports.negativeBalanceNotification =
+    sequelizeModel => cashAccount => exports.commonNotification(sequelizeModel)(
+        {
+            userId: cashAccount.userId,
+            titleOf: fp.constant('欠费通知'),
+            contentOf: fp.constant(`截止${moment().
+                hours(8).
+                minute(0).
+                format(
+                    'YYYY年M月D日hh:mm')}，您的账户已欠费${-cashAccount.balance/100}元，为避免停电给您生活带来不便，请及时充值。`),
+            extrasOf: exports.commonExtra,
+        });
+
+exports.commonNotification = sequelizeModel => notification => {
+    return sequelizeModel.Users.findById(notification.userId, {
         include: [
             {
                 model: sequelizeModel.Auth, required: true, include: [
@@ -81,12 +66,9 @@ exports.lowBalanceNotification = sequelizeModel => cashAccount => {
         const targetId = fp.get('auth.binding.deviceId')(user);
 
         if (!platform || !targetId) return;
-        const title = '余额不足提醒';
-        const content = `截止${moment().hours(8).minute(0).format('YYYY年M月D日hh:mm')}，您的账户余额已少于20元，为避免系统自动停电给您生活带来不便，请及时充值。`;
-        const extras = JSON.stringify({
-            userId: user.id,
-            url: 'http://testzft.cloudenergy.me/',
-        });
+        const title = notification.titleOf(user);
+        const content = notification.contentOf(user);
+        const extras = notification.extrasOf(user);
 
         exports.notificationOf(platform)({
             targetId,
@@ -96,6 +78,7 @@ exports.lowBalanceNotification = sequelizeModel => cashAccount => {
         });
     },
     );
+
 };
 
 exports.notificationOf = platform => body => {
@@ -123,3 +106,8 @@ exports.notificationOf = platform => body => {
             console.log(err, result);
         });
 };
+
+exports.commonExtra = user => JSON.stringify({
+    userId: user.id,
+    url: 'http://testzft.cloudenergy.me/',
+});
