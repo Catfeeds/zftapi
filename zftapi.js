@@ -4,6 +4,7 @@ const Restify = require('restify');
 const passport = require('passport');
 const sessions = require('client-sessions');
 const auth = require('./auth/auth');
+const {job: cronJob} = require('./libs/cronJob');
 
 require(appRootPath.path + '/libs/log')('zftAPI');
 
@@ -48,6 +49,7 @@ Include('/libs/enumServices').Load(
 
 MySQL.Load().then(
     () => {
+        cronJob();
         Include('/libs/moduleLoader');
 
         Server.listen(8000, function () {
