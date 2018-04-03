@@ -434,7 +434,7 @@ exports.topUp = async(fundChannel, projectId, userId, operatorId, contractId, am
         return ErrorCode.ack(ErrorCode.CHANNELNOTEXISTS);
     }
 
-    const fundChannelId = fundChannel.id;
+    const fundChannelId = fundChannel.fundChannelId;
     const serviceCharge = exports.serviceCharge(fundChannel, amount);
     const assignNewId = exports.assignNewId;
 

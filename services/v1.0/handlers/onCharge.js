@@ -32,6 +32,15 @@ module.exports = {
             const amount = data.amount;
 
             try {
+                const topUpCount = await MySQL.Topup.count({
+                    where:{
+                        orderNo: orderNo,
+                    }
+                });
+                if(topUpCount){
+                    return res.send();
+                }
+
                 const fundChannel = await MySQL.ReceiveChannels.findOne({
                     where: {
                         fundChannelId: fundChannelId
