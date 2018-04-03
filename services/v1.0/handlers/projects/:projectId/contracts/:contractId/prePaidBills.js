@@ -51,58 +51,75 @@ module.exports = {
         switch(mode){
         case 'topup':
             {
-                const where = fp.assign(
-                    {
-                        projectId: projectId,
-                        contractId: contractId
-                    },
-                    dateFilter(startDate, endDate) ? {paymentDay: dateFilter(startDate, endDate)}:{}
-                );
-                const options = fp.assign(
-                    {
-                        where: where,
-                        attributes:['fundChannelId', 'createdAt', 'amount'],
-                        order:[['createdAt', 'DESC']]
-                    },
-                    pagingInfo ? {offset: pagingInfo.skip, limit: pagingInfo.size}:{}
-                );
+                MySQL.Contracts.findOne({
+                    where:{
+                        id: contractId,
+                        status: Typedef.ContractStatus.ONGOING
+                    }
+                }).then(
+                    contract=>{
+                        if(!contract){
+                            return ErrorCode.ack(404, ErrorCode.CONTRACTNOTEXISTS);
+                        }
 
-                const model = pagingInfo ? MySQL.Topup.findAndCountAll(options) : MySQL.Topup.findAll(options);
-
-                model.then(
-                    result=>{
-                        const fundChannelId = fp.map(row=>{return row.fundChannelId;})(result.rows);
-
-                        MySQL.FundChannels.findAll({
-                            where:{
-                                id:{$in: fundChannelId}
+                        const where = fp.extendAll([
+                            {
+                                projectId: projectId,
+                                userId: contract.userId
+                            }
+                            , dateFilter(startDate, endDate) ? {paymentDay: dateFilter(startDate, endDate)}:{}
+                        ]);
+                        const options = fp.assign(
+                            {
+                                where: where,
+                                attributes:['fundChannelId', 'createdAt', 'amount'],
+                                order:[['createdAt', 'DESC']]
                             },
-                            attributes:['id', 'name']
-                        }).then(
-                            fundChannels=>{
-                                const data = fp.map(row=>{
-                                    const channel = fp.find(channel =>
-                                        channel.id === row.fundChannelId)(
-                                        fundChannels);
+                            pagingInfo ? {offset: pagingInfo.skip, limit: pagingInfo.size}:{}
+                        );
 
-                                    return {
-                                        time: moment(row.createdAt).unix(),
-                                        amount: row.amount,
-                                        fundChannelName: channel ? channel.name : ''
-                                    };
-                                })(result.rows);
-                                res.send(
-                                    pagingInfo ? {
-                                        paging: {
-                                            count: result.count,
-                                            index: pagingInfo.index,
-                                            size: pagingInfo.size
-                                        },
-                                        data:data
-                                    }:data
+                        const model = pagingInfo ? MySQL.Topup.findAndCountAll(options) : MySQL.Topup.findAll(options);
+
+                        model.then(
+                            result=>{
+                                const fundChannelId = fp.map(row=>{return row.fundChannelId;})(result.rows);
+
+                                MySQL.FundChannels.findAll({
+                                    where:{
+                                        id:{$in: fundChannelId}
+                                    },
+                                    attributes:['id', 'name']
+                                }).then(
+                                    fundChannels=>{
+                                        const data = fp.map(row=>{
+                                            const channel = fp.find(channel =>
+                                                channel.id === row.fundChannelId)(
+                                                fundChannels);
+
+                                            return {
+                                                time: moment(row.createdAt).unix(),
+                                                amount: row.amount,
+                                                fundChannelName: channel ? channel.name : ''
+                                            };
+                                        })(result.rows);
+                                        res.send(
+                                            pagingInfo ? {
+                                                paging: {
+                                                    count: result.count,
+                                                    index: pagingInfo.index,
+                                                    size: pagingInfo.size
+                                                },
+                                                data:data
+                                            }:data
+                                        );
+                                    }
                                 );
                             }
                         );
+                    },
+                    err=>{
+                        log.error(err, req.params);
+                        res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC));
                     }
                 );
             }
