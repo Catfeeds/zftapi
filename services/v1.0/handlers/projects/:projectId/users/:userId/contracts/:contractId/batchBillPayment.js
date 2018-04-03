@@ -143,7 +143,9 @@ module.exports = {
                 const payResult = await Pay(serviceCharge, projectId,
                     fundChannel, contractId, contract.bills, userId);
                 if (payResult.code === ErrorCode.OK) {
-                    res.send(payResult.result);
+                    res.send({
+                        pingpp: payResult
+                    }.result);
                 }
                 else {
                     res.send(500, payResult);
