@@ -144,8 +144,8 @@ module.exports = {
                     fundChannel, contractId, contract.bills, userId);
                 if (payResult.code === ErrorCode.OK) {
                     res.send({
-                        pingpp: payResult
-                    }.result);
+                        pingpp: payResult.result
+                    });
                 }
                 else {
                     res.send(500, payResult);
