@@ -8,8 +8,8 @@ const extractContract = require(
     '../../../../../transformers/contractExtractor').extract;
 const {extract: extractUser, extractAuth} = require(
     '../../../../../transformers/userExtractor');
-const generateBills = require(
-    '../../../../../transformers/billGenerator').generate;
+const {generate: generateBills} = require(
+    '../../../../../transformers/billGenerator');
 const billItems = require(
     '../../../../../transformers/billItemsGenerator').generate;
 const {
@@ -18,7 +18,7 @@ const {
 } = require(
     '../../../common');
 
-const omitFields = fp.omit(['userId', 'createdAt', 'updatedAt', 'user.authId', 'user.auth']);
+const omitFields = fp.omit(['createdAt', 'updatedAt', 'user.authId', 'user.auth']);
 const roomTranslate = item => fp.defaults(item)(
     {room: singleRoomTranslate(item.room)});
 

@@ -21,6 +21,7 @@ const generate = contract => {
     const strategy = contract.strategy;
     const expenses = contract.expenses;
     const dueAt = dueDateShifter(from, to);
+    const userId = contract.userId;
 
     const paidOffBills = (expenses, from, to) => fp.map(expense => paidOffBill(expense, from, to))(
         fp.filter(e => fp.includes(e.pattern)(['paidOff']))(expenses)
@@ -43,7 +44,8 @@ const generate = contract => {
         dueDate: from,
         createdAt: moment().unix(),
         dueAmount: expenseAmount(expense, from, to),
-        metadata: expense
+        metadata: expense,
+        userId
     });
     const map = fp.map.convert({cap: false});
     const recursiveBills = (expense, from, to, singleBill) => map((m, index) =>
@@ -62,7 +64,8 @@ const generate = contract => {
         createdAt: moment().unix(),
         dueAmount: expenseAmount(expense, from, to),
         metadata: expense,
-        index
+        index,
+        userId,
     });
     const standardBill = (freq, from, to, index) => {
         const months = billPace(freq.pattern, from, to);
@@ -83,7 +86,8 @@ const generate = contract => {
                 expenses: fp.filter(e => e.pattern === 'withRent')(expenses),
                 months
             },
-            index
+            index,
+            userId,
         };
     };
 
@@ -99,7 +103,8 @@ const generate = contract => {
         dueDate: from,
         createdAt: moment().unix(),
         dueAmount: amount,
-        metadata: {bond: amount}
+        metadata: {bond: amount},
+        userId,
     });
 
     return fp.reduce(fp.concat)([])([

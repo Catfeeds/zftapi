@@ -51,6 +51,7 @@ describe('Bill generator', () => {
             paymentPlan: '-00',
             projectId: 1,
             id: 2,
+            userId: 123,
         });
         fp.omit('createdAt')(bills[0]).should.be.eql({
             flow: 'receive',
@@ -71,7 +72,8 @@ describe('Bill generator', () => {
                 expenses: [],
                 months: 12
             },
-            index: 1
+            index: 1,
+            userId: 123,
         });
     });
 
@@ -95,7 +97,8 @@ describe('Bill generator', () => {
             to: oneYearLater,
             paymentPlan: '-00',
             projectId: 1,
-            id: 2
+            id: 2,
+            userId: 123,
         });
         const paidOffBill = fp.filter(b => b.type === 'extra')(bills);
         fp.omit('createdAt')(paidOffBill[0]).should.be.eql({
@@ -113,7 +116,8 @@ describe('Bill generator', () => {
                 configId: 112,
                 rent: 1000,
                 pattern: 'paidOff'
-            }
+            },
+            userId: 123,
         });
     });
     it('should generate regular bills', () => {
@@ -136,7 +140,8 @@ describe('Bill generator', () => {
             to: oneYearLater,
             paymentPlan: '-00',
             projectId: 1,
-            id: 2
+            id: 2,
+            userId: 123,
         });
 
         const regularBill = fp.filter(b => b.type === 'extra')(bills);
@@ -157,7 +162,8 @@ describe('Bill generator', () => {
                 rent: 12000,
                 pattern: '1'
             },
-            index: 1
+            index: 1,
+            userId: 123,
         });
     });
 
@@ -177,7 +183,7 @@ describe('Bill generator', () => {
             paymentPlan: '-00',
             projectId: 1,
             id: 2,
-
+            userId: 123,
         });
         bills.should.have.length(1);
         fp.omit('createdAt')(bills[0]).should.be.eql({
@@ -199,7 +205,8 @@ describe('Bill generator', () => {
                 expenses: [],
                 months: 12
             },
-            index: 1
+            index: 1,
+            userId: 123,
         });
     });
 
@@ -223,7 +230,8 @@ describe('Bill generator', () => {
             to: oneYearLater,
             paymentPlan: '-00',
             projectId: 1,
-            id: 2
+            id: 2,
+            userId: 123,
         });
         bills.should.have.length(12);
         fp.omit('createdAt')(bills[0]).should.be.eql({
@@ -249,7 +257,8 @@ describe('Bill generator', () => {
                 }],
                 months: 1
             },
-            index: 1
+            index: 1,
+            userId: 123,
         });
     });
 
@@ -272,7 +281,8 @@ describe('Bill generator', () => {
             to: oneYearLater,
             paymentPlan: '-00',
             projectId: 1,
-            id: 2
+            id: 2,
+            userId: 123,
         });
         bills.should.have.length(1);
         fp.omit('createdAt')(bills[0]).should.be.eql({
@@ -298,7 +308,8 @@ describe('Bill generator', () => {
                 }],
                 months: 12
             },
-            index: 1
+            index: 1,
+            userId: 123,
         });
     });
 
@@ -319,7 +330,7 @@ describe('Bill generator', () => {
             paymentPlan: '-00',
             projectId: 1,
             id: 2,
-
+            userId: 123,
         });
         bills.should.have.length(2);
         const bondBill = fp.filter(b => b.type === 'bond')(bills);
@@ -336,7 +347,8 @@ describe('Bill generator', () => {
             dueAmount: 100,
             metadata: {
                 bond: 100
-            }
+            },
+            userId: 123,
         });
     });
 });

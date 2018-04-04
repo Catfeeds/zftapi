@@ -13,7 +13,7 @@ const {finalBill: finalBillOf} = require(
 const {finalPayment: finalPaymentOf} = require(
     '../../../../../../transformers/paymentGenerator');
 
-const omitFields = fp.omit(['userId', 'createdAt', 'updatedAt',
+const omitFields = fp.omit(['createdAt', 'updatedAt',
     'user.authId', 'user.auth']);
 const translate = contract => fp.pipe(innerValues, omitSingleNulls,
     pickAuthAttributes, omitFields, jsonProcess)(contract);

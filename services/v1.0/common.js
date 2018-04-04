@@ -3,7 +3,7 @@
 const fp = require('lodash/fp');
 const moment = require('moment');
 const bigDecimal = require('bigdecimal');
-const {topupNotification} = require('./pushService');
+const {topupNotification, billPaymentNotification} = require('./pushService');
 
 exports.UpsertGeoLocation = (location, t)=>{
     if(!location.id) {
@@ -263,6 +263,7 @@ exports.payBills = (sequelizeModel) => async (bills, projectId, fundChannel, use
         await Promise.all(billLogFlows);
 
         await t.commit();
+        sendPaymentNotifications(sequelizeModel)(bills);
         return ErrorCode.ack(ErrorCode.OK);
     }
     catch(e){
@@ -271,6 +272,14 @@ exports.payBills = (sequelizeModel) => async (bills, projectId, fundChannel, use
         return ErrorCode.ack(ErrorCode.DATABASEEXEC);
     }
 };
+
+const sendPaymentNotifications = sequelizeModel => fp.each(bill => billPaymentNotification(sequelizeModel)({
+    userId: bill.dataValues.userId,
+    dueAmount: bill.dueAmount,
+    startDate: bill.startDate,
+    endDate: bill.endDate,
+    paidAt: moment().unix(),
+}));
 
 exports.serviceCharge = (fundChannel, amount)=>{
     //
