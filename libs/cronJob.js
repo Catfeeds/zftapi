@@ -11,6 +11,7 @@ const {
 
 const rule = new schedule.RecurrenceRule();
 rule.hour = 8;
+rule.minute = 0;
 
 exports.job = () => schedule.scheduleJob(rule, async () => {
     console.log(`Daily user notifications process, start from ${moment().
