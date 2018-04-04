@@ -10,7 +10,7 @@ module.exports = {
 
         (async()=>{
             const body = req.body;
-            log.info(body);
+            log.info('onCharge: ', body);
 
             //
             const data = body.data.object;
@@ -32,15 +32,6 @@ module.exports = {
             const amount = data.amount;
 
             try {
-                const topUpCount = await MySQL.Topup.count({
-                    where:{
-                        orderNo: orderNo,
-                    }
-                });
-                if(topUpCount){
-                    return res.send();
-                }
-
                 const fundChannel = await MySQL.ReceiveChannels.findOne({
                     where: {
                         fundChannelId: fundChannelId
@@ -63,6 +54,15 @@ module.exports = {
                 //
                 if(!billIds){
                     //
+                    const topUpCount = await MySQL.Topup.count({
+                        where:{
+                            orderNo: orderNo,
+                        }
+                    });
+                    if(topUpCount>0){
+                        return res.send();
+                    }
+
                     const result = await common.topUp(fundChannel, projectId, userId, userId, contractId, amount);
                     if(result.code !== ErrorCode.OK){
                         res.send(500);
@@ -97,6 +97,16 @@ module.exports = {
                     if (!contract) {
                         return res.send(404, ErrorCode.ack(ErrorCode.CONTRACTNOTEXISTS));
                     }
+
+                    const billsOrderNoCount = await MySQL.BillPayment.count({
+                        where:{
+                            orderNo: orderNo
+                        }
+                    });
+                    if(billsOrderNoCount>0){
+                        return res.send();
+                    }
+
 
                     await common.payBills(MySQL)(contract.bills, projectId, fundChannelId, userId, orderNo);
                     res.send();

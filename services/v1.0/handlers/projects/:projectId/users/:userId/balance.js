@@ -25,7 +25,6 @@ module.exports = {
 
             const body = req.body;
             const amount = body.amount;
-            const contractId = body.contractId;
             const fundChannelId = body.fundChannelId;
 
             if(!Util.ParameterCheck(body, ['amount', 'fundChannelId'])){
@@ -65,6 +64,19 @@ module.exports = {
                 return res.send(404, ErrorCode.ack(ErrorCode.CHANNELNOTEXISTS));
             }
 
+            const contract = await MySQL.Contracts.findOne({
+                where:{
+                    userId: userId,
+                    status: Typedef.ContractStatus.ONGOING
+                },
+                order:[['createdAt', 'ASC']],
+                attributes:['id']
+            });
+            if(!contract){
+                return res.send(404, ErrorCode.ack(ErrorCode.CONTRACTNOTEXISTS));
+            }
+            const contractId = contract.id;
+
             const fundChannel = moveFundChannelToRoot(result)(fundChannelAttributes);
             if(fundChannel.category === Typedef.FundChannelCategory.ONLINE){
                 if(!fundChannel.setting || !fundChannel.setting.appid || !fundChannel.setting.key){
@@ -75,7 +87,7 @@ module.exports = {
                 try {
                     const result = await Util.charge(fundChannel, amount, orderNo, 'subject', 'body', {
                         fundChannelId: fundChannel.id,
-                        contractId: contractId || 0,
+                        contractId: contractId,
                         orderNo: orderNo,
                         projectId: projectId,
                         userId: userId,
