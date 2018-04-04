@@ -14,7 +14,7 @@ exports.topupNotification =
             format(
                 'YYYY年M月D日hh:mm')}您成功充值${topup.amount /
         100}元，当前您的充值账户余额为${topup.balance / 100}元。`),
-        extrasOf: exports.commonExtra,
+        extrasOf: exports.commonExtra('topupHistory'),
     });
 
 exports.billPaymentNotification =
@@ -28,7 +28,7 @@ exports.billPaymentNotification =
                 format(
                     'YYYY年M月D日hh:mm')}您已成功支付租金账单，账期${start}至${end}，金额${payment.dueAmount /
             100}元。`),
-            extrasOf: exports.commonExtra,
+            extrasOf: exports.commonExtra('bills'),
         });
     };
 
@@ -40,7 +40,7 @@ exports.overdueBillNotification = sequelizeModel => bill => {
         titleOf: fp.constant('账单逾期'),
         contentOf: fp.constant(`您的账单已逾期，账期${start}至${end}，金额${bill.dueAmount /
         100}元。逾期将产生滞纳金，请立刻支付。`),
-        extrasOf: exports.commonExtra,
+        extrasOf: exports.commonExtra('bills'),
     });
 };
 
@@ -52,7 +52,7 @@ exports.billNotification = sequelizeModel => bill => {
         titleOf: fp.constant('租约账单'),
         contentOf: fp.constant(`您有一笔租金账单待支付，账期${start}至${end}，金额${bill.dueAmount /
         100}元。`),
-        extrasOf: exports.commonExtra,
+        extrasOf: exports.commonExtra('bills'),
     });
 };
 
@@ -66,7 +66,7 @@ exports.lowBalanceNotification =
                 minute(0).
                 format(
                     'YYYY年M月D日hh:mm')}，您的账户余额已少于20元，为避免系统自动停电给您生活带来不便，请及时充值。`),
-            extrasOf: exports.commonExtra,
+            extrasOf: exports.commonExtra('topup'),
         });
 
 exports.manualNotification =
@@ -78,7 +78,7 @@ exports.manualNotification =
                 format(
                     'YYYY年M月D日hh:mm')}，您的账户余额已欠费${-cashAccount.balance /
             100}元，为避免停电给您生活带来不便，请立即充值。`),
-            extrasOf: exports.commonExtra,
+            extrasOf: exports.commonExtra('topup'),
         });
 
 exports.negativeBalanceNotification =
@@ -92,7 +92,7 @@ exports.negativeBalanceNotification =
                 format(
                     'YYYY年M月D日hh:mm')}，您的账户已欠费${-cashAccount.balance /
             100}元，为避免停电给您生活带来不便，请及时充值。`),
-            extrasOf: exports.commonExtra,
+            extrasOf: exports.commonExtra('topup'),
         });
 
 exports.powerOffNotification =
@@ -105,7 +105,7 @@ exports.powerOffNotification =
                 minute(0).
                 format(
                     'YYYY年M月D日hh:mm')}自动停电，为了您的生活便利，请立即充值，充值后恢复通电。`),
-            extrasOf: exports.commonExtra,
+            extrasOf: exports.commonExtra('topup'),
         });
 
 exports.commonNotification = sequelizeModel => notification => {
@@ -162,7 +162,8 @@ exports.notificationOf = platform => body => {
         });
 };
 
-exports.commonExtra = user => JSON.stringify({
+exports.commonExtra = destination => user => JSON.stringify({
     userId: user.id,
     url: 'http://testzft.cloudenergy.me/',
+    destination,
 });
