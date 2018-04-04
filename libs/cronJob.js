@@ -8,6 +8,7 @@ const {
     lowBalanceNotification,
     negativeBalanceNotification,
     powerOffNotification,
+    billNotification,
 } = require('../services/v1.0/pushService');
 
 const rule = new schedule.RecurrenceRule();
@@ -19,6 +20,7 @@ exports.job = () => schedule.scheduleJob(rule, async () => {
         format('YYYY-MM-DD hh:mm:ss')}`);
     return Promise.all([
         billOverdue(),
+        billDue(),
         lowBalance(),
         negativeBalance(),
         powerOffAlert(),
@@ -37,6 +39,23 @@ const billOverdue = async () => {
     fp.each(b => {
         const bill = b.toJSON();
         overdueBillNotification(MySQL)(
+            fp.defaults(bill)({userId: fp.get('user.id')(bill)}));
+    })(bills);
+};
+
+const billDue = async () => {
+    const bills = await MySQL.Bills.findAll({
+        where: {
+            dueDate: {
+                $gt: moment().hour(0).minute(0).unix(),
+                $lt: moment().hour(23).minute(59).unix(),
+            },
+        },
+    });
+    console.log(`Due bill ids: ${fp.map(fp.get('dataValues.id'))(bills)}`);
+    fp.each(b => {
+        const bill = b.toJSON();
+        billNotification(MySQL)(
             fp.defaults(bill)({userId: fp.get('user.id')(bill)}));
     })(bills);
 };

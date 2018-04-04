@@ -44,6 +44,18 @@ exports.overdueBillNotification = sequelizeModel => bill => {
     });
 };
 
+exports.billNotification = sequelizeModel => bill => {
+    const start = moment(bill.startDate * 1000).format('YYYY-MM-DD');
+    const end = moment(bill.endDate * 1000).format('YYYY-MM-DD');
+    return exports.commonNotification(sequelizeModel)({
+        userId: bill.userId,
+        titleOf: fp.constant('租约账单'),
+        contentOf: fp.constant(`您有一笔租金账单待支付，账期${start}至${end}，金额${bill.dueAmount /
+        100}元。`),
+        extrasOf: exports.commonExtra,
+    });
+};
+
 exports.lowBalanceNotification =
     sequelizeModel => cashAccount => exports.commonNotification(sequelizeModel)(
         {
