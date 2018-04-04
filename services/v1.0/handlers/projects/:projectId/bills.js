@@ -82,9 +82,18 @@ module.exports = {
             where: fp.defaults({
                 entityType: 'property',
                 projectId,
-                startDate: {
-                    $lt: moment().unix(),
-                },
+                $or : [
+                    {
+                        startDate: {
+                            $lt: moment().unix(),
+                        }
+                    },
+                    {
+                        dueDate: {
+                            $lt: moment().unix(),
+                        }
+                    },
+                ],
             })(fp.isEmpty(paidFilter) ? {} : {
                 id: paidFilter
             }),
