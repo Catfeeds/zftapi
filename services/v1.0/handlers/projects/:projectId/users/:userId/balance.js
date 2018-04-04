@@ -104,7 +104,12 @@ module.exports = {
             else{
                 //offline channel
                 const result = await topUp(fundChannel, projectId, userId, req.user.id, contractId, amount);
-                res.send( result );
+                if(result.code !== ErrorCode.OK){
+                    res.send(500, result);
+                }
+                else {
+                    res.send(result.result);
+                }
             }
         })();
     },

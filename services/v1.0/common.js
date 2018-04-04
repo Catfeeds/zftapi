@@ -479,7 +479,7 @@ exports.topUp = async(fundChannel, projectId, userId, operatorId, contractId, am
         topupNotification(MySQL)(result.result);
         await t.commit();
 
-        return result.result;
+        return result;
     }
     catch(e){
         await t.rollback();
