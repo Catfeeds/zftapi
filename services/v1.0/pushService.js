@@ -69,6 +69,18 @@ exports.lowBalanceNotification =
             extrasOf: exports.commonExtra,
         });
 
+exports.manualNotification =
+    sequelizeModel => cashAccount => exports.commonNotification(sequelizeModel)(
+        {
+            userId: cashAccount.userId,
+            titleOf: fp.constant('费用催缴'),
+            contentOf: fp.constant(`公寓人工提醒截至${moment().
+                format(
+                    'YYYY年M月D日hh:mm')}，您的账户余额已欠费${-cashAccount.balance /
+            100}元，为避免停电给您生活带来不便，请立即充值。`),
+            extrasOf: exports.commonExtra,
+        });
+
 exports.negativeBalanceNotification =
     sequelizeModel => cashAccount => exports.commonNotification(sequelizeModel)(
         {

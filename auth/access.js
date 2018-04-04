@@ -8,8 +8,10 @@ const allowToCreateCredentials = (req) =>
 		&& fp.getOr(Typedef.CredentialLevels.UNKNOWN)('user.level')(req).toUpperCase() === Typedef.CredentialLevels.ADMIN;
 
 const allowToDeleteCredentials = allowToCreateCredentials;
+const allowToSendNotification = allowToCreateCredentials;
 
 module.exports = {
     allowToCreateCredentials,
-    allowToDeleteCredentials
+    allowToDeleteCredentials,
+    allowToSendNotification,
 };
