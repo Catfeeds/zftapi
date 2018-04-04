@@ -62,7 +62,7 @@ describe('Contracts', function() {
         });
     });
 
-    it('should omit createdAt, updatedAt, userId fields', async function() {
+    it('should omit createdAt, updatedAt fields', async function() {
         const req = {
             params: {
                 projectId: 100,
@@ -102,6 +102,7 @@ describe('Contracts', function() {
                     andMe: 'haha',
                     expenses: [],
                     strategy: {},
+                    userId: 123,
                     room: expectedRoom,
                     user: expectedUser
                 }]);
