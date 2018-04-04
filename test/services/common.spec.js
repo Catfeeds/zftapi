@@ -365,9 +365,12 @@ describe('Common', function() {
                 FundChannelFlows: {
                     bulkCreate: async () => ({}),
                 },
+                Users: {
+                    findById: async () => ({toJSON: () => null}),
+                },
             };
 
-            const bills = [{}];
+            const bills = [{dataValues: {userId: 112}}];
             const projectId = 1000;
             const fundChannel = {
                 id: 1,

@@ -10,11 +10,27 @@ exports.topupNotification =
     sequelizeModel => topup => exports.commonNotification(sequelizeModel)({
         userId: topup.userId,
         titleOf: fp.constant('充值成功提醒'),
-        contentOf: user => `用户${user.name}您好，\n${moment().
+        contentOf: fp.constant(`${moment().
             format(
-                'YYYY年M月D日hh:mm')}您成功充值${topup.amount}元，当前您的充值账户余额为${topup.balance}元。`,
+                'YYYY年M月D日hh:mm')}您成功充值${topup.amount /
+        100}元，当前您的充值账户余额为${topup.balance / 100}元。`),
         extrasOf: exports.commonExtra,
     });
+
+exports.billPaymentNotification =
+    sequelizeModel => payment => {
+        const start = moment(payment.startDate * 1000).format('YYYY-MM-DD');
+        const end = moment(payment.endDate * 1000).format('YYYY-MM-DD');
+        return exports.commonNotification(sequelizeModel)({
+            userId: payment.userId,
+            titleOf: fp.constant('账单支付成功'),
+            contentOf: fp.constant(`${moment(payment.paidAt * 1000).
+                format(
+                    'YYYY年M月D日hh:mm')}您已成功支付租金账单，账期${start}至${end}，金额${payment.dueAmount /
+            100}元。`),
+            extrasOf: exports.commonExtra,
+        });
+    };
 
 exports.overdueBillNotification = sequelizeModel => bill => {
     const start = moment(bill.startDate * 1000).format('YYYY-MM-DD');
@@ -22,7 +38,8 @@ exports.overdueBillNotification = sequelizeModel => bill => {
     return exports.commonNotification(sequelizeModel)({
         userId: bill.userId,
         titleOf: fp.constant('账单逾期'),
-        contentOf: fp.constant(`您的账单已逾期，账期${start}至${end}，金额${bill.dueAmount / 100}元。逾期将产生滞纳金，请立刻支付。`),
+        contentOf: fp.constant(`您的账单已逾期，账期${start}至${end}，金额${bill.dueAmount /
+        100}元。逾期将产生滞纳金，请立刻支付。`),
         extrasOf: exports.commonExtra,
     });
 };
@@ -49,7 +66,8 @@ exports.negativeBalanceNotification =
                 hours(8).
                 minute(0).
                 format(
-                    'YYYY年M月D日hh:mm')}，您的账户已欠费${-cashAccount.balance/100}元，为避免停电给您生活带来不便，请及时充值。`),
+                    'YYYY年M月D日hh:mm')}，您的账户已欠费${-cashAccount.balance /
+            100}元，为避免停电给您生活带来不便，请及时充值。`),
             extrasOf: exports.commonExtra,
         });
 
