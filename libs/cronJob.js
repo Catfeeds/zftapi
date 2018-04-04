@@ -7,6 +7,7 @@ const {
     overdueBillNotification,
     lowBalanceNotification,
     negativeBalanceNotification,
+    powerOffNotification,
 } = require('../services/v1.0/pushService');
 
 const rule = new schedule.RecurrenceRule();
@@ -20,6 +21,7 @@ exports.job = () => schedule.scheduleJob(rule, async () => {
         billOverdue(),
         lowBalance(),
         negativeBalance(),
+        powerOffAlert(),
     ]);
 });
 
@@ -61,6 +63,7 @@ const negativeBalance = async () => {
         where: {
             balance: {
                 $lt: 0,
+                $gt: -2000,
             },
         },
     });
@@ -69,6 +72,22 @@ const negativeBalance = async () => {
     fp.each(b => {
         const cashAccount = b.toJSON();
         negativeBalanceNotification(MySQL)(cashAccount);
+    })(balance);
+};
+
+const powerOffAlert = async () => {
+    const balance = await MySQL.CashAccount.findAll({
+        where: {
+            balance: {
+                $lt: -2000
+            },
+        },
+    });
+    console.log(`Power off alerting ids: ${fp.map(fp.get('dataValues.userId'))(
+        balance)}`);
+    fp.each(b => {
+        const cashAccount = b.toJSON();
+        powerOffNotification(MySQL)(cashAccount);
     })(balance);
 };
 

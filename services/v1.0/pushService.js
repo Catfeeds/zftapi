@@ -71,6 +71,19 @@ exports.negativeBalanceNotification =
             extrasOf: exports.commonExtra,
         });
 
+exports.powerOffNotification =
+    sequelizeModel => cashAccount => exports.commonNotification(sequelizeModel)(
+        {
+            userId: cashAccount.userId,
+            titleOf: fp.constant('停电通知'),
+            contentOf: fp.constant(`由于您的账户已欠费超过20元，系统已于${moment().
+                hours(8).
+                minute(0).
+                format(
+                    'YYYY年M月D日hh:mm')}自动停电，为了您的生活便利，请立即充值，充值后恢复通电。`),
+            extrasOf: exports.commonExtra,
+        });
+
 exports.commonNotification = sequelizeModel => notification => {
     return sequelizeModel.Users.findById(notification.userId, {
         include: [
