@@ -1,5 +1,6 @@
 'use strict';
 const fp = require('lodash/fp');
+const moment = require('moment');
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const {assignNewId} = require('../services/v1.0/common');
@@ -14,12 +15,11 @@ const authenticate = (req, res, next) => {
                 {error: 'Incorrect username or password.'}));
         }
         console.info(`${JSON.stringify(user)} is authenticated.`);
-        req.logIn(user, function(err) {
+        req.logIn(fp.defaults(defaultExpireTime(req))(user), function(err) {
             if (err) {
                 req.session.destroy();
                 return next(err);
             }
-
             if (user.username) {
                 bind(user, platform, deviceId).then(bind =>
                     bind ? res.json(ErrorCode.ack(ErrorCode.OK,
@@ -31,6 +31,7 @@ const authenticate = (req, res, next) => {
     })(req, res, next);
 };
 
+const defaultExpireTime = req => ({keepAliveDays: fp.getOr(2)('body.keepAlive')(req)});
 const bind = async (user, platform, deviceId) => {
     if (!platform || !deviceId) return;
     const Bindings = MySQL.Bindings;
@@ -42,7 +43,8 @@ const bind = async (user, platform, deviceId) => {
 const logOut = async (req, res) => {
     req.session.destroy();
     return cleanUpBinding(req.user.id).then(() =>
-        res.json(ErrorCode.ack(ErrorCode.OK, {success: 'Logged out successfully'})));
+        res.json(
+            ErrorCode.ack(ErrorCode.OK, {success: 'Logged out successfully'})));
 
 };
 
@@ -102,14 +104,17 @@ const lookUpUser = (username, password, done) => {
 };
 
 const serialize = (user, done) => {
-    done(null, user.id);
+    done(null, {id: user.id, expiredAt: moment().add(user.keepAliveDays, 'days').unix()});
 };
-const deserialize = (id, done) => {
+const deserialize = (user, done) => {
+    if(user.expiredAt < moment().unix()) {
+        return done(null, null, {message: 'Login expired.'});
+    }
     const Auth = MySQL.Auth;
-    Auth.findById(id).then(user => {
+    Auth.findById(user.id).then(user => {
         done(null, {
             username: user.username,
-            id,
+            id: user.id,
             projectId: user.projectId,
             level: user.level,
         });
