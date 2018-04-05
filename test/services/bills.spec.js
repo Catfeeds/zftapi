@@ -11,7 +11,7 @@ const sinon = require('sinon');
 
 const sandbox = sinon.sandbox.create();
 
-const stubRoom = {dataValues: {house: {dataValues: {building: {dataValues: {location: {dataValues: {}}}}}}}};
+const stubRoom = {toJSON: () => ({house: {building: {location: {}}}})};
 
 describe('Bills', function() {
     before(() => {
@@ -86,6 +86,7 @@ describe('Bills', function() {
         const BillFlows = {id: 'BillFlows'};
         const Contracts = {id: 'Contracts'};
         const FundChannelFlows = {id: 'FundChannelFlows'};
+        const HouseDevices = {id: 'HouseDevices'};
         global.MySQL = {
             Bills: {
                 findAndCountAll: sequelizeFindSpy,
@@ -99,6 +100,7 @@ describe('Bills', function() {
             BillPayment,
             Contracts,
             FundChannelFlows,
+            HouseDevices,
         };
 
         await get(req, {send: fp.noop}).then(() => {
@@ -178,6 +180,12 @@ describe('Bills', function() {
                                         houseFormat: 'SOLE',
                                     },
                                 },
+                                {
+                                    model: HouseDevices,
+                                    as: 'devices',
+                                    attributes: ['deviceId'],
+                                    required: false,
+                                }
                             ],
                             required: true,
                             model: Rooms,

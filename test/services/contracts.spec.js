@@ -7,7 +7,7 @@ const {spy, stub, sandbox} = require('sinon');
 const fp = require('lodash/fp');
 const {fn} = require('moment');
 
-const room = {dataValues: {house: {dataValues: {building: {dataValues: {location: {dataValues: {}}}}}}}};
+const room = {toJSON: () => ({house: {building: {location: {}}}})};
 const expectedRoom = {
     building: undefined,
     group: undefined,
@@ -18,6 +18,7 @@ const expectedRoom = {
     roomNumber: undefined,
     unit: undefined,
     status: undefined,
+    devices: [],
 };
 const user = {toJSON: () => ({auth: {username: 'u', id: 123}})};
 const expectedUser = {accountName: 'u', id: 123};
@@ -162,6 +163,7 @@ describe('Contracts', function() {
         const Houses = {id: 'Houses'};
         const Building = {id: 'Building'};
         const GeoLocation = {id: 'GeoLocation'};
+        const HouseDevices = {id: 'HouseDevices'};
         global.MySQL = {
             Contracts: {
                 findAndCountAll: sequelizeFindSpy,
@@ -173,6 +175,7 @@ describe('Contracts', function() {
             Building,
             GeoLocation,
             CashAccount,
+            HouseDevices,
         };
 
         await get(req, {send: fp.noop}).then(() => {
@@ -228,6 +231,12 @@ describe('Contracts', function() {
                                     required: true,
                                     paranoid: false,
                                 }],
+                        },
+                        {
+                            model: HouseDevices,
+                            as: 'devices',
+                            attributes: ['deviceId'],
+                            required: false,
                         }],
                 }]);
         });
@@ -268,6 +277,7 @@ describe('Contracts', function() {
             const Bills = {id: 'Bills', create: async () => ({})};
             const Building = {id: 'Building'};
             const GeoLocation = {id: 'GeoLocation'};
+            const HouseDevices = {id: 'HouseDevices'};
             const Rooms = {id: 'Rooms'};
             global.MySQL = {
                 Contracts: {
@@ -281,6 +291,7 @@ describe('Contracts', function() {
                 Houses,
                 Building,
                 GeoLocation,
+                HouseDevices,
                 Sequelize: {
                     transaction: async func => func({}),
                 },
@@ -333,6 +344,7 @@ describe('Contracts', function() {
         const Houses = {id: 'Houses'};
         const Building = {id: 'Building'};
         const GeoLocation = {id: 'GeoLocation'};
+        const HouseDevices = {id: 'HouseDevices'};
         global.MySQL = {
             Contracts: {
                 findAndCountAll: sequelizeFindSpy,
@@ -343,6 +355,7 @@ describe('Contracts', function() {
             Building,
             GeoLocation,
             CashAccount,
+            HouseDevices,
         };
         await get(req, {send: fp.noop}).then(() => {
             sequelizeFindSpy.should.have.been.called;
@@ -378,6 +391,7 @@ describe('Contracts', function() {
             const Houses = {id: 'Houses'};
             const Building = {id: 'Building'};
             const GeoLocation = {id: 'GeoLocation'};
+            const HouseDevices = {id: 'HouseDevices'};
             global.MySQL = {
                 Contracts: {
                     findAndCountAll: sequelizeFindSpy,
@@ -388,6 +402,7 @@ describe('Contracts', function() {
                 Building,
                 GeoLocation,
                 CashAccount,
+                HouseDevices,
             };
             await get(req, {send: fp.noop}).then(() => {
                 sequelizeFindSpy.should.have.been.called;
@@ -423,6 +438,7 @@ describe('Contracts', function() {
             const Houses = {id: 'Houses'};
             const Building = {id: 'Building'};
             const GeoLocation = {id: 'GeoLocation'};
+            const HouseDevices = {id: 'HouseDevices'};
             global.MySQL = {
                 Contracts: {
                     findAndCountAll: sequelizeFindSpy,
@@ -433,6 +449,7 @@ describe('Contracts', function() {
                 Building,
                 GeoLocation,
                 CashAccount,
+                HouseDevices,
             };
             await get(req, {send: fp.noop}).then(() => {
                 sequelizeFindSpy.should.have.been.called;
@@ -472,10 +489,11 @@ describe('Contracts', function() {
                         userId: 1999,
                     }]),
             };
-            const Rooms = {id: 0};
-            const Houses = {id: 1};
-            const Building = {id: 2};
-            const GeoLocation = {id: 3};
+            const Rooms = {id: 'Rooms'};
+            const Houses = {id: 'Houses'};
+            const Building = {id: 'Building'};
+            const GeoLocation = {id: 'GeoLocation'};
+            const HouseDevices = {id: 'HouseDevices'};
             global.MySQL = {
                 Contracts: {},
                 CashAccount,
@@ -484,6 +502,7 @@ describe('Contracts', function() {
                 Houses,
                 Building,
                 GeoLocation,
+                HouseDevices,
                 Auth,
                 Sequelize: {
                     transaction: async func => func({}),
@@ -525,10 +544,11 @@ describe('Contracts', function() {
                         userId: 1999,
                     }]),
             };
-            const Rooms = {id: 0};
-            const Houses = {id: 1};
-            const Building = {id: 2};
-            const GeoLocation = {id: 3};
+            const Rooms = {id: 'Rooms'};
+            const Houses = {id: 'Houses'};
+            const Building = {id: 'Building'};
+            const GeoLocation = {id: 'GeoLocation'};
+            const HouseDevices = {id: 'HouseDevices'};
             global.MySQL = {
                 Contracts: {},
                 CashAccount,
@@ -538,6 +558,7 @@ describe('Contracts', function() {
                 Houses,
                 Building,
                 GeoLocation,
+                HouseDevices,
                 Sequelize: {
                     transaction: async func => func({}),
                 },
@@ -579,10 +600,11 @@ describe('Contracts', function() {
                         userId: 1999,
                     }]),
             };
-            const Rooms = {id: 0};
-            const Houses = {id: 1};
-            const Building = {id: 2};
-            const GeoLocation = {id: 3};
+            const Rooms = {id: 'Rooms'};
+            const Houses = {id: 'Houses'};
+            const Building = {id: 'Building'};
+            const GeoLocation = {id: 'GeoLocation'};
+            const HouseDevices = {id: 'HouseDevices'};
             global.MySQL = {
                 Contracts: {},
                 CashAccount,
@@ -591,6 +613,7 @@ describe('Contracts', function() {
                 Rooms,
                 Houses,
                 Building,
+                HouseDevices,
                 GeoLocation,
                 Sequelize: {
                     transaction: async func => func({}),
@@ -637,10 +660,11 @@ describe('Contracts', function() {
                         userId: 1999,
                     }]),
             };
-            const Rooms = {id: 0};
-            const Houses = {id: 1};
-            const Building = {id: 2};
-            const GeoLocation = {id: 3};
+            const Rooms = {id: 'Rooms'};
+            const Houses = {id: 'Houses'};
+            const Building = {id: 'Building'};
+            const GeoLocation = {id: 'GeoLocation'};
+            const HouseDevices = {id: 'HouseDevices'};
             global.MySQL = {
                 Contracts: {},
                 CashAccount,
@@ -650,6 +674,7 @@ describe('Contracts', function() {
                 Houses,
                 Building,
                 GeoLocation,
+                HouseDevices,
                 Sequelize: {
                     transaction: async func => func({}),
                 },

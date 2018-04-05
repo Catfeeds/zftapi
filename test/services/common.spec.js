@@ -13,6 +13,7 @@ const Houses = {id: 'Houses'};
 const Building = {id: 'Building'};
 const GeoLocation = {id: 'GeoLocation'};
 const Contracts = {id: 'Contracts'};
+const HouseDevices = {id: 'HouseDevices'};
 
 describe('Common', function() {
     before(() => {
@@ -26,6 +27,7 @@ describe('Common', function() {
             Building,
             GeoLocation,
             Contracts,
+            HouseDevices,
         };
     });
     describe('includeContract', () => {
@@ -78,6 +80,12 @@ describe('Common', function() {
                                 required: true,
                                 paranoid: false,
                                 where: {}
+                            },
+                            {
+                                model: HouseDevices,
+                                as: 'devices',
+                                attributes: ['deviceId'],
+                                required: false,
                             },
                         ],
                         required: true,
@@ -143,6 +151,12 @@ describe('Common', function() {
                                 required: true,
                                 paranoid: false,
                             },
+                            {
+                                model: HouseDevices,
+                                as: 'devices',
+                                attributes: ['deviceId'],
+                                required: false,
+                            },
                         ],
                         required: true,
                         model: Rooms,
@@ -204,6 +218,12 @@ describe('Common', function() {
                                 required: true,
                                 paranoid: false,
                                 where: {}
+                            },
+                            {
+                                model: HouseDevices,
+                                as: 'devices',
+                                attributes: ['deviceId'],
+                                required: false,
                             },
                         ],
                         required: true,
@@ -268,6 +288,12 @@ describe('Common', function() {
                                     required: true,
                                     paranoid: false,
                                 },
+                                {
+                                    model: HouseDevices,
+                                    as: 'devices',
+                                    attributes: ['deviceId'],
+                                    required: false,
+                                },
                             ],
                             required: true,
                             model: Rooms,
@@ -328,6 +354,12 @@ describe('Common', function() {
                                 },
                                 required: true,
                                 paranoid: false,
+                            },
+                            {
+                                model: HouseDevices,
+                                as: 'devices',
+                                attributes: ['deviceId'],
+                                required: false,
                             },
                         ],
                         required: true,

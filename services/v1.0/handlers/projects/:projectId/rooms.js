@@ -8,13 +8,14 @@ const {singleRoomTranslate, roomLeasingStatus} = require('../../../common');
  * Operations on /rooms/{hid}
  */
 const translate = (models, pagingInfo) => {
+    const single = fp.pipe(singleRoomTranslate, fp.omit('devices'));
     return {
         paging: {
             count: models.count,
             index: pagingInfo.index,
             size: pagingInfo.size,
         },
-        data: fp.map(singleRoomTranslate)(models.rows),
+        data: fp.map(single)(models.rows),
     };
 };
 
@@ -25,7 +26,7 @@ module.exports = {
         const projectId = params.projectId;
 
         if (!Util.ParameterCheck(query, ['q'])) {
-            return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED));
+            return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED, {error: 'must provide q as params.'}));
         }
 
         const pagingInfo = Util.PagingInfo(query.index, query.size, true);
@@ -96,9 +97,10 @@ module.exports = {
         return Rooms.findAndCountAll(modelOption).
             then(data => {
                 const rows = fp.map(single => {
-                    const status = roomLeasingStatus(single.contracts,
-                        single.suspendingRooms);
-                    return fp.merge(single)({dataValues: {status}});
+                    const room = single.toJSON();
+                    const status = roomLeasingStatus(room.contracts,
+                        room.suspendingRooms);
+                    return fp.defaults(room)({status});
                 })(data.rows);
                 return fp.defaults(data)({rows});
             }).

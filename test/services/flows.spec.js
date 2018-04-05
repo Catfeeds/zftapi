@@ -40,6 +40,7 @@ describe('Flows', function() {
             const Bills = {id: 'Bills'};
             const BillFlows = {id: 'BillFlows'};
             const FundChannelFlows = {id: 'FundChannelFlows'};
+            const HouseDevices = {id: 'HouseDevices'};
             global.MySQL = {
                 Flows: {
                     findAndCountAll: sequelizeFindSpy,
@@ -57,6 +58,7 @@ describe('Flows', function() {
                 Bills,
                 BillFlows,
                 FundChannelFlows,
+                HouseDevices,
             };
 
             await get(req, {send: fp.noop}).then(() => {
@@ -119,6 +121,12 @@ describe('Flows', function() {
                                                             required: false,
                                                             paranoid: false,
                                                             where: {},
+                                                        },
+                                                        {
+                                                            model: HouseDevices,
+                                                            as: 'devices',
+                                                            attributes: ['deviceId'],
+                                                            required: false,
                                                         },
                                                     ],
                                                     required: false,
@@ -212,6 +220,12 @@ describe('Flows', function() {
                                                     paranoid: false,
                                                     where: {},
                                                 },
+                                                {
+                                                    model: HouseDevices,
+                                                    as: 'devices',
+                                                    attributes: ['deviceId'],
+                                                    required: false,
+                                                },
                                             ],
                                             model: Rooms,
                                             paranoid: false,
@@ -276,6 +290,7 @@ describe('Flows', function() {
                 const Bills = {id: 'Bills'};
                 const BillFlows = {id: 'BillFlows'};
                 const FundChannelFlows = {id: 'FundChannelFlows'};
+                const HouseDevices = {id: 'HouseDevices'};
                 global.MySQL = {
                     Flows: {
                         findAndCountAll: sequelizeFindSpy,
@@ -293,6 +308,7 @@ describe('Flows', function() {
                     Bills,
                     BillFlows,
                     FundChannelFlows,
+                    HouseDevices,
                 };
 
                 await get(req, {send: fp.noop}).then(() => {
@@ -386,34 +402,30 @@ describe('Flows', function() {
                                                         'gender': 'M',
                                                     },
                                                     room: {
-                                                        dataValues: {
-                                                            'config': {},
-                                                            'id': '6361497057362055170',
-                                                            'name': '1',
-                                                            'status': 'IDLE',
+                                                        toJSON: () => ({
+                                                            config: {},
+                                                            id: '6361497057362055170',
+                                                            name: '1',
+                                                            status: 'IDLE',
                                                             house: {
-                                                                dataValues: {
-                                                                    'config': {},
-                                                                    'id': '6361497057362055168',
-                                                                    'roomNumber': '2301',
-                                                                    building: {
-                                                                        dataValues: {
-                                                                            'config': {},
-                                                                            'building': '一幢',
-                                                                            'unit': '1单元',
-                                                                            'group': '某',
-                                                                            location: {
-                                                                                dataValues: {
-                                                                                    'name': '新帝朗郡',
-                                                                                },
-                                                                            },
-
-                                                                        },
+                                                                config: {},
+                                                                id: '6361497057362055168',
+                                                                roomNumber: '2301',
+                                                                building: {
+                                                                    config: {},
+                                                                    building: '一幢',
+                                                                    unit: '1单元',
+                                                                    group: '某',
+                                                                    location: {
+                                                                        name: '新帝朗郡',
                                                                     },
-
                                                                 },
                                                             },
-                                                        },
+                                                            devices: [
+                                                                {
+                                                                    deviceId: 123,
+                                                                }],
+                                                        }),
                                                     },
                                                     'id': '6361497126945558528',
                                                     'roomId': '6361497057362055170',
@@ -464,15 +476,19 @@ describe('Flows', function() {
                     'projectId': 100,
                     'remark': 'payment is good',
                     room: {
-                        'building': '一幢',
-                        'group': '某',
-                        'houseId': '6361497057362055168',
-                        'id': '6361497057362055170',
-                        'locationName': '新帝朗郡',
-                        'roomName': '1',
-                        'roomNumber': '2301',
-                        'status': 'IDLE',
-                        'unit': '1单元',
+                        building: '一幢',
+                        group: '某',
+                        houseId: '6361497057362055168',
+                        id: '6361497057362055170',
+                        locationName: '新帝朗郡',
+                        roomName: '1',
+                        roomNumber: '2301',
+                        status: 'IDLE',
+                        unit: '1单元',
+                        devices: [
+                            {
+                                deviceId: 123,
+                            }],
                     },
                     status: 'pending',
                     user: {
@@ -542,34 +558,30 @@ describe('Flows', function() {
                                                     'gender': 'M',
                                                 },
                                                 room: {
-                                                    dataValues: {
-                                                        'config': {},
-                                                        'id': '6361497057362055170',
-                                                        'name': '1',
-                                                        'status': 'IDLE',
+                                                    toJSON: () => ({
+                                                        config: {},
+                                                        id: '6361497057362055170',
+                                                        name: '1',
+                                                        status: 'IDLE',
                                                         house: {
-                                                            dataValues: {
-                                                                'config': {},
-                                                                'id': '6361497057362055168',
-                                                                'roomNumber': '2301',
-                                                                building: {
-                                                                    dataValues: {
-                                                                        'config': {},
-                                                                        'building': '一幢',
-                                                                        'unit': '1单元',
-                                                                        'group': '某',
-                                                                        location: {
-                                                                            dataValues: {
-                                                                                'name': '新帝朗郡',
-                                                                            },
-                                                                        },
-
-                                                                    },
+                                                            config: {},
+                                                            id: '6361497057362055168',
+                                                            roomNumber: '2301',
+                                                            building: {
+                                                                config: {},
+                                                                building: '一幢',
+                                                                unit: '1单元',
+                                                                group: '某',
+                                                                location: {
+                                                                    name: '新帝朗郡',
                                                                 },
-
                                                             },
                                                         },
-                                                    },
+                                                        devices: [
+                                                            {
+                                                                deviceId: 123,
+                                                            }],
+                                                    }),
                                                 },
                                                 'id': '6361497126945558528',
                                                 'roomId': '6361497057362055170',
@@ -630,16 +642,20 @@ describe('Flows', function() {
                     },
                     'paidAt': 1516763168,
                     'projectId': 100,
-                    'room': {
-                        'building': '一幢',
-                        'group': '某',
-                        'houseId': '6361497057362055168',
-                        'id': '6361497057362055170',
-                        'locationName': '新帝朗郡',
-                        'roomName': '1',
-                        'roomNumber': '2301',
-                        'status': 'IDLE',
-                        'unit': '1单元',
+                    room: {
+                        building: '一幢',
+                        group: '某',
+                        houseId: '6361497057362055168',
+                        id: '6361497057362055170',
+                        locationName: '新帝朗郡',
+                        roomName: '1',
+                        roomNumber: '2301',
+                        status: 'IDLE',
+                        unit: '1单元',
+                        devices: [
+                            {
+                                deviceId: 123,
+                            }],
                     },
                     user: {
                         'accountName': 'f1',

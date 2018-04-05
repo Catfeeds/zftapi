@@ -123,12 +123,12 @@ exports.scaleDown = (v) => {
     return Number( (v / 10000).toFixed(4) );
 };
 
-exports.singleRoomTranslate = model => {
-    const room = model.dataValues;
+exports.singleRoomTranslate = roomModel => {
+    const room = roomModel.toJSON ? roomModel.toJSON() : roomModel;
     const status = room.status;
-    const house = room.house.dataValues;
-    const building = house.building.dataValues;
-    const location = building.location.dataValues;
+    const house = room.house;
+    const building = house.building;
+    const location = building.location;
     return {
         id: room.id,
         houseId: house.id,
@@ -138,7 +138,8 @@ exports.singleRoomTranslate = model => {
         unit: building.unit,
         roomNumber: house.roomNumber,
         roomName: room.name,
-        status
+        status,
+        devices: room.devices || [],
     };
 };
 
@@ -197,12 +198,19 @@ exports.houseConnection = (sequelizeModel, forceRequired) => (houseFormat, locat
             })]
         }]
     })(fp.isEmpty(houseFormat) ? {where: {}} : {where: {houseFormat}});
+
+    const deviceInclude = {
+        model: sequelizeModel.HouseDevices,
+        as: 'devices',
+        attributes: ['deviceId'],
+        required: false
+    };
     return {
         model: sequelizeModel.Rooms,
         attributes: ['id', 'name', 'houseId'],
         required: forceRequired ? forceRequired.required : true,
         paranoid: false,
-        include: [houseInclude]
+        include: [houseInclude, deviceInclude]
     };
 };
 
