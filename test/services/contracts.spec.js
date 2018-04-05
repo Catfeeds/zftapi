@@ -9,15 +9,6 @@ const {fn} = require('moment');
 
 const room = {toJSON: () => ({house: {building: {location: {}}}})};
 const expectedRoom = {
-    building: undefined,
-    group: undefined,
-    houseId: undefined,
-    id: undefined,
-    locationName: undefined,
-    roomName: undefined,
-    roomNumber: undefined,
-    unit: undefined,
-    status: undefined,
     devices: [],
 };
 const user = {toJSON: () => ({auth: {username: 'u', id: 123}})};
@@ -204,7 +195,7 @@ describe('Contracts', function() {
                         {
                             model: Houses,
                             as: 'house',
-                            attributes: ['id', 'roomNumber', 'buildingId'],
+                            attributes: ['id', 'roomNumber', 'buildingId', 'houseKeeper',],
                             where: {
                                 houseFormat: 'SOLE',
                             },

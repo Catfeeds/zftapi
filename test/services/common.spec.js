@@ -52,6 +52,7 @@ describe('Common', function() {
                                     'id',
                                     'roomNumber',
                                     'buildingId',
+                                    'houseKeeper',
                                 ],
                                 include: [
                                     {
@@ -120,6 +121,7 @@ describe('Common', function() {
                                     'id',
                                     'roomNumber',
                                     'buildingId',
+                                    'houseKeeper',
                                 ],
                                 where: {
                                     houseFormat: 'SHARE'
@@ -190,6 +192,7 @@ describe('Common', function() {
                                     'id',
                                     'roomNumber',
                                     'buildingId',
+                                    'houseKeeper',
                                 ],
                                 include: [
                                     {
@@ -259,6 +262,7 @@ describe('Common', function() {
                                         'id',
                                         'roomNumber',
                                         'buildingId',
+                                        'houseKeeper',
                                     ],
                                     include: [
                                         {
@@ -324,6 +328,7 @@ describe('Common', function() {
                                     'id',
                                     'roomNumber',
                                     'buildingId',
+                                    'houseKeeper',
                                 ],
                                 include: [
                                     {

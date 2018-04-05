@@ -210,8 +210,8 @@ module.exports = {
                             model: Auth, attributes: ['id', 'username']
                         }],
                 },
-                houseConnection(MySQL)(
-                    houseFormat)],
+                houseConnection(MySQL)(houseFormat)
+            ],
             distinct: true,
             where: fp.defaults(fp.defaults({projectId, status})(
                 fp.isEmpty(locationId) ? {} : locationCondition),

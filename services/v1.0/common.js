@@ -129,7 +129,7 @@ exports.singleRoomTranslate = roomModel => {
     const house = room.house;
     const building = house.building;
     const location = building.location;
-    return {
+    return fp.omitBy(fp.isUndefined)({
         id: room.id,
         houseId: house.id,
         locationName: location.name,
@@ -140,7 +140,8 @@ exports.singleRoomTranslate = roomModel => {
         roomName: room.name,
         status,
         devices: room.devices || [],
-    };
+        manager: room.house.houseKeeper,
+    });
 };
 
 exports.roomLeasingStatus = (contracts, suspension = []) => {
@@ -182,7 +183,7 @@ exports.houseConnection = (sequelizeModel, forceRequired) => (houseFormat, locat
     const houseInclude = fp.defaults({
         model: sequelizeModel.Houses,
         as: 'house',
-        attributes: ['id', 'roomNumber', 'buildingId'],
+        attributes: ['id', 'roomNumber', 'buildingId', 'houseKeeper'],
         required: forceRequired ? forceRequired.required : true,
         paranoid: false,
         include: [{

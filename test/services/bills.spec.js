@@ -149,6 +149,7 @@ describe('Bills', function() {
                                         'id',
                                         'roomNumber',
                                         'buildingId',
+                                        'houseKeeper',
                                     ],
                                     include: [
                                         {
