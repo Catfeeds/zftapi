@@ -1,6 +1,6 @@
 'use strict';
 require('include-node');
-const {allowToCreateCredentials} = require('../../auth/access');
+const {allowToCreateCredentials, allowToResetPassword} = require('../../auth/access');
 
 describe('Access', function () {
     before(() => {
@@ -40,5 +40,17 @@ describe('Access', function () {
         const req = {};
 
         allowToCreateCredentials(req).should.not.be.true;
+    });
+
+    it('should allow manager to reset password', function () {
+        const req = {isAuthenticated: () => true, user: {level: 'manager'}};
+
+        allowToResetPassword(req).should.be.true;
+    });
+
+    it('should not allow user to reset password', function () {
+        const req = {isAuthenticated: () => true, user: {level: 'user'}};
+
+        allowToResetPassword(req).should.be.false;
     });
 });
