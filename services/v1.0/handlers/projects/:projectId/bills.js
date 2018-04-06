@@ -46,15 +46,22 @@ module.exports = {
 
         const contractFilter = includeContracts(MySQL);
 
-        const query = req.query;
+        const {
+            houseFormat, locationId, index: pageIndex, size: pageSize,
+            from, to, manager,
+        } = req.query;
+
+        if (to < from || from > moment().unix() ) {
+            return res.send(400, ErrorCode.ack(ErrorCode.PARAMETERERROR,
+                {error: 'please provide valid from / to timestamp.'}));
+        }
 
         const projectId = req.params.projectId;
-        const houseFormat = query.houseFormat;
-        const locationId = query.locationId;
         const locationCondition = locationId ? {where: {id: locationId}} : null;
 
-        const paidFilter = paymentsFilter(MySQL)(fp.get('query.paid')(req), projectId);
-        const pagingInfo = Util.PagingInfo(query.index, query.size, true);
+        const paidFilter = paymentsFilter(MySQL)(fp.get('query.paid')(req),
+            projectId);
+        const pagingInfo = Util.PagingInfo(pageIndex, pageSize, true);
 
         const billOptions = {
             include: [
@@ -79,24 +86,37 @@ module.exports = {
                 contractFilter(houseFormat, undefined, locationCondition),
                 fundFlowConnection(MySQL)()],
             distinct: true,
-            where: fp.defaults({
-                entityType: 'property',
-                projectId,
-                $or : [
-                    {
-                        startDate: {
-                            $lt: moment().unix(),
-                        }
-                    },
+            where: fp.extendAll([
+                {
+                    entityType: 'property',
+                    projectId,
+                    $or: [
+                        {
+                            startDate: {
+                                $lt: moment().unix(),
+                            },
+                        },
+                        {
+                            dueDate: {
+                                $lt: moment().unix(),
+                            },
+                        },
+                    ],
+                },
+                from && to ?
                     {
                         dueDate: {
-                            $lt: moment().unix(),
-                        }
-                    },
-                ],
-            })(fp.isEmpty(paidFilter) ? {} : {
-                id: paidFilter
-            }),
+                            $lte: Number(to),
+                            $gte: Number(from),
+                        },
+                    } : {},
+                fp.isEmpty(paidFilter) ? {} : {
+                    id: paidFilter,
+                },
+                manager ? {
+                    '$contract.room.house.houseKeeper$' : manager
+                }: {}
+            ]),
             offset: pagingInfo.skip,
             limit: pagingInfo.size,
         };
