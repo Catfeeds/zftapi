@@ -126,12 +126,10 @@ create table if not exists users
 	id bigint,
 	authId bigint(20) UNSIGNED NOT NULL,
 	`name` varchar(24) not null,
-	mobile varchar(13) not null,
 	documentId text null,
 	documentType int default '1' null,
 	gender varchar(1) default 'M' not null,
-
-		primary key (`id`)
+    primary key (`id`)
 ) engine=innodb default charset=utf8;
 
 create table if not exists bindings

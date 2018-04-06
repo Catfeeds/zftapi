@@ -1,41 +1,31 @@
 'use strict';
 
-/**
- * Operations on /fundChannels/{fundChannelId}
- */
+const fp = require('lodash/fp');
+const translate = model => {
+    const user = model.toJSON();
+    return fp.omit('auth')(fp.defaults(user.auth)(user));
+};
 
 module.exports = {
-    /**
-     * summary: topup
-     * description:
+    get: async (req, res) => {
+        const {projectId, userId} = req.params;
 
-     * parameters: hid
-     * produces: application/json
-     * responses: 200, 400
-     */
-    get: (req, res)=>{
-        const projectId = req.params.projectId;
-        const userId = req.params.userId;
-
-        MySQL.Users.findOne({
-            where:{
-                id: userId
-            },
-            include:[
+        return MySQL.Users.findById(userId, {
+            include: [
                 {
                     model: MySQL.CashAccount,
-                    as: 'cashAccount'
-                    ,attributes:['balance']
-                }
-            ]
-        }).then(
-            user=>{
-                res.send(user);
-            },
-            err=>{
-                log.error(err, projectId, userId);
-                res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC));
-            }
-        );
-    },
+                    as: 'cashAccount',
+                    attributes: ['balance'],
+                },
+                {
+                    model: MySQL.Auth,
+                    attributes: ['username', 'email', 'mobile'],
+                },
+            ],
+        }).then(translate).then(user => res.send(user),
+        ).catch(err => {
+            log.error(err, projectId, userId);
+            res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC));
+        });
+    }
 };

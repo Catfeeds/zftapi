@@ -651,12 +651,12 @@ function SequelizeDefine() {
             allowNull: false,
             primaryKey: true
         },
+        authId: {
+            type: Sequelize.BIGINT.UNSIGNED,
+            allowNull: false,
+        },
         name: {
             type: Sequelize.STRING(24),     //姓名
-            allowNull: false
-        },
-        mobile: {
-            type: Sequelize.STRING(13),     //手机
             allowNull: false
         },
         documentId: {
