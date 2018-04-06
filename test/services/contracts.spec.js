@@ -27,7 +27,14 @@ describe('Contracts', function() {
         sandboxIns.restore();
     });
     it('should return all contracts from findAndCountAll', async function() {
-        const contract = {dataValues: {expenses: '[]', strategy: '{}', room, user}};
+        const contract = {
+            dataValues: {
+                expenses: '[]',
+                strategy: '{}',
+                room,
+                user,
+            },
+        };
         const req = {
             params: {
                 projectId: 100,
@@ -50,7 +57,13 @@ describe('Contracts', function() {
         await get(req, {send: resSpy}).then(() => {
             resSpy.should.have.been.called;
             resSpy.getCall(0).args[0].data.should.be.eql(
-                [{expenses: [], strategy: {}, room: expectedRoom, user: expectedUser}]);
+                [
+                    {
+                        expenses: [],
+                        strategy: {},
+                        room: expectedRoom,
+                        user: expectedUser,
+                    }]);
         });
     });
 
@@ -96,7 +109,7 @@ describe('Contracts', function() {
                     strategy: {},
                     userId: 123,
                     room: expectedRoom,
-                    user: expectedUser
+                    user: expectedUser,
                 }]);
         });
     });
@@ -122,7 +135,7 @@ describe('Contracts', function() {
                                     expenses: '[]',
                                     strategy: '{}',
                                     room,
-                                    user
+                                    user,
                                 },
                             }],
                     };
@@ -180,7 +193,7 @@ describe('Contracts', function() {
                             as: 'cashAccount',
                             attributes: ['balance'],
                             model: CashAccount,
-                        },{
+                        }, {
                             attributes: ['id', 'username'],
                             model: Auth,
                         },
@@ -195,7 +208,11 @@ describe('Contracts', function() {
                         {
                             model: Houses,
                             as: 'house',
-                            attributes: ['id', 'roomNumber', 'buildingId', 'houseKeeper',],
+                            attributes: [
+                                'id',
+                                'roomNumber',
+                                'buildingId',
+                                'houseKeeper',],
                             where: {
                                 houseFormat: 'SOLE',
                             },
@@ -216,7 +233,7 @@ describe('Contracts', function() {
                                             ],
                                             model: GeoLocation,
                                             paranoid: false,
-                                            where: {}
+                                            where: {},
                                         }],
                                     model: Building,
                                     required: true,
@@ -243,14 +260,14 @@ describe('Contracts', function() {
                     from: 1000,
                     to: 2000,
                     user: {
-                        mobile: ''
+                        mobile: '',
                     },
                     roomId: 321,
                     strategy: {
                         freq: {
                             rent: 1,
                         },
-                        bond: 1
+                        bond: 1,
                     },
                 },
             };
@@ -457,6 +474,42 @@ describe('Contracts', function() {
                 });
             });
         });
+    it('should allow to filter by manager', async () => {
+        const req = {
+            params: {
+                projectId: 100,
+            },
+            query: {
+                manager: 333,
+            },
+        };
+
+        const sequelizeFindSpy = stub().resolves([]);
+        const CashAccount = {id: 'CashAccount'};
+        const Users = {id: 'Users'};
+        const Rooms = {id: 'Rooms'};
+        const Houses = {id: 'Houses'};
+        const Building = {id: 'Building'};
+        const GeoLocation = {id: 'GeoLocation'};
+        const HouseDevices = {id: 'HouseDevices'};
+        global.MySQL = {
+            Contracts: {
+                findAndCountAll: sequelizeFindSpy,
+            },
+            Users,
+            Rooms,
+            Houses,
+            Building,
+            GeoLocation,
+            CashAccount,
+            HouseDevices,
+        };
+        await get(req, {send: fp.noop}).then(() => {
+            sequelizeFindSpy.should.have.been.called;
+            const modelOptions = sequelizeFindSpy.getCall(0).args[0];
+            modelOptions.where['$room.house.houseKeeper$'].should.be.eql(333);
+        });
+    });
 
     it('should check from is less than to while creating contract',
         async () => {
@@ -574,7 +627,7 @@ describe('Contracts', function() {
                         freq: {
                             rent: 10,
                         },
-                        bond: 0
+                        bond: 0,
                     },
                     from: 1000,
                     to: 2000,
@@ -630,12 +683,13 @@ describe('Contracts', function() {
                         freq: {
                             rent: 10,
                         },
-                        bond: 10
+                        bond: 10,
                     },
-                    expenses: [{
-                        configId: 12,
-                        rent: 0
-                    }],
+                    expenses: [
+                        {
+                            configId: 12,
+                            rent: 0,
+                        }],
                     from: 1000,
                     to: 2000,
                     user: {accountName: '', mobile: ''},

@@ -188,13 +188,13 @@ module.exports = {
         const projectId = req.params.projectId;
         const status = fp.getOr(Typedef.ContractStatus.ONGOING)(
             'params.status')(req).toUpperCase();
-        const query = req.query;
-        const houseFormat = query.houseFormat;
-        const locationId = query.locationId;
+        const {
+            manager, houseFormat, locationId, index: pageIndex, size: pageSize
+        } = req.query;
         const leasingStatus = fp.getOr('')('query.leasingStatus')(req).
             toLowerCase();
         const locationCondition = {'$room.house.building.location.id$': {$eq: locationId}};
-        const pagingInfo = Util.PagingInfo(query.index, query.size, true);
+        const pagingInfo = Util.PagingInfo(pageIndex, pageSize, true);
         const now = moment().unix();
         return Contracts.findAndCountAll({
             include: [
@@ -213,9 +213,14 @@ module.exports = {
                 houseConnection(MySQL)(houseFormat)
             ],
             distinct: true,
-            where: fp.defaults(fp.defaults({projectId, status})(
-                fp.isEmpty(locationId) ? {} : locationCondition),
-            )(conditionWhen(now)(leasingStatus)),
+            where: fp.extendAll([
+                {projectId, status},
+                fp.isEmpty(locationId) ? {} : locationCondition,
+                conditionWhen(now)(leasingStatus),
+                manager ? {
+                    '$room.house.houseKeeper$' : manager
+                }: {}
+            ]),
             offset: pagingInfo.skip,
             limit: pagingInfo.size,
         }).
