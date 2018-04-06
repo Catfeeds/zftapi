@@ -18,7 +18,8 @@ const {
 } = require(
     '../../../common');
 
-const omitFields = fp.omit(['createdAt', 'updatedAt', 'user.authId', 'user.auth']);
+const omitFields = fp.omit(
+    ['createdAt', 'updatedAt', 'user.authId', 'user.auth']);
 const roomTranslate = item => fp.defaults(item)(
     {room: singleRoomTranslate(item.room)});
 
@@ -33,6 +34,23 @@ const translate = (models, pagingInfo) => {
         },
         data: fp.map(single)(models.rows),
     };
+};
+
+const generateOrder = Models => (field, order) => {
+    const revisedOrder = fp.includes(order)(['DESC', 'ASC']) ? order : 'DESC';
+    return field === 'balance' ?
+        [
+            Models.Users,
+            {
+                model: Models.CashAccount,
+                as: 'cashAccount',
+            },
+            'balance',
+            revisedOrder]
+        :
+        [
+            'createdAt',
+            revisedOrder];
 };
 
 const validateContract = async (contract) => {
@@ -189,7 +207,8 @@ module.exports = {
         const status = fp.getOr(Typedef.ContractStatus.ONGOING)(
             'params.status')(req).toUpperCase();
         const {
-            manager, houseFormat, locationId, index: pageIndex, size: pageSize
+            manager, houseFormat, locationId, index: pageIndex, size: pageSize, order = 'DESC',
+            orderField = 'default',
         } = req.query;
         const leasingStatus = fp.getOr('')('query.leasingStatus')(req).
             toLowerCase();
@@ -207,10 +226,10 @@ module.exports = {
                             as: 'cashAccount',
                             attributes: ['balance'],
                         }, {
-                            model: Auth, attributes: ['id', 'username']
+                            model: Auth, attributes: ['id', 'username'],
                         }],
                 },
-                houseConnection(MySQL)(houseFormat)
+                houseConnection(MySQL)(houseFormat),
             ],
             distinct: true,
             where: fp.extendAll([
@@ -218,11 +237,15 @@ module.exports = {
                 fp.isEmpty(locationId) ? {} : locationCondition,
                 conditionWhen(now)(leasingStatus),
                 manager ? {
-                    '$room.house.houseKeeper$' : manager
-                }: {}
+                    '$room.house.houseKeeper$': manager,
+                } : {},
             ]),
             offset: pagingInfo.skip,
             limit: pagingInfo.size,
+            order: [
+                generateOrder(MySQL)(orderField, order),
+                ['createdAt', 'DESC'],
+            ],
         }).
             then(data => translate(data, pagingInfo)).
             then(contracts => res.send(contracts)).

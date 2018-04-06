@@ -474,6 +474,58 @@ describe('Contracts', function() {
                 });
             });
         });
+    it('should allow to order by balance', async () => {
+        const req = {
+            params: {
+                projectId: 100,
+            },
+            query: {
+                orderField: 'balance',
+                order: 'ASC',
+            },
+        };
+
+        const sequelizeFindSpy = stub().resolves([]);
+        const CashAccount = {id: 'CashAccount'};
+        const Users = {id: 'Users'};
+        const Rooms = {id: 'Rooms'};
+        const Houses = {id: 'Houses'};
+        const Building = {id: 'Building'};
+        const GeoLocation = {id: 'GeoLocation'};
+        const HouseDevices = {id: 'HouseDevices'};
+        global.MySQL = {
+            Contracts: {
+                findAndCountAll: sequelizeFindSpy,
+            },
+            Users,
+            Rooms,
+            Houses,
+            Building,
+            GeoLocation,
+            CashAccount,
+            HouseDevices,
+        };
+        await get(req, {send: fp.noop}).then(() => {
+            sequelizeFindSpy.should.have.been.called;
+            const modelOptions = sequelizeFindSpy.getCall(0).args[0];
+            modelOptions.order.should.be.eql([
+                [
+                    Users,
+                    {
+                        as: 'cashAccount',
+                        model: CashAccount,
+                    },
+                    'balance',
+                    'ASC',
+                ],
+                [
+                    'createdAt',
+                    'DESC',
+                ],
+            ]);
+        });
+    });
+
     it('should allow to filter by manager', async () => {
         const req = {
             params: {
