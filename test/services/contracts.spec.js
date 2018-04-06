@@ -562,6 +562,44 @@ describe('Contracts', function() {
             modelOptions.where['$room.house.houseKeeper$'].should.be.eql(333);
         });
     });
+    it('should allow to filter by balance sign', async () => {
+        const req = {
+            params: {
+                projectId: 100,
+            },
+            query: {
+                balance: 'positive',
+            },
+        };
+
+        const sequelizeFindSpy = stub().resolves([]);
+        const CashAccount = {id: 'CashAccount'};
+        const Users = {id: 'Users'};
+        const Rooms = {id: 'Rooms'};
+        const Houses = {id: 'Houses'};
+        const Building = {id: 'Building'};
+        const GeoLocation = {id: 'GeoLocation'};
+        const HouseDevices = {id: 'HouseDevices'};
+        global.MySQL = {
+            Contracts: {
+                findAndCountAll: sequelizeFindSpy,
+            },
+            Users,
+            Rooms,
+            Houses,
+            Building,
+            GeoLocation,
+            CashAccount,
+            HouseDevices,
+        };
+        await get(req, {send: fp.noop}).then(() => {
+            sequelizeFindSpy.should.have.been.called;
+            const modelOptions = sequelizeFindSpy.getCall(0).args[0];
+            modelOptions.where['$user.cashAccount.balance$'].should.be.eql({
+                $gt: 0
+            });
+        });
+    });
 
     it('should check from is less than to while creating contract',
         async () => {

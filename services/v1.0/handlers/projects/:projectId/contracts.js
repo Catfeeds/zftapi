@@ -53,6 +53,25 @@ const generateOrder = Models => (field, order) => {
             revisedOrder];
 };
 
+const generateBalanceCondition = balance => {
+    const revisedCondition = fp.includes(balance)(
+        ['positive', 'negative', 'default'])
+        ? balance : 'default';
+    const conditionMap = {
+        positive: {
+            '$user.cashAccount.balance$': {
+                $gt: 0,
+            },
+        },
+        negative: {
+            '$user.cashAccount.balance$': {
+                $lt: 0,
+            },
+        },
+    };
+    return fp.getOr({})(revisedCondition)(conditionMap);
+};
+
 const validateContract = async (contract) => {
     if (contract.from >= contract.to) {
         throw new Error(
@@ -208,7 +227,7 @@ module.exports = {
             'params.status')(req).toUpperCase();
         const {
             manager, houseFormat, locationId, index: pageIndex, size: pageSize, order = 'DESC',
-            orderField = 'default',
+            orderField = 'default', balance = 'all',
         } = req.query;
         const leasingStatus = fp.getOr('')('query.leasingStatus')(req).
             toLowerCase();
@@ -239,7 +258,9 @@ module.exports = {
                 manager ? {
                     '$room.house.houseKeeper$': manager,
                 } : {},
+                generateBalanceCondition(balance),
             ]),
+            subQuery: false,
             offset: pagingInfo.skip,
             limit: pagingInfo.size,
             order: [
