@@ -82,9 +82,9 @@ describe('Flows', function() {
                                                     include: [
                                                         {
                                                             model: Auth,
-                                                            attributes: ['mobile']
+                                                            attributes: ['mobile'],
                                                         },
-                                                    ]
+                                                    ],
                                                 },
                                                 {
                                                     attributes: [
@@ -186,9 +186,9 @@ describe('Flows', function() {
                                             include: [
                                                 {
                                                     model: Auth,
-                                                    attributes: ['mobile']
+                                                    attributes: ['mobile'],
                                                 },
-                                            ]
+                                            ],
                                         },
                                         {
                                             attributes: [
@@ -708,6 +708,81 @@ describe('Flows', function() {
                         $lte: moment(req.query.to * 1000).
                             format('YYYY-MM-DD HH:mm:ss'),
                     },
+                });
+            });
+        });
+        it('should accept filter q', async function() {
+            const req = {
+                params: {
+                    projectId: 100,
+                    roomId: 200,
+                },
+                query: {q: 'some words'},
+            };
+            const sequelizeFindSpy = stub().resolves([]);
+            global.MySQL = {
+                Flows: {
+                    findAndCountAll: sequelizeFindSpy,
+                },
+            };
+
+            await get(req, {send: fp.noop}).then(() => {
+                sequelizeFindSpy.should.have.been.called;
+                const countingOption = sequelizeFindSpy.getCall(0).args[0];
+                countingOption.where.should.be.eql({
+                    projectId: 100,
+                    $or: [
+                        {
+                            '$billpayment.bill.contract.room.house.building.location.name$': {
+                                $regexp: 'some words',
+                            },
+                        },
+                        {
+                            '$billpayment.bill.contract.room.house.roomNumber$': {
+                                $regexp: 'some words',
+                            },
+                        },
+                        {
+                            '$billpayment.bill.contract.room.house.code$': {
+                                $regexp: 'some words',
+                            },
+                        },
+                        {
+                            '$billpayment.bill.contract.user.name$': {
+                                $regexp: 'some words',
+                            },
+                        },
+                        {
+                            '$billpayment.bill.contract.user.auth.mobile$': {
+                                $regexp: 'some words',
+                            },
+                        },
+                        {
+                            '$topup.contract.room.house.building.location.name$': {
+                                $regexp: 'some words',
+                            },
+                        },
+                        {
+                            '$topup.contract.room.house.roomNumber$': {
+                                $regexp: 'some words',
+                            },
+                        },
+                        {
+                            '$topup.contract.room.house.code$': {
+                                $regexp: 'some words',
+                            },
+                        },
+                        {
+                            '$topup.contract.user.name$': {
+                                $regexp: 'some words',
+                            },
+                        },
+                        {
+                            '$topup.contract.user.auth.mobile$': {
+                                $regexp: 'some words',
+                            },
+                        },
+                    ],
                 });
             });
         });

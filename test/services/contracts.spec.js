@@ -596,7 +596,74 @@ describe('Contracts', function() {
             sequelizeFindSpy.should.have.been.called;
             const modelOptions = sequelizeFindSpy.getCall(0).args[0];
             modelOptions.where['$user.cashAccount.balance$'].should.be.eql({
-                $gt: 0
+                $gt: 0,
+            });
+        });
+    });
+
+    it('should allow to filter by q', async () => {
+        const req = {
+            params: {
+                projectId: 100,
+            },
+            query: {
+                q: 'some words',
+            },
+        };
+
+        const sequelizeFindSpy = stub().resolves([]);
+        const CashAccount = {id: 'CashAccount'};
+        const Users = {id: 'Users'};
+        const Rooms = {id: 'Rooms'};
+        const Houses = {id: 'Houses'};
+        const Building = {id: 'Building'};
+        const GeoLocation = {id: 'GeoLocation'};
+        const HouseDevices = {id: 'HouseDevices'};
+        global.MySQL = {
+            Contracts: {
+                findAndCountAll: sequelizeFindSpy,
+            },
+            Users,
+            Rooms,
+            Houses,
+            Building,
+            GeoLocation,
+            CashAccount,
+            HouseDevices,
+        };
+        await get(req, {send: fp.noop}).then(() => {
+            sequelizeFindSpy.should.have.been.called;
+            const modelOptions = sequelizeFindSpy.getCall(0).args[0];
+            modelOptions.where.should.be.eql({
+                projectId: 100,
+                $or: [
+                    {
+                        '$room.house.building.location.name$': {
+                            $regexp: 'some words',
+                        },
+                    },
+                    {
+                        '$room.house.roomNumber$': {
+                            $regexp: 'some words',
+                        },
+                    },
+                    {
+                        '$room.house.code$': {
+                            $regexp: 'some words',
+                        },
+                    },
+                    {
+                        '$user.name$': {
+                            $regexp: 'some words',
+                        },
+                    },
+                    {
+                        '$user.auth.mobile$': {
+                            $regexp: 'some words',
+                        },
+                    },
+                ],
+                status: 'ONGOING',
             });
         });
     });
