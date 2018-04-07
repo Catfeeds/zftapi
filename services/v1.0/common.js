@@ -164,7 +164,12 @@ exports.jsonProcess = (model) => fp.defaults(model)({
 });
 
 exports.userConnection = (sequelizeModel) => ({
-    model: sequelizeModel.Users
+    model: sequelizeModel.Users,
+    include: [
+        {
+            model: sequelizeModel.Auth,
+            attributes: ['mobile'],
+        }],
 });
 
 const defaultWhere = {where: {}};

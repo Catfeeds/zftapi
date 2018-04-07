@@ -140,6 +140,24 @@ const groupChannelByTimespan = (timespan, reduceCondition) => (res) => {
     )(fp.entries(fp.mapValues(valueTransform)(fp.groupBy('timespan')(res))))).
         reverse();
 };
+
+const generateQCondition = q => q ? {
+    $or: [
+        //bill
+        {'$billpayment.bill.contract.room.house.building.location.name$': {$regexp: q}},
+        {'$billpayment.bill.contract.room.house.roomNumber$': {$regexp: q}},
+        {'$billpayment.bill.contract.room.house.code$': {$regexp: q}},
+        {'$billpayment.bill.contract.user.name$': {$regexp: q}},
+        {'$billpayment.bill.contract.user.auth.mobile$': {$regexp: q}},
+        //topup
+        {'$topup.contract.room.house.building.location.name$': {$regexp: q}},
+        {'$topup.contract.room.house.roomNumber$': {$regexp: q}},
+        {'$topup.contract.room.house.code$': {$regexp: q}},
+        {'$topup.contract.user.name$': {$regexp: q}},
+        {'$topup.contract.user.auth.mobile$': {$regexp: q}},
+    ],
+} : {};
+
 module.exports = {
     get: async (req, res) => {
         const BillPayment = MySQL.BillPayment;
@@ -156,6 +174,7 @@ module.exports = {
             source, category, locationIds,
             housesInLocation, houseFormat, districtId,
             from, to, view, year, timespan, index: pageIndex, size: pageSize,
+            q
         } = req.query;
 
         if (to < from) {
@@ -370,6 +389,7 @@ module.exports = {
                     } : {},
                     locationConditionOf(req.query),
                     houseFormatFilter(houseFormat),
+                    generateQCondition(q),
                 ]),
                 distinct: true,
                 order: [

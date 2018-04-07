@@ -8,6 +8,7 @@ const {
 const {spy, stub} = require('sinon');
 
 const Users = {id: 'Users'};
+const Auth = {id: 'Auth'};
 const Rooms = {id: 'Rooms'};
 const Houses = {id: 'Houses'};
 const Building = {id: 'Building'};
@@ -22,6 +23,7 @@ describe('Common', function() {
         global.SnowFlake = {next: () => 998811};
         global.SequelizeModels = {
             Users,
+            Auth,
             Rooms,
             Houses,
             Building,
@@ -38,6 +40,12 @@ describe('Common', function() {
                 include: [
                     {
                         model: Users,
+                        include: [
+                            {
+                                model: Auth,
+                                attributes: ['mobile']
+                            },
+                        ]
                     },
                     {
                         attributes: [
@@ -107,6 +115,12 @@ describe('Common', function() {
                 include: [
                     {
                         model: Users,
+                        include: [
+                            {
+                                model: Auth,
+                                attributes: ['mobile']
+                            },
+                        ]
                     },
                     {
                         attributes: [
@@ -178,6 +192,12 @@ describe('Common', function() {
                 include: [
                     {
                         model: Users,
+                        include: [
+                            {
+                                model: Auth,
+                                attributes: ['mobile']
+                            },
+                        ]
                     },
                     {
                         attributes: [
@@ -248,6 +268,12 @@ describe('Common', function() {
                     include: [
                         {
                             model: Users,
+                            include: [
+                                {
+                                    model: Auth,
+                                    attributes: ['mobile']
+                                },
+                            ]
                         },
                         {
                             attributes: [
@@ -314,6 +340,12 @@ describe('Common', function() {
                 include: [
                     {
                         model: Users,
+                        include: [
+                            {
+                                model: Auth,
+                                attributes: ['mobile']
+                            },
+                        ]
                     },
                     {
                         attributes: [

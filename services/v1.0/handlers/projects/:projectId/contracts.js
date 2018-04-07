@@ -72,6 +72,16 @@ const generateBalanceCondition = balance => {
     return fp.getOr({})(revisedCondition)(conditionMap);
 };
 
+const generateQCondition = q => q ? {
+    $or: [
+        {'$room.house.building.location.name$': {$regexp: q}},
+        {'$room.house.roomNumber$': {$regexp: q}},
+        {'$room.house.code$': {$regexp: q}},
+        {'$user.name$': {$regexp: q}},
+        {'$user.auth.mobile$': {$regexp: q}},
+    ],
+} : {};
+
 const validateContract = async (contract) => {
     if (contract.from >= contract.to) {
         throw new Error(
@@ -227,7 +237,7 @@ module.exports = {
             'params.status')(req).toUpperCase();
         const {
             manager, houseFormat, locationId, index: pageIndex, size: pageSize, order = 'DESC',
-            orderField = 'default', balance = 'all',
+            orderField = 'default', balance = 'all', q
         } = req.query;
         const leasingStatus = fp.getOr('')('query.leasingStatus')(req).
             toLowerCase();
@@ -259,6 +269,7 @@ module.exports = {
                     '$room.house.houseKeeper$': manager,
                 } : {},
                 generateBalanceCondition(balance),
+                generateQCondition(q),
             ]),
             subQuery: false,
             offset: pagingInfo.skip,

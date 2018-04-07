@@ -82,6 +82,7 @@ describe('Bills', function() {
             const sequelizeFindSpy = stub().resolves([]);
             const BillPayment = {id: 'BillPayment'};
             const Users = {id: 'Users'};
+            const Auth = {id: 'Auth'};
             const Rooms = {id: 'Rooms'};
             const Houses = {id: 'Houses'};
             const Building = {id: 'Building'};
@@ -95,6 +96,7 @@ describe('Bills', function() {
                     findAndCountAll: sequelizeFindSpy,
                 },
                 Users,
+                Auth,
                 Rooms,
                 Houses,
                 Building,
@@ -138,6 +140,12 @@ describe('Bills', function() {
                         include: [
                             {
                                 model: Users,
+                                include: [
+                                    {
+                                        model: Auth,
+                                        attributes: ['mobile']
+                                    },
+                                ]
                             },
                             {
                                 attributes: [
