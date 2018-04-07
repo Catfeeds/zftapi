@@ -367,7 +367,7 @@ async function Gethouses(params, query) {
                     {roomNumber: {$regexp: q}},
                     {code: {$regexp: q}},
                     {'$rooms.contracts.user.name$': {$regexp: q}},
-                    {'$rooms.contracts.user.mobile$': {$regexp: q}},
+                    {'$rooms.contracts.user.auth.mobile$': {$regexp: q}},
                 ],
             } : {},
             query.bedRooms ? {'$layouts.bedRoom$': query.bedRooms} : {},

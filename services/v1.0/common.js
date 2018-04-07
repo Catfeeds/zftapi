@@ -677,6 +677,12 @@ exports.includeRoomContracts = (status)=>{
         include: [
             {
                 model: MySQL.Users,
+                include:[
+                    {
+                        model: MySQL.Auth,
+                        attributes: ['mobile']
+                    }
+                ]
             },
         ],
     })(contractOptions());
