@@ -141,22 +141,25 @@ const groupChannelByTimespan = (timespan, reduceCondition) => (res) => {
         reverse();
 };
 
-const generateQCondition = q => q ? {
-    $or: [
-        //bill
-        {'$billpayment.bill.contract.room.house.building.location.name$': {$regexp: q}},
-        {'$billpayment.bill.contract.room.house.roomNumber$': {$regexp: q}},
-        {'$billpayment.bill.contract.room.house.code$': {$regexp: q}},
-        {'$billpayment.bill.contract.user.name$': {$regexp: q}},
-        {'$billpayment.bill.contract.user.auth.mobile$': {$regexp: q}},
-        //topup
-        {'$topup.contract.room.house.building.location.name$': {$regexp: q}},
-        {'$topup.contract.room.house.roomNumber$': {$regexp: q}},
-        {'$topup.contract.room.house.code$': {$regexp: q}},
-        {'$topup.contract.user.name$': {$regexp: q}},
-        {'$topup.contract.user.auth.mobile$': {$regexp: q}},
-    ],
-} : {};
+const generateQCondition = q => {
+    const expression = {$regexp: decodeURIComponent(q)};
+    return q ? {
+        $or: [
+            //bill
+            {'$billpayment.bill.contract.room.house.building.location.name$': expression},
+            {'$billpayment.bill.contract.room.house.roomNumber$': expression},
+            {'$billpayment.bill.contract.room.house.code$': expression},
+            {'$billpayment.bill.contract.user.name$': expression},
+            {'$billpayment.bill.contract.user.auth.mobile$': expression},
+            //topup
+            {'$topup.contract.room.house.building.location.name$': expression},
+            {'$topup.contract.room.house.roomNumber$': expression},
+            {'$topup.contract.room.house.code$': expression},
+            {'$topup.contract.user.name$': expression},
+            {'$topup.contract.user.auth.mobile$': expression},
+        ],
+    } : {};
+};
 
 module.exports = {
     get: async (req, res) => {

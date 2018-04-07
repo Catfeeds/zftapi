@@ -72,15 +72,18 @@ const generateBalanceCondition = balance => {
     return fp.getOr({})(revisedCondition)(conditionMap);
 };
 
-const generateQCondition = q => q ? {
-    $or: [
-        {'$room.house.building.location.name$': {$regexp: q}},
-        {'$room.house.roomNumber$': {$regexp: q}},
-        {'$room.house.code$': {$regexp: q}},
-        {'$user.name$': {$regexp: q}},
-        {'$user.auth.mobile$': {$regexp: q}},
-    ],
-} : {};
+const generateQCondition = q => {
+    const expression = {$regexp: decodeURIComponent(q)};
+    return q ? {
+        $or: [
+            {'$room.house.building.location.name$': expression},
+            {'$room.house.roomNumber$': expression},
+            {'$room.house.code$': expression},
+            {'$user.name$': expression},
+            {'$user.auth.mobile$': expression},
+        ],
+    } : {};
+};
 
 const validateContract = async (contract) => {
     if (contract.from >= contract.to) {
