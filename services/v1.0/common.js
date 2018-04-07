@@ -822,7 +822,7 @@ exports.translateRooms = (rooms)=> {
 exports.pickAuthAttributes = item => {
     const json = item.user.toJSON();
     return fp.defaults(item)({user: fp.defaults(json)(
-        {accountName: json.auth.username, id: json.auth.id})});
+        {accountName: json.auth.username, id: json.auth.id, mobile: json.auth.mobile})});
 };
 
 exports.convertRoomNumber = (index)=>{

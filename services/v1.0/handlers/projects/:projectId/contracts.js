@@ -258,7 +258,7 @@ module.exports = {
                             as: 'cashAccount',
                             attributes: ['balance'],
                         }, {
-                            model: Auth, attributes: ['id', 'username'],
+                            model: Auth, attributes: ['id', 'username', 'mobile'],
                         }],
                 },
                 houseConnection(MySQL)(houseFormat),

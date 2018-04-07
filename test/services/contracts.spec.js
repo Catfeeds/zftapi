@@ -11,8 +11,8 @@ const room = {toJSON: () => ({house: {building: {location: {}}}})};
 const expectedRoom = {
     devices: [],
 };
-const user = {toJSON: () => ({auth: {username: 'u', id: 123}})};
-const expectedUser = {accountName: 'u', id: 123};
+const user = {toJSON: () => ({auth: {username: 'u', id: 123, mobile: '321'}})};
+const expectedUser = {accountName: 'u', id: 123, mobile: '321'};
 
 const sandboxIns = sandbox.create();
 
@@ -194,7 +194,7 @@ describe('Contracts', function() {
                             attributes: ['balance'],
                             model: CashAccount,
                         }, {
-                            attributes: ['id', 'username'],
+                            attributes: ['id', 'username', 'mobile'],
                             model: Auth,
                         },
                     ],

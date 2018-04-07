@@ -27,7 +27,7 @@ module.exports = {
             include: [
                 {
                     model: Users,
-                    include: [{model: Auth, attributes: ['username', 'id']}],
+                    include: [{model: Auth, attributes: ['username', 'id', 'mobile']}],
                 }],
         }).then(contract => {
             if (fp.isEmpty(contract)) {
