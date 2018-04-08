@@ -11,12 +11,19 @@ env:
   - DEPLOY_USER=kpse
   - KEY_PATH=/tmp/deploy_rsa
   - HOST=testzft.cloudenergy.me
+  - DOCKER_COMPOSE_VERSION=1.4.2
 before_script:
   - export TZ=Asia/Shanghai
+script:
+  - ./build.sh a
 after_success:
   - docker login -u $DOCKER_USER -p $DOCKER_PASS registry.cn-hangzhou.aliyuncs.com
   - if [[ $TRAVIS_PULL_REQUEST == "false" ]]; then deploy/script/publish.sh v$TRAVIS_BUILD_NUMBER ; fi
 before_install:
+  - sudo rm /usr/local/bin/docker-compose
+  - curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
+  - chmod +x docker-compose
+  - sudo mv docker-compose /usr/local/bin
   - openssl aes-256-cbc -K $encrypted_6f4f3015cdcd_key -iv $encrypted_6f4f3015cdcd_iv
     -in deploy/script/deploy_rsa.enc -out $KEY_PATH  -d
 
