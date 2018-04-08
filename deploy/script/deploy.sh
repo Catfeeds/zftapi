@@ -1,7 +1,7 @@
 #! /bin/bash
 
 IMAGE_VERSION=${1:-latest}
-REPO=kpse/api-zft
+REPO=registry.docker-cn.com/kpse/api-zft
 docker pull $REPO:$IMAGE_VERSION
 
 function start () {
