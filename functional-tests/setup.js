@@ -1,15 +1,16 @@
 'use strict';
 const chai = require('chai');
-const axios = require('axios');
 chai.should();
 
 chai.use(require('chai-as-promised'));
 chai.use(require('sinon-chai'));
 chai.use(require('chai-shallow-deep-equal'));
+chai.use(require('chai-http'));
 
 module.exports = {
-    axios: axios.create({
-        baseURL: process.env.APP_URL,
-        withCredentials: true
-    })
+    httpClient: chai.request.agent('http://api:8000/v1.0'),
+    credentials: {
+        username: 'admin100',
+        password: '5f4dcc3b5aa765d61d8327deb882cf99',
+    },
 };

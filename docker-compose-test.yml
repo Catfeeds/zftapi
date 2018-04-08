@@ -4,9 +4,10 @@ services:
     db:
         image: mysql:5.7
         restart: always
-        command: --init-file /db/init.sql --character-set-server=utf8
+        command: --init-file /db/init.sql --character-set-server=utf8 --explicit_defaults_for_timestamp --sql-mode=""
         environment:
           - MYSQL_ROOT_PASSWORD=example
+          - TZ=Asia/Shanghai
         ports:
           - 3306
         volumes:
@@ -28,6 +29,7 @@ services:
           - ".:/src"
           - "./node_modules:/src/node_modules"
         environment:
+          - TZ=Asia/Shanghai
           - ZFT_AMAP_KEY
           - ZFT_EM_READ=[{"host":"db","port":3306,"username":"root","password":"example","database":"zft"}]
           - ZFT_EM_WRITE={"host":"db","port":3306,"username":"root","password":"example","database":"zft"}
@@ -35,6 +37,8 @@ services:
           - REDIS_PORT=6379
           - REDIS_PASSWD
           - ENV
+          - ALI_KEY
+          - ALI_SECRET
         depends_on:
           - db
           - redis
