@@ -106,7 +106,7 @@ async function SaveEntire(t, params, body){
         await MySQL.Rooms.bulkCreate(houseRoomLayouts.rooms, {transaction: t});
         await MySQL.Layouts.bulkCreate(houseRoomLayouts.layouts, {transaction: t});
 
-        return ErrorCode.ack(ErrorCode.OK);
+        return ErrorCode.ack(ErrorCode.OK, {id: houseRoomLayout.house.id});
     }
     catch(e){
         log.error(e);
@@ -183,7 +183,7 @@ async function SaveSole(t, params, body) {
         await MySQL.Rooms.create(houseRoomLayout.room, {transaction: t});
         await MySQL.Layouts.create(houseRoomLayout.layout, {transaction: t});
 
-        return ErrorCode.ack(ErrorCode.OK);
+        return ErrorCode.ack(ErrorCode.OK, {id: houseRoomLayout.house.id});
     }
     catch(e){
         log.error(e);
@@ -272,7 +272,7 @@ async function SaveShare(t, params, body) {
         await MySQL.Rooms.bulkCreate(houseRoomLayout.rooms, {transaction: t});
         await MySQL.Layouts.create(houseRoomLayout.layout, {transaction: t});
 
-        return ErrorCode.ack(ErrorCode.OK);
+        return ErrorCode.ack(ErrorCode.OK, {id: houseRoomLayout.house.id});
     }
     catch(e){
         log.error(e);
@@ -668,7 +668,7 @@ module.exports = {
                 }
                 else {
                     await t.commit();
-                    res.send(body);
+                    res.send(fp.defaults({id: ack.result.id})(body));
                 }
             }
             catch(e){
