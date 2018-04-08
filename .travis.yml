@@ -7,7 +7,7 @@ cache:
   - node_modules
 env:
   global:
-  - REPO=registry.ap-southeast-1.aliyuncs.com/dxg_test/zftapi
+  - REPO=kpse/api-zft
   - DEPLOY_USER=kpse
   - KEY_PATH=/tmp/deploy_rsa
   - HOST=testzft.cloudenergy.me
@@ -17,7 +17,7 @@ before_script:
 script:
   - ./build.sh a
 after_success:
-  - docker login -u $DOCKER_USER -p $DOCKER_PASS registry.ap-southeast-1.aliyuncs.com/dxg_test/zftapi
+  - docker login -u $DOCKER_USER -p $DOCKER_PASS
   - if [[ $TRAVIS_PULL_REQUEST == "false" ]]; then deploy/script/publish.sh v$TRAVIS_BUILD_NUMBER ; fi
 before_install:
   - sudo rm /usr/local/bin/docker-compose
@@ -37,6 +37,6 @@ addons:
 deploy:
   provider: script
   skip_cleanup: true
-  script: chmod 600 $KEY_PATH && ssh -o StrictHostKeyChecking=no -i $KEY_PATH $DEPLOY_USER@$HOST "docker login -u $DOCKER_USER -p $DOCKER_PASS registry.ap-southeast-1.aliyuncs.com/dxg_test/zftapi && ./deploy_api.sh v$TRAVIS_BUILD_NUMBER"
+  script: chmod 600 $KEY_PATH && ssh -o StrictHostKeyChecking=no -i $KEY_PATH $DEPLOY_USER@$HOST "./deploy_api.sh v$TRAVIS_BUILD_NUMBER"
   on:
     branch: develop
