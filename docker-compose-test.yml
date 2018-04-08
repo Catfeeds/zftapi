@@ -13,7 +13,7 @@ services:
         volumes:
           - "./db:/db"
     redis:
-        image: registry.docker-cn.com/library/redis:4
+        image: redis:4
         restart: always
         ports:
           - 6379
