@@ -1,7 +1,7 @@
 #! /bin/bash
 
 IMAGE_VERSION=${1:-latest}
-REPO=registry.cn-hangzhou.aliyuncs.com/em_test/api-zft
+REPO=registry.ap-southeast-1.aliyuncs.com/dxg_test/zftapi
 docker pull $REPO:$IMAGE_VERSION
 
 function start () {
