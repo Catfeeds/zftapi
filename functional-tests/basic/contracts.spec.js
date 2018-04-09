@@ -16,13 +16,17 @@ describe('contract api', function() {
                 res => fp.head(res.body.rooms),
             ).
             then(
-                room => {
-                    return client.post('/projects/100/contracts').
-                        send(createContract(room.id)).then(res => ({room, contract: res.body}));
-                },
+                room => client.post('/projects/100/contracts').
+                    send(createContract(room.id)).
+                    then(res => ({room, contract: res.body})),
             ).then(
-                ({room, contract}) => client.get(`/projects/100/contracts/${contract.result.id}`)
-                .then(res => ({expectedId: contract.result.id, contract: res.body, room})),
+                ({room, contract}) => client.get(
+                    `/projects/100/contracts/${contract.result.id}`).
+                    then(res => ({
+                        expectedId: contract.result.id,
+                        contract: res.body,
+                        room,
+                    })),
             ).
             then(({expectedId, contract, room}) => {
                 contract.id.should.be.equal(expectedId);
