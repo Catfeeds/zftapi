@@ -4,8 +4,8 @@ const fp = require('lodash/fp');
 const {loggedIn} = require('../setup');
 const {createHouse, createContract} = require('../payloads');
 
-describe('contract api', function() {
-    it('should allow to create contract', async () => {
+describe('bill api', function() {
+    it('should create bills along with contract', async () => {
         const client = await loggedIn();
         const housePayload = createHouse();
         await client.post('/projects/100/houses?houseFormat=SHARE').
@@ -18,15 +18,16 @@ describe('contract api', function() {
             then(
                 room => {
                     return client.post('/projects/100/contracts').
-                        send(createContract(room.id)).then(res => ({room, contract: res.body}));
+                        send(createContract(room.id)).
+                        then(res => ({room, contract: res.body}));
                 },
             ).then(
-                ({room, contract}) => client.get(`/projects/100/contracts/${contract.result.id}`)
-                .then(res => ({expectedId: contract.result.id, contract: res.body, room})),
+                ({room, contract}) => client.get(`/projects/100/contracts/${contract.result.id}/bills`)
+                .then(res =>({room, contract, bills: res.body})),
             ).
-            then(({expectedId, contract, room}) => {
-                contract.id.should.be.equal(expectedId);
-                contract.roomId.should.be.equal(room.id);
+            then(({bills, contract}) => {
+                bills.length.should.be.equal(17);
+                bills[0].contractId.should.be.equal(contract.result.id);
             });
     });
 

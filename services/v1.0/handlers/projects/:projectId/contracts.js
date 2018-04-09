@@ -222,10 +222,10 @@ module.exports = {
                     {transaction: t})).
                 then(contract => Promise.all(
                     fp.map(bill => createBill(contract, bill, t))(
-                        generateBills(contract))),
+                        generateBills(contract))).then(() => contract),
                 ),
         ).
-            then(() => res.send(201, ErrorCode.ack(ErrorCode.OK, {}))).
+            then(contract => res.send(201, ErrorCode.ack(ErrorCode.OK, {id: contract.id}))).
             catch(err => res.send(500,
                 ErrorCode.ack(ErrorCode.DATABASEEXEC, {error: err.message})));
 
