@@ -32,7 +32,7 @@ Server.use(sessions({
     // should be a large unguessable string
     secret: 'zftisanawesomeproduct',
     // how long the session will stay valid in ms
-    duration: 2 * 24 * 60 * 60 * 1000
+    duration: 30 * 24 * 60 * 60 * 1000
 }));
 
 Server.use(passport.initialize());
