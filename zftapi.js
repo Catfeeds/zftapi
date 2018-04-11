@@ -32,6 +32,7 @@ Server.use(
         return next();
     },
 );
+Server.opts( /.*/, ( req, res ) => res.send( 204 ) );
 
 Server.use(sessions({
     // cookie name dictates the key name added to the request object
