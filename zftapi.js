@@ -28,7 +28,7 @@ Server.use(Restify.plugins.queryParser());
 Server.use(
     function crossOrigin(req, res, next) {
         res.header('Access-Control-Allow-Origin', 'https://saas.51dianxiaoge.com');
-        res.header('Access-Control-Allow-Headers', '*');
+        res.header('Access-Control-Allow-Headers', 'Access-Control-Allow-Origin, Access-Control-Allow-Headers, Origin, X-Requested-With, Content-Type, CORRELATION_ID');
         res.header('Access-Control-Allow-Credentials', 'true');
         return next();
     },
