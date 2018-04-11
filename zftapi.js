@@ -25,6 +25,13 @@ let Server = Restify.createServer();
 
 Server.use(Restify.plugins.bodyParser());
 Server.use(Restify.plugins.queryParser());
+Server.use(
+    function crossOrigin(req, res, next) {
+        res.header('Access-Control-Allow-Origin', 'https://saas.51dianxiaoge.com');
+        res.header('Access-Control-Allow-Headers', 'X-Requested-With');
+        return next();
+    },
+);
 
 Server.use(sessions({
     // cookie name dictates the key name added to the request object
