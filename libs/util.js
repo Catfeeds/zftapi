@@ -94,7 +94,7 @@ async function Pay(userId, amount, t) {
         const result = await MySQL.CashAccount.update(
             {
                 balance: MySQL.Literal(`balance+${amount}`),
-                locker: cashAccount.locker > MAX_LOCK ? 1: MySQL.Literal(`locker+1`)
+                locker: cashAccount.locker > MAX_LOCK ? 1: MySQL.Literal('locker+1')
             },
             _.assign({
                 where: {
@@ -136,27 +136,27 @@ exports.PayWithOwed = async(userId, amount, t)=>{
 exports.charge = async(fundChannel, amount, orderNo, subject, body, metaData)=>{
     async function pingppExtra(channel, userId) {
         switch (channel.tag){
-            case 'wx':
-            case 'wx_pub': {
-                try {
-                    const wxUser = await MySQL.WXUser.findOne({
-                        where: {
-                            userId: userId
-                        }
-                    });
-
-                    return {
-                        open_id: wxUser.openId
+        case 'wx':
+        case 'wx_pub': {
+            try {
+                const wxUser = await MySQL.WXUser.findOne({
+                    where: {
+                        userId: userId
                     }
-                }
-                catch(e){
-                    log.error(e, channel, userId);
-                }
+                });
 
+                return {
+                    open_id: wxUser.openId
+                };
             }
-                break;
-            default:
-                return {};
+            catch(e){
+                log.error(e, channel, userId);
+            }
+
+        }
+            break;
+        default:
+            return {};
         }
     }
 
@@ -171,7 +171,7 @@ exports.charge = async(fundChannel, amount, orderNo, subject, body, metaData)=>{
         amount: amount,
         order_no: orderNo,
         channel: fundChannel.tag,
-        client_ip: "127.0.0.1",
+        client_ip: '127.0.0.1',
         subject: subject,
         body: body,
         currency: 'cny',

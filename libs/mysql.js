@@ -66,28 +66,28 @@ exports.Exec = function (sql, replacements) {
     //判断QueryTypes
     var queryTypes;
     {
-        var blankIndex = sql.indexOf(" ");
+        var blankIndex = sql.indexOf(' ');
         var types = sql.substr(0, blankIndex);
         switch (types) {
-            case "SELECT":
-            case "select":
-                queryTypes = Sequelize.QueryTypes.SELECT;
-                break;
-            case "UPDATE":
-            case "update":
-                queryTypes = Sequelize.QueryTypes.UPDATE;
-                break;
-            case "DELETE":
-            case "delete":
-                queryTypes = Sequelize.QueryTypes.DELETE;
-                break;
-            case "INSERT":
-            case "insert":
-                queryTypes = Sequelize.QueryTypes.INSERT;
-                break;
-            default:
-                return null;
-                break;
+        case 'SELECT':
+        case 'select':
+            queryTypes = Sequelize.QueryTypes.SELECT;
+            break;
+        case 'UPDATE':
+        case 'update':
+            queryTypes = Sequelize.QueryTypes.UPDATE;
+            break;
+        case 'DELETE':
+        case 'delete':
+            queryTypes = Sequelize.QueryTypes.DELETE;
+            break;
+        case 'INSERT':
+        case 'insert':
+            queryTypes = Sequelize.QueryTypes.INSERT;
+            break;
+        default:
+            return null;
+            break;
         }
     }
 
@@ -119,27 +119,27 @@ exports.ExecT = function (sql, t) {
     //判断QueryTypes
     var queryTypes;
     {
-        var blankIndex = sql.indexOf(" ");
+        var blankIndex = sql.indexOf(' ');
         var types = sql.substr(0, blankIndex);
         switch (types) {
-            case "SELECT":
-            case "select":
-                queryTypes = Sequelize.QueryTypes.SELECT;
-                break;
-            case "UPDATE":
-            case "update":
-                queryTypes = Sequelize.QueryTypes.UPDATE;
-                break;
-            case "DELETE":
-            case "delete":
-                queryTypes = Sequelize.QueryTypes.DELETE;
-                break;
-            case "INSERT":
-            case "insert":
-                queryTypes = Sequelize.QueryTypes.INSERT;
-                break;
-            default:
-                return null;
+        case 'SELECT':
+        case 'select':
+            queryTypes = Sequelize.QueryTypes.SELECT;
+            break;
+        case 'UPDATE':
+        case 'update':
+            queryTypes = Sequelize.QueryTypes.UPDATE;
+            break;
+        case 'DELETE':
+        case 'delete':
+            queryTypes = Sequelize.QueryTypes.DELETE;
+            break;
+        case 'INSERT':
+        case 'insert':
+            queryTypes = Sequelize.QueryTypes.INSERT;
+            break;
+        default:
+            return null;
         }
     }
 
@@ -1830,7 +1830,7 @@ function SequelizeDefine() {
     });
 
     // exports.ServiceCharge.belongsTo(Projects, {as: 'serviceCharge', foreignKey: 'id'});
-    exports.FundChannels.hasMany(exports.ServiceCharge, {as: 'serviceCharge', foreignKey: 'fundChannelId'})
+    exports.FundChannels.hasMany(exports.ServiceCharge, {as: 'serviceCharge', foreignKey: 'fundChannelId'});
 
     exports.FundChannelFlows = sequelizeInstance.define('fundChannelFlows', {
         id: {
@@ -1982,7 +1982,7 @@ exports.GenerateSQLInArray = function (array) {
     var idsArray = [];
     _.each(array, function (id) {
         if (_.isString(id)) {
-            idsArray.push("'" + id + "'");
+            idsArray.push('\'' + id + '\'');
         }
         else {
             idsArray.push(id);
@@ -1998,10 +1998,10 @@ exports.GenerateSQL = function (sql, queryArray) {
     var sqlSentence = sql;
     if (queryArray.length) {
 
-        sqlSentence += " WHERE ";
+        sqlSentence += ' WHERE ';
         _.each(queryArray, function (query, index) {
             if (index) {
-                sqlSentence += " AND ";
+                sqlSentence += ' AND ';
             }
             sqlSentence += query;
         });
@@ -2021,19 +2021,19 @@ exports.Plain = function (data) {
 * 获取能耗表
 * */
 exports.EnergyConsumptionTable = function (time) {
-    return "ecdaily" + time.format('YYYYMM');
+    return 'ecdaily' + time.format('YYYYMM');
 };
 /*
 * 获取原始能耗
 * */
 exports.OriginEnergyConsumptionTable = function (time) {
-    return "origindaily" + time.format('YYYYMM');
+    return 'origindaily' + time.format('YYYYMM');
 };
 /*
  * 获取费用表
  * */
 exports.CostTable = function (time) {
-    return "costdaily" + time.format('YYYYMM');
+    return 'costdaily' + time.format('YYYYMM');
 };
 
 class Paging {

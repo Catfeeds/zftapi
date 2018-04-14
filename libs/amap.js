@@ -1,4 +1,3 @@
-const axios = require('axios');
 const _ = require('lodash');
 const got = require('got');
 const config = require('config');
@@ -26,6 +25,7 @@ exports.InputTips = (query)=>{
                 resolve(body.tips);
             } catch (error) {
                 log.error(error.response.body);
+                reject(error);
             }
         })();
     });

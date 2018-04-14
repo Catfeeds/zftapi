@@ -25,5 +25,5 @@ if(files){
         catch(e){
             log.error('loader run error', loaderPath, e);
         }
-    })
+    });
 }

@@ -55,7 +55,7 @@ class OneOf{
 
 class Validator{
     constructor(){
-        this.rule = {}
+        this.rule = {};
     }
 
     /*

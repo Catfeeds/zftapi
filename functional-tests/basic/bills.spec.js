@@ -29,5 +29,4 @@ describe('bill api', function() {
                 bills[0].contractId.should.be.equal(contract.result.id);
             });
     });
-
 });

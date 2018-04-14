@@ -39,21 +39,21 @@ const HouseStatus = {
     DELETED: 'DELETED'
 };
 const ContractStatus = {
-	ONGOING: 'ONGOING',
-	TERMINATED: 'TERMINATED'
+    ONGOING: 'ONGOING',
+    TERMINATED: 'TERMINATED'
 };
 
 const CredentialLevels = {
     MANAGER: 'MANAGER',
     ADMIN: 'ADMIN',
-	ACCOUNTANT: 'ACCOUNTANT',
-	USER: 'USER',
+    ACCOUNTANT: 'ACCOUNTANT',
+    USER: 'USER',
     UNKNOWN: 'UNKNOWN'
 };
 const OperationStatus = {
     IDLE: 'IDLE',
     INUSE: 'INUSE',
-	PAUSED: 'PAUSED',
+    PAUSED: 'PAUSED',
     DELETED: 'DELETED'
 };
 const OperationStatusLiteral = {
@@ -64,7 +64,7 @@ const OperationStatusLiteral = {
 };
 const OperationReverseMapping = (status)=>{
     return _.find(OperationStatus, v=>{
-        return v === status
+        return v === status;
     });
 };
 
@@ -99,7 +99,7 @@ const PriceType = {
 };
 
 const FundChannelCategory = {
-    "ALL": 'all',
+    'ALL': 'all',
     'ONLINE': 'online',
     'OFFLINE': 'offline'
 };
@@ -119,8 +119,8 @@ const DriverCommand = {
 };
 
 const ServiceChargeType = {
-    "TOPUP": 'TOPUP',
-    "BILL": "BILL"
+    'TOPUP': 'TOPUP',
+    'BILL': 'BILL'
 };
 
 const FundChannelFlowCategory = {
@@ -154,21 +154,21 @@ const IsPriceType = (type)=>{
 };
 
 module.exports = {
-	HouseFormat,
-	HouseFormatLiteral,
-	HouseStatus,
-	OperationStatus,
-	OperationStatusLiteral,
-	Orientation,
-	OrientationLiteral,
-	RoomType,
-	PriceType,
-	IsHouseFormat,
-	IsRoomType,
-	IsOrientation,
-	IsPriceType,
-	ContractStatus,
-	CredentialLevels,
+    HouseFormat,
+    HouseFormatLiteral,
+    HouseStatus,
+    OperationStatus,
+    OperationStatusLiteral,
+    Orientation,
+    OrientationLiteral,
+    RoomType,
+    PriceType,
+    IsHouseFormat,
+    IsRoomType,
+    IsOrientation,
+    IsPriceType,
+    ContractStatus,
+    CredentialLevels,
     FundFlow,
     FundChannelCategory,
     FundChannelStatus,
