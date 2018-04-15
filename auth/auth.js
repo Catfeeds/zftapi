@@ -14,7 +14,7 @@ const authenticate = (req, res, next) => {
             return res.json(ErrorCode.ack(ErrorCode.AUTHFAILED,
                 {error: 'Incorrect username or password.'}));
         }
-        console.info(`${JSON.stringify(user)} is authenticated.`);
+        log.info(`${JSON.stringify(user)} is authenticated.`);
         req.logIn(fp.defaults(defaultExpireTime(req))(user), function(err) {
             if (err) {
                 req.session.destroy();

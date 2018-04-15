@@ -2,7 +2,7 @@ const appRootPath = require('app-root-path');
 const config = require('config');
 const path = require('path');
 const fs = require('fs');
-const _ = require('lodash');
+const fp = require('lodash/fp');
 
 exports = module.exports = function(appName, logPath)
 {
@@ -33,12 +33,7 @@ exports = module.exports = function(appName, logPath)
                 data.pid = process.pid;
                 data.ipAddress = ip.address();
                 data.appName = appName;
-
-                _.each(data.args, function (v, i) {
-                    if(_.isObject(v)){
-                        data.args[i] = JSON.stringify(v);
-                    }
-                });
+                data.args = fp.map(v => fp.isObject(v) ? JSON.stringify(v) : v)(data.args);
             }
         });
     }
