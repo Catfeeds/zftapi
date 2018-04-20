@@ -1,32 +1,15 @@
 const _ = require('lodash');
+const fp = require('lodash/fp');
 
-exports.ParameterCheck = function(parameter, checklist)
-{
-    if(!parameter || !checklist){
-        log.error('parameter or checklist null');
+exports.ParameterCheck = function(parameters, checklist) {
+    if (!parameters || !checklist) {
+        log.error('parameters or checklist null');
         return false;
     }
 
-    for(let i in checklist){
-        let checkItem = checklist[i];
-        if(checkItem.indexOf('|')){
-            let checkItemList = checkItem.split('|');
-            let isMatch = _.find(checkItemList, function (checkItem) {
-                return parameter[checkItem] != null && parameter[checkItem] != undefined;
-            });
-            if(!isMatch){
-                return false;
-            }
-        }
-        else {
-            if (parameter[checkItem] == null || parameter[checkItem] == undefined) {
-                log.error(parameter, 'missed', checkItem);
-                return false;
-            }
-        }
-    }
-
-    return true;
+    return fp.every(checkItem => checkItem.indexOf('|') ?
+        fp.find(a => fp.has(a)(parameters))(checkItem.split('|'))
+        : fp.has(checkItem)(parameters))(checklist);
 };
 
 exports.TopDistrict = (districtCode)=>{

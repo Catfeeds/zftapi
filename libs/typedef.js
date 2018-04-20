@@ -1,8 +1,6 @@
 /*
 * 全局常量定义
 * */
-const _ = require('lodash');
-const validator = require('validator');
 
 module.exports = exports = function(){};
 
@@ -61,11 +59,6 @@ const OperationStatusLiteral = {
     [OperationStatus.INUSE]: '已租',
     [OperationStatus.PAUSED]: '暂停',
     [OperationStatus.DELETED]: '已删除',
-};
-const OperationReverseMapping = (status)=>{
-    return _.find(OperationStatus, v=>{
-        return v === status;
-    });
 };
 
 const FundFlow = {
@@ -140,17 +133,8 @@ const WithDrawStatus = {
 
 const PlatformId = 1;
 
-const IsHouseFormat = (status)=>{
-    return HouseFormat[status];
-};
-const IsRoomType = (index)=>{
-    return RoomType.length > index && index >= 0;
-};
 const IsOrientation = (ori)=>{
     return Orientation[ori];
-};
-const IsPriceType = (type)=>{
-    return PriceType[type];
 };
 
 module.exports = {
@@ -163,10 +147,7 @@ module.exports = {
     OrientationLiteral,
     RoomType,
     PriceType,
-    IsHouseFormat,
-    IsRoomType,
     IsOrientation,
-    IsPriceType,
     ContractStatus,
     CredentialLevels,
     FundFlow,
