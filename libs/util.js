@@ -26,16 +26,14 @@ exports.TopDistrict = (districtCode)=>{
     return exports.TopDistrict(prefixDistrict);
 };
 
-exports.ParentDivisionId = (divisionId)=>{
-    return exports.ParentDivision(divisionId)+'00';
+exports.ParentDivisionId = (divisionId) => {
+    return exports.ParentDivision(divisionId) + '00';
 };
-exports.ParentDivision = (divisionId)=>{
-    return divisionId.substr(0,4);
+exports.ParentDivision = (divisionId) => {
+    return divisionId.substr(0, 4);
 };
-exports.IsParentDivision = (divisionId)=>{
-    const parentDivisionId = exports.ParentDivisionId(divisionId);
-    return parentDivisionId === divisionId;
-};
+exports.IsParentDivision = (divisionId) =>
+    exports.ParentDivisionId(divisionId) === divisionId;
 
 
 exports.PagingInfo = function(pageindex, pagesize, useDefault)
