@@ -2,6 +2,7 @@
 const fp = require('lodash/fp');
 const config = require('config');
 const moment = require('moment');
+const {assignNewId} = require('./common');
 
 exports.iOSKey = '24833443';
 exports.androidKey = '24832995';
@@ -117,13 +118,21 @@ exports.commonNotification = sequelizeModel => notification => {
                 ],
             }],
     }).then(user => user ? user.toJSON() : {}).then(user => {
+        const notificationInstance = assignNewId({
+            title: notification.titleOf(user),
+            content: notification.contentOf(user),
+            extras: notification.extrasOf(user),
+            projectId: user.projectId,
+            userId: user.id,
+        });
+
+        return sequelizeModel.UserNotifications.create(notificationInstance)
+        .then(() => notificationInstance);
+    }).then(user => {
         const platform = fp.get('auth.binding.platform')(user);
         const targetId = fp.get('auth.binding.deviceId')(user);
 
         if (!platform || !targetId) return;
-        const title = notification.titleOf(user);
-        const content = notification.contentOf(user);
-        const extras = notification.extrasOf(user);
 
         exports.notificationOf(platform)({
             targetId,
@@ -131,8 +140,7 @@ exports.commonNotification = sequelizeModel => notification => {
             content,
             extras,
         });
-    },
-    );
+    });
 
 };
 

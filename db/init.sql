@@ -132,6 +132,17 @@ create table if not exists users
     primary key (`id`)
 ) engine=innodb default charset=utf8;
 
+create table if not exists usernotifications
+(
+	`id` bigint(20) UNSIGNED,
+	projectId bigint(20) UNSIGNED NOT NULL,
+	userId bigint(20) UNSIGNED NOT NULL,
+	title varchar(50) not null,
+	`content` varchar(255) not null,
+	extras varchar(50) not null,
+    primary key (`id`)
+) engine=innodb default charset=utf8;
+
 create table if not exists bindings
 (
 	id bigint(20) UNSIGNED NOT NULL,

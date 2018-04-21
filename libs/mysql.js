@@ -1174,6 +1174,34 @@ function SequelizeDefine() {
         freezeTableName: true
     });
     exports.PrePaidFlows = prePaidFlows;
+    exports.UserNotifications = sequelizeInstance.define('usernotifications', {
+        id: {
+            type: Sequelize.BIGINT.UNSIGNED,
+            primaryKey: true
+        },
+        projectId: {
+            type: Sequelize.BIGINT.UNSIGNED,  //项目ID
+            allowNull: false
+        },
+        userId: {
+            type: Sequelize.BIGINT.UNSIGNED,  //用户ID
+            allowNull: false
+        },
+        title: {
+            type: Sequelize.STRING(50),  //消息标题
+        },
+        content: {
+            type: Sequelize.STRING(255),  //消息内容
+        },
+        extras: {
+            type: Sequelize.STRING(50),  //补充信息
+            allowNull: false
+        }
+    }, {
+        timestamps: true,
+        paranoid: true,
+        freezeTableName: true
+    });
 
     exports.Flows = sequelizeInstance.define('flows', {
         id: {
