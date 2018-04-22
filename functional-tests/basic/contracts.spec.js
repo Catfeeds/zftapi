@@ -29,7 +29,7 @@ describe('contract api', function() {
                     })),
             ).
             then(({expectedId, contract, room}) => {
-                contract.id.should.be.equal(expectedId);
+                contract.id.should.be.eql(expectedId);
                 contract.roomId.should.be.equal(room.id);
             });
     });

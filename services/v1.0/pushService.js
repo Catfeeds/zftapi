@@ -3,7 +3,7 @@ const fp = require('lodash/fp');
 const config = require('config');
 const moment = require('moment');
 //TODO: Why deconstructing imports is not working here?
-const {assignNewId} = require('./common');
+// const {assignNewId} = require('./common');
 const common = require('./common');
 
 exports.iOSKey = '24833443';
