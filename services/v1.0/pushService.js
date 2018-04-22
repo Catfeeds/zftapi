@@ -2,7 +2,9 @@
 const fp = require('lodash/fp');
 const config = require('config');
 const moment = require('moment');
+//TODO: Why deconstructing imports is not working here?
 const {assignNewId} = require('./common');
+const common = require('./common');
 
 exports.iOSKey = '24833443';
 exports.androidKey = '24832995';
@@ -114,15 +116,15 @@ exports.commonNotification = sequelizeModel => notification => {
         include: [
             {
                 model: sequelizeModel.Auth, required: true, include: [
-                    {model: sequelizeModel.Bindings, required: true},
+                    {model: sequelizeModel.Bindings, required: false},
                 ],
             }],
     }).then(user => user ? user.toJSON() : {}).then(user => {
-        const notificationInstance = assignNewId({
+        const notificationInstance = common.assignNewId({
             title: notification.titleOf(user),
             content: notification.contentOf(user),
             extras: notification.extrasOf(user),
-            projectId: user.projectId,
+            projectId: user.auth.projectId,
             userId: user.id,
         });
 

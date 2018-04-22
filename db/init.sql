@@ -139,7 +139,10 @@ create table if not exists usernotifications
 	userId bigint(20) UNSIGNED NOT NULL,
 	title varchar(50) not null,
 	`content` varchar(255) not null,
-	extras varchar(50) not null,
+	extras text,
+	`createdAt` DATETIME NOT NULL,
+	`updatedAt` DATETIME NOT NULL,
+	`deletedAt` DATETIME,
     primary key (`id`)
 ) engine=innodb default charset=utf8;
 

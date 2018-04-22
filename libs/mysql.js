@@ -1194,8 +1194,7 @@ function SequelizeDefine() {
             type: Sequelize.STRING(255),  //消息内容
         },
         extras: {
-            type: Sequelize.STRING(50),  //补充信息
-            allowNull: false
+            type: Sequelize.TEXT,  //补充信息
         }
     }, {
         timestamps: true,
