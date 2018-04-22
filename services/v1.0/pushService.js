@@ -127,7 +127,7 @@ exports.commonNotification = sequelizeModel => notification => {
         });
 
         return sequelizeModel.UserNotifications.create(notificationInstance)
-        .then(() => notificationInstance);
+            .then(() => notificationInstance);
     }).then(user => {
         const platform = fp.get('auth.binding.platform')(user);
         const targetId = fp.get('auth.binding.deviceId')(user);

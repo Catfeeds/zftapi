@@ -12,7 +12,6 @@ services:
           - "33061:3306"
         volumes:
           - "./db:/db"
-          - "./db/data:/var/lib/mysql"
 
     redis:
         image: registry.docker-cn.com/library/redis:4
