@@ -9,5 +9,5 @@ if [ $# -lt 1 ]; then
   exit 1
 fi
 
-docker build . -t $REPO:$1 && \
+docker build --no-cache . -t $REPO:$1 && \
 docker push $REPO:$1
