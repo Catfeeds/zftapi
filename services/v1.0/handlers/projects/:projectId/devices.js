@@ -270,6 +270,7 @@ module.exports = {
 
                     return {
                         deviceId: device.deviceId
+                        , memo: device.memo
                         , status: getDeviceStatus(device, nowTime)
                         , scale: fp.getOr(0)('channels[0].scale')(device)
                         , updatedAt: updatedAt.unix()
