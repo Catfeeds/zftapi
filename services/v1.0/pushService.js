@@ -129,18 +129,18 @@ exports.commonNotification = sequelizeModel => notification => {
         });
 
         return sequelizeModel.UserNotifications.create(notificationInstance)
-            .then(() => notificationInstance);
-    }).then(user => {
-        const platform = fp.get('auth.binding.platform')(user);
-        const targetId = fp.get('auth.binding.deviceId')(user);
+            .then(() => fp.defaults(notificationInstance)({binding: fp.get('auth.binding')(user)}));
+    }).then(notification => {
+        const platform = fp.get('binding.platform')(notification);
+        const targetId = fp.get('binding.deviceId')(notification);
 
         if (!platform || !targetId) return;
 
         exports.notificationOf(platform)({
             targetId,
-            title,
-            content,
-            extras,
+            title: notification.title,
+            content: notification.content,
+            extras: notification.extras
         });
     });
 
@@ -174,6 +174,6 @@ exports.notificationOf = platform => body => {
 
 exports.commonExtra = destination => user => JSON.stringify({
     userId: user.id,
-    url: 'http://testzft.cloudenergy.me/',
+    url: 'https://api.51dianxiaoge.com/v1.0/',
     destination,
 });
