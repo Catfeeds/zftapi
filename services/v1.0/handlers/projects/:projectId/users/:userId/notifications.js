@@ -33,9 +33,10 @@ module.exports = {
                 projectId,
                 userId,
             },
-        }).then(translate(pagingInfo)).then(data => res.send(data));
-        // .
-        //     catch(err => res.send(500,
-        //         ErrorCode.ack(ErrorCode.DATABASEEXEC, {error: err.message})));
+        }).
+            then(translate(pagingInfo)).
+            then(data => res.send(data)).
+            catch(err => res.send(500,
+                ErrorCode.ack(ErrorCode.DATABASEEXEC, {error: err.message})));
     },
 };
