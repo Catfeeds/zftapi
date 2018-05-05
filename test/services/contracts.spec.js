@@ -273,7 +273,11 @@ describe('Contracts', function() {
             };
             const sequelizeCountSpy = stub().resolves([]);
             const Users = {id: 'Users', findOrCreate: async () => [{id: 1999}]};
-            const Auth = {id: 'Auth', findOrCreate: async () => [{id: 2999}]};
+            const Auth = {
+                id: 'Auth',
+                findOrCreate: async () => [{id: 2999}],
+                count: async () => 0,
+            };
             const CashAccount = {
                 findOrCreate: async () => ([
                     {
@@ -682,7 +686,11 @@ describe('Contracts', function() {
             };
 
             const Users = {id: 100, findOrCreate: async () => [{id: 1999}]};
-            const Auth = {id: 'Auth', findOrCreate: async () => [{id: 2999}]};
+            const Auth = {
+                id: 'Auth',
+                findOrCreate: async () => [{id: 2999}],
+                count: async () => 0,
+            };
             const CashAccount = {
                 findOrCreate: async () => ([
                     {
@@ -737,7 +745,11 @@ describe('Contracts', function() {
             };
 
             const Users = {id: 100, findOrCreate: async () => [{id: 1999}]};
-            const Auth = {id: 'Auth', findOrCreate: async () => [{id: 2999}]};
+            const Auth = {
+                id: 'Auth',
+                findOrCreate: async () => [{id: 2999}],
+                count: async () => 0,
+            };
             const CashAccount = {
                 findOrCreate: async () => ([
                     {
@@ -793,7 +805,11 @@ describe('Contracts', function() {
             };
 
             const Users = {id: 100, findOrCreate: async () => [{id: 1999}]};
-            const Auth = {id: 'Auth', findOrCreate: async () => [{id: 2999}]};
+            const Auth = {
+                id: 'Auth',
+                findOrCreate: async () => [{id: 2999}],
+                count: async () => 0,
+            };
             const CashAccount = {
                 findOrCreate: async () => ([
                     {
@@ -854,7 +870,11 @@ describe('Contracts', function() {
             };
 
             const Users = {id: 100, findOrCreate: async () => [{id: 1999}]};
-            const Auth = {id: 'Auth', findOrCreate: async () => [{id: 2999}]};
+            const Auth = {
+                id: 'Auth',
+                findOrCreate: async () => [{id: 2999}],
+                count: async () => 0,
+            };
             const CashAccount = {
                 findOrCreate: async () => ([
                     {
@@ -887,6 +907,57 @@ describe('Contracts', function() {
                 resSpy.getCall(0).args[0].should.be.eql(500);
                 resSpy.getCall(0).args[1].result.should.be.eql(
                     {error: `Invalid expense amount of configId ${req.body.expenses[0].configId}, it must be greater than 0.`});
+            });
+        });
+    it('should check username duplication before while creating contract',
+        async () => {
+            const req = {
+                params: {
+                    projectId: 100,
+                },
+                body: {
+                    user: {accountName: 'duplicated', mobile: ''},
+                },
+            };
+
+            const Users = {id: 100, findOrCreate: async () => [{id: 1999}]};
+            const Auth = {
+                id: 'Auth',
+                findOrCreate: async () => [{id: 2999}],
+                count: async () => 1,
+            };
+            const CashAccount = {
+                findOrCreate: async () => ([
+                    {
+                        id: 321,
+                        userId: 1999,
+                    }]),
+            };
+            const Rooms = {id: 'Rooms'};
+            const Houses = {id: 'Houses'};
+            const Building = {id: 'Building'};
+            const GeoLocation = {id: 'GeoLocation'};
+            const HouseDevices = {id: 'HouseDevices'};
+            global.MySQL = {
+                Contracts: {},
+                CashAccount,
+                Auth,
+                Users,
+                Rooms,
+                Houses,
+                Building,
+                GeoLocation,
+                HouseDevices,
+                Sequelize: {
+                    transaction: async func => func({}),
+                },
+            };
+            const resSpy = spy();
+            await post(req, {send: resSpy}).then(() => {
+                resSpy.should.have.been.called;
+                resSpy.getCall(0).args[0].should.be.eql(500);
+                resSpy.getCall(0).args[1].result.should.be.eql(
+                    {error: `username ${req.body.user.accountName} already exists`});
             });
         });
 });

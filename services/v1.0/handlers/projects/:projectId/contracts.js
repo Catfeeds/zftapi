@@ -157,6 +157,21 @@ module.exports = {
                 BillFlows.create(assignNewId(billflow), {transaction: t}))(
                 billItems(contract, dbBill))));
 
+        const validateUserAuth = async (user) => Auth.count({
+            where: {
+                username: user.username,
+                id: {
+                    $ne: user.id
+                }
+            }
+        }).then(result => {
+            console.log(`there are ${result} username ${user.username}`);
+            if (result > 0) {
+                throw new Error(`username ${user.username} already exists`);
+            }
+            return user;
+        });
+
         const checkRoomAvailability = async (contract, t) => {
             const roomId = contract.roomId;
             return Contracts.count({
@@ -192,6 +207,7 @@ module.exports = {
 
         return sequelize.transaction(t =>
             extractAuth(req).
+                then(validateUserAuth).
                 then(auth => Auth.findOrCreate({
                     where: {id: auth.id, username: auth.username},
                     defaults: auth,
