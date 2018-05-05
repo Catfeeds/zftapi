@@ -17,6 +17,9 @@ const {
     jsonProcess, houseConnection, pickAuthAttributes,
 } = require(
     '../../../common');
+const {
+    UsernameDuplicateError, RoomUnavailableError
+} = require('../../../../../libs/exceptions');
 
 const omitFields = fp.omit(
     ['createdAt', 'updatedAt', 'user.authId', 'user.auth']);
@@ -161,13 +164,14 @@ module.exports = {
             where: {
                 username: user.username,
                 id: {
-                    $ne: user.id
-                }
-            }
+                    $ne: user.id,
+                },
+            },
         }).then(result => {
             console.log(`there are ${result} username ${user.username}`);
             if (result > 0) {
-                throw new Error(`username ${user.username} already exists`);
+                throw new UsernameDuplicateError(
+                    `username ${user.username} already exists`);
             }
             return user;
         });
@@ -199,7 +203,8 @@ module.exports = {
             }).then(result => {
                 console.log(`rooms under contract ${contract.id}`, result);
                 if (result > 0) {
-                    throw new Error(`room ${contract.roomId} is unavailable`);
+                    throw new RoomUnavailableError(
+                        `room ${contract.roomId} is unavailable`);
                 }
                 return contract;
             });
@@ -241,10 +246,23 @@ module.exports = {
                         generateBills(contract))).then(() => contract),
                 ),
         ).
-            then(contract => res.send(201, ErrorCode.ack(ErrorCode.OK, {id: contract.id}))).
-            catch(err => res.send(500,
-                ErrorCode.ack(ErrorCode.DATABASEEXEC, {error: err.message})));
-
+            then(contract => res.send(201,
+                ErrorCode.ack(ErrorCode.OK, {id: contract.id}))).
+            catch(err => {
+                if (err instanceof UsernameDuplicateError) {
+                    res.send(500,
+                        ErrorCode.ack(ErrorCode.USEREXISTS,
+                            {error: err.message}));
+                } else if (err instanceof RoomUnavailableError) {
+                    res.send(500,
+                        ErrorCode.ack(ErrorCode.ROOMINCONTRACT,
+                            {error: err.message}));
+                } else {
+                    res.send(500,
+                        ErrorCode.ack(ErrorCode.DATABASEEXEC,
+                            {error: err.message}));
+                }
+            });
     },
     get: async function getContracts(req, res) {
         const Contracts = MySQL.Contracts;
@@ -256,7 +274,7 @@ module.exports = {
             'params.status')(req).toUpperCase();
         const {
             manager, houseFormat, locationId, index: pageIndex, size: pageSize, order = 'DESC',
-            orderField = 'default', balance = 'all', q
+            orderField = 'default', balance = 'all', q,
         } = req.query;
         const leasingStatus = fp.getOr('')('query.leasingStatus')(req).
             toLowerCase();
@@ -273,8 +291,10 @@ module.exports = {
                             model: CashAccount,
                             as: 'cashAccount',
                             attributes: ['balance'],
-                        }, {
-                            model: Auth, attributes: ['id', 'username', 'mobile'],
+                        },
+                        {
+                            model: Auth,
+                            attributes: ['id', 'username', 'mobile'],
                         }],
                 },
                 houseConnection(MySQL)(houseFormat),
