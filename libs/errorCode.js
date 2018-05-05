@@ -63,6 +63,7 @@ var ErrorCodeList = {
     'HOUSENOTEXISTS':       21000007,   //房屋不存在
     'HOUSECODEEXISTS':      21000008,   //房屋编码已存在
     'ROOMINCONTRACT':       21000009,   //房间已出租
+    'CONTRACTINVALID':        21000010,   //合约校验错误
 
     'ORDERTYPENOTALLOWED':  30000001,  //业务类型不允许
     'ORDERNOTEXISTS':       30000002,  //账单不存在
@@ -153,6 +154,7 @@ var ErrorMessageList = {
     'HOUSENOTEXISTS': '房屋不存在',
     'HOUSECODEEXISTS': '房屋编码已存在',
     'ROOMINCONTRACT': '房间已出租',
+    'CONTRACTINVALID': '合约校验错误',
 
     'DEVICENOTEXISTS': '仪表未找到',
     'SERIALCONFNOTEXISTS': '仪表对应的串口参数未配置',

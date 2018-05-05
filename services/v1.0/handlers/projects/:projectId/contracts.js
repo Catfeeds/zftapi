@@ -18,7 +18,7 @@ const {
 } = require(
     '../../../common');
 const {
-    UsernameDuplicateError, RoomUnavailableError
+    UsernameDuplicateError, RoomUnavailableError, ContractError,
 } = require('../../../../../libs/exceptions');
 
 const omitFields = fp.omit(
@@ -90,24 +90,24 @@ const generateQCondition = q => {
 
 const validateContract = async (contract) => {
     if (contract.from >= contract.to) {
-        throw new Error(
+        throw new ContractError(
             `Invalid contract time period : from ${contract.from} to ${contract.to}.`);
     }
     const standardRent = fp.getOr(0)('strategy.freq.rent')(contract);
     if (standardRent === 0) {
-        throw new Error(
+        throw new ContractError(
             `Invalid rent amount: ${standardRent}, it must be greater than 0.`);
     }
 
     const bond = fp.getOr(0)('strategy.bond')(contract);
     if (bond === 0) {
-        throw new Error(
+        throw new ContractError(
             `Invalid bond amount: ${bond}, it must be greater than 0.`);
     }
     const zeroExpense = fp.filter(expense => expense.rent === 0)(
         fp.getOr([])('expenses')(contract));
     if (!fp.isEmpty(zeroExpense)) {
-        throw new Error(
+        throw new ContractError(
             `Invalid expense amount of configId ${fp.map('configId')(
                 zeroExpense)}, it must be greater than 0.`);
     }
@@ -248,21 +248,9 @@ module.exports = {
         ).
             then(contract => res.send(201,
                 ErrorCode.ack(ErrorCode.OK, {id: contract.id}))).
-            catch(err => {
-                if (err instanceof UsernameDuplicateError) {
-                    res.send(500,
-                        ErrorCode.ack(ErrorCode.USEREXISTS,
-                            {error: err.message}));
-                } else if (err instanceof RoomUnavailableError) {
-                    res.send(500,
-                        ErrorCode.ack(ErrorCode.ROOMINCONTRACT,
-                            {error: err.message}));
-                } else {
-                    res.send(500,
-                        ErrorCode.ack(ErrorCode.DATABASEEXEC,
-                            {error: err.message}));
-                }
-            });
+            catch(err => res.send(500,
+                ErrorCode.ack(err.errorCode || ErrorCode.DATABASEEXEC,
+                    {error: err.message})));
     },
     get: async function getContracts(req, res) {
         const Contracts = MySQL.Contracts;
