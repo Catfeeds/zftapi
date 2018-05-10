@@ -383,12 +383,30 @@ create table if not exists `devicesChannels`
 
 create table if not exists `deviceData`
 (
-	`id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
-	`channelId` varchar(32) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL,
-	`reading` int(10) UNSIGNED NOT NULL,
-	`time` bigint(20) UNSIGNED NOT NULL,
+	id bigint unsigned auto_increment
+		primary key,
+	deviceId varchar(32) not null,
+	channelId varchar(3) not null,
+	reading bigint unsigned default '0' not null,
+	rateReading bigint default '0' not null,
+	time bigint unsigned not null,
 	PRIMARY KEY (`id`, `channelId`) USING BTREE,
-	INDEX `CHANNEL`(`channelId`) USING BTREE
+	INDEX `CHANNEL`(`channelId`) USING BTREE,
+	INDEX `DEVICEID`(`deviceId`) USING BTREE,
+) ENGINE = InnoDB;
+
+create table if not exists `deviceHeartbeats`
+(
+	`id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+	`deviceId` varchar(32) NOT NULL,
+	`total` DECIMAL(10,3) NOT NULL,
+	`current` DECIMAL(10,3) NOT NULL,
+	`voltage` DECIMAL(10,3) NOT NULL,
+	`createdAt`  datetime NOT NULL ,
+	`updatedAt`  datetime NOT NULL ,
+	`deletedAt`  datetime,
+	PRIMARY KEY (`id`),
+	INDEX `deviceId`(`deviceId`) USING BTREE
 ) ENGINE = InnoDB;
 
 create table if not exists `eventQueue`

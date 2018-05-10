@@ -1566,6 +1566,7 @@ function SequelizeDefine() {
 
     Houses.hasMany(HouseDevices, {as: 'devices', foreignKey: 'sourceId'});
     Rooms.hasMany(HouseDevices, {as: 'devices', foreignKey: 'sourceId'});
+    Rooms.hasMany(HouseDevicePrice, {as: 'prices', foreignKey: 'houseId', sourceKey: 'houseId'});
     HouseDevices.hasMany(HouseDevicePrice, {as: 'devicePrice', foreignKey: 'houseId'});
     Houses.hasMany(HouseDevicePrice, {as: 'prices', foreignKey: 'houseId'});
 
@@ -1740,6 +1741,34 @@ function SequelizeDefine() {
     });
     exports.DeviceData = DevicesData;
 
+    exports.DeviceHeartbeats = sequelizeInstance.define('deviceHeartbeats', {
+        id:{
+            type: Sequelize.BIGINT.UNSIGNED,
+            autoIncrement:true,
+            primaryKey: true
+        },
+        deviceId:{
+            type: Sequelize.STRING(32),
+            allowNull: false,
+        },
+        total: {
+            type: Sequelize.DECIMAL(10,3),
+            allowNull: false
+        },
+        current: {
+            type: Sequelize.DECIMAL(10,3),
+            allowNull: false
+        },
+        voltage: {
+            type: Sequelize.DECIMAL(10,3),
+            allowNull: false
+        }
+    },{
+        timestamps: true,
+        freezeTableName: true
+    });
+
+    exports.HouseDevices.hasMany(exports.DeviceHeartbeats, {foreignKey: 'deviceId', sourceKey: 'deviceId'});
     exports.EventQueue = sequelizeInstance.define('eventqueue',
         {
             id: {
