@@ -116,6 +116,7 @@ module.exports = {
                     return fp.extendAll([
                         room,
                         {building: plain.building},
+                        {prices: plain.prices},
                         {roomNumber: plain.roomNumber}]);
                 })(plain.rooms);
 
@@ -283,19 +284,6 @@ const getIncludeRoom = SequelizeModel => (
                         },
                     },
                 ],
-            },
-            {
-                model: SequelizeModel.HouseDevicePrice,
-                as: 'prices',
-                where: {
-                    category: 'CLIENT',
-                },
-                required: false,
-                attributes: [
-                    'houseId',
-                    'category',
-                    'type',
-                    'price'],
             },
             {
                 model: SequelizeModel.Contracts,

@@ -24,15 +24,15 @@ describe('Reading meters', function() {
                     location: 'location',
                 },
                 roomNumber: 'roomNumber',
+                prices: [
+                    {
+                        price: 1000,
+                    },
+                ],
                 rooms: [
                     {
                         id: 'roomId',
                         name: 'roomName',
-                        prices: [
-                            {
-                                price: 1000,
-                            },
-                        ],
                         contracts: [{
                             userId: 222,
                             user: {
@@ -117,6 +117,11 @@ describe('Reading meters', function() {
                     location: 'location',
                 },
                 roomNumber: 'roomNumber',
+                prices: [
+                    {
+                        price: 2000,
+                    },
+                ],
                 devices: [
                     {
                         deviceId: 234,
@@ -128,11 +133,6 @@ describe('Reading meters', function() {
                                 total: 2000,
                             },
                         ],
-                    },
-                ],
-                prices: [
-                    {
-                        price: 2000,
                     },
                 ],
             }),
