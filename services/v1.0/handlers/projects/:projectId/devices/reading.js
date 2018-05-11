@@ -21,7 +21,7 @@ module.exports = {
         } = query;
 
         if (!Util.ParameterCheck(query,
-            ['houseFormat', 'startDate', 'endDate'])) {
+                ['houseFormat', 'startDate', 'endDate'])) {
             return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED,
                 {error: 'missing houseFormat, startDate or endDate'}));
         }
@@ -56,100 +56,100 @@ module.exports = {
             } : {},
         ]);
 
-        // try {
-        const houseInclude = fp.compact([
-            houseId ? null : getIncludeRoom(MySQL)(roomId, timeFrom, timeTo)
-            , {
-                model: MySQL.Building, as: 'building'
-                , include: [
-                    {
-                        model: MySQL.GeoLocation,
-                        as: 'location',
-                        required: true,
-                    }]
-                , required: true
-                , attributes: ['group', 'building', 'unit'],
-            }
-            , {
-                model: MySQL.HouseDevices,
-                as: 'devices',
-                required: false,
-                where: {
-                    endDate: 0,
-                    public: true,
-                },
-                include: [
-                    {
-                        model: MySQL.DeviceHeartbeats,
-                        required: false,
-                        attributes: ['total'],
-                        where: {
-                            createdAt: {
-                                $gte: formatMysqlDateTime(timeFrom),
-                                $lte: formatMysqlDateTime(timeTo),
+        try {
+            const houseInclude = fp.compact([
+                houseId ? null : getIncludeRoom(MySQL)(roomId, timeFrom, timeTo)
+                , {
+                    model: MySQL.Building, as: 'building'
+                    , include: [
+                        {
+                            model: MySQL.GeoLocation,
+                            as: 'location',
+                            required: true,
+                        }]
+                    , required: true
+                    , attributes: ['group', 'building', 'unit'],
+                }
+                , {
+                    model: MySQL.HouseDevices,
+                    as: 'devices',
+                    required: false,
+                    where: {
+                        endDate: 0,
+                        public: true,
+                    },
+                    include: [
+                        {
+                            model: MySQL.DeviceHeartbeats,
+                            required: false,
+                            attributes: ['total'],
+                            where: {
+                                createdAt: {
+                                    $gte: formatMysqlDateTime(timeFrom),
+                                    $lte: formatMysqlDateTime(timeTo),
+                                },
                             },
                         },
-                    },
-                ],
-            },
-            {
-                model: MySQL.HouseDevicePrice,
-                as: 'prices',
-                where: {
-                    category: 'CLIENT',
+                    ],
                 },
-                required: false,
-                attributes: ['houseId', 'category', 'type', 'price'],
-            },
-        ]);
-        const houses = await MySQL.Houses.findAll(
-            {
-                where,
-                include: houseInclude,
-            },
-        );
+                {
+                    model: MySQL.HouseDevicePrice,
+                    as: 'prices',
+                    where: {
+                        category: 'CLIENT',
+                    },
+                    required: false,
+                    attributes: ['houseId', 'category', 'type', 'price'],
+                },
+            ]);
+            const houses = await MySQL.Houses.findAll(
+                {
+                    where,
+                    include: houseInclude,
+                },
+            );
 
-        const houseAndRooms = fp.flatten(fp.map(house => {
-            const plain = house.toJSON();
+            const houseAndRooms = fp.flatten(fp.map(house => {
+                const plain = house.toJSON();
 
-            const rooms = fp.map(room => {
-                return fp.extendAll([
-                    room,
-                    {building: plain.building},
-                    {roomNumber: plain.roomNumber}]);
-            })(plain.rooms);
+                const rooms = fp.map(room => {
+                    return fp.extendAll([
+                        room,
+                        {building: plain.building},
+                        {roomNumber: plain.roomNumber}]);
+                })(plain.rooms);
 
-            if (houseFormat !== Typedef.HouseFormat.SHARE || roomId) {
-                return rooms;
-            }
-            else {
-                return fp.flatten(fp.union(
-                    fp.isEmpty(plain.devices) ? [] : [plain]
-                    , rooms,
-                ));
-            }
+                if (houseFormat !== Typedef.HouseFormat.SHARE || roomId) {
+                    return rooms;
+                }
+                else {
+                    return fp.flatten(fp.union(
+                        fp.isEmpty(plain.devices) ? [] : [plain]
+                        , rooms,
+                    ));
+                }
 
-        })(houses));
+            })(houses));
 
-        const doPaging = (data) => {
-            return data.slice(pagingInfo.skip, pagingInfo.skip +
+            const doPaging = (data) => {
+                return data.slice(pagingInfo.skip, pagingInfo.skip +
                     pagingInfo.size);
-        };
-        res.send({
-            paging: {
-                count: houseAndRooms.length,
-                index: pagingInfo.index,
-                size: pagingInfo.size,
-            },
-            data: fp.map(extractDetail(houseId, timeFrom, timeTo))(
-                doPaging(houseAndRooms)),
-        });
+            };
+            res.send({
+                paging: {
+                    count: houseAndRooms.length,
+                    index: pagingInfo.index,
+                    size: pagingInfo.size,
+                },
+                data: fp.map(extractDetail(houseId, timeFrom, timeTo))(
+                    doPaging(houseAndRooms)),
+            });
 
-        // }
-        // catch (e) {
-        //     log.error(e, projectId, req.query);
-        //     res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC));
-        // }
+        }
+        catch (e) {
+            log.error(e, projectId, req.query);
+            res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC));
+        }
     },
 };
 
@@ -193,7 +193,7 @@ const extractDetail = (houseId, timeFrom, timeTo) => slot => {
                     startDate: timeFrom,
                     endDate: timeTo,
                     device: {
-                        deviceId: house.devices[0].deviceId
+                        deviceId: house.devices[0].deviceId,
                     },
                     ...readingOf(house, house.devices[0]),
                 },
@@ -245,7 +245,8 @@ const districtLocation = (locationId, districtId) => {
     }
 };
 
-const getIncludeRoom = SequelizeModel => (roomId, timeFrom, timeTo) => fp.assign(
+const getIncludeRoom = SequelizeModel => (
+    roomId, timeFrom, timeTo) => fp.assign(
     {
         model: SequelizeModel.Rooms, as: 'rooms', required: true,
         include: [
