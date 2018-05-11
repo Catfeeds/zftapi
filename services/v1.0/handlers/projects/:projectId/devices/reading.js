@@ -21,7 +21,7 @@ module.exports = {
         } = query;
 
         if (!Util.ParameterCheck(query,
-                ['houseFormat', 'startDate', 'endDate'])) {
+            ['houseFormat', 'startDate', 'endDate'])) {
             return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED,
                 {error: 'missing houseFormat, startDate or endDate'}));
         }
