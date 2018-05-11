@@ -383,8 +383,7 @@ create table if not exists `devicesChannels`
 
 create table if not exists `deviceData`
 (
-	id bigint unsigned auto_increment
-		primary key,
+	`id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
 	deviceId varchar(32) not null,
 	channelId varchar(3) not null,
 	reading bigint unsigned default '0' not null,
@@ -392,7 +391,7 @@ create table if not exists `deviceData`
 	time bigint unsigned not null,
 	PRIMARY KEY (`id`, `channelId`) USING BTREE,
 	INDEX `CHANNEL`(`channelId`) USING BTREE,
-	INDEX `DEVICEID`(`deviceId`) USING BTREE,
+	INDEX `DEVICEID`(`deviceId`) USING BTREE
 ) ENGINE = InnoDB;
 
 create table if not exists `deviceHeartbeats`
