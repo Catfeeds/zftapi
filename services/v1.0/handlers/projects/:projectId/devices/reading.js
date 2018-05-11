@@ -211,8 +211,6 @@ const extractDetail = (houseId, timeFrom, timeTo) => slot => {
             roomName: room.name,
             location: room.building.location,
             details: fp.map(device => ({
-                startDate: timeFrom,
-                endDate: timeTo,
                 device: {
                     deviceId: device.deviceId,
                 },

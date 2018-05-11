@@ -33,6 +33,14 @@ describe('Reading meters', function() {
                                 price: 1000,
                             },
                         ],
+                        contracts: [{
+                            userId: 222,
+                            user: {
+                                name: 'username',
+                            },
+                            from: 200000,
+                            to: 300000,
+                        }],
                         devices: [
                             {
                                 deviceId: 123,
@@ -87,11 +95,13 @@ describe('Reading meters', function() {
                             device: {
                                 deviceId: 123,
                             },
-                            endDate: timeAlign(200000),
+                            endDate: 300000,
                             endScale: 200,
                             startScale: 100,
-                            startDate: timeAlign(100000),
+                            startDate: 200000,
                             usage: 100,
+                            userId: 222,
+                            userName: 'username',
                         },
                     ],
                 }]);
