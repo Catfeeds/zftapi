@@ -130,8 +130,7 @@ module.exports = {
             }
 
         })(houses));
-        console.log(houseAndRooms);
-        //
+
         const doPaging = (data) => {
             return data.slice(pagingInfo.skip, pagingInfo.skip +
                     pagingInfo.size);
@@ -183,7 +182,6 @@ const extractDetail = (houseId, timeFrom, timeTo) => slot => {
     if (houseId || slot.rooms) {
         //public device
         const house = slot;
-        console.log('house...', house);
         return {
             houseId: house.id,
             building: house.building.building,
