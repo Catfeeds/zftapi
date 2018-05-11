@@ -1,6 +1,7 @@
 'use strict';
 
 const fp = require('lodash/fp');
+const moment = require('moment');
 const {spy} = require('sinon');
 const {get} = require(
     '../../services/v1.0/handlers/projects/:projectId/devices/reading');
@@ -86,10 +87,10 @@ describe('Reading meters', function() {
                             device: {
                                 deviceId: 123,
                             },
-                            endDate: 136800,
+                            endDate: timeAlign(200000),
                             endScale: 200,
                             startScale: 100,
-                            startDate: 50400,
+                            startDate: timeAlign(100000),
                             usage: 100,
                         },
                     ],
@@ -163,10 +164,10 @@ describe('Reading meters', function() {
                             device: {
                                 deviceId: 234,
                             },
-                            endDate: 136800,
+                            endDate: timeAlign(200000),
                             endScale: 2000,
                             startScale: 900,
-                            startDate: 50400,
+                            startDate: timeAlign(100000),
                             usage: 1100,
                         },
                     ],
@@ -175,3 +176,7 @@ describe('Reading meters', function() {
     });
 
 });
+
+const timeAlign = time => moment.unix(time).
+    startOf('days').
+    unix();
