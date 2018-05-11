@@ -159,7 +159,7 @@ const contractSummary = info => {
         userId: contract.userId,
         userName: contract.user.name,
         startDate: contract.from,
-        endDate: infocontract.to,
+        endDate: contract.to,
     }) : {};
 };
 
