@@ -198,7 +198,7 @@ const extractDetail = (houseId, timeFrom, timeTo) => slot => {
                 ...contractSummary(room),
                 startDate: timeFrom,
                 endDate: timeTo,
-            }))(room.devices),
+            }))(fp.uniqBy('deviceId')(room.devices)),
         };
     }
 };
