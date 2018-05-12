@@ -170,12 +170,12 @@ const extractDetail = (houseId, timeFrom, timeTo) => slot => {
             prices: house.prices,
             details: [
                 {
-                    startDate: timeFrom,
-                    endDate: timeTo,
                     device: {
                         deviceId: house.devices[0].deviceId,
                     },
                     ...readingOf(house, house.devices[0]),
+                    startDate: timeFrom,
+                    endDate: timeTo,
                 },
             ],
         };
@@ -195,9 +195,9 @@ const extractDetail = (houseId, timeFrom, timeTo) => slot => {
                 device: {
                     deviceId: device.deviceId,
                 },
+                ...contractSummary(room),
                 startDate: timeFrom,
                 endDate: timeTo,
-                ...contractSummary(room),
             }))(room.devices),
         };
     }
@@ -286,6 +286,7 @@ const deviceInclude = MySQL => (timeFrom, timeTo) => ({
     model: MySQL.HouseDevices,
     as: 'devices',
     required: false,
+    distinct: true,
     where: {
         $or: [
             {
@@ -302,6 +303,7 @@ const deviceInclude = MySQL => (timeFrom, timeTo) => ({
             },
         ],
     },
+    attributes: ['deviceId']
 });
 
 const heartbeatInProject = MySQL => async (timeFrom, timeTo, projectId) => {

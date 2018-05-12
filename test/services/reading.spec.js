@@ -96,10 +96,10 @@ describe('Reading meters', function() {
                             device: {
                                 deviceId: 123,
                             },
-                            endDate: 300000,
+                            endDate: timeAlign(200000),
+                            startDate: timeAlign(100000),
                             endScale: 200,
                             startScale: 100,
-                            startDate: 200000,
                             usage: 100,
                             userId: 222,
                             userName: 'username',
@@ -185,9 +185,9 @@ describe('Reading meters', function() {
                             device: {
                                 deviceId: 234,
                             },
-                            endDate: timeAlign(200000),
                             endScale: 2000,
                             startScale: 900,
+                            endDate: timeAlign(200000),
                             startDate: timeAlign(100000),
                             usage: 1100,
                         },
