@@ -1767,7 +1767,7 @@ function SequelizeDefine() {
         timestamps: true,
         freezeTableName: true
     });
-
+    exports.DeviceHeartbeats.belongsTo(exports.HouseDevices, {foreignKey: 'deviceId', targetKey: 'deviceId'});
     exports.HouseDevices.hasMany(exports.DeviceHeartbeats, {foreignKey: 'deviceId', sourceKey: 'deviceId'});
     exports.EventQueue = sequelizeInstance.define('eventqueue',
         {

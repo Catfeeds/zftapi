@@ -69,29 +69,8 @@ module.exports = {
                         }]
                     , required: true
                     , attributes: ['group', 'building', 'unit'],
-                }
-                , {
-                    model: MySQL.HouseDevices,
-                    as: 'devices',
-                    required: false,
-                    where: {
-                        endDate: 0,
-                        public: true,
-                    },
-                    include: [
-                        {
-                            model: MySQL.DeviceHeartbeats,
-                            required: false,
-                            attributes: ['total'],
-                            where: {
-                                createdAt: {
-                                    $gte: formatMysqlDateTime(timeFrom),
-                                    $lte: formatMysqlDateTime(timeTo),
-                                },
-                            },
-                        },
-                    ],
                 },
+                deviceInclude(MySQL)(timeFrom, timeTo),
                 {
                     model: MySQL.HouseDevicePrice,
                     as: 'prices',
@@ -108,6 +87,9 @@ module.exports = {
                     include: houseInclude,
                 },
             );
+
+            const heartbeats = await heartbeatInProject(MySQL)(timeFrom,
+                timeTo, projectId);
 
             const houseAndRooms = fp.flatten(fp.map(house => {
                 const plain = house.toJSON();
@@ -129,7 +111,6 @@ module.exports = {
                         , rooms,
                     ));
                 }
-
             })(houses));
 
             const doPaging = (data) => {
@@ -142,7 +123,8 @@ module.exports = {
                     index: pagingInfo.index,
                     size: pagingInfo.size,
                 },
-                data: fp.map(extractDetail(houseId, timeFrom, timeTo))(
+                data: fp.map(fp.pipe(extractDetail(houseId, timeFrom, timeTo),
+                    matchHeartbeats(heartbeats), fp.omit('prices')))(
                     doPaging(houseAndRooms)),
             });
 
@@ -165,17 +147,15 @@ const contractSummary = info => {
 };
 
 const readingOf = (room, device) => {
-    const allPoints = fp.getOr([0, 0])('deviceHeartbeats')(device);
-    const startScale = fp.getOr(0)('total')(fp.head(allPoints));
-    const endScale = fp.getOr(0)('total')(fp.last(allPoints));
+    const {startScale, endScale} = device;
     const price = fp.getOr(0)('prices[0].price')(room);
     const usage = endScale - startScale;
     return {
         price,
+        amount: (endScale - startScale) * price,
         usage,
         startScale,
         endScale,
-        amount: (endScale - startScale) * price,
     };
 };
 
@@ -189,6 +169,7 @@ const extractDetail = (houseId, timeFrom, timeTo) => slot => {
             unit: house.building.unit,
             roomNumber: house.roomNumber,
             location: house.building.location,
+            prices: house.prices,
             details: [
                 {
                     startDate: timeFrom,
@@ -211,15 +192,29 @@ const extractDetail = (houseId, timeFrom, timeTo) => slot => {
             roomNumber: room.roomNumber,
             roomName: room.name,
             location: room.building.location,
+            prices: room.prices,
             details: fp.map(device => ({
                 device: {
                     deviceId: device.deviceId,
                 },
                 ...contractSummary(room),
-                ... readingOf(room, device),
             }))(room.devices),
         };
     }
+};
+
+const matchHeartbeats = (heartbeats) => slot => {
+    const singleDevice = slot => device => {
+        const reading = fp.head(fp.get(device.device.deviceId)(heartbeats));
+        return reading ? {...device, ...readingOf(slot, reading)} : device;
+    };
+    const devices = fp.get('details')(slot);
+    return devices ?
+        {
+            ...slot,
+            details: fp.map(singleDevice(slot))(devices),
+        } :
+        slot;
 };
 
 const districtLocation = (locationId, districtId) => {
@@ -249,42 +244,7 @@ const getIncludeRoom = SequelizeModel => (
     {
         model: SequelizeModel.Rooms, as: 'rooms', required: true,
         include: [
-            {
-                model: SequelizeModel.HouseDevices,
-                as: 'devices',
-                required: false,
-                where: {
-                    $or: [
-                        {
-                            startDate: {$lte: timeFrom},
-                            endDate: {$gte: timeFrom},
-                        },
-                        {
-                            startDate: {$lte: timeTo},
-                            endDate: {$gte: timeTo},
-                        },
-                        {
-                            startDate: {$gte: timeFrom},
-                            endDate: {$lte: timeTo},
-                        },
-                    ],
-                },
-                include: [
-                    {
-                        model: SequelizeModel.DeviceHeartbeats,
-                        required: false,
-                        attributes: ['total', 'createdAt'],
-                        where: {
-                            createdAt: {
-                                $gte: formatMysqlDateTime(
-                                    timeFrom),
-                                $lte: formatMysqlDateTime(
-                                    timeTo),
-                            },
-                        },
-                    },
-                ],
-            },
+            deviceInclude(SequelizeModel)(timeFrom, timeTo),
             {
                 model: SequelizeModel.Contracts,
                 as: 'contracts',
@@ -321,3 +281,59 @@ const getIncludeRoom = SequelizeModel => (
         },
     } : {},
 );
+
+const deviceInclude = MySQL => (timeFrom, timeTo) => ({
+    model: MySQL.HouseDevices,
+    as: 'devices',
+    required: false,
+    where: {
+        $or: [
+            {
+                startDate: {$lte: timeFrom},
+                endDate: {$gte: timeFrom},
+            },
+            {
+                startDate: {$lte: timeTo},
+                endDate: {$gte: timeTo},
+            },
+            {
+                startDate: {$gte: timeFrom},
+                endDate: {$lte: timeTo},
+            },
+        ],
+    },
+});
+
+const heartbeatInProject = MySQL => async (timeFrom, timeTo, projectId) => {
+    const groupingData = await MySQL.DeviceHeartbeats.findAll(
+        {
+            attributes: [
+                'deviceId',
+                [
+                    MySQL.Sequelize.fn('max',
+                        MySQL.Sequelize.col('total')), 'endScale'],
+                [
+                    MySQL.Sequelize.fn('min',
+                        MySQL.Sequelize.col('total')), 'startScale']],
+            group: ['deviceId'],
+            where: {
+                createdAt: {
+                    $gte: formatMysqlDateTime(timeFrom),
+                    $lte: formatMysqlDateTime(timeTo),
+                },
+            },
+            include: [
+                {
+                    model: MySQL.HouseDevices,
+                    required: true,
+                    where: {
+                        projectId,
+                    },
+                    attributes: ['projectId'],
+                }],
+        },
+    );
+    return fp.groupBy('deviceId')(fp.map(
+        data => ({...data.toJSON(), startDate: timeFrom, endDate: timeTo}))(
+        groupingData));
+};
