@@ -44,14 +44,6 @@ describe('Reading meters', function() {
                         devices: [
                             {
                                 deviceId: 123,
-                                deviceHeartbeats: [
-                                    {
-                                        total: 100,
-                                    },
-                                    {
-                                        total: 200,
-                                    },
-                                ],
                             },
                         ],
                     },
@@ -75,6 +67,15 @@ describe('Reading meters', function() {
                     return [house];
                 },
             },
+            DeviceHeartbeats: {
+                async findAll() {
+                    return [{toJSON: () => ({deviceId: 123, startScale: 100, endScale: 200, startDate: 100, endDate: 200})}];
+                },
+            },
+            Sequelize: {
+                fn: () => {},
+                col: () => {},
+            }
         };
         const resSpy = spy();
 
@@ -155,6 +156,16 @@ describe('Reading meters', function() {
                     return [house];
                 },
             },
+            DeviceHeartbeats: {
+                async findAll() {
+                    return [{toJSON: () => ({deviceId: 123, startScale: 100, endScale: 200, startDate: 100, endDate: 200})},
+                        {toJSON: () => ({deviceId: 234, startScale: 900, endScale: 2000, startDate: 100, endDate: 200})}];
+                },
+            },
+            Sequelize: {
+                fn: () => {},
+                col: () => {},
+            }
         };
         const resSpy = spy();
 

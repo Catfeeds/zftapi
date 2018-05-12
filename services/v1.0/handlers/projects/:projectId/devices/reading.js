@@ -87,10 +87,8 @@ module.exports = {
                     include: houseInclude,
                 },
             );
-
             const heartbeats = await heartbeatInProject(MySQL)(timeFrom,
                 timeTo, projectId);
-
             const houseAndRooms = fp.flatten(fp.map(house => {
                 const plain = house.toJSON();
 
