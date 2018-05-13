@@ -53,14 +53,14 @@ describe('Device usage', function() {
             resSpy.getCall(0).args[0].should.be.eql([
                 {
                     time: 1525939200,
-                    endScale: '2',
-                    startScale: '1',
-                    usage: '1.0000',
+                    endScale: '20000',
+                    startScale: '10000',
+                    usage: 10000,
                 },{
                     time: 1525942800,
-                    endScale: '4.999999',
-                    startScale: '3.888888',
-                    usage: '1.1111',
+                    endScale: '50000',
+                    startScale: '38889',
+                    usage: 11111,
                 }]);
         });
     });

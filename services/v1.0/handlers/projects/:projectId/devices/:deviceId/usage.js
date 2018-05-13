@@ -5,13 +5,21 @@ const {formatMysqlDateTime} = Include('/services/v1.0/common');
 
 const innerData = a => a.toJSON();
 
-const formatFields = usage => fp.omit('deviceId')({ ...usage,
-    usage: Number(usage.endScale - usage.startScale).toFixed(4),
-    time: moment(usage.time).unix()});
+const formatFields = usage => {
+    const {endScale: eso, startScale: sso} = usage;
+    const startScale = Number(sso * 10000).toFixed(0);
+    const endScale = Number(eso * 10000).toFixed(0);
+    return {
+        startScale,
+        endScale,
+        usage: endScale - startScale,
+        time: moment(usage.time).unix(),
+    };
+};
 
 const translate = data => fp.map(fp.pipe(
     innerData,
-    formatFields
+    formatFields,
 ))(data);
 
 module.exports = {
@@ -32,15 +40,25 @@ module.exports = {
             {
                 attributes: [
                     'deviceId',
-                    [MySQL.Sequelize.fn('DATE_FORMAT', MySQL.Sequelize.col('createdAt'), '%Y-%m-%d %H:00:00'), 'time'],
+                    [
+                        MySQL.Sequelize.fn('DATE_FORMAT',
+                            MySQL.Sequelize.col('createdAt'),
+                            '%Y-%m-%d %H:00:00'),
+                        'time'],
                     [
                         MySQL.Sequelize.fn('max',
-                            MySQL.Sequelize.col('total')), 'endScale'],
+                            MySQL.Sequelize.col('total')),
+                        'endScale'],
                     [
                         MySQL.Sequelize.fn('min',
-                            MySQL.Sequelize.col('total')), 'startScale']],
-                group: ['deviceId', MySQL.Sequelize.fn('DATE_FORMAT', MySQL.Sequelize.col('createdAt'), '%Y-%m-%d %H:00:00')],
+                            MySQL.Sequelize.col('total')),
+                        'startScale']],
+                group: [
+                    'deviceId',
+                    MySQL.Sequelize.fn('DATE_FORMAT',
+                        MySQL.Sequelize.col('createdAt'), '%Y-%m-%d %H:00:00')],
                 where: {
+                    deviceId,
                     createdAt: {
                         $gte: formatMysqlDateTime(startDate),
                         $lte: formatMysqlDateTime(endDate),
