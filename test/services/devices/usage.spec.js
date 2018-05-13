@@ -1,5 +1,6 @@
 'use strict';
 
+const moment = require('moment');
 const {spy} = require('sinon');
 const {get} = require(
     '../../../services/v1.0/handlers/projects/:projectId/devices/:deviceId/usage');
@@ -12,13 +13,13 @@ describe('Device usage', function() {
         const usages = [
             {
                 toJSON: () => ({
-                    time: '2018-05-10 18:00:00',
+                    time: moment(1525939200000).format('YYYY-MM-DD HH:00:00'),
                     endScale: '2',
                     startScale: '1',
                 }),
             }, {
                 toJSON: () => ({
-                    time: '2018-05-10 19:00:00',
+                    time: moment(1525942800000).format('YYYY-MM-DD HH:00:00'),
                     endScale: '4.999999',
                     startScale: '3.888888',
                 }),
