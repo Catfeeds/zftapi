@@ -58,19 +58,26 @@ module.exports = {
 
         try {
             const houseInclude = fp.compact([
-                houseId ? null : getIncludeRoom(MySQL)(roomId, timeFrom, timeTo)
-                , {
-                    model: MySQL.Building, as: 'building'
-                    , include: [
+                houseId ?
+                    null :
+                    getIncludeRoom(MySQL)(roomId, timeFrom, timeTo, projectId)
+                ,
+                {
+                    model: MySQL.Building,
+                    as: 'building'
+                    ,
+                    include: [
                         {
                             model: MySQL.GeoLocation,
                             as: 'location',
                             required: true,
                         }]
-                    , required: true
-                    , attributes: ['group', 'building', 'unit'],
+                    ,
+                    required: true
+                    ,
+                    attributes: ['group', 'building', 'unit'],
                 },
-                deviceInclude(MySQL)(timeFrom, timeTo),
+                deviceInclude(MySQL)(timeFrom, timeTo, projectId),
                 {
                     model: MySQL.HouseDevicePrice,
                     as: 'prices',
@@ -240,11 +247,11 @@ const districtLocation = (locationId, districtId) => {
 };
 
 const getIncludeRoom = SequelizeModel => (
-    roomId, timeFrom, timeTo) => fp.assign(
+    roomId, timeFrom, timeTo, projectId) => fp.assign(
     {
         model: SequelizeModel.Rooms, as: 'rooms', required: true,
         include: [
-            deviceInclude(SequelizeModel)(timeFrom, timeTo),
+            deviceInclude(SequelizeModel)(timeFrom, timeTo, projectId),
             {
                 model: SequelizeModel.Contracts,
                 as: 'contracts',
@@ -282,28 +289,17 @@ const getIncludeRoom = SequelizeModel => (
     } : {},
 );
 
-const deviceInclude = MySQL => (timeFrom, timeTo) => ({
+const deviceInclude = MySQL => (timeFrom, timeTo, projectId) => ({
     model: MySQL.HouseDevices,
     as: 'devices',
     required: false,
     distinct: true,
     where: {
-        $or: [
-            {
-                startDate: {$lte: timeFrom},
-                endDate: {$gte: timeFrom},
-            },
-            {
-                startDate: {$lte: timeTo},
-                endDate: {$gte: timeTo},
-            },
-            {
-                startDate: {$gte: timeFrom},
-                endDate: {$lte: timeTo},
-            },
-        ],
+        projectId,
+        endDate: 0,
+        public: true,
     },
-    attributes: ['deviceId']
+    attributes: ['deviceId'],
 });
 
 const heartbeatInProject = MySQL => async (timeFrom, timeTo, projectId) => {
@@ -330,20 +326,8 @@ const heartbeatInProject = MySQL => async (timeFrom, timeTo, projectId) => {
                     required: true,
                     where: {
                         projectId,
-                        $or: [
-                            {
-                                startDate: {$lte: timeFrom},
-                                endDate: {$gte: timeFrom},
-                            },
-                            {
-                                startDate: {$lte: timeTo},
-                                endDate: {$gte: timeTo},
-                            },
-                            {
-                                startDate: {$gte: timeFrom},
-                                endDate: {$lte: timeTo},
-                            },
-                        ],
+                        endDate: 0,
+                        public: true,
                     },
                     attributes: ['projectId'],
                 }],
