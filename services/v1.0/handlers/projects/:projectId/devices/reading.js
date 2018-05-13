@@ -155,7 +155,7 @@ const readingOf = (room, device) => {
     const {startScale: startScaleOrigin, endScale: endScaleOrigin} = device;
     const [startScale, endScale] = fp.map(f => Number(f).toFixed(4))([startScaleOrigin, endScaleOrigin]);
     const price = fp.getOr(0)('prices[0].price')(room);
-    const usage = endScale - startScale;
+    const usage = Number(endScale - startScale).toFixed(4);
     return {
         price,
         amount: (endScale - startScale) * price,
