@@ -4,7 +4,7 @@ const fp = require('lodash/fp');
 const moment = require('moment');
 const {spy} = require('sinon');
 const {get} = require(
-    '../../services/v1.0/handlers/projects/:projectId/devices/reading');
+    '../../../services/v1.0/handlers/projects/:projectId/devices/reading');
 
 describe('Reading meters', function() {
     before(() => {
