@@ -406,7 +406,7 @@ create table if not exists `deviceHeartbeats`
 	`deletedAt`  datetime,
 	PRIMARY KEY (`id`),
 	INDEX `deviceheartbeats_deviceId_index` (`deviceId`) USING BTREE,
-	INDEX deviceheartbeats_createdAt_deviceId_index (createdAt DESC, deviceId)
+	INDEX `deviceheartbeats_createdAt_deviceId_index` (createdAt DESC, deviceId) USING BTREE
 ) ENGINE = InnoDB;
 
 create table if not exists `eventQueue`
