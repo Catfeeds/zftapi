@@ -461,7 +461,7 @@ exports.topUp = async(fundChannel, projectId, userId, operatorId, contractId, am
         return ErrorCode.ack(ErrorCode.CHANNELNOTEXISTS);
     }
 
-    const fundChannelId = fundChannel.fundChannelId;
+    const fundChannelId = fundChannel.fundChannelId || fundChannel.id;
     const serviceCharge = exports.serviceCharge(fundChannel, amount);
     const assignNewId = exports.assignNewId;
 
@@ -501,7 +501,6 @@ exports.topUp = async(fundChannel, projectId, userId, operatorId, contractId, am
 
         topupNotification(MySQL)(result.result);
         await t.commit();
-
         return result;
     }
     catch(e){

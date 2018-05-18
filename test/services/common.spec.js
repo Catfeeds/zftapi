@@ -2,10 +2,11 @@
 const {
     includeContracts, payBills, serviceCharge,
     moveFundChannelToRoot, shareFlows, platformFlows, logFlows,
-    convertRoomNumber
+    convertRoomNumber, topUp,
 } = require(
     '../../services/v1.0/common');
 const {spy, stub} = require('sinon');
+const fp = require('lodash/fp');
 
 const Users = {id: 'Users'};
 const Auth = {id: 'Auth'};
@@ -19,7 +20,7 @@ const HouseDevices = {id: 'HouseDevices'};
 describe('Common', function() {
     before(() => {
         global.Typedef = Include('/libs/typedef');
-        global.log = {error: () => ({})};
+        global.log = console;
         global.SnowFlake = {next: () => 998811};
         global.SequelizeModels = {
             Users,
@@ -43,9 +44,9 @@ describe('Common', function() {
                         include: [
                             {
                                 model: Auth,
-                                attributes: ['mobile']
+                                attributes: ['mobile'],
                             },
-                        ]
+                        ],
                     },
                     {
                         attributes: [
@@ -78,7 +79,7 @@ describe('Common', function() {
                                                 ],
                                                 model: GeoLocation,
                                                 paranoid: false,
-                                                where: {}
+                                                where: {},
                                             },
                                         ],
                                         model: Building,
@@ -88,7 +89,7 @@ describe('Common', function() {
                                 model: Houses,
                                 required: true,
                                 paranoid: false,
-                                where: {}
+                                where: {},
                             },
                             {
                                 model: HouseDevices,
@@ -118,9 +119,9 @@ describe('Common', function() {
                         include: [
                             {
                                 model: Auth,
-                                attributes: ['mobile']
+                                attributes: ['mobile'],
                             },
-                        ]
+                        ],
                     },
                     {
                         attributes: [
@@ -138,7 +139,7 @@ describe('Common', function() {
                                     'houseKeeper',
                                 ],
                                 where: {
-                                    houseFormat: 'SHARE'
+                                    houseFormat: 'SHARE',
                                 },
                                 include: [
                                     {
@@ -156,7 +157,7 @@ describe('Common', function() {
                                                 ],
                                                 model: GeoLocation,
                                                 paranoid: false,
-                                                where: {}
+                                                where: {},
                                             },
                                         ],
                                         model: Building,
@@ -187,7 +188,8 @@ describe('Common', function() {
         });
         it('should consider location condition', function() {
             const contractFilter = includeContracts(global.SequelizeModels);
-            const contractOptions = contractFilter('', {}, {where: {id: 'locationId'}});
+            const contractOptions = contractFilter('', {},
+                {where: {id: 'locationId'}});
             contractOptions.should.be.eql({
                 include: [
                     {
@@ -195,9 +197,9 @@ describe('Common', function() {
                         include: [
                             {
                                 model: Auth,
-                                attributes: ['mobile']
+                                attributes: ['mobile'],
                             },
-                        ]
+                        ],
                     },
                     {
                         attributes: [
@@ -240,7 +242,7 @@ describe('Common', function() {
                                 model: Houses,
                                 required: true,
                                 paranoid: false,
-                                where: {}
+                                where: {},
                             },
                             {
                                 model: HouseDevices,
@@ -271,9 +273,9 @@ describe('Common', function() {
                             include: [
                                 {
                                     model: Auth,
-                                    attributes: ['mobile']
+                                    attributes: ['mobile'],
                                 },
-                            ]
+                            ],
                         },
                         {
                             attributes: [
@@ -306,7 +308,7 @@ describe('Common', function() {
                                                     ],
                                                     model: GeoLocation,
                                                     paranoid: false,
-                                                    where: {}
+                                                    where: {},
                                                 },
                                             ],
                                             model: Building,
@@ -330,7 +332,7 @@ describe('Common', function() {
                             paranoid: false,
                         },
                     ],
-                    model: Contracts
+                    model: Contracts,
                 });
             });
         it('should consider houseFormat if provided', function() {
@@ -343,9 +345,9 @@ describe('Common', function() {
                         include: [
                             {
                                 model: Auth,
-                                attributes: ['mobile']
+                                attributes: ['mobile'],
                             },
-                        ]
+                        ],
                     },
                     {
                         attributes: [
@@ -377,7 +379,7 @@ describe('Common', function() {
                                                 ],
                                                 model: GeoLocation,
                                                 paranoid: false,
-                                                where: {}
+                                                where: {},
                                             },
                                         ],
                                         model: Building,
@@ -553,6 +555,60 @@ describe('Common', function() {
 
     });
 
+    describe('topUp', () => {
+        it('should be able to top up user account',
+            async function() {
+                const createSpy = stub().resolves({});
+                global.MySQL = {
+                    CashAccount: {
+                        findOne: async () => ({id: 123, balance: 100}),
+                        update: async () => [{id: 123}],
+                    },
+                    Flows: {
+                        create: async () => ({id: 123}),
+                    },
+                    UserNotifications: {
+                        create: async () => ({}),
+                    },
+                    FundChannelFlows: {
+                        bulkCreate: async () => ({}),
+                    },
+                    Topup: {
+                        create: createSpy,
+                    },
+                    Users: {
+                        findById: async () => ({
+                            toJSON: () => ({
+                                id: 123,
+                                auth: {projectId: 1},
+                            }),
+                        }),
+                    },
+                    Sequelize: {
+                        transaction: async () => ({commit: fp.noop}),
+                    },
+                    Literal: () => 1,
+                };
+
+                const projectId = 100;
+                const userId = 999;
+                const contractId = 111;
+                const fundChannel = {id: 345};
+                await topUp(fundChannel, projectId, userId, 'operatorId',
+                    contractId,
+                    19999).then(res => {
+                    res.should.be.eql({
+                        code: 0,
+                        message: '',
+                        result: {balance: 20099, amount: 19999, userId: 999},
+                    });
+                    createSpy.should.have.been.called;
+                    createSpy.getCall(0).args[0].fundChannelId.should.be.equal(345);
+                });
+            });
+
+    });
+
     describe('platformFlows', () => {
         it('should be able to create according to serviceCharge & fundChannel',
             async function() {
@@ -683,26 +739,26 @@ describe('Common', function() {
             });
     });
 
-    describe('convertRoomNumber', ()=>{
+    describe('convertRoomNumber', () => {
         it('when index is 1 then output should be  A',
             async function() {
                 const roomNumber = convertRoomNumber(1);
                 roomNumber.should.be.eql('A');
-            }
+            },
         );
 
         it('when index is 26 then output should be AB',
             async function() {
                 const roomNumber = convertRoomNumber(26);
                 roomNumber.should.be.eql('AB');
-            }
+            },
         );
 
         it('when index is 53 then output should be AAE',
             async function() {
                 const roomNumber = convertRoomNumber(53);
                 roomNumber.should.be.eql('AAE');
-            }
+            },
         );
     });
 });
