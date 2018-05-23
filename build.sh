@@ -3,7 +3,9 @@
 set -e
 
 function functional-tests {
-    docker-compose down && docker-compose -f docker-compose-test.yml run test
+    docker-compose down && \
+    docker-compose -f docker-compose-test.yml down && \
+    docker-compose -f docker-compose-test.yml run --rm test
 }
 
 

@@ -589,8 +589,8 @@ INSERT INTO `zft`.`projects` (`id`, `name`, `externalId`) VALUES ('100', '加州
 INSERT INTO `zft`.`auth` (`id`, `projectId`, `username`, `password`, createdAt, updatedAt)
 VALUES (1, 100, 'admin100', '5f4dcc3b5aa765d61d8327deb882cf99',  NOW(),  NOW()),
 	(2, 101, 'admin101', '5f4dcc3b5aa765d61d8327deb882cf99',  NOW(),  NOW());
-INSERT INTO zft.bindings (`id`, authId, platform, deviceId, createdAt, updatedAt)
-    VALUES (6385448056539713536, 1, 'ios', '3227dcbae04c4f3ba5034d86a57c30e0', NOW(), NOW());
+INSERT INTO zft.bindings (authId, platform, deviceId, createdAt, updatedAt)
+    VALUES (1, 'ios', '3227dcbae04c4f3ba5034d86a57c30e0', NOW(), NOW());
 
 INSERT INTO `zft`.`fundChannels` (`flow`, `projectId`, `tag`, `name`, `status`, `createdAt`, `updatedAt`, `deletedAt`)
 VALUES ('receive', '100', 'manual', '现金', 'PASSED ', NOW(), NOW(), NULL),
