@@ -381,7 +381,7 @@ create table if not exists `devicesChannels`
 	PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB;
 
-create table if not exists `deviceData`
+create table if not exists `devicesData`
 (
 	`id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
 	deviceId varchar(32) not null,
@@ -4340,3 +4340,8 @@ INSERT INTO zft.devicesChannels (deviceId, channelId, comi, scale, updatedAt) VA
 INSERT INTO zft.devicesChannels (deviceId, channelId, comi, scale, updatedAt) VALUES ('YTL043000101501', '11', 1.000000, 0, 1526203240);
 INSERT INTO zft.devicesChannels (deviceId, channelId, comi, scale, updatedAt) VALUES ('YTL043000101477', '11', 1.000000, 0, 1526203238);
 INSERT INTO zft.devicesChannels (deviceId, channelId, comi, scale, updatedAt) VALUES ('YTL043000231498', '11', 1.000000, 0, 1526203238);
+
+INSERT INTO zft.devicesData (id, deviceId, channelId, reading, rateReading, time) VALUES (65461, 'YTL043000101493', '11', 135000, 135000, 1526644435);
+INSERT INTO zft.devicesData (id, deviceId, channelId, reading, rateReading, time) VALUES (65462, 'YTL043000101519', '11', 34000, 34000, 1526644435);
+INSERT INTO zft.devicesData (id, deviceId, channelId, reading, rateReading, time) VALUES (65463, 'YTL043000101477', '11', 110, 110, 1526644453);
+INSERT INTO zft.devicesData (id, deviceId, channelId, reading, rateReading, time) VALUES (65464, 'YTL043000101501', '11', 0, 0, 1526644458);
