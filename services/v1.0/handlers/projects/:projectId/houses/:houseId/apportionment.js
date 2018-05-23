@@ -1,127 +1,116 @@
 'use strict';
 
 const fp = require('lodash/fp');
-const {autoApportionment} = require('../../../../../common');
+const {defaultDeviceShare} = require(
+    '../../../../../common');
 
 /**
- * Operations on /rooms/{hid}
+ * Operations on /projects/:id/houses/:id/apportionment
  */
-module.exports = {
-    get: (req, res)=>{
-        const projectId = req.params.projectId;
-        const houseId = req.params.houseId;
 
-        MySQL.HouseApportionment.findAll({
-            where:{
-                projectId: projectId,
-                houseId: houseId
-            },
-            attributes: ['roomId', 'value'],
-            include:[
-                {
-                    model: MySQL.Rooms,
-                    as: 'room',
-                    attributes: ['type', 'name', 'config', 'orientation', 'roomArea']
-                }
-            ]
-        }).then(
-            result=>{
-                res.send(result);
-            },
-            err=>{
+const applyDefaultToEmpty = houseModel => {
+    const house = houseModel.toJSON();
+    return fp.isEmpty(house.houseApportionments) ?
+        defaultDeviceShare(house.projectId, house.id,
+            fp.map('id')(house.rooms))
+        :
+        fp.map(r => fp.defaults(r)({
+            houseId: house.id,
+            projectId: house.projectId,
+            value: Number(r.value),
+        }))(
+            house.houseApportionments);
+};
+
+module.exports = {
+    get: async (req, res) => {
+        const {projectId, houseId} = req.params;
+
+        return retrieveExistingSharingSetting(MySQL)(houseId, projectId).
+            then(applyDefaultToEmpty).
+            then(
+                result => {
+                    res.send(result);
+                },
+            ).catch(err => {
                 log.error(err, projectId, houseId);
                 res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC));
-            }
-        );
+            });
     },
-    put: async(req ,res)=>{
+    put: async (req, res) => {
         const projectId = req.params.projectId;
         const houseId = req.params.houseId;
 
-        const body = req.body;
+        const newSettings = req.body;
 
-        const mode = req.query.mode;
+        const {mode = 'MANUAL'} = req.query;
 
-        if(mode === 'AUTO'){
-            res.send( autoApportionment(projectId, houseId) );
+        const defaultSharing = await retrieveExistingSharingSetting(MySQL)(
+            houseId, projectId).
+            then(a => a.toJSON()).
+            then(house => defaultDeviceShare(house.projectId, house.id,
+                fp.map('id')(house.rooms)));
+        const toSave = mode.toUpperCase() === 'AUTO' ? defaultSharing :
+            fp.map(fp.defaults({projectId, houseId}))(newSettings);
+
+        //default mode is MANUAL
+
+        //check percent
+        const totalPercent = fp.sum(fp.map('value')(newSettings));
+        if (totalPercent !== 100) {
+            return res.send(403, ErrorCode.ack(ErrorCode.PARAMETERERROR,
+                {error: 'Total share value is not 100%'}));
         }
-        else{
-            //default mode is MANUAL
-            //check percent
-            const totalPercent = fp.sum(fp.map('value')(body));
-            if(totalPercent !== 100){
-                return res.send(403, ErrorCode.ack(ErrorCode.PARAMETERERROR));
-            }
 
-            const roomIds = fp.map('roomId')(body);
-            //check room in house
-            try {
-                const roomsCount = await MySQL.Rooms.count({
-                    where: {
-                        houseId: houseId,
-                        id: {$in: roomIds},
-                    },
-                });
-                if (roomsCount !== roomIds.length) {
-                    return res.send(403, ErrorCode.ack(ErrorCode.ROOMNOTMATCH));
-                }
+        const diff = fp.differenceBy(
+            fp.pipe(fp.get('roomId'), a => a.toString()))(newSettings)(
+            defaultSharing);
+        if (!fp.isEmpty(diff)) {
+            return res.send(403, ErrorCode.ack(ErrorCode.PARAMETERERROR,
+                {error: `Not all rooms are under contract ${diff}`}));
+        }
 
-                const count = await MySQL.Contracts.count({
-                    where: {
-                        roomId: {$in: roomIds},
-                        status: Typedef.ContractStatus.ONGOING,
-                    },
-                });
-
-                if (count !== roomIds.length) {
-                    return res.send(403,
-                        ErrorCode.ack(ErrorCode.CONTRACTNOTEXISTS));
-                }
-            }
-            catch (e) {
-                log.error(e, projectId, houseId, body);
-                return res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC));
-            }
-
-            let t;
-            try {
-                const apportionmentMapping = fp.fromPairs(
-                    fp.map(item => [item.roomId, item.value])(body));
-
-                const apportionments = await MySQL.HouseApportionment.findAll({
-                    where: {
-                        houseId: houseId,
-                    },
-                });
-
-                const [toUpdate, toDelete] = fp.partition(
-                    rate => fp.includes(rate.roomId)(roomIds))(apportionments);
-
-                const updateApportionments = fp.map(rate => fp.defaults({
-                    projectId: projectId,
-                    houseId: houseId,
-                    value: apportionmentMapping[rate.roomId],
-                })(rate))(toUpdate);
-
-                const deleteApportionments = fp.map('id')(toDelete);
-
-                t = await MySQL.Sequelize.transaction({autocommit: false});
-
-                await MySQL.HouseApportionment.bulkCreate(updateApportionments,
-                    {transaction: t, updateOnDuplicate: true});
-
-                await MySQL.HouseApportionment.destroy(
-                    {where: {id: {$in: deleteApportionments}}, transaction: t});
-
-                await t.commit();
-
+        return MySQL.Sequelize.transaction(t => Promise.all([
+            MySQL.HouseApportionment.destroy(
+                {where: {houseId}, transaction: t}),
+            MySQL.HouseApportionment.bulkCreate(toSave,
+                {transaction: t, updateOnDuplicate: true}).then(()=>console.log('bulkCreate'))])).
+            then(() => {
                 res.send(204);
-            }
-            catch (e) {
-                await t.rollback();
-                log.error(e, projectId, houseId, body);
-                return res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC));
-            }
-        }
-    }
+            }).
+            catch(err => {
+                log.error(err, projectId, houseId, body);
+                res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC));
+            });
+    },
 };
+
+const retrieveExistingSharingSetting = MySQL => async (houseId, projectId) =>
+    MySQL.Houses.findById(houseId, {
+        where: {
+            projectId,
+        },
+        include: [
+            {
+                model: MySQL.Rooms,
+                as: 'rooms',
+                required: true,
+                attributes: [
+                    'id',
+                    'type',
+                    'name',
+                    'config',
+                    'orientation',
+                    'roomArea'],
+                include: [
+                    {
+                        model: MySQL.Contracts,
+                        required: true,
+                        attributes: ['id'],
+                    }],
+            }, {
+                model: MySQL.HouseApportionment,
+                attributes: ['roomId', 'value'],
+                required: false,
+            }],
+    });

@@ -510,79 +510,38 @@ exports.topUp = async(fundChannel, projectId, userId, operatorId, contractId, am
     }
 };
 
-exports.autoApportionment = async(projectId, houseId)=>{
-    const auto = (roomIds)=>{
-        const count = roomIds.length;
-        if(!count){
-            return [];
-        }
-        let base = Math.floor(100/count);
-        let suffix = 0;
-        if(base*count !==  100){
-            suffix = 100 - base * count;
-        }
-
-        const minRoomId = fp.min(roomIds);
-        const share = fp.map(roomId=>{
-            if(roomId === minRoomId){
-                return {roomId: roomId, value: base + suffix, projectId: projectId, houseId: houseId};
-            }
-            return {roomId: roomId, value: base, projectId: projectId, houseId: houseId};
-        })(roomIds);
-        return share;
-    };
-
-    const rooms = await MySQL.Rooms.findAll({
-        where:{
-            houseId: houseId
-        },
-        attributes: ['id'],
-        include:[
-            {
-                model: MySQL.Contracts,
-                as: 'contracts',
-                attributes: ['id'],
-                where:{
-                    status: Typedef.ContractStatus.ONGOING
-                }
-            }
-        ]
-    });
-
-    const allRoomIds = fp.map('id');
-    const whichHasMoreThanOneContracts = fp.filter(room => fp.getOr(0)('contracts.length')(room) > 1);
-    const roomIds = allRoomIds(whichHasMoreThanOneContracts(rooms));
-
-    const bulkInsertApportionment = auto(roomIds);
-
-    let t;
-    try{
-        t = await MySQL.Sequelize.transaction({autocommit: false});
-
-        await MySQL.HouseApportionment.destroy({
-            where:{
-                projectId: projectId,
-                houseId: houseId
-            },
-            transaction: t
-        });
-
-        if(bulkInsertApportionment.length) {
-            await MySQL.HouseApportionment.bulkCreate(bulkInsertApportionment, {transaction: t});
-        }
-
-        await t.commit();
-
-        return 201;
+exports.defaultDeviceShare = (projectId, houseId, roomIds) => {
+    const count = roomIds.length;
+    if (!count) {
+        return [];
     }
-    catch(e){
-        await t.rollback();
-        log.error(e, projectId, houseId, bulkInsertApportionment);
-        return ErrorCode.ack(ErrorCode.DATABASEEXEC);
+    let base = Math.floor(100 / count);
+    let suffix = 0;
+    if (base * count !== 100) {
+        suffix = 100 - base * count;
     }
+
+    const minRoomId = fp.min(roomIds);
+    return fp.map(roomId => {
+        if (roomId === minRoomId) {
+            return {
+                roomId,
+                value: base + suffix,
+                projectId,
+                houseId,
+            };
+        }
+        return {
+            roomId,
+            value: base,
+            projectId: projectId,
+            houseId,
+        };
+    })(roomIds);
 };
 
-exports.formatMysqlDateTime = seconds => moment(seconds * 1000).format('YYYY-MM-DD HH:mm:ss');
+exports.formatMysqlDateTime =
+    seconds => moment(seconds * 1000).format('YYYY-MM-DD HH:mm:ss');
 exports.mysqlDateTimeToStamp = time => moment(time).unix();
 
 exports.moveFundChannelToRoot = result => {

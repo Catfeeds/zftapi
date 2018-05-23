@@ -1969,6 +1969,8 @@ function SequelizeDefine() {
         freezeTableName: true
     });
     exports.HouseApportionment.belongsTo(Rooms, {as: 'room', foreignKey: 'roomId'});
+    exports.HouseApportionment.belongsTo(exports.Houses);
+    exports.Houses.hasMany(exports.HouseApportionment);
 
     const withDraw = sequelizeInstance.define('withDraw', {
         id:{
