@@ -723,19 +723,19 @@ exports.includeRoom = async(status)=>{
         })( where ? where : {} );
 };
 
-exports.translateDevices = (devices)=>{
-    const whichHasDevice = fp.reject(fp.flow(fp.get('device'), fp.isEmpty));
-    const transform = fp.map(device=> ({
-        deviceId: device.device.deviceId,
-        public: device.public,
-        title: device.device.name,
-        scale: device.device.channels && exports.scaleDown(device.device.channels[0].scale),
-        type: device.device.type,
-        updatedAt: moment(device.device.updatedAt).unix(),
-        status: exports.deviceStatus(device.device)
-    }));
-    return transform(whichHasDevice(devices));
-};
+exports.translateDevices = fp.pipe(
+    fp.reject(fp.pipe(fp.get('device'), fp.isEmpty)), fp.map(source => ({
+        deviceId: source.device.deviceId,
+        public: source.public,
+        title: source.device.name,
+        scale: source.device.channels &&
+        exports.scaleDown(source.device.channels[0].scale),
+        type: source.device.type,
+        updatedAt: moment(source.device.updatedAt).unix(),
+        status: exports.deviceStatus(source.device),
+        memo: source.device.memo,
+    })));
+
 exports.translateRooms = (rooms)=> {
     return fp.map(room => {
         const getContract = () => {

@@ -2,10 +2,11 @@
 const {
     includeContracts, payBills, serviceCharge,
     moveFundChannelToRoot, shareFlows, platformFlows, logFlows,
-    convertRoomNumber, topUp,
+    convertRoomNumber, topUp, translateDevices,
 } = require(
     '../../services/v1.0/common');
 const {spy, stub} = require('sinon');
+const moment = require('moment');
 const fp = require('lodash/fp');
 
 const Users = {id: 'Users'};
@@ -603,7 +604,8 @@ describe('Common', function() {
                         result: {balance: 20099, amount: 19999, userId: 999},
                     });
                     createSpy.should.have.been.called;
-                    createSpy.getCall(0).args[0].fundChannelId.should.be.equal(345);
+                    createSpy.getCall(0).args[0].fundChannelId.should.be.equal(
+                        345);
                 });
             });
 
@@ -759,6 +761,88 @@ describe('Common', function() {
                 const roomNumber = convertRoomNumber(53);
                 roomNumber.should.be.eql('AAE');
             },
+        );
+    });
+
+    describe('translateDevices', () => {
+        it('should retain memo of devices', async () => {
+            const updatedAt = moment().subtract(1, 'm');
+            const after = translateDevices([
+                {
+                    public: '0',
+                    device: {
+                        freq: 600,
+                        deviceId: 'deviceId',
+                        memo: 'a memo',
+                        name: 'title',
+                        channels: [
+                            {
+                                scale: 100,
+                            }],
+                        type: 'type',
+                        updatedAt,
+                    },
+                }]);
+            after.should.be.eql([
+                {
+                    deviceId: 'deviceId',
+                    memo: 'a memo',
+                    public: '0',
+                    title: 'title',
+                    scale: 0.01,
+                    type: 'type',
+                    updatedAt: updatedAt.unix(),
+                    status: {
+                        service: 'EMC_ONLINE',
+                    },
+                }]);
+        },
+        );
+
+        it('should consider devices last update time as status', async () => {
+            const updatedAt = moment().subtract(1, 'd');
+            const after = translateDevices([
+                {
+                    public: '0',
+                    device: {
+                        freq: 1,
+                        deviceId: 'deviceId',
+                        memo: 'a memo',
+                        name: 'title',
+                        channels: [
+                            {
+                                scale: 100,
+                            }],
+                        type: 'type',
+                        updatedAt,
+                    },
+                }]);
+            after.should.be.eql([
+                {
+                    deviceId: 'deviceId',
+                    memo: 'a memo',
+                    public: '0',
+                    title: 'title',
+                    scale: 0.01,
+                    type: 'type',
+                    updatedAt: updatedAt.unix(),
+                    status: {
+                        service: 'EMC_OFFLINE',
+                    },
+                }]);
+        },
+        );
+
+        it('should ignore objects has no devices', async () => {
+            const after = translateDevices([{}]);
+            after.should.be.eql([]);
+        },
+        );
+
+        it('should handle empty devices', async () => {
+            const after = translateDevices([]);
+            after.should.be.eql([]);
+        },
         );
     });
 });
