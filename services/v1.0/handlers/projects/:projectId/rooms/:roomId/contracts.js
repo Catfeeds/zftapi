@@ -1,12 +1,21 @@
 'use strict';
 
 const fp = require('lodash/fp');
-const {omitSingleNulls, innerValues, jsonProcess} = require(
+const {omitSingleNulls} = require(
     '../../../../../common');
 
-const translate = (models, pagingInfo) => {
+const pickMobile = model => ({
+    ...model,
+    user: {
+        ...model.user,
+        mobile: fp.get('user.auth.mobile')(model),
+    },
+});
 
-    const single = fp.pipe(innerValues, omitSingleNulls, jsonProcess);
+const removeAuth = fp.omit('user.auth');
+
+const translate = (models, pagingInfo) => {
+    const single = fp.pipe(a => a.toJSON(), pickMobile, removeAuth, omitSingleNulls);
     return {
         paging: {
             count: models.count,
@@ -26,11 +35,17 @@ module.exports = {
             req).toUpperCase();
         const Contracts = MySQL.Contracts;
         const Users = MySQL.Users;
+        const Auth = MySQL.Auth;
 
         const pagingInfo = Util.PagingInfo(query.index, query.size, true);
 
-        Contracts.findAndCountAll({
-            include: [{model: Users, attributes: ['name', 'mobile', 'gender']}],
+        return Contracts.findAndCountAll({
+            include: [{model: Users, attributes: ['name', 'gender'],
+                include: [{
+                    model: Auth,
+                    attributes: ['mobile']
+                }]
+            }],
             attributes: ['from', 'to', 'status', 'strategy'],
             distinct: true,
             where: {projectId, roomId, status},
