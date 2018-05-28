@@ -59,10 +59,11 @@ describe('Contracts', function() {
                     rows: [
                         {
                             toJSON: () => ({
-                                roomId: 'roomId',
                                 user: {
                                     auth: {
                                         mobile: 'mobile',
+                                        id: 'authId',
+                                        username: 'username',
                                     },
                                 },
 
@@ -77,9 +78,10 @@ describe('Contracts', function() {
             sendSpy.should.have.been.called;
             const result = sendSpy.getCall(0).args[0];
             result.data.should.be.eql([{
-                roomId: 'roomId',
                 user: {
-                    mobile: 'mobile'
+                    mobile: 'mobile',
+                    id: 'authId',
+                    accountName: 'username',
                 }
             }]);
         });

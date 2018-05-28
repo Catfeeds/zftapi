@@ -9,6 +9,8 @@ const pickMobile = model => ({
     user: {
         ...model.user,
         mobile: fp.get('user.auth.mobile')(model),
+        accountName: fp.get('user.auth.username')(model),
+        id: fp.get('user.auth.id')(model),
     },
 });
 
@@ -40,10 +42,10 @@ module.exports = {
         const pagingInfo = Util.PagingInfo(query.index, query.size, true);
 
         return Contracts.findAndCountAll({
-            include: [{model: Users, attributes: ['name', 'gender'],
+            include: [{model: Users, attributes: ['name', 'gender', 'documentId', 'documentType'],
                 include: [{
                     model: Auth,
-                    attributes: ['mobile']
+                    attributes: ['mobile', 'username', 'id']
                 }]
             }],
             attributes: ['from', 'to', 'status', 'strategy'],
