@@ -182,10 +182,11 @@ module.exports = {
                             MySQL.DevicePrePaid.findAll(deviceOptions),
                             MySQL.DailyPrePaid.findAll(dailyOptions)
                         ]).then(
-                            prePaidResult=>{
+                            ([devices, prepaid])=>{
+                                const prepaidBillWithType = fp.map(fp.pipe(j => j.toJSON(), fp.defaults({type: 'DAILYPREPAID'})))(prepaid);
                                 const data = fp.orderBy(['paymentDay']
                                     , ['desc']
-                                )(fp.union(prePaidResult[0], prePaidResult[1]));
+                                )(fp.union(devices, prepaidBillWithType));
 
                                 res.send(
                                     pagingInfo ? {
@@ -194,8 +195,8 @@ module.exports = {
                                             index: pagingInfo.index,
                                             size: pagingInfo.size
                                         },
-                                        data:data
-                                    }:data
+                                        data
+                                    } : data
                                 );
                             }
                         );
