@@ -191,22 +191,11 @@ module.exports = {
                         ]).then(
                             ([devices, prepaid])=>{
                                 console.log(devices, prepaid);
-                                const prepaidBillWithType = fp.map(
-                                    fp.pipe(j => j.toJSON(),
-                                        fp.defaults({type: 'DAILYPREPAID'}),
-                                        single => fp.defaults(
-                                            {configName: single.setting.key})(
-                                            single),
-                                        single => fp.defaults(
-                                            {
-                                                balance: fp.getOr(0)('prePaidFlow.balance')(single),
-                                                amount: fp.getOr(0)('prePaidFlow.amount')(single),
-                                            })(single),
-                                        fp.omit(['setting', 'prePaidFlow'])))(
-                                    prepaid);
+                                const prepaidBillWithType = fp.map(translate)(prepaid);
+                                const deviceBillWithType = fp.map(translate)(devices);
                                 const data = fp.orderBy(['paymentDay']
                                     , ['desc']
-                                )(fp.union(devices, prepaidBillWithType));
+                                )(fp.union(deviceBillWithType, prepaidBillWithType));
 
                                 res.send(
                                     pagingInfo ? {
@@ -230,3 +219,15 @@ module.exports = {
         }
     }
 };
+
+const translate = fp.pipe(j => j.toJSON(),
+    fp.defaults({type: 'DAILYPREPAID'}),
+    single => fp.defaults(
+        {configName: single.setting.key})(
+        single),
+    single => fp.defaults(
+        {
+            balance: fp.getOr(0)('prePaidFlow.balance')(single),
+            amount: fp.getOr(0)('prePaidFlow.amount')(single),
+        })(single),
+    fp.omit(['setting', 'prePaidFlow']));
