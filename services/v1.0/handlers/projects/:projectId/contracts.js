@@ -18,7 +18,8 @@ const {
 } = require(
     '../../../common');
 const {
-    UsernameDuplicateError, RoomUnavailableError, ContractError,
+    UsernameDuplicateError, RoomUnavailableError,
+    ContractError, RoomNotExistError,
 } = require('../../../../../libs/exceptions');
 
 const omitFields = fp.omit(
@@ -149,6 +150,7 @@ module.exports = {
         const Users = MySQL.Users;
         const Auth = MySQL.Auth;
         const Bills = MySQL.Bills;
+        const Rooms = MySQL.Rooms;
         const BillFlows = MySQL.BillFlows;
         const CashAccount = MySQL.CashAccount;
 
@@ -168,7 +170,7 @@ module.exports = {
                 },
             },
         }).then(result => {
-            console.log(`there are ${result} username ${user.username}`);
+            log.info(`there are ${result} username ${user.username}`);
             if (result > 0) {
                 throw new UsernameDuplicateError(
                     `username ${user.username} already exists`);
@@ -177,34 +179,38 @@ module.exports = {
         });
 
         const checkRoomAvailability = async (contract, t) => {
-            const roomId = contract.roomId;
-            return Contracts.count({
+            const {roomId, from, to} = contract;
+            return Promise.all([Contracts.count({
                 where: {
                     roomId,
                     status: Typedef.ContractStatus.ONGOING,
                     $or: [
                         {
                             from: {
-                                $lte: contract.from,
+                                $lte: from,
                             },
                             to: {
-                                $gte: contract.from,
+                                $gte: from,
                             },
                         }, {
                             from: {
-                                $lte: contract.to,
+                                $lte: to,
                             },
                             to: {
-                                $gte: contract.to,
+                                $gte: to,
                             },
                         }],
                 },
                 transaction: t,
-            }).then(result => {
-                console.log(`rooms under contract ${contract.id}`, result);
+            }), Rooms.findById(roomId)]).then(([result, room]) => {
+                if (fp.isEmpty(room)) {
+                    throw new RoomNotExistError(
+                        `room ${roomId} doesn't exist.`);
+                }
+                log.warn(`${result} room(s) under contract.`);
                 if (result > 0) {
                     throw new RoomUnavailableError(
-                        `room ${contract.roomId} is unavailable`);
+                        `room ${roomId} is unavailable.`);
                 }
                 return contract;
             });

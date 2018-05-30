@@ -6,7 +6,14 @@ class RoomUnavailableError extends Error {
         this.name = 'RoomUnavailableError';
         this.errorCode = ErrorCode.ROOMINCONTRACT;
     }
+}
 
+class RoomNotExistError extends Error {
+    constructor(message) {
+        super(message);
+        this.name = 'RoomNotExistError';
+        this.errorCode = ErrorCode.ROOMNOTMATCH;
+    }
 }
 
 class UsernameDuplicateError extends Error {
@@ -29,4 +36,5 @@ module.exports = {
     RoomUnavailableError,
     UsernameDuplicateError,
     ContractError,
+    RoomNotExistError,
 };

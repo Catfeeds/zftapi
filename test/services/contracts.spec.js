@@ -251,7 +251,7 @@ describe('Contracts', function() {
     });
 
     it('should check room availability while creating contract',
-        async function() {
+        async () => {
             const req = {
                 params: {
                     projectId: 100,
@@ -271,7 +271,8 @@ describe('Contracts', function() {
                     },
                 },
             };
-            const sequelizeCountSpy = stub().resolves([]);
+            const sequelizeCountSpy = stub().resolves(1);
+            const sendSpy = spy();
             const Users = {id: 'Users', findOrCreate: async () => [{id: 1999}]};
             const Auth = {
                 id: 'Auth',
@@ -290,7 +291,6 @@ describe('Contracts', function() {
             const Building = {id: 'Building'};
             const GeoLocation = {id: 'GeoLocation'};
             const HouseDevices = {id: 'HouseDevices'};
-            const Rooms = {id: 'Rooms'};
             global.MySQL = {
                 Contracts: {
                     count: sequelizeCountSpy,
@@ -299,7 +299,10 @@ describe('Contracts', function() {
                 Bills,
                 CashAccount,
                 Users,
-                Rooms,
+                Rooms: {
+                    id: 'Rooms',
+                    findById: async (roomId) => ({id: roomId})
+                },
                 Houses,
                 Building,
                 GeoLocation,
@@ -310,7 +313,7 @@ describe('Contracts', function() {
                 Auth,
             };
 
-            await post(req, {send: fp.noop}).then(() => {
+            await post(req, {send: sendSpy}).then(() => {
                 sequelizeCountSpy.should.have.been.called;
                 const countingOption = sequelizeCountSpy.getCall(0).args[0];
                 countingOption.where.should.be.eql({
@@ -332,6 +335,108 @@ describe('Contracts', function() {
                                 $gte: req.body.to,
                             },
                         }],
+                });
+                sendSpy.getCall(0).args[1].should.be.eql({
+                    code: 21000009,
+                    message: '房间已出租',
+                    result: {
+                        error: 'room 321 is unavailable.',
+                    }
+                });
+            });
+        });
+    it('should check room availability while creating contract',
+        async () => {
+            const req = {
+                params: {
+                    projectId: 100,
+                },
+                body: {
+                    from: 1000,
+                    to: 2000,
+                    user: {
+                        mobile: '',
+                    },
+                    roomId: 321,
+                    strategy: {
+                        freq: {
+                            rent: 1,
+                        },
+                        bond: 1,
+                    },
+                },
+            };
+            const sequelizeCountSpy = stub().resolves(0);
+            const sendSpy = spy();
+            const Users = {id: 'Users', findOrCreate: async () => [{id: 1999}]};
+            const Auth = {
+                id: 'Auth',
+                findOrCreate: async () => [{id: 2999}],
+                count: async () => 0,
+            };
+            const CashAccount = {
+                findOrCreate: async () => ([
+                    {
+                        id: 321,
+                        userId: 1999,
+                    }]),
+            };
+            const Houses = {id: 'Houses'};
+            const Bills = {id: 'Bills', create: async () => ({})};
+            const Building = {id: 'Building'};
+            const GeoLocation = {id: 'GeoLocation'};
+            const HouseDevices = {id: 'HouseDevices'};
+            global.MySQL = {
+                Contracts: {
+                    count: sequelizeCountSpy,
+                    create: async () => req.body,
+                },
+                Bills,
+                CashAccount,
+                Users,
+                Rooms: {
+                    id: 'Rooms',
+                    findById: async () => null,
+                },
+                Houses,
+                Building,
+                GeoLocation,
+                HouseDevices,
+                Sequelize: {
+                    transaction: async func => func({}),
+                },
+                Auth,
+            };
+
+            await post(req, {send: sendSpy}).then(() => {
+                sequelizeCountSpy.should.have.been.called;
+                const countingOption = sequelizeCountSpy.getCall(0).args[0];
+                countingOption.where.should.be.eql({
+                    roomId: req.body.roomId,
+                    status: 'ONGOING',
+                    $or: [
+                        {
+                            from: {
+                                $lte: req.body.from,
+                            },
+                            to: {
+                                $gte: req.body.from,
+                            },
+                        }, {
+                            from: {
+                                $lte: req.body.to,
+                            },
+                            to: {
+                                $gte: req.body.to,
+                            },
+                        }],
+                });
+                sendSpy.getCall(0).args[1].should.be.eql({
+                    code: 21000006,
+                    message: '房间不存在',
+                    result: {
+                        error: 'room 321 doesn\'t exist.',
+                    },
                 });
             });
         });
