@@ -1063,6 +1063,11 @@ function SequelizeDefine() {
             type: Sequelize.BIGINT.UNSIGNED,  //项目ID
             allowNull: false
         },
+        configId: {
+            type: Sequelize.BIGINT.UNSIGNED,
+            allowNull: false,
+            defaultValue: 1041,
+        },
         deviceId: {
             type: Sequelize.STRING(32),
             allowNull: false
@@ -1103,6 +1108,7 @@ function SequelizeDefine() {
     });
     exports.DevicePrePaid = devicePrePaid;
     exports.Contracts.hasMany(exports.DevicePrePaid, {as: 'devicePrePaid'});
+    exports.DevicePrePaid.belongsTo(exports.Settings, {foreignKey: 'configId', targetKey: 'id'});
 
     const dailyPrePaid = sequelizeInstance.define('dailyPrePaid', {
         id: {
@@ -1143,6 +1149,7 @@ function SequelizeDefine() {
         freezeTableName: true
     });
     exports.DailyPrePaid = dailyPrePaid;
+    exports.DailyPrePaid.belongsTo(exports.Settings, {foreignKey: 'configId', targetKey: 'id'});
 
     const prePaidFlows = sequelizeInstance.define('prePaidFlows', {
         id: {
@@ -1161,6 +1168,16 @@ function SequelizeDefine() {
             type: Sequelize.BIGINT.UNSIGNED,
             allowNull: false
         },
+        amount: {
+            type: Sequelize.INTEGER,    //单位分
+            allowNull: false,
+            defaultValue: 0
+        },
+        balance: {
+            type: Sequelize.INTEGER,    //单位分
+            allowNull: false,
+            defaultValue: 0
+        },
         category:{
             type: Sequelize.STRING(8),
             allowNull: false,
@@ -1174,6 +1191,9 @@ function SequelizeDefine() {
         freezeTableName: true
     });
     exports.PrePaidFlows = prePaidFlows;
+    exports.DevicePrePaid.belongsTo(exports.PrePaidFlows, {foreignKey: 'flowId', targetKey: 'id'});
+    exports.DailyPrePaid.belongsTo(exports.PrePaidFlows, {foreignKey: 'flowId', targetKey: 'id'});
+
     exports.UserNotifications = sequelizeInstance.define('usernotifications', {
         id: {
             type: Sequelize.BIGINT.UNSIGNED,

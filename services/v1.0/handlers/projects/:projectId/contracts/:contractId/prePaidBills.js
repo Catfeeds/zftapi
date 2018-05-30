@@ -156,6 +156,13 @@ module.exports = {
                                 flowId:{$in: flowId}
                             },
                             order: [['paymentDay', 'DESC']],
+                            include: [{
+                                model: MySQL.Settings,
+                                attributes: ['key']
+                            },{
+                                model: MySQL.PrePaidFlows,
+                                attributes: ['amount', 'balance'],
+                            }]
                         };
 
                         const deviceOptions = fp.assign(
@@ -183,7 +190,20 @@ module.exports = {
                             MySQL.DailyPrePaid.findAll(dailyOptions)
                         ]).then(
                             ([devices, prepaid])=>{
-                                const prepaidBillWithType = fp.map(fp.pipe(j => j.toJSON(), fp.defaults({type: 'DAILYPREPAID'})))(prepaid);
+                                console.log(devices, prepaid);
+                                const prepaidBillWithType = fp.map(
+                                    fp.pipe(j => j.toJSON(),
+                                        fp.defaults({type: 'DAILYPREPAID'}),
+                                        single => fp.defaults(
+                                            {configName: single.setting.key})(
+                                            single),
+                                        single => fp.defaults(
+                                            {
+                                                balance: fp.getOr(0)('prePaidFlow.balance')(single),
+                                                amount: fp.getOr(0)('prePaidFlow.amount')(single),
+                                            })(single),
+                                        fp.omit(['setting', 'prePaidFlow'])))(
+                                    prepaid);
                                 const data = fp.orderBy(['paymentDay']
                                     , ['desc']
                                 )(fp.union(devices, prepaidBillWithType));
@@ -205,31 +225,6 @@ module.exports = {
                         log.error(err);
                     }
                 );
-
-
-                // const where = fp.assign(
-                //     {
-                //         projectId: projectId,
-                //         contractId: contractId
-                //     },
-                //     dateFilter() ? {paymentDay: dateFilter()}:{}
-                // );
-                // MySQL.DevicePrePaid.findAndCountAll({
-                //     where:where,
-                //     offset: pagingInfo.skip,
-                //     limit: pagingInfo.size
-                // }).then(
-                //     result=>{
-                //         res.send({
-                //             paging: {
-                //                 count: result.count,
-                //                 index: pagingInfo.index,
-                //                 size: pagingInfo.size
-                //             },
-                //             data: result.rows
-                //         });
-                //     }
-                // );
             }
             break;
         }

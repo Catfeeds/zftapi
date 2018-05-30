@@ -425,6 +425,7 @@ create table if not exists `devicePrePaid`
 	`flowId` bigint(20) UNSIGNED NOT NULL,
   `contractId` bigint(20) UNSIGNED NOT NULL,
   `projectId` bigint(20) UNSIGNED NOT NULL,
+  `configId` bigint(20) UNSIGNED NOT NULL,
   `deviceId` varchar(32) NOT NULL,
   `amount` int(11) NOT NULL DEFAULT 0,
   `scale` bigint(20) NOT NULL,
