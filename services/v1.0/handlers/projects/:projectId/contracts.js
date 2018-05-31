@@ -4,8 +4,8 @@
  */
 const fp = require('lodash/fp');
 const moment = require('moment');
-const extractContract = require(
-    '../../../../../transformers/contractExtractor').extract;
+const {extract: extractContract} = require(
+    '../../../../../transformers/contractExtractor');
 const {extract: extractUser, extractAuth} = require(
     '../../../../../transformers/userExtractor');
 const {generate: generateBills} = require(
@@ -21,6 +21,7 @@ const {
     UsernameDuplicateError, RoomUnavailableError,
     ContractError, RoomNotExistError,
 } = require('../../../../../libs/exceptions');
+const {sendSMS: smsForNewContract} = require('../../../../../libs/sms');
 
 const omitFields = fp.omit(
     ['createdAt', 'updatedAt', 'user.authId', 'user.auth']);
@@ -223,8 +224,7 @@ module.exports = {
                     where: {id: auth.id, username: auth.username},
                     defaults: auth,
                     transaction: t,
-                })).
-                then(fp.head).
+                }).then(fp.head)).
                 then(auth => {
                     const user = fp.defaults({authId: auth.id})(
                         extractUser(req));
@@ -232,26 +232,40 @@ module.exports = {
                         where: {authId: auth.id},
                         defaults: user,
                         transaction: t,
-                    });
-                }).
-                then(fp.head).
-                then(user => {
-                    return CashAccount.findOrCreate({
-                        where: {userId: user.id},
-                        defaults: assignNewId({userId: user.id}),
-                        transaction: t,
-                    }).then(() => user);
-                }).
-                then(dbUser => extractContract(req, dbUser)).
-                then(contract => validateContract(contract)).
-                then(contract => checkRoomAvailability(contract, t)).
-                then(contract => Contracts.create(assignNewId(contract),
-                    {transaction: t})).
-                then(contract => Promise.all(
-                    fp.map(bill => createBill(contract, bill, t))(
-                        generateBills(contract))).then(() => contract),
-                ),
-        ).
+                    }).then(fp.head).
+                        then(user => {
+                            return CashAccount.findOrCreate({
+                                where: {userId: user.id},
+                                defaults: assignNewId({userId: user.id}),
+                                transaction: t,
+                            }).then(() => user).
+                                then(dbUser => extractContract(req, dbUser).
+                                    then(
+                                        contract => validateContract(contract)).
+                                    then(
+                                        contract => checkRoomAvailability(
+                                            contract, t)).
+                                    then(contract => Contracts.create(
+                                        assignNewId(contract),
+                                        {transaction: t})).
+                                    then(contract => Promise.all(
+                                        fp.map(
+                                            bill => createBill(contract, bill,
+                                                t))(
+                                            generateBills(contract))).
+                                        then(() => [auth, contract])),
+                                );
+                        });
+                })
+        ).then(([userModel, contractModel]) => {
+            const [user, contract] = fp.map(m => m.toJSON())(
+                [userModel, contractModel]);
+            if (user.mobile) {
+                smsForNewContract(user.mobile,
+                    {account: user.username, passwd: '123456'});
+            }
+            return contract;
+        }).
             then(contract => res.send(201,
                 ErrorCode.ack(ErrorCode.OK, {id: contract.id}))).
             catch(err => res.send(500,
