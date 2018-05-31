@@ -148,6 +148,7 @@ module.exports = {
          * For response `default` status 200 is used.
          */
         const Contracts = MySQL.Contracts;
+        const Projects = MySQL.Projects;
         const Users = MySQL.Users;
         const Auth = MySQL.Auth;
         const Bills = MySQL.Bills;
@@ -261,8 +262,9 @@ module.exports = {
             const [user, contract] = fp.map(m => m.toJSON())(
                 [userModel, contractModel]);
             if (user.mobile) {
-                smsForNewContract(user.mobile,
-                    {account: user.username, passwd: '123456'});
+                Projects.findById(contract.projectId, {attributes: ['name']}).
+                    then(({name}) =>
+                        smsForNewContract(name, user.mobile, user.username));
             }
             return contract;
         }).
