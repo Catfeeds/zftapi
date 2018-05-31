@@ -5,11 +5,10 @@ const SMSClient = require('@alicloud/sms-sdk');
 
 const accessKeyId = fp.get('ALICLOUD.key')(config);
 const secretAccessKey = fp.get('ALICLOUD.secret')(config);
-//初始化sms_client
-const smsClient = new SMSClient({accessKeyId, secretAccessKey});
-//发送短信
 
-exports.sendSMS = (number, info) => {
+const smsClient = new SMSClient({accessKeyId, secretAccessKey});
+
+exports.smsForNewContract = (number, info) => {
     return smsClient.sendSMS({
         PhoneNumbers: number,
         SignName: '电小鸽',
@@ -17,9 +16,8 @@ exports.sendSMS = (number, info) => {
         TemplateParam: JSON.stringify(info),
     }).then(res => {
         const {Code} = res;
-        console.log(res);
         if (Code === 'OK') {
-            console.log('sent success.');
+            console.log('sent success.', res);
         }
-    }).catch(err => console.log(err));
+    }).catch(err => console.log(`error in sending sms 'SMS_121906657' to ${number} with ${info}`, err));
 }
