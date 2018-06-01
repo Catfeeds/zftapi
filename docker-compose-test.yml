@@ -47,7 +47,7 @@ services:
           context: .
           dockerfile: Dockerfile-test
         entrypoint: /wait-for-it.sh api:8000 --
-        command: npm run ft
+        command: bash -c 'sleep 5 && npm run ft'
         volumes:
           - ".:/src"
           - "./node_modules:/src/node_modules"
