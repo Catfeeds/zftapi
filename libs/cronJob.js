@@ -10,6 +10,7 @@ const {
     powerOffNotification,
     billNotification,
 } = require('../services/v1.0/pushService');
+const {smsForBillOverdue} = require('../services/v1.0/smsService');
 
 const rule = new schedule.RecurrenceRule();
 rule.hour = 8;
@@ -38,8 +39,11 @@ const billOverdue = async () => {
     console.log(`Overdue bill ids: ${fp.map(fp.get('dataValues.id'))(bills)}`);
     fp.each(b => {
         const bill = b.toJSON();
+        console.log('original bill', bill);
+        const billWithUserId = fp.defaults(bill)({userId: fp.get('user.id')(bill)});
         overdueBillNotification(MySQL)(
-            fp.defaults(bill)({userId: fp.get('user.id')(bill)}));
+            billWithUserId);
+        smsForBillOverdue(MySQL)(billWithUserId)
     })(bills);
 };
 

@@ -20,6 +20,7 @@ require(appRootPath.path + '/libs/log')('zftAPI');
     global.GUID = Include('/libs/guid');
     global.Message = Include('/libs/message');
     global.Notifications = Include('/libs/notifications');
+    global.ShortMessage = Include('/libs/sms').sendSMS;
 }
 
 let Server = Restify.createServer();

@@ -134,7 +134,9 @@ exports.commonNotification = sequelizeModel => notification => {
         const platform = fp.get('binding.platform')(notification);
         const targetId = fp.get('binding.deviceId')(notification);
 
-        if (!platform || !targetId) return;
+        if (!platform || !targetId) {
+            return;
+        }
 
         exports.notificationOf(platform)({
             targetId,

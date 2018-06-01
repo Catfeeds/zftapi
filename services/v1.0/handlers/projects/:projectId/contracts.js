@@ -21,7 +21,7 @@ const {
     UsernameDuplicateError, RoomUnavailableError,
     ContractError, RoomNotExistError,
 } = require('../../../../../libs/exceptions');
-const {smsForNewContract} = require('../../../../../libs/sms');
+const {smsForNewContract} = require('../../../smsService');
 
 const omitFields = fp.omit(
     ['createdAt', 'updatedAt', 'user.authId', 'user.auth']);
