@@ -190,11 +190,10 @@ module.exports = {
                             MySQL.DailyPrePaid.findAll(dailyOptions)
                         ]).then(
                             ([devices, prepaid])=>{
-                                console.log(devices, prepaid);
                                 const prepaidBillWithType = fp.map(translate)(prepaid);
                                 const deviceBillWithType = fp.map(translate)(devices);
-                                const data = fp.orderBy(['paymentDay']
-                                    , ['desc']
+                                const data = fp.orderBy(['paymentDay', 'balance']
+                                    , ['desc', 'asc']
                                 )(fp.union(deviceBillWithType, prepaidBillWithType));
 
                                 res.send(
