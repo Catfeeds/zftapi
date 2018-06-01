@@ -11,7 +11,7 @@ const smsClient = new SMSClient({accessKeyId, secretAccessKey});
 
 const SignName = '电小鸽';
 
-exports.sendSMS = async (number, template, params) => smsClient.sendSMS({
+exports.sendSMS = async ({number, template, params}) => smsClient.sendSMS({
     PhoneNumbers: number,
     SignName,
     TemplateCode: template,

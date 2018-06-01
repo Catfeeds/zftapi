@@ -37,7 +37,7 @@ describe('extractUser', () => {
                 id: 1999,
                 level: 'USER',
                 mobile: '12345678911',
-                password: '1e5ce73f4fc4c3b764fb66811f093c87',
+                password: 'e10adc3949ba59abbe56e057f20f883e',
                 'projectId': 100,
                 username: 'accountName',
 
@@ -61,7 +61,7 @@ describe('extractUser', () => {
                 id: 1999,
                 level: 'USER',
                 mobile: 12345678911,
-                password: '1e5ce73f4fc4c3b764fb66811f093c87',
+                password: 'e10adc3949ba59abbe56e057f20f883e',
                 'projectId': 100,
                 username: 'accountName',
 

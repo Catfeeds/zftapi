@@ -8,8 +8,13 @@ describe('Aliyun SMS', function() {
     });
 
     it('should be able to call remote api service', async () => {
-        const err = await sendSMS('xxxxxxxx', 'SMS_122125098', {'customer': 'fenger'});
-        err.code.should.be.oneOf(['InvalidAccessKeyId.NotFound', 'isv.MOBILE_NUMBER_ILLEGAL']);
+        const err = await sendSMS({
+            number: 'xxxxxxxx',
+            template: 'SMS_122125098',
+            params: {'customer': 'fenger'},
+        });
+        err.code.should.be.oneOf(
+            ['InvalidAccessKeyId.NotFound', 'isv.MOBILE_NUMBER_ILLEGAL']);
     });
 });
 
