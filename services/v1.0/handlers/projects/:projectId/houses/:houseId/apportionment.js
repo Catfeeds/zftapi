@@ -107,6 +107,9 @@ const retrieveExistingSharingSetting = MySQL => async (houseId, projectId) =>
                         model: MySQL.Contracts,
                         required: true,
                         attributes: ['id'],
+                        where: {
+                            status: Typedef.ContractStatus.ONGOING
+                        }
                     }],
             }, {
                 model: MySQL.HouseApportionment,

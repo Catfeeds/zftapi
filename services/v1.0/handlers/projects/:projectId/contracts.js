@@ -14,7 +14,7 @@ const billItems = require(
     '../../../../../transformers/billItemsGenerator').generate;
 const {
     omitSingleNulls, innerValues, assignNewId, singleRoomTranslate,
-    jsonProcess, houseConnection, pickAuthAttributes,
+    jsonProcess, houseConnection, pickAuthAttributes, clearDeviceSharing,
 } = require(
     '../../../common');
 const {
@@ -155,7 +155,7 @@ module.exports = {
         const Rooms = MySQL.Rooms;
         const BillFlows = MySQL.BillFlows;
         const CashAccount = MySQL.CashAccount;
-
+        const {projectId} = req.params;
         const sequelize = MySQL.Sequelize;
 
         const createBill = (contract, bill, t) => Bills.create(
@@ -214,7 +214,7 @@ module.exports = {
                     throw new RoomUnavailableError(
                         `room ${roomId} is unavailable.`);
                 }
-                return contract;
+                return [contract, room];
             });
         };
 
@@ -246,18 +246,23 @@ module.exports = {
                                     then(
                                         contract => checkRoomAvailability(
                                             contract, t)).
-                                    then(contract => Contracts.create(
+                                    then(([contract, room]) => Contracts.create(
                                         assignNewId(contract),
-                                        {transaction: t})).
-                                    then(contract => Promise.all(
-                                        fp.map(
+                                        {transaction: t}).then(c => [c, room])).
+                                    then(([contract, room]) => {
+                                        const bills = fp.map(
                                             bill => createBill(contract, bill,
                                                 t))(
-                                            generateBills(contract))).
-                                        then(() => [auth, contract])),
-                                );
+                                            generateBills(contract));
+                                        console.log('room.houseId', room, room.houseId);
+                                        const clearSharing = clearDeviceSharing(
+                                            MySQL, t)(projectId, room.houseId);
+                                        return Promise.all(
+                                            fp.concat(bills, [clearSharing])).
+                                            then(() => [auth, contract]);
+                                    }));
                         });
-                })
+                }),
         ).then(([userModel, contractModel]) => {
             const [user, contract] = fp.map(m => m.toJSON())(
                 [userModel, contractModel]);

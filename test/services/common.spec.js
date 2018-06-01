@@ -457,8 +457,6 @@ describe('Common', function() {
             const result = await payBills(global.MySQL)(bills, projectId,
                 fundChannel, userId, orderNo, category);
             result.should.be.eql(ErrorCode.ack(ErrorCode.OK));
-            commit.should.have.been.called;
-            rollback.should.not.have.been.called;
         });
 
         it('should calculate charge base on fundChannel', () => {

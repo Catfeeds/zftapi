@@ -238,7 +238,7 @@ exports.deviceStatus = (device)=>{
     return fp.assign(device.status || {}, {service: runStatus()});
 };
 
-exports.payBills = (sequelizeModel) => async (bills, projectId, fundChannel, userId, orderNo, category='rent', flowDirection='receive') => {
+exports.payBills = (sequelizeModel, parentTx) => async (bills, projectId, fundChannel, userId, orderNo, category='rent', flowDirection='receive') => {
     if(fp.isEmpty(bills)) {
         return ErrorCode.ack(ErrorCode.OK, {message: 'No bills were paid.'});
     }
@@ -264,9 +264,8 @@ exports.payBills = (sequelizeModel) => async (bills, projectId, fundChannel, use
         fee: bill.serviceCharge.shareAmount,
     }))(billsToPay);
 
-    let t;
     try{
-        t = await sequelizeModel.Sequelize.transaction({autocommit: false});
+        const t = parentTx || await sequelizeModel.Sequelize.transaction();
 
         await sequelizeModel.BillPayment.bulkCreate(billsToPay, {transaction: t});
         await sequelizeModel.Flows.bulkCreate(flows, {transaction: t});
@@ -276,19 +275,17 @@ exports.payBills = (sequelizeModel) => async (bills, projectId, fundChannel, use
             fundChannel, t, Typedef.FundChannelFlowCategory.BILL))(billsToPay);
         await Promise.all(billLogFlows);
 
-        await t.commit();
         sendPaymentNotifications(sequelizeModel)(bills);
         return ErrorCode.ack(ErrorCode.OK);
     }
     catch(e){
-        await t.rollback();
         log.error(e, bills, projectId, fundChannel, userId, orderNo, billsToPay, flows);
         return ErrorCode.ack(ErrorCode.DATABASEEXEC);
     }
 };
 
 const sendPaymentNotifications = sequelizeModel => fp.each(bill => billPaymentNotification(sequelizeModel)({
-    userId: bill.dataValues.userId,
+    userId: bill.userId || bill.dataValues.userId,
     dueAmount: bill.dueAmount,
     startDate: bill.startDate,
     endDate: bill.endDate,
@@ -790,3 +787,11 @@ exports.convertRoomNumber = (index)=>{
 
     return fp.repeat(prefix)('A') + String.fromCharCode(64+suffix);
 };
+
+exports.clearDeviceSharing = (MySQL, t) => (
+    projectId, houseId) => MySQL.HouseApportionment.destroy({
+    where: {
+        projectId,
+        houseId,
+    }, transaction: t,
+});

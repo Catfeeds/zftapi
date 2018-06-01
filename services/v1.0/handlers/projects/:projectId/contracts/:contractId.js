@@ -4,7 +4,7 @@
  */
 const fp = require('lodash/fp');
 const {
-    assignNewId, omitSingleNulls,
+    assignNewId, omitSingleNulls, clearDeviceSharing,
     innerValues, jsonProcess, payBills, pickAuthAttributes,
 } = require(
     '../../../../common');
@@ -123,11 +123,10 @@ module.exports = {
                         roomId: contract.dataValues.room.id,
                     });
 
-                    const newBill = finalBillOf(settlement);
-
-                    const finalBill = Bills.create(newBill, {transaction: t});
                     const operatorId = req.isAuthenticated() && req.user.id;
 
+                    const newBill = finalBillOf(
+                        fp.defaults({userId: contract.userId})(settlement));
                     const finalPayment = finalPaymentOf(
                         fp.defaults(settlement)({
                             bills: [newBill],
@@ -139,23 +138,28 @@ module.exports = {
                         }),
                     );
 
-                    const finalFlow = payBills(MySQL)(finalPayment.bills,
+                    const finalBill = Bills.create(newBill, {transaction: t});
+                    const finalFlow = payBills(MySQL, t)(finalPayment.bills,
                         finalPayment.projectId,
-                        finalPayment.fundChannel, finalPayment.operator, null,
+                        finalPayment.fundChannel,
+                        fp.getOr({userId: operatorId})('operator')(
+                            finalPayment), null,
                         'final', newBill.flow);
 
                     const operations = Typedef.OperationStatus.PAUSED ===
-                    roomStatus ? [
-                            SuspendingRooms.create(suspending, {transaction: t}),
-                        ] : [];
+                    roomStatus ?
+                        SuspendingRooms.create(suspending, {transaction: t}) :
+                        null;
 
-                    return Promise.all(fp.concat(
-                        operations, [contractUpdating, finalBill, finalFlow],
-                    ));
+                    // console.log('contract.room', contract.room.toJSON());
+                    const clearSharing = clearDeviceSharing(MySQL, t)(projectId, contract.room.toJSON().houseId);
+
+
+                    return Promise.all(fp.compact(
+                        [contractUpdating, finalBill, finalFlow, operations, clearSharing],
+                    )).then(([updated,]) => res.send(updated));
                 });
-            }).
-            then(updated => res.send(fp.get('[1]')(updated))).
-            catch(err => res.send(500,
+            }).catch(err => res.send(500,
                 ErrorCode.ack(ErrorCode.DATABASEEXEC, {error: err.message})));
     },
 };

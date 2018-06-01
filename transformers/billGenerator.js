@@ -122,6 +122,7 @@ const finalBill = (settlement) => {
         entityType: 'property',
         projectId: settlement.projectId,
         contractId: settlement.contractId,
+        userId: settlement.userId,
         source: 'contract',
         type: 'final',
         startDate: now,

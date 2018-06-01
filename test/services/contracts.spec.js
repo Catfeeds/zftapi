@@ -16,6 +16,12 @@ const expectedUser = {accountName: 'u', id: 123, mobile: '321'};
 
 const sandboxIns = sandbox.create();
 
+const defaultSequelizeModels = {
+    Building: {id: 'Building'},
+    GeoLocation: {id: 'GeoLocation'},
+    HouseDevices: {id: 'HouseDevices'},
+};
+
 describe('Contracts', function() {
     before(() => {
         global.Typedef = Include('/libs/typedef');
@@ -286,12 +292,10 @@ describe('Contracts', function() {
                         userId: 1999,
                     }]),
             };
-            const Houses = {id: 'Houses'};
             const Bills = {id: 'Bills', create: async () => ({})};
-            const Building = {id: 'Building'};
-            const GeoLocation = {id: 'GeoLocation'};
-            const HouseDevices = {id: 'HouseDevices'};
+
             global.MySQL = {
+                ... defaultSequelizeModels,
                 Contracts: {
                     count: sequelizeCountSpy,
                     create: async () => req.body,
@@ -303,10 +307,6 @@ describe('Contracts', function() {
                     id: 'Rooms',
                     findById: async (roomId) => ({id: roomId})
                 },
-                Houses,
-                Building,
-                GeoLocation,
-                HouseDevices,
                 Sequelize: {
                     transaction: async func => func({}),
                 },
@@ -345,7 +345,7 @@ describe('Contracts', function() {
                 });
             });
         });
-    it('should check room availability while creating contract',
+    it('should detect room existence while creating contract',
         async () => {
             const req = {
                 params: {
