@@ -1041,7 +1041,7 @@ function SequelizeDefine() {
     });
     exports.Topup = Topup;
 
-    const devicePrePaid = sequelizeInstance.define('devicePrePaid', {
+    const devicePrepaid = sequelizeInstance.define('devicePrePaid', {
         id: {
             type: Sequelize.BIGINT.UNSIGNED,
             autoIncrement: true,
@@ -1106,7 +1106,7 @@ function SequelizeDefine() {
         timestamps: false,
         freezeTableName: true
     });
-    exports.DevicePrePaid = devicePrePaid;
+    exports.DevicePrePaid = devicePrepaid;
     exports.Contracts.hasMany(exports.DevicePrePaid, {as: 'devicePrePaid'});
     exports.DevicePrePaid.belongsTo(exports.Settings, {foreignKey: 'configId', targetKey: 'id'});
 

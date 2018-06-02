@@ -149,7 +149,7 @@ module.exports = {
                     result=>{
                         const count = result.count;
 
-                        const flowId = fp.map(row=>{return row.id;})(result.rows || result);
+                        const flowId = fp.map('id')(result.rows || result);
 
                         const options = {
                             where:{
