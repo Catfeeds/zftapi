@@ -329,14 +329,18 @@ module.exports = {
     post: async (req, res) => {
         const {projectId} = req.params;
 
-        const channelTemplate = {
-            channelId: 11,
-            comi: '1.000000',
-            scale: 0,
-            updatedAt: moment().unix(),
-        };
+        const illFormatReport = illegalFormatIds(req.body);
+        if(!fp.isEmpty(illFormatReport)) {
+            return res.send(422, ErrorCode.ack(ErrorCode.DEVICEIDERROR, {message: `incorrect id format: ${illFormatReport}`}));
+        }
+
+        const duplicatedReport = duplicatedIds(req.body);
+        if(!fp.isEmpty(duplicatedReport)) {
+            return res.send(422, ErrorCode.ack(ErrorCode.DEVICEIDERROR, {message: `duplicated id format: ${duplicatedReport}`}));
+        }
+
         const allDevices = fp.map(fp.defaults({projectId}))(req.body);
-        const allChannels = fp.map(fp.defaults(channelTemplate))(req.body);
+        const allChannels = fp.map(fp.defaults(channelTemplate(moment().unix())))(req.body);
         return MySQL.Sequelize.transaction(t => Promise.all([
             MySQL.Devices.bulkCreate(allDevices, {
                 transaction: t,
@@ -354,3 +358,17 @@ module.exports = {
         ));
     },
 };
+
+const illegalFormatIds = fp.pipe(
+    fp.reject(s => fp.getOr('')('deviceId')(s).match(/^\d{12}$/)),
+    fp.map('deviceId'));
+
+const duplicatedIds = fp.pipe(fp.groupBy('deviceId'),
+    fp.pickBy(l => l.length > 1), fp.keys);
+
+const channelTemplate = updatedAt => ({
+    channelId: 11,
+    comi: '1.000000',
+    scale: 0,
+    updatedAt,
+});
