@@ -8,18 +8,18 @@ const {defaultDeviceShare} = require(
  * Operations on /projects/:id/houses/:id/apportionment
  */
 
-const applyDefaultToEmpty = houseModel => {
-    const house = houseModel.toJSON();
+const applyDefaultToEmpty = (projectId, houseId) => houseModel => {
+    const house = fp.isEmpty(houseModel) ? {rooms: []} : houseModel.toJSON();
+    if (fp.isEmpty(fp.get('devices')(house))) {
+        return [];
+    }
     return fp.isEmpty(house.houseApportionments) ?
-        defaultDeviceShare(house.projectId, house.id,
-            fp.map('id')(house.rooms))
-        :
-        fp.map(r => fp.defaults(r)({
-            houseId: house.id,
-            projectId: house.projectId,
+        defaultDeviceShare(projectId, houseId, house.rooms)
+        : fp.map(r => fp.defaults(r)({
+            houseId,
+            projectId,
             value: Number(r.value),
-        }))(
-            house.houseApportionments);
+        }))(house.houseApportionments);
 };
 
 module.exports = {
@@ -27,7 +27,7 @@ module.exports = {
         const {projectId, houseId} = req.params;
 
         return retrieveExistingSharingSetting(MySQL)(houseId, projectId).
-            then(applyDefaultToEmpty).
+            then(applyDefaultToEmpty(houseId, projectId)).
             then(
                 result => {
                     res.send(result);
@@ -74,7 +74,8 @@ module.exports = {
             MySQL.HouseApportionment.destroy(
                 {where: {houseId}, transaction: t}),
             MySQL.HouseApportionment.bulkCreate(toSave,
-                {transaction: t, updateOnDuplicate: true}).then(()=>console.log('bulkCreate'))])).
+                {transaction: t, updateOnDuplicate: true}).
+                then(() => console.log('bulkCreate'))])).
             then(() => {
                 res.send(204);
             }).
@@ -108,8 +109,8 @@ const retrieveExistingSharingSetting = MySQL => async (houseId, projectId) =>
                         required: true,
                         attributes: ['id'],
                         where: {
-                            status: Typedef.ContractStatus.ONGOING
-                        }
+                            status: Typedef.ContractStatus.ONGOING,
+                        },
                     }],
             }, {
                 model: MySQL.HouseApportionment,

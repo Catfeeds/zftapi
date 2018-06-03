@@ -1,6 +1,6 @@
 'use strict';
 
-const {put} = require(
+const {put, get} = require(
     '../../services/v1.0/handlers/projects/:projectId/houses/:houseId/apportionment');
 require('include-node');
 const {spy, stub} = require('sinon');
@@ -11,7 +11,7 @@ describe('HouseApportionment', function() {
         global.ErrorCode = Include('/libs/errorCode');
         global.log = console;
     });
-    it('should has 100% always', async function() {
+    it('should only allow sharing 100%', async function() {
         const req = {
             params: {
                 projectId: 100,
@@ -122,4 +122,136 @@ describe('HouseApportionment', function() {
         });
     });
 
+    it('should handle no contracted room under current house', async () => {
+        const req = {
+            params: {
+                projectId: 100,
+                houseId: 999,
+            },
+            query: {},
+        };
+        const sendSpy = spy();
+
+        global.MySQL = {
+            Houses: {
+                id: 'Houses', findById: async () => null,
+            },
+            Sequelize: {
+                transaction: async (f) => f({}),
+            },
+        };
+
+        await get(req, {send: sendSpy}).then(() => {
+            sendSpy.should.have.been.called;
+            sendSpy.getCall(0).args[0].should.be.eql([]);
+        });
+    });
+    it('should give share values back for given house',
+        async () => {
+            const req = {
+                params: {
+                    projectId: 100,
+                    houseId: 999,
+                },
+                query: {},
+            };
+            const sendSpy = spy();
+
+            global.MySQL = {
+                Houses: {
+                    id: 'Houses',
+                    findById: async () => ({
+                        toJSON: () => ({
+                            devices: [
+                                {
+                                    deviceId: 3322,
+                                }],
+                            rooms: [
+                                {
+                                    id: 1,
+                                },
+                                {
+                                    id: 2,
+                                }],
+                            houseApportionments: [
+                                {
+                                    roomId: 1,
+                                    value: 90,
+                                },
+                                {
+                                    roomId: 2,
+                                    value: 10,
+                                }],
+                        }),
+                    }),
+                },
+                Sequelize: {
+                    transaction: async (f) => f({}),
+                },
+            };
+
+            await get(req, {send: sendSpy}).then(() => {
+                sendSpy.should.have.been.called;
+                sendSpy.getCall(0).args[0].should.be.eql([
+                    {
+                        houseId: 100,
+                        projectId: 999,
+                        roomId: 1,
+                        value: 90,
+                    },
+                    {
+                        houseId: 100,
+                        projectId: 999,
+                        roomId: 2,
+                        value: 10,
+                    },
+                ]);
+            });
+        });
+    it('should handle no public device installed at current house',
+        async () => {
+            const req = {
+                params: {
+                    projectId: 100,
+                    houseId: 999,
+                },
+                query: {},
+            };
+            const sendSpy = spy();
+
+            global.MySQL = {
+                Houses: {
+                    id: 'Houses',
+                    findById: async () => ({
+                        toJSON: () => ({
+                            devices: [],
+                            rooms: [
+                                {
+                                    id: 1,
+                                },
+                                {
+                                    id: 2,
+                                }],
+                            houseApportionments: [
+                                {
+                                    roomId: 1,
+                                    value: 90,
+                                },
+                                {
+                                    roomId: 2,
+                                    value: 10,
+                                }],
+                        }),
+                    }),
+                },
+                Sequelize: {
+                    transaction: async (f) => f({}),
+                },
+            };
+
+            await get(req, {send: sendSpy}).then(() => {
+                sendSpy.should.have.been.called;
+                sendSpy.getCall(0).args[0].should.be.eql([]);
+            });
+        });
 });
