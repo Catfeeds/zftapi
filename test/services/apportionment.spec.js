@@ -122,6 +122,78 @@ describe('HouseApportionment', function() {
         });
     });
 
+    it('should not be hacked from request body', async function() {
+        const req = {
+            params: {
+                projectId: 100,
+                houseId: 999,
+            },
+            body: [
+                {
+                    roomId: 1,
+                    value: 90,
+                    projectId: 9999,
+                    houseId: 8888,
+                },
+                {
+                    roomId: 2,
+                    value: 10,
+                    projectId: 9991,
+                    houseId: 8881,
+                }],
+            query: {},
+        };
+        const sendSpy = spy();
+        const apportionmentUpdateSpy = stub().resolves({});
+        const apportionmentDestroySpy = stub().resolves({});
+
+        global.MySQL = {
+            Houses: {
+                id: 'Houses', findById: async () => ({
+                    toJSON: () => ({
+                        rooms: [
+                            {
+                                id: 1,
+                            }, {
+                                id: 2,
+                            }],
+                        houseApportionment: [],
+                    }),
+                }),
+            },
+            HouseApportionment: {
+                id: 'HouseApportionment',
+                bulkCreate: apportionmentUpdateSpy,
+                destroy: apportionmentDestroySpy,
+            },
+            Sequelize: {
+                transaction: async (f) => f({}),
+            },
+        };
+
+        await put(req, {send: sendSpy}).then(() => {
+            sendSpy.should.have.been.called;
+            const response = sendSpy.getCall(0).args;
+            response.should.be.eql([204]);
+            apportionmentUpdateSpy.should.have.been.called;
+            apportionmentUpdateSpy.getCall(0).args[0].should.be.eql([
+                {
+                    houseId: 999,
+                    projectId: 100,
+                    roomId: 1,
+                    value: 90,
+                }, {
+                    houseId: 999,
+                    projectId: 100,
+                    roomId: 2,
+                    value: 10,
+                }]);
+            apportionmentDestroySpy.getCall(0).args[0].where.should.be.eql({
+                houseId: 999,
+            });
+        });
+    });
+
     it('should handle no contracted room under current house', async () => {
         const req = {
             params: {

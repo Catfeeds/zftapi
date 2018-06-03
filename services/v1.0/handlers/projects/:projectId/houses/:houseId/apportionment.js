@@ -14,7 +14,7 @@ const applyDefaultToEmpty = (projectId, houseId) => houseModel => {
         return [];
     }
     return fp.isEmpty(house.houseApportionments) ?
-        defaultDeviceShare(projectId, houseId, house.rooms)
+        defaultDeviceShare(projectId, houseId, fp.map('id')(house.rooms))
         : fp.map(r => fp.defaults(r)({
             houseId,
             projectId,
@@ -38,8 +38,7 @@ module.exports = {
             });
     },
     put: async (req, res) => {
-        const projectId = req.params.projectId;
-        const houseId = req.params.houseId;
+        const {projectId, houseId} = req.params;
 
         const newSettings = req.body;
 
@@ -51,7 +50,7 @@ module.exports = {
             then(house => defaultDeviceShare(house.projectId, house.id,
                 fp.map('id')(house.rooms)));
         const toSave = mode.toUpperCase() === 'AUTO' ? defaultSharing :
-            fp.map(fp.defaults({projectId, houseId}))(newSettings);
+            fp.map(fp.defaults(fp, ({projectId, houseId})))(newSettings);
 
         //default mode is MANUAL
 
@@ -115,6 +114,10 @@ const retrieveExistingSharingSetting = MySQL => async (houseId, projectId) =>
             }, {
                 model: MySQL.HouseApportionment,
                 attributes: ['roomId', 'value'],
+                required: false,
+            },{
+                model: MySQL.HouseDevices,
+                as: 'devices',
                 required: false,
             }],
     });
