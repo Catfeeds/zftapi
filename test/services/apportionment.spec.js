@@ -122,7 +122,7 @@ describe('HouseApportionment', function() {
         });
     });
 
-    it('should not be hacked from request body', async function() {
+    it('should not be tricked from request body', async function() {
         const req = {
             params: {
                 projectId: 100,
@@ -266,14 +266,14 @@ describe('HouseApportionment', function() {
                 sendSpy.should.have.been.called;
                 sendSpy.getCall(0).args[0].should.be.eql([
                     {
-                        houseId: 100,
-                        projectId: 999,
+                        houseId: 999,
+                        projectId: 100,
                         roomId: 1,
                         value: 90,
                     },
                     {
-                        houseId: 100,
-                        projectId: 999,
+                        houseId: 999,
+                        projectId: 100,
                         roomId: 2,
                         value: 10,
                     },

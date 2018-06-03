@@ -8,7 +8,7 @@ const {defaultDeviceShare} = require(
  * Operations on /projects/:id/houses/:id/apportionment
  */
 
-const applyDefaultToEmpty = (projectId, houseId) => houseModel => {
+const applyDefaultToEmpty = ({projectId, houseId}) => houseModel => {
     const house = fp.isEmpty(houseModel) ? {rooms: []} : houseModel.toJSON();
     if (fp.isEmpty(fp.get('devices')(house))) {
         return [];
@@ -27,7 +27,7 @@ module.exports = {
         const {projectId, houseId} = req.params;
 
         return retrieveExistingSharingSetting(MySQL)(houseId, projectId).
-            then(applyDefaultToEmpty(houseId, projectId)).
+            then(applyDefaultToEmpty({projectId, houseId})).
             then(
                 result => {
                     res.send(result);
