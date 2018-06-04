@@ -8,7 +8,6 @@ const {fn} = require('moment');
 const sinon = require('sinon');
 
 const sandbox = sinon.sandbox.create();
-
 describe('Devices', function() {
     before(() => {
         sandbox.stub(fn, 'unix');
@@ -32,6 +31,7 @@ describe('Devices', function() {
         const channelbulkCreate = stub().resolves([]);
         global.MySQL = {
             Devices: {
+                findAll: async () => [],
                 bulkCreate: bulkCreateStub,
             },
             DevicesChannels: {
@@ -126,6 +126,45 @@ describe('Devices', function() {
                 message: '仪表ID错误',
                 result: {
                     message: 'duplicated id format: 000000000001,000000000002',
+                },
+            }]);
+    });
+    it('should reject duplicated ids in other projects', async () => {
+        const req = {
+            params: {
+                projectId: 100,
+            },
+            body: [
+                {
+                    deviceId: '000000000001',
+                    memo: 'memo',
+                },{
+                    deviceId: '000000000002',
+                    memo: 'mem2',
+                }],
+        };
+
+        global.MySQL = {
+            Devices: {
+                findAll: async () => [
+                    {
+                        toJSON: () => ({deviceId: '000000000001',})
+                    },
+                    {
+                        toJSON: () => ({deviceId: '000000000002',})
+                    }],
+            },
+        };
+
+        const sendSpy = spy();
+        await post(req, {send: sendSpy});
+        sendSpy.should.have.been.called;
+        sendSpy.getCall(0).args.should.be.eql([
+            422, {
+                code: 20000019,
+                message: '仪表ID错误',
+                result: {
+                    message: 'duplicated id in other project: 000000000001,000000000002',
                 },
             }]);
     });

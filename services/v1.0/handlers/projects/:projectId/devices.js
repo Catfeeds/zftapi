@@ -339,6 +339,12 @@ module.exports = {
             return res.send(422, ErrorCode.ack(ErrorCode.DEVICEIDERROR, {message: `duplicated id format: ${duplicatedReport}`}));
         }
 
+        const duplicatedInOtherProjectReport = await duplicatedWithOtherProjects(MySQL)(req.body);
+        console.log(duplicatedInOtherProjectReport);
+        if(!fp.isEmpty(duplicatedInOtherProjectReport)) {
+            return res.send(422, ErrorCode.ack(ErrorCode.DEVICEIDERROR, {message: `duplicated id in other project: ${duplicatedInOtherProjectReport}`}));
+        }
+
         const allDevices = fp.map(fp.defaults({projectId}))(req.body);
         const allChannels = fp.map(fp.defaults(channelTemplate(moment().unix())))(req.body);
         return MySQL.Sequelize.transaction(t => Promise.all([
@@ -365,6 +371,13 @@ const illegalFormatIds = fp.pipe(
 
 const duplicatedIds = fp.pipe(fp.groupBy('deviceId'),
     fp.pickBy(l => l.length > 1), fp.keys);
+
+const duplicatedWithOtherProjects = MySQL => async ids => MySQL.Devices.findAll(
+    {
+        where: {
+            deviceId: {$in: ids},
+        }, attributes: ['deviceId'],
+    }).then(fp.map(fp.pipe(j => j.toJSON(), fp.get('deviceId'))));
 
 const channelTemplate = updatedAt => ({
     channelId: 11,
