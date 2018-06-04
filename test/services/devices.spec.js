@@ -28,14 +28,15 @@ describe('Devices', function() {
                 }],
         };
         const bulkCreateStub = stub().resolves([]);
-        const channelbulkCreate = stub().resolves([]);
+        const channelBulkCreate = stub().resolves([]);
+        const findAllStub = stub().resolves([]);
         global.MySQL = {
             Devices: {
-                findAll: async () => [],
+                findAll: findAllStub,
                 bulkCreate: bulkCreateStub,
             },
             DevicesChannels: {
-                bulkCreate: channelbulkCreate,
+                bulkCreate: channelBulkCreate,
             },
             Sequelize: {
                 transaction: async f => f(),
@@ -45,15 +46,20 @@ describe('Devices', function() {
         await post(req, {send: sendSpy});
         sendSpy.should.have.been.called;
         bulkCreateStub.should.have.been.called;
-        channelbulkCreate.should.have.been.called;
+        channelBulkCreate.should.have.been.called;
+        findAllStub.should.have.been.called;
         sendSpy.getCall(0).args[0].should.be.eql(201);
         bulkCreateStub.getCall(0).args[0].should.be.eql([
             {
                 deviceId: '000000000003',
                 projectId: 100,
                 memo: 'memo',
+                driver: 'YTL/Electric/YTL-BUSvA.1.02.js',
+                freq: 600,
+                type: 'ELECTRICITY',
+                status: '{"switch":"EMC_ON"}',
             }]);
-        channelbulkCreate.getCall(0).args[0].should.be.eql([
+        channelBulkCreate.getCall(0).args[0].should.be.eql([
             {
                 deviceId: '000000000003',
                 channelId: 11,
@@ -62,6 +68,21 @@ describe('Devices', function() {
                 scale: 0,
                 updatedAt: 20189999,
             }]);
+        findAllStub.getCall(0).args[0].should.be.eql({
+            attributes: [
+                'deviceId',
+            ],
+            where: {
+                deviceId: {
+                    $in: [
+                        '000000000003',
+                    ],
+                },
+                projectId: {
+                    $ne: 100,
+                },
+            },
+        });
     });
     //TODO:
     it('should reject invalid id format', async () => {
@@ -138,7 +159,7 @@ describe('Devices', function() {
                 {
                     deviceId: '000000000001',
                     memo: 'memo',
-                },{
+                }, {
                     deviceId: '000000000002',
                     memo: 'mem2',
                 }],
@@ -148,10 +169,10 @@ describe('Devices', function() {
             Devices: {
                 findAll: async () => [
                     {
-                        toJSON: () => ({deviceId: '000000000001',})
+                        toJSON: () => ({deviceId: '000000000001',}),
                     },
                     {
-                        toJSON: () => ({deviceId: '000000000002',})
+                        toJSON: () => ({deviceId: '000000000002',}),
                     }],
             },
         };

@@ -339,23 +339,27 @@ module.exports = {
             return res.send(422, ErrorCode.ack(ErrorCode.DEVICEIDERROR, {message: `duplicated id format: ${duplicatedReport}`}));
         }
 
-        const duplicatedInOtherProjectReport = await duplicatedWithOtherProjects(MySQL)(projectId, req.body);
+        const duplicatedInOtherProjectReport = await duplicatedWithOtherProjects(MySQL)(projectId, fp.map('deviceId')(req.body));
         console.log(duplicatedInOtherProjectReport);
         if(!fp.isEmpty(duplicatedInOtherProjectReport)) {
             return res.send(422, ErrorCode.ack(ErrorCode.DEVICEIDERROR, {message: `duplicated id in other project: ${duplicatedInOtherProjectReport}`}));
         }
 
-        const allDevices = fp.map(fp.defaults({projectId}))(req.body);
+        const type = 'ELECTRICITY';
+        const freq = 600;
+        const driver = 'YTL/Electric/YTL-BUSvA.1.02.js';
+        const status = '{"switch":"EMC_ON"}';
+        const allDevices = fp.map(fp.defaults({projectId, type, freq, driver, status}))(req.body);
         const allChannels = fp.map(fp.defaults(channelTemplate(moment().unix())))(req.body);
         return MySQL.Sequelize.transaction(t => Promise.all([
             MySQL.Devices.bulkCreate(allDevices, {
-                    updateOnDuplicate: true,
-                    transaction: t,
-                },
+                updateOnDuplicate: true,
+                transaction: t,
+            },
             ), MySQL.DevicesChannels.bulkCreate(allChannels, {
-                    updateOnDuplicate: true,
-                    transaction: t,
-                },
+                updateOnDuplicate: true,
+                transaction: t,
+            },
             )]).then(
             () => res.send(201),
         ).catch(
@@ -374,11 +378,12 @@ const illegalFormatIds = fp.pipe(
 const duplicatedIds = fp.pipe(fp.groupBy('deviceId'),
     fp.pickBy(l => l.length > 1), fp.keys);
 
-const duplicatedWithOtherProjects = MySQL => async (projectId, ids) => MySQL.Devices.findAll(
+const duplicatedWithOtherProjects = MySQL => async (
+    projectId, ids) => MySQL.Devices.findAll(
     {
         where: {
             deviceId: {$in: ids},
-            projectId: {$ne: projectId}
+            projectId: {$ne: projectId},
         }, attributes: ['deviceId'],
     }).then(fp.map(fp.pipe(j => j.toJSON(), fp.get('deviceId'))));
 
