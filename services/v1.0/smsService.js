@@ -2,7 +2,7 @@
 const fp = require('lodash/fp');
 
 const passwd = '123456';
-
+const whiteList = ['13227882591', '13373890896'];
 /*
 * 模版CODE:
 SMS_136380435
@@ -10,6 +10,11 @@ SMS_136380435
 您的${project}账号：${account}，密码：${passwd}关注公众号电小鸽或者下载电小鸽APP使用！
 */
 exports.smsForNewContract = (projectName = '公寓合约', number, username) => {
+    //TODO: temporary disable public sms function while importing production data
+    if (!fp.includes(number)(whiteList)) {
+        log.warn(`not sending anything due to white list: ${number}`);
+        return;
+    }
     if (fp.isEmpty(number)) {
         log.warn(`No mobile number left for user ${username}`);
         return;
@@ -45,6 +50,11 @@ exports.smsForBillOverdue = MySQL => async ({userId, dueAmount}) => {
                 }],
         }).then(j => j.toJSON()).then(fp.get('auth.mobile'));
     const amount = Number(dueAmount / 100).toFixed(2);
+    //TODO: temporary disable public sms function while importing production data
+    if (!fp.includes(number)(whiteList)) {
+        log.warn(`not sending anything due to white list: ${number}`);
+        return;
+    }
     if (fp.isEmpty(number)) {
         log.warn(`No mobile number left for user ${userId}`);
         return;
