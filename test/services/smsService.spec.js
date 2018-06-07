@@ -13,12 +13,12 @@ describe('smsService', function() {
         it('should be able to send out sms', async () => {
             global.ShortMessage = stub().resolves({Code: 'OK'});
 
-            await smsForNewContract('projectName', 'number', 'username');
+            await smsForNewContract('projectName', 'test_number', 'username');
 
             ShortMessage.should.have.been.called;
             const smsSent = ShortMessage.getCall(0).args[0];
             smsSent.should.be.eql({
-                number: 'number',
+                number: 'test_number',
                 params: {
                     account: 'username',
                     passwd: '123456',
@@ -45,7 +45,7 @@ describe('smsService', function() {
                     findById: async () => ({
                         toJSON: () => ({
                             auth: {
-                                mobile: 'mobile',
+                                mobile: 'test_number',
                             },
                         }),
                     }),
@@ -57,7 +57,7 @@ describe('smsService', function() {
             ShortMessage.should.have.been.called;
             const smsSent = ShortMessage.getCall(0).args[0];
             smsSent.should.be.eql({
-                number: 'mobile',
+                number: 'test_number',
                 params: {
                     amount: '99.99'
                 },

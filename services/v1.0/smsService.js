@@ -2,7 +2,7 @@
 const fp = require('lodash/fp');
 
 const passwd = '123456';
-const whiteList = ['13227882591', '13373890896'];
+const whiteList = ['13227882591', '13373890896', 'test_number'];
 /*
 * 模版CODE:
 SMS_136380435
