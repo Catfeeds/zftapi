@@ -1,20 +1,8 @@
 'use strict';
-/**
- * Operations on /houses
- */
 const fp = require('lodash/fp');
-// const moment = require('moment');
 const common = Include('/services/v1.0/common');
 
 module.exports = {
-    /**
-	 * summary: search houses
-	 * description: pass hid or query parameter to get house list
-
-	 * parameters: hfmt, community, searchkey, status, division, rooms, floors, housetype, offset, limit
-	 * produces: application/json
-	 * responses: 200, 400
-	 */
     get: (req, res)=>{
         (async()=>{
             const projectId = req.params.projectId;

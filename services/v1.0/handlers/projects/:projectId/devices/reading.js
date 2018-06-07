@@ -1,7 +1,5 @@
 'use strict';
-/**
- * Operations on /houses
- */
+
 const fp = require('lodash/fp');
 const moment = require('moment');
 const {formatMysqlDateTime} = Include('/services/v1.0/common');
