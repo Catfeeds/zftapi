@@ -2,10 +2,14 @@
 
 ## Development Environment
 
+### prepare environment variables:
+export ALI_KEY=key
+export ALI_SECRET=secret
+
 ### docker-compose
 
 ```bash
-docker-compose up --build
+docker-compose up --build api
 ```
 
 will start up a dev environment on `localhost:8000`, 
