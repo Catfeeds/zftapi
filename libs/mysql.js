@@ -37,7 +37,7 @@ exports.Load = () => {
                     maxIdleTime: 1000
                 }
             },
-            config.ENV === 'DEVELOPMENT' ? {logging: true} : {}
+          config.ENV === 'DEVELOPMENT' ? {logging: log.debug.bind(log)} : {}
         );
         sequelizeInstance = new Sequelize(null, null, null, options);
         sequelizeInstance.authenticate().then(

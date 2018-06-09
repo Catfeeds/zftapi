@@ -31,6 +31,7 @@ services:
           - "./node_modules:/src/node_modules"
         environment:
           - TZ=Asia/Shanghai
+          - DEVELOPMENT=true
           - ZFT_AMAP_KEY
           - ZFT_EM_READ=[{"host":"db","port":3306,"username":"root","password":"example","database":"zft"}]
           - ZFT_EM_WRITE={"host":"db","port":3306,"username":"root","password":"example","database":"zft"}
@@ -38,8 +39,8 @@ services:
           - REDIS_PORT=6379
           - REDIS_PASSWD
           - ENV
-          - ALI_KEY
-          - ALI_SECRET
+          - ALI_KEY=fake-id
+          - ALI_SECRET=fake-key
           - ALLOW_ORIGIN
         depends_on:
           - db
