@@ -39,8 +39,8 @@ services:
           - REDIS_PORT=6379
           - REDIS_PASSWD
           - ENV
-          - ALI_KEY=fake-id
-          - ALI_SECRET=fake-key
+          - ALI_KEY
+          - ALI_SECRET
           - ALLOW_ORIGIN
         depends_on:
           - db
