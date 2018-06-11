@@ -6,50 +6,50 @@ const fp = require('lodash/fp');
 const moment = require('moment');
 
 module.exports = {
-    get: async function(req, res) {
-        //get withdraw information
-        const projectId = req.params.projectId;
-        const id = req.params.id;
+  get: async function(req, res) {
+    //get withdraw information
+    const projectId = req.params.projectId;
+    const id = req.params.id;
 
-        MySQL.WithDraw.findOne({
-            where:{
-                projectId: projectId
-                , id: id
-            }
+    MySQL.WithDraw.findOne({
+      where:{
+        projectId: projectId
+        , id: id
+      }
+    }).then(
+      row=>{
+        if(!row){
+          return res.send(404, ErrorCode.ack(ErrorCode.REQUESTUNMATCH));
+        }
+
+        row = row.toJSON();
+        const userIds = [row.operator, row.auditor];
+
+        MySQL.Users.findAll({
+          where:{
+            id:{$in: userIds}
+          },
+          attributes:['id', 'accountName', 'name']
         }).then(
-            row=>{
-                if(!row){
-                    return res.send(404, ErrorCode.ack(ErrorCode.REQUESTUNMATCH));
-                }
+          users=>{
+            //
+            const userMapping = fp.fromPairs(fp.map(user=>{
+              return [user.id, user];
+            })(users));
 
-                row = row.toJSON();
-                const userIds = [row.operator, row.auditor];
+            const operator = userMapping[row.operator];
+            const auditor = userMapping[row.auditor];
 
-                MySQL.Users.findAll({
-                    where:{
-                        id:{$in: userIds}
-                    },
-                    attributes:['id', 'accountName', 'name']
-                }).then(
-                    users=>{
-                        //
-                        const userMapping = fp.fromPairs(fp.map(user=>{
-                            return [user.id, user];
-                        })(users));
+            row.operator = operator ? operator : {};
+            row.auditor = auditor ? auditor : {};
 
-                        const operator = userMapping[row.operator];
-                        const auditor = userMapping[row.auditor];
+            row.createdAt = moment(row.createdAt).unix();
+            row.updatedAt = moment(row.updatedAt).unix();
 
-                        row.operator = operator ? operator : {};
-                        row.auditor = auditor ? auditor : {};
-
-                        row.createdAt = moment(row.createdAt).unix();
-                        row.updatedAt = moment(row.updatedAt).unix();
-
-                        res.send(row);
-                    }
-                );
-            }
+            res.send(row);
+          }
         );
-    },
+      }
+    );
+  },
 };

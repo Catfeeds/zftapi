@@ -8,20 +8,20 @@ const monthDiff = (from, to) => Math.ceil(moment.duration(moment.unix(to).diff(m
 const plusMonth = (from, m) => moment.unix(from).add(m, 'month').unix();
 
 const billCycles = (from, to, pattern) => {
-    return billScheduler(from, to, pattern)
-        .map(cycle => ({
-            start: plusMonth(from, cycle),
-            end: plusMonth(from, cycle + billPace(pattern, from, to))
-        }));
+  return billScheduler(from, to, pattern)
+    .map(cycle => ({
+      start: plusMonth(from, cycle),
+      end: plusMonth(from, cycle + billPace(pattern, from, to))
+    }));
 };
 
 const billScheduler = (from, to, pattern) => {
-    const diff = monthDiff(from, to);
-    return fp.rangeStep(billPace(pattern, from, to))(0, diff);
+  const diff = monthDiff(from, to);
+  return fp.rangeStep(billPace(pattern, from, to))(0, diff);
 };
 
 
 module.exports = {
-    billCycles,
-    billPace
+  billCycles,
+  billPace
 };

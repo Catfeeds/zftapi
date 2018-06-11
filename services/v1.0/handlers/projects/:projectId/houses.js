@@ -8,13 +8,13 @@ const common = Include('/services/v1.0/common');
 
 function EntireCheck(body) {
   return Util.ParameterCheck(body,
-                             ['location', 'enabledFloors', 'houseCountOnFloor', 'totalFloor']
-                            );
+    ['location', 'enabledFloors', 'houseCountOnFloor', 'totalFloor']
+  );
 }
 function SoleShareCheck(body) {
   return Util.ParameterCheck(body,
-                             ['location', 'roomNumber', 'currentFloor', 'totalFloor']
-                            )
+    ['location', 'roomNumber', 'currentFloor', 'totalFloor']
+  )
     && (fp.isObject(body.layout) && !fp.isArray(body.layout));
 }
 
@@ -490,10 +490,10 @@ module.exports = {
     const params = req.params;
 
     if (!Util.ParameterCheck(query,
-                             ['houseFormat'],
-                            )) {
+      ['houseFormat'],
+    )) {
       return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED,
-                                         {error: 'missing query params houseFormat'}));
+        {error: 'missing query params houseFormat'}));
     }
 
     try {
@@ -525,8 +525,8 @@ module.exports = {
       const projectId = params.projectId;
 
       if(!Util.ParameterCheck(body,
-                              ['houseFormat']
-                             )){
+        ['houseFormat']
+      )){
         return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED, {error: 'missing query params houseFormat'}));
       }
 

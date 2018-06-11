@@ -5,7 +5,7 @@ const _ = require('underscore');
  * Operations on /houses/format
  */
 module.exports = {
-    /**
+  /**
      * summary: get house format
      * description: get houese list
 
@@ -13,19 +13,19 @@ module.exports = {
      * produces: application/json
      * responses: 200, 400
      */
-    get: function searchHouseFMT(req, res) {
-        /**
+  get: function searchHouseFMT(req, res) {
+    /**
          * Get the data for response 200
          * For response `default` status 200 is used.
          */
-        let ret = [];
-        _.map(Typedef.HouseFormatLiteral, (v, k)=>{
-            ret.push({
-                id: k,
-                name: v.name
-            });
-        });
+    let ret = [];
+    _.map(Typedef.HouseFormatLiteral, (v, k)=>{
+      ret.push({
+        id: k,
+        name: v.name
+      });
+    });
 
-        res.send(ret);
-    }
+    res.send(ret);
+  }
 };

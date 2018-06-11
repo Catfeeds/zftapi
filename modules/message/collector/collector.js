@@ -8,49 +8,49 @@ const PRODUCTOR_TOPIC = 'TOCOLLECTOR';
 const CONSUMBER_TOPIC = 'TOAPI';
 
 class CollectorMessageQueue{
-    constructor(){
-        const productorName = `${PRODUCTOR_TOPIC}-${ENV.ENV}`;
-        this.productor = messageQueue.alloc(
-            productorName
-            , config.REDIS_HOST
-            , config.REDIS_PORT
-            , config.REDIS_PASSWD || ''
-        );
-        this.productor.bind(productorName);
+  constructor(){
+    const productorName = `${PRODUCTOR_TOPIC}-${ENV.ENV}`;
+    this.productor = messageQueue.alloc(
+      productorName
+      , config.REDIS_HOST
+      , config.REDIS_PORT
+      , config.REDIS_PASSWD || ''
+    );
+    this.productor.bind(productorName);
 
-        const consumerName = `${CONSUMBER_TOPIC}-${ENV.ENV}`;
-        this.consumer = messageQueue.alloc(
-            consumerName
-            , config.REDIS_HOST
-            , config.REDIS_PORT
-            , config.REDIS_PASSWD || ''
-        );
-        this.consumer.listen(consumerName);
-    }
+    const consumerName = `${CONSUMBER_TOPIC}-${ENV.ENV}`;
+    this.consumer = messageQueue.alloc(
+      consumerName
+      , config.REDIS_HOST
+      , config.REDIS_PORT
+      , config.REDIS_PASSWD || ''
+    );
+    this.consumer.listen(consumerName);
+  }
 
-    send(message){
-        if(this.productor){
-            this.productor.publish(message);
-        }
+  send(message){
+    if(this.productor){
+      this.productor.publish(message);
     }
+  }
 
-    register(func){
-        if(!this.consumer){
-            return false;
-        }
-        return this.consumer.register(func);
+  register(func){
+    if(!this.consumer){
+      return false;
     }
+    return this.consumer.register(func);
+  }
 
-    unRegister(index){
-        if(!this.consumer){
-            return false;
-        }
-        return this.consumer.unRegister(index);
+  unRegister(index){
+    if(!this.consumer){
+      return false;
     }
+    return this.consumer.unRegister(index);
+  }
 }
 
 exports.alloc = ()=>{
-    return new CollectorMessageQueue();
+  return new CollectorMessageQueue();
 };
 
 exports.moduleName = 'Collector';
