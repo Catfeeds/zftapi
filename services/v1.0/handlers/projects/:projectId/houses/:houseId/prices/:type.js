@@ -38,7 +38,6 @@ module.exports = {
             }
           ).then(
             (record)=>{
-              console.log('im here.........', record)
               res.send(201);
             },
             err=>{

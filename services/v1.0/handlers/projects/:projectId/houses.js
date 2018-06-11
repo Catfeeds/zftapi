@@ -672,7 +672,7 @@ module.exports = {
             startDate: moment().unix(),
           }))
           ,{transaction: t}
-        )
+        );
         if(ack.code !== ErrorCode.OK){
           await t.rollback();
           res.send(ack);
