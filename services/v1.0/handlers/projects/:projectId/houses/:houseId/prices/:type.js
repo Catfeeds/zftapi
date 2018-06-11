@@ -37,7 +37,7 @@ module.exports = {
               startDate: now,
             }
           ).then(
-            (record)=>{
+            ()=>{
               res.send(201);
             },
             err=>{
