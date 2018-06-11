@@ -14,6 +14,7 @@ COPY libs libs/
 COPY auth auth/
 COPY services services/
 COPY transformers transformers/
+COPY modules modules/
 COPY package*.json ./
 
 COPY deploy/pm2.json pm2.json

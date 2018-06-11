@@ -1,3 +1,5 @@
+drop database zft;
+
 CREATE DATABASE IF NOT EXISTS zft CHARACTER SET utf8 COLLATE utf8_general_ci;
 USE zft;
 
@@ -404,10 +406,25 @@ create table if not exists `deviceHeartbeats`
 	`createdAt`  datetime NOT NULL ,
 	`updatedAt`  datetime NOT NULL ,
 	`deletedAt`  datetime,
-	PRIMARY KEY (`id`),
 	INDEX `deviceheartbeats_deviceId_index` (`deviceId`) USING BTREE,
-	INDEX `deviceheartbeats_createdAt_deviceId_index` (createdAt DESC, deviceId) USING BTREE
-) ENGINE = InnoDB;
+	INDEX `deviceheartbeats_createdAt_deviceId_index` (createdAt DESC, deviceId) USING BTREE,
+	PRIMARY KEY (`id`) USING BTREE
+) engine=innodb default charset=utf8;
+
+CREATE TABLE if not exists `vendorAccounts`
+(
+    id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+    projectId bigint(20) unsigned NOT NULL,
+    loginURL varchar(255) NOT NULL,
+    vendorProject varchar(255),
+    username varchar(32),
+    password varchar(255),
+    memo text,
+    createdAt datetime NOT NULL ,
+    updatedAt datetime NOT NULL ,
+    deletedAt datetime,
+    PRIMARY KEY (`id`)
+) engine=innodb default charset=utf8;
 
 create table if not exists `eventQueue`
 (
@@ -587,8 +604,8 @@ create table if not exists `prePaidFlows`
 	PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB ROW_FORMAT = Dynamic;
 
-#project demo record
-INSERT INTO `zft`.`projects` (`id`, `name`, `externalId`) VALUES ('100', '加州项目', '5938bb4f4d3684627bcabd7f');
+-- project demo record
+INSERT INTO `zft`.`projects` (`id`, `name`, `externalId`) VALUES (100, '加州项目', '5938bb4f4d3684627bcabd7f');
 INSERT INTO `zft`.`auth` (`id`, `projectId`, `username`, `password`, createdAt, updatedAt)
 VALUES (1, 100, 'admin100', '5f4dcc3b5aa765d61d8327deb882cf99',  NOW(),  NOW()),
 	(2, 101, 'admin101', '5f4dcc3b5aa765d61d8327deb882cf99',  NOW(),  NOW());
@@ -4325,14 +4342,17 @@ INSERT INTO `zft`.`banks`(`id`, `tag`, `name`) VALUES (161, 'LYBANK', '洛阳银
 INSERT INTO `zft`.`banks`(`id`, `tag`, `name`) VALUES (162, 'NHQS', '农信银清算中心');
 INSERT INTO `zft`.`banks`(`id`, `tag`, `name`) VALUES (163, 'CBBQS', '城市商业银行资金清算中心');
 
+INSERT INTO zft.vendorAccounts (projectId, loginURL, vendorProject, username, password, memo, createdAt, updatedAt, deletedAt) VALUES (100, 'http://115.238.36.165:29001/', 'guge001', 'hx03', 'hx1234', null, '2018-06-11 13:15:26', '2018-06-11 13:15:28', null);
 
-
+-- YTL
 INSERT INTO zft.devices (deviceId, projectId, name, tag, type, freq, driver, memo, status, createdAt, updatedAt, deletedAt) VALUES ('YTL043000101485', 100, '', '', 'ELECTRICITY', 60000, 'YTL/Electric/YTL-BUSvA.1.02.js', '', '{"switch":"EMC_ON"}', '2018-02-28 12:32:00', '2018-03-04 10:07:37', null);
 INSERT INTO zft.devices (deviceId, projectId, name, tag, type, freq, driver, memo, status, createdAt, updatedAt, deletedAt) VALUES ('YTL043000101493', 100, '', '', 'ELECTRICITY', 60000, 'YTL/Electric/YTL-BUSvA.1.02.js', '', '{"switch":"EMC_ON"}', '2018-02-28 12:32:19', '2018-03-10 11:39:45', '2018-03-10 11:41:52');
 INSERT INTO zft.devices (deviceId, projectId, name, tag, type, freq, driver, memo, status, createdAt, updatedAt, deletedAt) VALUES ('YTL043000101519', 100, '', '', 'ELECTRICITY', 60000, 'YTL/Electric/YTL-BUSvA.1.02.js', '', '{"switch":"EMC_ON"}', '2018-02-28 12:32:48', '2018-05-13 17:17:24', null);
 INSERT INTO zft.devices (deviceId, projectId, name, tag, type, freq, driver, memo, status, createdAt, updatedAt, deletedAt) VALUES ('YTL043000101501', 100, '', '', 'ELECTRICITY', 60000, 'YTL/Electric/YTL-BUSvA.1.02.js', '测试台-03', '{"switch":"EMC_ON"}', '2018-02-28 12:33:19', '2018-05-13 17:17:24', null);
 INSERT INTO zft.devices (deviceId, projectId, name, tag, type, freq, driver, memo, status, createdAt, updatedAt, deletedAt) VALUES ('YTL043000101477', 100, '', '', 'ELECTRICITY', 60000, 'YTL/Electric/YTL-BUSvA.1.02.js', '', '{"switch":"EMC_ON"}', '2018-02-28 12:33:32', '2018-05-13 17:17:21', null);
 INSERT INTO zft.devices (deviceId, projectId, name, tag, type, freq, driver, memo, status, createdAt, updatedAt, deletedAt) VALUES ('YTL043000231498', 100, '', '', 'ELECTRICITY', 60000, 'YTL/Electric/YTL-BUSvA.1.02.js', '', '{"switch":"EMC_ON"}', '2018-02-28 12:33:32', '2018-05-13 17:17:21', null);
+-- haixing
+INSERT INTO zft.devices (deviceId, projectId, name, tag, type, freq, driver, memo, status, createdAt, updatedAt, deletedAt) VALUES ('HX017062600064', 100, '', '', 'ELECTRICITY', 60000, 'HaiXing/Electric/Q-GDW-2013.js', '', '{"switch":"EMC_ON"}', '2018-06-11 13:20:44', '2018-06-11 22:01:04', null);
 
 INSERT INTO zft.devicesChannels (deviceId, channelId, comi, scale, updatedAt) VALUES ('YTL043000101485', '11', 1.000000, 0, 1520129257);
 INSERT INTO zft.devicesChannels (deviceId, channelId, comi, scale, updatedAt) VALUES ('YTL043000101493', '11', 1.000000, 123000, 1526203238);
