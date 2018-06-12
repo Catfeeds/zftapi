@@ -339,8 +339,9 @@ module.exports = {
       return res.send(422, ErrorCode.ack(ErrorCode.DEVICEIDERROR, {message: `duplicated id format: ${duplicatedReport}`}));
     }
 
-    const duplicatedInOtherProjectReport = await duplicatedWithOtherProjects(MySQL)(projectId, fp.map('deviceId')(req.body));
-    console.log(duplicatedInOtherProjectReport);
+    const deviceIdWithPrefix = fp.map(d => fp.defaults(d)({deviceId: `YTL${d.deviceId}`}))(req.body);
+
+    const duplicatedInOtherProjectReport = await duplicatedWithOtherProjects(MySQL)(projectId, fp.map('deviceId')(deviceIdWithPrefix));
     if(!fp.isEmpty(duplicatedInOtherProjectReport)) {
       return res.send(422, ErrorCode.ack(ErrorCode.DEVICEIDERROR, {message: `duplicated id in other project: ${duplicatedInOtherProjectReport}`}));
     }
@@ -349,8 +350,8 @@ module.exports = {
     const freq = 600;
     const driver = 'YTL/Electric/YTL-BUSvA.1.02.js';
     const status = '{"switch":"EMC_ON"}';
-    const allDevices = fp.map(fp.defaults({projectId, type, freq, driver, status}))(req.body);
-    const allChannels = fp.map(fp.defaults(channelTemplate(moment().unix())))(req.body);
+    const allDevices = fp.map(fp.defaults({projectId, type, freq, driver, status}))(deviceIdWithPrefix);
+    const allChannels = fp.map(fp.defaults(channelTemplate(moment().unix())))(deviceIdWithPrefix);
     return MySQL.Sequelize.transaction(t => Promise.all([
       MySQL.Devices.bulkCreate(allDevices, {
         updateOnDuplicate: true,
@@ -388,7 +389,7 @@ const duplicatedWithOtherProjects = MySQL => async (
   }).then(fp.map(fp.pipe(j => j.toJSON(), fp.get('deviceId'))));
 
 const channelTemplate = updatedAt => ({
-  channelId: 11,
+  channelId: '11',
   comi: '1.000000',
   scale: 0,
   updatedAt,

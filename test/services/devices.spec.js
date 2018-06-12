@@ -51,7 +51,7 @@ describe('Devices', function() {
     sendSpy.getCall(0).args[0].should.be.eql(201);
     bulkCreateStub.getCall(0).args[0].should.be.eql([
       {
-        deviceId: '000000000003',
+        deviceId: 'YTL000000000003',
         projectId: 100,
         memo: 'memo',
         driver: 'YTL/Electric/YTL-BUSvA.1.02.js',
@@ -61,8 +61,8 @@ describe('Devices', function() {
       }]);
     channelBulkCreate.getCall(0).args[0].should.be.eql([
       {
-        deviceId: '000000000003',
-        channelId: 11,
+        deviceId: 'YTL000000000003',
+        channelId: '11',
         comi: '1.000000',
         memo: 'memo',
         scale: 0,
@@ -75,7 +75,7 @@ describe('Devices', function() {
       where: {
         deviceId: {
           $in: [
-            '000000000003',
+            'YTL000000000003',
           ],
         },
         projectId: {
@@ -169,10 +169,10 @@ describe('Devices', function() {
       Devices: {
         findAll: async () => [
           {
-            toJSON: () => ({deviceId: '000000000001',}),
+            toJSON: () => ({deviceId: 'YTL000000000001',}),
           },
           {
-            toJSON: () => ({deviceId: '000000000002',}),
+            toJSON: () => ({deviceId: 'YTL000000000002',}),
           }],
       },
     };
@@ -185,7 +185,7 @@ describe('Devices', function() {
         code: 20000019,
         message: '仪表ID错误',
         result: {
-          message: 'duplicated id in other project: 000000000001,000000000002',
+          message: 'duplicated id in other project: YTL000000000001,YTL000000000002',
         },
       }]);
   });
