@@ -91,6 +91,7 @@ module.exports = {
                         fp.map(fp.pipe(translate, pickHouseId, omitRoomEntry))(contracts)}
             : null
           , projectId ? {key: 'project', value: project} : null
+          , {key: 'features', value: {billPaymentInApp: false}}
         ]
       ));
       res.send(data);

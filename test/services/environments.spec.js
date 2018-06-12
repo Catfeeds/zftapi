@@ -58,7 +58,7 @@ describe('Environments', function() {
       const response = resSpy.getCall(0).args[0];
 
       response.should.shallowDeepEqual({
-        length: 8,
+        length: 9,
         0: {key: 'houseFormat'},
         1: {key: 'roomType'},
         2: {key: 'operationStatus'},
@@ -67,6 +67,7 @@ describe('Environments', function() {
         5: {key: 'banks', value: banks},
         6: {key: 'contracts', value: [expectedContract]},
         7: {key: 'project', value: projectInfo},
+        8: {key: 'features', value: {billPaymentInApp: false}},
       });
     });
   });

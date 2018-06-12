@@ -85,7 +85,7 @@ module.exports = {
 
         const orderNo = assignNewId().id;
         try {
-          const result = await Util.charge(fundChannel, amount, orderNo, 'subject', 'body', {
+          const result = await Util.charge(fundChannel, amount, orderNo, '电小鸽充值/账单', 'body', {
             fundChannelId: fundChannel.id,
             contractId: contractId,
             orderNo: orderNo,

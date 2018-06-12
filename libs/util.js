@@ -149,12 +149,12 @@ exports.charge = async(fundChannel, amount, orderNo, subject, body, metaData)=>{
     const pingXX = require('pingpp')(fundChannel.setting.key);
 
     const chargesObj = {
-        amount: amount,
+        amount,
         order_no: orderNo,
         channel: fundChannel.tag,
         client_ip: '127.0.0.1',
-        subject: subject,
-        body: body,
+        subject,
+        body,
         currency: 'cny',
         app: {
             id: fundChannel.setting.appid
