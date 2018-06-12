@@ -30,8 +30,8 @@
       "single"
     ],
     "semi": [
-      "error",
-      "always"
+      "warn",
+      "never"
     ],
     "lodash-fp/consistent-compose": "off",
     "lodash-fp/consistent-name": [
