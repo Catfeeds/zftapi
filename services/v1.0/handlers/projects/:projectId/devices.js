@@ -9,7 +9,7 @@ module.exports = {
     /**
          * mode=FREE
          */
-
+    const send = res.send.bind(res)
     const projectId = req.params.projectId;
     const query = req.query;
 
@@ -284,6 +284,12 @@ module.exports = {
         },
         data: returnDevices,
       });
+    } else {
+      MySQL.Devices.findAll({
+        where:{
+          projectId: projectId,
+        }
+      }).then(send)
     }
   },
   //TODO: Why delete method is on this level?
