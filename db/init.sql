@@ -1,6 +1,6 @@
-drop database zft;
+drop database if exists zft;
 
-CREATE DATABASE IF NOT EXISTS zft CHARACTER SET utf8 COLLATE utf8_general_ci;
+CREATE DATABASE zft CHARACTER SET utf8 COLLATE utf8_general_ci;
 USE zft;
 
 create table if not exists buildings
