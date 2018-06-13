@@ -25,7 +25,7 @@ describe('bill api', function() {
           then(res => ({room, contract, bills: res.body})),
       ).
       then(({bills, contract}) => {
-        bills.length.should.be.equal(17);
+        bills.length.should.be.equal(12);
         bills[0].contractId.should.be.equal(contract.result.id);
       });
   });
