@@ -2,6 +2,7 @@ require('include-node');
 const appRootPath = require('app-root-path');
 const Restify = require('restify');
 const passport = require('passport');
+const fp = require('lodash/fp');
 const sessions = require('client-sessions');
 const auth = require('./auth/auth');
 const {job: cronJob} = require('./libs/cronJob');
