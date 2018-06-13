@@ -5,6 +5,7 @@ const passport = require('passport');
 const sessions = require('client-sessions');
 const auth = require('./auth/auth');
 const {job: cronJob} = require('./libs/cronJob');
+const config = require('config');
 const {allowOrigin} = require('./libs/cors');
 
 require(appRootPath.path + '/libs/log')('zftAPI');
@@ -29,7 +30,7 @@ Server.use(Restify.plugins.bodyParser());
 Server.use(Restify.plugins.queryParser());
 Server.use(
   function crossOrigin(req, res, next) {
-    res.header('Access-Control-Allow-Origin', allowOrigin(req));
+    res.header('Access-Control-Allow-Origin', allowOrigin(fp.get('ALLOW_ORIGIN')(config))(req));
     res.header('Access-Control-Allow-Headers', 'Access-Control-Allow-Origin, Access-Control-Allow-Headers, Origin, X-Requested-With, Content-Type, CORRELATION_ID');
     res.header('Access-Control-Allow-Methods', 'POST, GET, PUT, DELETE, PATCH, OPTIONS');
     res.header('Access-Control-Allow-Credentials', 'true');

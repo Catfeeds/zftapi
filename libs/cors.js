@@ -1,5 +1,11 @@
 'use strict';
 
-const config = require('config');
+const fp = require('lodash/fp');
+const {URL} = require('url');
 
-exports.allowOrigin = () => config.ALLOW_ORIGIN || 'saas.51dianxiaoge.com'
+exports.allowOrigin = (domains = 'https://saas.51dianxiaoge.com') => ({headers}) => {
+  const {referer} = headers;
+  const origin = new URL(referer).origin;
+  const allDomains = fp.split(',')(domains);
+  return fp.includes(origin)(allDomains) ? origin : fp.head(allDomains);
+};

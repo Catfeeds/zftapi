@@ -4361,6 +4361,8 @@ INSERT INTO zft.devicesChannels (deviceId, channelId, comi, scale, updatedAt) VA
 INSERT INTO zft.devicesChannels (deviceId, channelId, comi, scale, updatedAt) VALUES ('YTL043000101477', '11', 1.000000, 0, 1526203238);
 INSERT INTO zft.devicesChannels (deviceId, channelId, comi, scale, updatedAt) VALUES ('YTL043000231498', '11', 1.000000, 0, 1526203238);
 
+INSERT INTO zft.devicesChannels (deviceId, channelId, comi, scale, updatedAt) VALUES ('HX017062600064', '11', 1.000000, 1.110, 1526203238);
+
 INSERT INTO zft.devicesData (id, deviceId, channelId, reading, rateReading, time) VALUES (65461, 'YTL043000101493', '11', 135000, 135000, 1526644435);
 INSERT INTO zft.devicesData (id, deviceId, channelId, reading, rateReading, time) VALUES (65462, 'YTL043000101519', '11', 34000, 34000, 1526644435);
 INSERT INTO zft.devicesData (id, deviceId, channelId, reading, rateReading, time) VALUES (65463, 'YTL043000101477', '11', 110, 110, 1526644453);
