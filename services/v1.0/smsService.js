@@ -2,19 +2,13 @@
 const fp = require('lodash/fp');
 
 const passwd = '123456';
-const whiteList = ['13227882591', '13373890896', 'test_number'];
-/*
-* 模版CODE:
-SMS_136380435
-模版内容:
-您的${project}账号：${account}，密码：${passwd}关注公众号电小鸽或者下载电小鸽APP使用！
-*/
+/**
+ * 模版CODE:
+ SMS_136380435
+ 模版内容:
+ 您的${project}账号：${account}，密码：${passwd}关注公众号电小鸽或者下载电小鸽APP使用！
+ */
 exports.smsForNewContract = (projectName = '公寓合约', number, username) => {
-  //TODO: temporary disable public sms function while importing production data
-  if (!fp.includes(number)(whiteList)) {
-    log.warn(`not sending anything due to white list: ${number}`);
-    return;
-  }
   if (fp.isEmpty(number)) {
     log.warn(`No mobile number left for user ${username}`);
     return;
@@ -34,12 +28,12 @@ exports.smsForNewContract = (projectName = '公寓合约', number, username) => 
   });
 };
 
-/*
-* 模版CODE:
-SMS_136385466
-模版内容:
-您公寓有${amount}元房租账单已逾期，系统将会停止供电服务。请关注公众号电小鸽或者下载电小鸽APP完成账单支付。
-*/
+/**
+ * 模版CODE:
+ SMS_136385466
+ 模版内容:
+ 您公寓有${amount}元房租账单已逾期，系统将会停止供电服务。请关注公众号电小鸽或者下载电小鸽APP完成账单支付。
+ */
 exports.smsForBillOverdue = MySQL => async ({userId, dueAmount}) => {
   const number = await MySQL.Users.findById(userId,
     {
@@ -50,11 +44,6 @@ exports.smsForBillOverdue = MySQL => async ({userId, dueAmount}) => {
         }],
     }).then(j => j.toJSON()).then(fp.get('auth.mobile'));
   const amount = Number(dueAmount / 100).toFixed(2);
-  //TODO: temporary disable public sms function while importing production data
-  if (!fp.includes(number)(whiteList)) {
-    log.warn(`not sending anything due to white list: ${number}`);
-    return;
-  }
   if (fp.isEmpty(number)) {
     log.warn(`No mobile number left for user ${userId}`);
     return;
@@ -71,6 +60,74 @@ exports.smsForBillOverdue = MySQL => async ({userId, dueAmount}) => {
         log.info('overdue warning sent successfully.', number, res);
       } else {
         log.warn('overdue warning sent failed.', number, res);
+      }
+    });
+};
+
+/**
+ * 模版类型:
+ 短信通知
+ 模版名称:
+ 余额少于0元时通知
+ 模版CODE:
+ SMS_121912040
+ 模版内容:
+ 您账号已欠费，请关注公众号电小鸽或者下载电小鸽APP立即充值，系统将在欠费状态下自动停电。
+ 申请说明:
+ 余额少于0元时，通知用户
+ */
+exports.smsForNegativeBalance = (number, userId) => {
+  if (fp.isEmpty(number)) {
+    log.warn(`No mobile number left for user ${userId}`);
+    return;
+  }
+
+  return ShortMessage({
+    number,
+    template: 'SMS_121912040',
+    params: {},
+  }).
+    then(res => {
+      const {Code} = res;
+      if (Code === 'OK') {
+        log.info('negative balance warning sent successfully.', number, res);
+      } else {
+        log.warn('negative balance warning sent failed.', number, res);
+      }
+    });
+};
+
+/**
+ * 模版类型:
+ 短信通知
+ 模版名称:
+ 余额少于-x元时，通知
+ 模版CODE:
+ SMS_121907050
+ 模版内容:
+ 您账号已欠费超过${amount}元，系统已自动断电，请关注公众号电小鸽或者下载电小鸽APP充值后恢复通电。
+ 申请说明:
+ 余额少于-x元时，通知用户
+ */
+
+exports.smsForPowerOff = (number, userId, dueAmount) => {
+  if (fp.isEmpty(number)) {
+    log.warn(`No mobile number left for user ${userId}`);
+    return;
+  }
+  const amount = Math.abs(Number(dueAmount / 100)).toFixed(2);
+  return ShortMessage({
+    number,
+    //TODO: new id will be SMS_137421742
+    template: 'SMS_121907050',
+    params: {amount},
+  }).
+    then(res => {
+      const {Code} = res;
+      if (Code === 'OK') {
+        log.info('power off warning sent successfully.', number, res);
+      } else {
+        log.warn('power off warning sent failed.', number, res);
       }
     });
 };

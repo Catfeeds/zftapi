@@ -1,6 +1,9 @@
 'use strict';
 
-const {smsForBillOverdue, smsForNewContract} = require(
+const {
+  smsForBillOverdue, smsForNewContract,
+  smsForNegativeBalance, smsForPowerOff,
+} = require(
   '../../services/v1.0/smsService');
 require('include-node');
 const {stub} = require('sinon');
@@ -59,7 +62,7 @@ describe('smsService', function() {
       smsSent.should.be.eql({
         number: 'test_number',
         params: {
-          amount: '99.99'
+          amount: '99.99',
         },
         template: 'SMS_136385466',
       });
@@ -78,6 +81,58 @@ describe('smsService', function() {
 
       await smsForBillOverdue(SequelizeModels)(
         {userId: 'userId', dueAmount: 9999});
+
+      ShortMessage.should.not.have.been.called;
+
+    });
+
+  });
+
+  describe('when negative balance above -20', function() {
+    it('should be able to send out sms', async () => {
+      global.ShortMessage = stub().resolves({Code: 'OK'});
+
+      await smsForNegativeBalance('test_number', 'userId');
+
+      ShortMessage.should.have.been.called;
+      const smsSent = ShortMessage.getCall(0).args[0];
+      smsSent.should.be.eql({
+        number: 'test_number',
+        params: {},
+        template: 'SMS_121912040',
+      });
+
+    });
+    it('should be able to block if no number provided', async () => {
+      global.ShortMessage = stub().resolves({Code: 'OK'});
+
+      await smsForBillOverdue('', 'userId');
+
+      ShortMessage.should.not.have.been.called;
+
+    });
+
+  });
+
+  describe('when negative balance below -20', function() {
+    it('should be able to send out sms', async () => {
+      global.ShortMessage = stub().resolves({Code: 'OK'});
+
+      await smsForPowerOff('test_number', 'userId', -2100);
+
+      ShortMessage.should.have.been.called;
+      const smsSent = ShortMessage.getCall(0).args[0];
+      smsSent.should.be.eql({
+        number: 'test_number',
+        params: {amount: '21.00'},
+        template: 'SMS_121907050',
+      });
+
+    });
+    it('should be able to block if no number provided', async () => {
+      global.ShortMessage = stub().resolves({Code: 'OK'});
+
+      await smsForPowerOff('', 'userId');
 
       ShortMessage.should.not.have.been.called;
 
