@@ -9,7 +9,7 @@ const authenticate = (req, res, next) => {
   const platform = req.body.platform;
   const deviceId = req.body.deviceId;
   passport.authenticate('local', function(err, user) {
-    if (err) {
+    if (!user || err) {
       req.session.destroy();
       return res.json(ErrorCode.ack(ErrorCode.AUTHFAILED,
         {error: 'Incorrect username or password.'}));
