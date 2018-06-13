@@ -51,7 +51,8 @@ module.exports = {
       from, to, manager,
     } = req.query;
 
-    if (to < from || from > moment().unix() ) {
+    const now = moment().unix();
+    if (to < from || from > now ) {
       return res.send(400, ErrorCode.ack(ErrorCode.PARAMETERERROR,
         {error: 'please provide valid from / to timestamp.'}));
     }
@@ -93,12 +94,12 @@ module.exports = {
           $or: [
             {
               startDate: {
-                $lt: moment().unix(),
+                $lt: now,
               },
             },
             {
               dueDate: {
-                $lt: moment().unix(),
+                $lt: now,
               },
             },
           ],

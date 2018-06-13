@@ -4,6 +4,7 @@
  */
 
 const fp = require('lodash/fp');
+const moment = require('moment');
 const {clearUpFields: removeNullValues} = require(
   '../../../../../../../transformers/billItemsCleaner');
 const {fundFlowConnection, paymentsFilter} = require('../../../../../models');
@@ -26,7 +27,7 @@ module.exports = {
     const projectId = req.params.projectId;
 
     const paidFilter = paymentsFilter(MySQL)(fp.get('query.paid')(req), projectId);
-
+    const now = moment().unix();
     return Bills.findAll({
       include: [
         {
@@ -44,6 +45,18 @@ module.exports = {
         entityType: 'property',
         contractId: req.params.contractId,
         projectId,
+        $or: [
+          {
+            startDate: {
+              $lt: now,
+            },
+          },
+          {
+            dueDate: {
+              $lt: now,
+            },
+          },
+        ],
       })(fp.isEmpty(paidFilter) ? {} : {
         id: paidFilter
       }),

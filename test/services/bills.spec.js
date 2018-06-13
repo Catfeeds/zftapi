@@ -143,9 +143,9 @@ describe('Bills', function() {
                 include: [
                   {
                     model: Auth,
-                    attributes: ['mobile']
+                    attributes: ['mobile'],
                   },
-                ]
+                ],
               },
               {
                 attributes: [
@@ -468,6 +468,16 @@ describe('Bills', function() {
           },
           projectId: 100,
           contractId: 999,
+          $or: [
+            {
+              startDate: {
+                $lt: 20189999,
+              },
+            }, {
+              dueDate: {
+                $lt: 20189999,
+              },
+            }],
         });
       });
     });
