@@ -9,7 +9,7 @@ const common = Include('/services/v1.0/common');
 const makeSwitchMessage = (devices, mode)=>{
   return {
     timestamp: moment().unix(),
-    messageTypeId: 7200,
+    messageTypeId: 500,
     type: 500,
     param: fp.map(device=>{
       const deviceId = device.deviceId || device.device.deviceId;
