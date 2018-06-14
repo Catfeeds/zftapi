@@ -101,11 +101,11 @@ exports.smsForNegativeBalance = (number, userId) => {
  * 模版类型:
  短信通知
  模版名称:
- 余额少于-x元时，通知
+ 余额少于-x元时，通知-latest
  模版CODE:
- SMS_121907050
+ SMS_137421742
  模版内容:
- 您账号已欠费超过${amount}元，系统已自动断电，请关注公众号电小鸽或者下载电小鸽APP充值后恢复通电。
+ 您账号已欠费超过${amount}元，系统已自动停止供电服务，请关注公众号电小鸽或者下载电小鸽APP充值后恢复通电。
  申请说明:
  余额少于-x元时，通知用户
  */
@@ -118,8 +118,7 @@ exports.smsForPowerOff = (number, userId, dueAmount) => {
   const amount = Math.abs(Number(dueAmount / 100)).toFixed(2);
   return ShortMessage({
     number,
-    //TODO: new id will be SMS_137421742
-    template: 'SMS_121907050',
+    template: 'SMS_137421742',
     params: {amount},
   }).
     then(res => {

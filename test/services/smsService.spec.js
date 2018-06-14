@@ -125,7 +125,7 @@ describe('smsService', function() {
       smsSent.should.be.eql({
         number: 'test_number',
         params: {amount: '21.00'},
-        template: 'SMS_121907050',
+        template: 'SMS_137421742',
       });
 
     });
