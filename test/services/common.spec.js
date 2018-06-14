@@ -2,7 +2,7 @@
 const {
   includeContracts, payBills, serviceCharge,
   moveFundChannelToRoot, shareFlows, platformFlows, logFlows,
-  convertRoomNumber, topUp, translateDevices,
+  convertRoomNumber, topUp, translateDevices, getAddrId, getBuildingId
 } = require(
   '../../services/v1.0/common');
 const {spy, stub} = require('sinon');
@@ -842,5 +842,17 @@ describe('Common', function() {
       after.should.be.eql([]);
     },
     );
+  });
+
+  describe('Util', () => {
+    it('should extract address id from deviceId', () => {
+      getAddrId('HX017062600064').should.be.equal('017062600064');
+      getAddrId('YTL043000101501').should.be.equal('043000101501');
+    });
+
+    it('should extract building id from deviceId', () => {
+      getBuildingId('HX017062600064').should.be.equal('0170626000');
+      getBuildingId('YTL043000101501').should.be.equal('0430001015');
+    });
   });
 });

@@ -569,14 +569,11 @@ exports.districtLocation = (query)=>{
   }
 };
 
-exports.getDeviceId = (deviceId)=>{
-  return exports.getAddrId(deviceId);
-};
 exports.getBuildingId = (deviceId)=>{
-  return deviceId.substr(0, 10);
+  return exports.getAddrId(deviceId).substr(0, 10);
 };
 exports.getAddrId = (deviceId)=>{
-  return deviceId.substr(3);
+  return deviceId.replace(/^\D+/, '');
 };
 
 exports.includeHouseDevices =(isPublic)=>{
