@@ -60,7 +60,7 @@ describe('Devices', function() {
         driver: 'YTL/Electric/YTL-BUSvA.1.02.js',
         freq: 600,
         type: 'ELECTRICITY',
-        status: {"switch":"EMC_ON"},
+        status: {switch:'EMC_ON'},
       }]);
     channelBulkCreate.getCall(0).args[0].should.be.eql([
       {
