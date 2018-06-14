@@ -9,7 +9,7 @@ module.exports = {
     /**
          * mode=FREE
          */
-
+    const send = res.send.bind(res)
     const projectId = req.params.projectId;
     const query = req.query;
 
@@ -284,6 +284,12 @@ module.exports = {
         },
         data: returnDevices,
       });
+    } else {
+      MySQL.Devices.findAll({
+        where:{
+          projectId: projectId,
+        }
+      }).then(send)
     }
   },
   //TODO: Why delete method is on this level?
@@ -349,9 +355,13 @@ module.exports = {
     const type = 'ELECTRICITY';
     const freq = 600;
     const driver = 'YTL/Electric/YTL-BUSvA.1.02.js';
-    const status = '{"switch":"EMC_ON"}';
+    const status = {switch:'EMC_ON'}
     const allDevices = fp.map(fp.defaults({projectId, type, freq, driver, status}))(deviceIdWithPrefix);
-    const allChannels = fp.map(fp.defaults(channelTemplate(moment().unix())))(deviceIdWithPrefix);
+    const CHANNEL_TEMP = channelTemplate(moment().unix())
+    const allChannels = fp.map(fp.pipe(
+      fp.pick(fp.keys(CHANNEL_TEMP).concat(['deviceId'])),
+      fp.defaults(CHANNEL_TEMP)
+    ))(deviceIdWithPrefix);
     return MySQL.Sequelize.transaction(t => Promise.all([
       MySQL.Devices.bulkCreate(allDevices, {
         updateOnDuplicate: true,
@@ -373,7 +383,7 @@ module.exports = {
 };
 
 const illegalFormatIds = fp.pipe(
-  fp.reject(s => fp.getOr('')('deviceId')(s).match(/^\d{12}$/)),
+  fp.reject(s => fp.getOr('')('deviceId')(s).match(/\d{12}$/)),
   fp.map('deviceId'));
 
 const duplicatedIds = fp.pipe(fp.groupBy('deviceId'),

@@ -24,7 +24,9 @@ describe('Devices', function() {
       body: [
         {
           deviceId: '000000000003',
+          driver: 'YTL/Electric/YTL-BUSvA.1.02.js',
           memo: 'memo',
+          name: 'name'
         }],
     };
     const bulkCreateStub = stub().resolves([]);
@@ -54,17 +56,17 @@ describe('Devices', function() {
         deviceId: 'YTL000000000003',
         projectId: 100,
         memo: 'memo',
+        name: 'name',
         driver: 'YTL/Electric/YTL-BUSvA.1.02.js',
         freq: 600,
         type: 'ELECTRICITY',
-        status: '{"switch":"EMC_ON"}',
+        status: {switch:'EMC_ON'},
       }]);
     channelBulkCreate.getCall(0).args[0].should.be.eql([
       {
         deviceId: 'YTL000000000003',
         channelId: '11',
         comi: '1.000000',
-        memo: 'memo',
         scale: 0,
         updatedAt: 20189999,
       }]);
