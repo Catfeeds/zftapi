@@ -66,7 +66,7 @@ const guard = (req, res, next) => {
     return res.send(401);
   }
 
-  const allProjects = /\/projects(\/)?/;
+  const allProjects = /\/projects(\/)?$/;
   //allProjects should only be access from boss,
   if (allProjects.test(req.url) && !allowToCreateProject(req)) {
     return res.send(401);
