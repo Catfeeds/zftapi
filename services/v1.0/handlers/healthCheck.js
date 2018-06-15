@@ -1,4 +1,4 @@
-'use strict';
+'use strict'
 /**
  * Operations on /healthCheck
  */
@@ -9,6 +9,6 @@ module.exports = {
       {raw: true, plain: false}
     )
     .then(state => {
-      res.send(200, ErrorCode.ack(ErrorCode.OK, state));
+      res.send(200, ErrorCode.ack(ErrorCode.OK, state))
     })
-};
+}

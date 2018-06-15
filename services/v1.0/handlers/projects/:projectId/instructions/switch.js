@@ -1,10 +1,10 @@
-'use strict';
+'use strict'
 /**
  * Operations devices in room
  */
-const fp = require('lodash/fp');
-const moment = require('moment');
-const common = Include('/services/v1.0/common');
+const fp = require('lodash/fp')
+const moment = require('moment')
+const common = Include('/services/v1.0/common')
 
 const makeSwitchMessage = (devices, mode)=>{
   return {
@@ -12,7 +12,7 @@ const makeSwitchMessage = (devices, mode)=>{
     messageTypeId: 500,
     type: 500,
     param: fp.map(device=>{
-      const deviceId = device.deviceId || device.device.deviceId;
+      const deviceId = device.deviceId || device.device.deviceId
       return {
         buildingid:common.getBuildingId(deviceId),
         addrid: common.getAddrId(deviceId),
@@ -24,10 +24,10 @@ const makeSwitchMessage = (devices, mode)=>{
         param: {
           mode: mode
         }
-      };
+      }
     })(devices)
-  };
-};
+  }
+}
 
 module.exports = {
   patch: (req, res)=>{
@@ -35,18 +35,18 @@ module.exports = {
          * roomId=xx
          * mode=EMC_ON/EMC_OFF
          */
-    const body = req.body;
+    const body = req.body
     if(!Util.ParameterCheck(body, ['roomId|deviceIds', 'mode'])){
-      return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED));
+      return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED))
     }
 
-    const projectId = req.params.projectId;
-    const roomId = body.roomId;
-    const deviceIds = body.deviceIds;
-    const mode = body.mode;
+    const projectId = req.params.projectId
+    const roomId = body.roomId
+    const deviceIds = body.deviceIds
+    const mode = body.mode
 
     if( !Typedef.DriverCommand[mode] ){
-      return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED));
+      return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED))
     }
 
     if(roomId){
@@ -65,15 +65,15 @@ module.exports = {
         ]
       }).then(
         devices=>{
-          const evt = makeSwitchMessage(devices, mode);
-          Message.Collector.send(evt);
-          res.send(202);
+          const evt = makeSwitchMessage(devices, mode)
+          Message.Collector.send(evt)
+          res.send(202)
         },
         err=>{
-          log.error(err, roomId, mode);
-          res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC));
+          log.error(err, roomId, mode)
+          res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC))
         }
-      );
+      )
     }
     else if(deviceIds){
       MySQL.Devices.findAll({
@@ -83,15 +83,15 @@ module.exports = {
         }
       }).then(
         devices=>{
-          const evt = makeSwitchMessage(devices, mode);
-          Message.Collector.send(evt);
-          res.send(202);
+          const evt = makeSwitchMessage(devices, mode)
+          Message.Collector.send(evt)
+          res.send(202)
         },
         err=>{
-          log.error(err, roomId, mode);
-          res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC));
+          log.error(err, roomId, mode)
+          res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC))
         }
-      );
+      )
     }
     else{
       //
@@ -100,4 +100,4 @@ module.exports = {
 
 
   }
-};
+}

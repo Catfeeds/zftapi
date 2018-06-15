@@ -1,12 +1,12 @@
-'use strict';
-const fp = require('lodash/fp');
-const moment = require('moment');
+'use strict'
+const fp = require('lodash/fp')
+const moment = require('moment')
 
 const generate = (contract, bill) => {
-  const standardBill = fp.compact([fp.get('metadata.freq')(bill)]);
-  const paidWithBill = fp.getOr([])('metadata.expenses')(bill);
-  const otherBill = fp.compact([fp.get('metadata.configId')(bill)]);
-  const bondBill = fp.compact([fp.get('metadata.bond')(bill)]);
+  const standardBill = fp.compact([fp.get('metadata.freq')(bill)])
+  const paidWithBill = fp.getOr([])('metadata.expenses')(bill)
+  const otherBill = fp.compact([fp.get('metadata.configId')(bill)])
+  const bondBill = fp.compact([fp.get('metadata.bond')(bill)])
 
   return fp.reduce(fp.concat)([])([
     standardBill.map(pattern => ({
@@ -37,9 +37,9 @@ const generate = (contract, bill) => {
       amount: bill.dueAmount,
       createdAt: moment().unix()
     }))
-  ]);
-};
+  ])
+}
 
 module.exports = {
   generate
-};
+}

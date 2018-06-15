@@ -1,54 +1,54 @@
-'use strict';
+'use strict'
 
-const {get} = require('../../services/v1.0/handlers/projects/:projectId/bills');
+const {get} = require('../../services/v1.0/handlers/projects/:projectId/bills')
 const {get: contractGet} = require(
-  '../../services/v1.0/handlers/projects/:projectId/contracts/:contractId/bills');
-require('include-node');
-const {spy, stub} = require('sinon');
-const fp = require('lodash/fp');
-const {fn} = require('moment');
-const sinon = require('sinon');
+  '../../services/v1.0/handlers/projects/:projectId/contracts/:contractId/bills')
+require('include-node')
+const {spy, stub} = require('sinon')
+const fp = require('lodash/fp')
+const {fn} = require('moment')
+const sinon = require('sinon')
 
-const sandbox = sinon.sandbox.create();
+const sandbox = sinon.sandbox.create()
 
-const stubRoom = {toJSON: () => ({house: {building: {location: {}}}})};
+const stubRoom = {toJSON: () => ({house: {building: {location: {}}}})}
 
 describe('Bills', function() {
   before(() => {
-    global.Typedef = Include('/libs/typedef');
-    global.ErrorCode = Include('/libs/errorCode');
-    global.Util = Include('/libs/util');
-    sandbox.stub(fn, 'unix');
-    fn.unix.returns(20189999);
-  });
+    global.Typedef = Include('/libs/typedef')
+    global.ErrorCode = Include('/libs/errorCode')
+    global.Util = Include('/libs/util')
+    sandbox.stub(fn, 'unix')
+    fn.unix.returns(20189999)
+  })
   after(() => {
-    sandbox.restore();
-  });
+    sandbox.restore()
+  })
   describe('Independent Bills', function() {
     it('should return all contracts from findAndCountAll',
       async function() {
-        const bill = {dataValues: {contract: {dataValues: {room: stubRoom}}}};
+        const bill = {dataValues: {contract: {dataValues: {room: stubRoom}}}}
         const req = {
           params: {
             projectId: 100,
           },
           query: {},
 
-        };
-        const Users = {id: 'Users'};
-        const Rooms = {id: 'Rooms'};
-        const Houses = {id: 'Houses'};
-        const Building = {id: 'Building'};
-        const GeoLocation = {id: 'GeoLocation'};
-        const BillFlows = {id: 'BillFlows'};
-        const Contracts = {id: 'Contracts'};
+        }
+        const Users = {id: 'Users'}
+        const Rooms = {id: 'Rooms'}
+        const Houses = {id: 'Houses'}
+        const Building = {id: 'Building'}
+        const GeoLocation = {id: 'GeoLocation'}
+        const BillFlows = {id: 'BillFlows'}
+        const Contracts = {id: 'Contracts'}
         global.MySQL = {
           Bills: {
             async findAndCountAll() {
               return {
                 count: 1,
                 rows: [bill],
-              };
+              }
             },
           },
           Users,
@@ -58,17 +58,17 @@ describe('Bills', function() {
           GeoLocation,
           BillFlows,
           Contracts,
-        };
-        const resSpy = spy();
+        }
+        const resSpy = spy()
 
         await get(req, {send: resSpy}).then(() => {
-          resSpy.should.have.been.called;
+          resSpy.should.have.been.called
           resSpy.getCall(0).args[0].data[0].contract.should.be.eql(
-            {});
-          resSpy.getCall(0).args[0].data[0].user.should.be.eql({});
+            {})
+          resSpy.getCall(0).args[0].data[0].user.should.be.eql({})
         },
-        );
-      });
+        )
+      })
 
     it('should connect with houses if query with houseFormat', async () => {
       const req = {
@@ -78,19 +78,19 @@ describe('Bills', function() {
         query: {
           houseFormat: 'SOLE',
         },
-      };
-      const sequelizeFindSpy = stub().resolves([]);
-      const BillPayment = {id: 'BillPayment'};
-      const Users = {id: 'Users'};
-      const Auth = {id: 'Auth'};
-      const Rooms = {id: 'Rooms'};
-      const Houses = {id: 'Houses'};
-      const Building = {id: 'Building'};
-      const GeoLocation = {id: 'GeoLocation'};
-      const BillFlows = {id: 'BillFlows'};
-      const Contracts = {id: 'Contracts'};
-      const FundChannelFlows = {id: 'FundChannelFlows'};
-      const HouseDevices = {id: 'HouseDevices'};
+      }
+      const sequelizeFindSpy = stub().resolves([])
+      const BillPayment = {id: 'BillPayment'}
+      const Users = {id: 'Users'}
+      const Auth = {id: 'Auth'}
+      const Rooms = {id: 'Rooms'}
+      const Houses = {id: 'Houses'}
+      const Building = {id: 'Building'}
+      const GeoLocation = {id: 'GeoLocation'}
+      const BillFlows = {id: 'BillFlows'}
+      const Contracts = {id: 'Contracts'}
+      const FundChannelFlows = {id: 'FundChannelFlows'}
+      const HouseDevices = {id: 'HouseDevices'}
       global.MySQL = {
         Bills: {
           findAndCountAll: sequelizeFindSpy,
@@ -106,11 +106,11 @@ describe('Bills', function() {
         Contracts,
         FundChannelFlows,
         HouseDevices,
-      };
+      }
 
       await get(req, {send: fp.noop}).then(() => {
-        sequelizeFindSpy.should.have.been.called;
-        const modelOptions = sequelizeFindSpy.getCall(0).args[0];
+        sequelizeFindSpy.should.have.been.called
+        const modelOptions = sequelizeFindSpy.getCall(0).args[0]
         modelOptions.include.should.be.eql([
           {
             as: 'billItems',
@@ -222,9 +222,9 @@ describe('Bills', function() {
             ],
             model: FundChannelFlows,
             required: false,
-          }]);
-      });
-    });
+          }])
+      })
+    })
     it('should filter out unPaid bill if paid=true', async () => {
       const req = {
         params: {
@@ -234,17 +234,17 @@ describe('Bills', function() {
           houseFormat: 'SOLE',
           paid: 'true',
         },
-      };
-      const sequelizeFindSpy = stub().resolves([]);
-      const BillPayment = {id: 'BillPayment'};
-      const Users = {id: 'Users'};
-      const Rooms = {id: 'Rooms'};
-      const Houses = {id: 'Houses'};
-      const Building = {id: 'Building'};
-      const GeoLocation = {id: 'GeoLocation'};
-      const BillFlows = {id: 'BillFlows'};
-      const Contracts = {id: 'Contracts'};
-      const FundChannelFlows = {id: 'FundChannelFlows'};
+      }
+      const sequelizeFindSpy = stub().resolves([])
+      const BillPayment = {id: 'BillPayment'}
+      const Users = {id: 'Users'}
+      const Rooms = {id: 'Rooms'}
+      const Houses = {id: 'Houses'}
+      const Building = {id: 'Building'}
+      const GeoLocation = {id: 'GeoLocation'}
+      const BillFlows = {id: 'BillFlows'}
+      const Contracts = {id: 'Contracts'}
+      const FundChannelFlows = {id: 'FundChannelFlows'}
       global.MySQL = {
         Bills: {
           findAndCountAll: sequelizeFindSpy,
@@ -261,37 +261,37 @@ describe('Bills', function() {
         Sequelize: {
           literal: fp.identity,
         },
-      };
+      }
 
       await get(req, {send: fp.noop}).then(() => {
-        sequelizeFindSpy.should.have.been.called;
-        const modelOptions = sequelizeFindSpy.getCall(0).args[0];
+        sequelizeFindSpy.should.have.been.called
+        const modelOptions = sequelizeFindSpy.getCall(0).args[0]
         fp.omit('$or')(modelOptions.where).should.be.eql({
           entityType: 'property',
           id: {
             $in: '( select billId from billpayment where projectId = 100 )',
           },
           projectId: 100,
-        });
-      });
-    });
+        })
+      })
+    })
     it('should display related bills only', async () => {
       const req = {
         params: {
           projectId: 100,
         },
         query: {},
-      };
-      const sequelizeFindSpy = stub().resolves([]);
-      const BillPayment = {id: 'BillPayment'};
-      const Users = {id: 'Users'};
-      const Rooms = {id: 'Rooms'};
-      const Houses = {id: 'Houses'};
-      const Building = {id: 'Building'};
-      const GeoLocation = {id: 'GeoLocation'};
-      const BillFlows = {id: 'BillFlows'};
-      const Contracts = {id: 'Contracts'};
-      const FundChannelFlows = {id: 'FundChannelFlows'};
+      }
+      const sequelizeFindSpy = stub().resolves([])
+      const BillPayment = {id: 'BillPayment'}
+      const Users = {id: 'Users'}
+      const Rooms = {id: 'Rooms'}
+      const Houses = {id: 'Houses'}
+      const Building = {id: 'Building'}
+      const GeoLocation = {id: 'GeoLocation'}
+      const BillFlows = {id: 'BillFlows'}
+      const Contracts = {id: 'Contracts'}
+      const FundChannelFlows = {id: 'FundChannelFlows'}
       global.MySQL = {
         Bills: {
           findAndCountAll: sequelizeFindSpy,
@@ -308,11 +308,11 @@ describe('Bills', function() {
         Sequelize: {
           literal: fp.identity,
         },
-      };
+      }
 
       await get(req, {send: fp.noop}).then(() => {
-        sequelizeFindSpy.should.have.been.called;
-        const modelOptions = sequelizeFindSpy.getCall(0).args[0];
+        sequelizeFindSpy.should.have.been.called
+        const modelOptions = sequelizeFindSpy.getCall(0).args[0]
         modelOptions.where.$or.should.be.eql([
           {
             startDate: {
@@ -322,9 +322,9 @@ describe('Bills', function() {
             dueDate: {
               $lt: 20189999,
             },
-          }]);
-      });
-    });
+          }])
+      })
+    })
     it('should respect from & to query', async () => {
       const req = {
         params: {
@@ -334,17 +334,17 @@ describe('Bills', function() {
           from: 123,
           to: 234,
         },
-      };
-      const sequelizeFindSpy = stub().resolves([]);
-      const BillPayment = {id: 'BillPayment'};
-      const Users = {id: 'Users'};
-      const Rooms = {id: 'Rooms'};
-      const Houses = {id: 'Houses'};
-      const Building = {id: 'Building'};
-      const GeoLocation = {id: 'GeoLocation'};
-      const BillFlows = {id: 'BillFlows'};
-      const Contracts = {id: 'Contracts'};
-      const FundChannelFlows = {id: 'FundChannelFlows'};
+      }
+      const sequelizeFindSpy = stub().resolves([])
+      const BillPayment = {id: 'BillPayment'}
+      const Users = {id: 'Users'}
+      const Rooms = {id: 'Rooms'}
+      const Houses = {id: 'Houses'}
+      const Building = {id: 'Building'}
+      const GeoLocation = {id: 'GeoLocation'}
+      const BillFlows = {id: 'BillFlows'}
+      const Contracts = {id: 'Contracts'}
+      const FundChannelFlows = {id: 'FundChannelFlows'}
       global.MySQL = {
         Bills: {
           findAndCountAll: sequelizeFindSpy,
@@ -361,17 +361,17 @@ describe('Bills', function() {
         Sequelize: {
           literal: fp.identity,
         },
-      };
+      }
 
       await get(req, {send: fp.noop}).then(() => {
-        sequelizeFindSpy.should.have.been.called;
-        const modelOptions = sequelizeFindSpy.getCall(0).args[0];
+        sequelizeFindSpy.should.have.been.called
+        const modelOptions = sequelizeFindSpy.getCall(0).args[0]
         modelOptions.where.dueDate.should.be.eql({
           $gte: req.query.from,
           $lte: req.query.to,
-        });
-      });
-    });
+        })
+      })
+    })
     it('should respect manager query', async () => {
       const req = {
         params: {
@@ -380,17 +380,17 @@ describe('Bills', function() {
         query: {
           manager: 321,
         },
-      };
-      const sequelizeFindSpy = stub().resolves([]);
-      const BillPayment = {id: 'BillPayment'};
-      const Users = {id: 'Users'};
-      const Rooms = {id: 'Rooms'};
-      const Houses = {id: 'Houses'};
-      const Building = {id: 'Building'};
-      const GeoLocation = {id: 'GeoLocation'};
-      const BillFlows = {id: 'BillFlows'};
-      const Contracts = {id: 'Contracts'};
-      const FundChannelFlows = {id: 'FundChannelFlows'};
+      }
+      const sequelizeFindSpy = stub().resolves([])
+      const BillPayment = {id: 'BillPayment'}
+      const Users = {id: 'Users'}
+      const Rooms = {id: 'Rooms'}
+      const Houses = {id: 'Houses'}
+      const Building = {id: 'Building'}
+      const GeoLocation = {id: 'GeoLocation'}
+      const BillFlows = {id: 'BillFlows'}
+      const Contracts = {id: 'Contracts'}
+      const FundChannelFlows = {id: 'FundChannelFlows'}
       global.MySQL = {
         Bills: {
           findAndCountAll: sequelizeFindSpy,
@@ -407,17 +407,17 @@ describe('Bills', function() {
         Sequelize: {
           literal: fp.identity,
         },
-      };
+      }
 
       await get(req, {send: fp.noop}).then(() => {
-        sequelizeFindSpy.should.have.been.called;
-        const modelOptions = sequelizeFindSpy.getCall(0).args[0];
+        sequelizeFindSpy.should.have.been.called
+        const modelOptions = sequelizeFindSpy.getCall(0).args[0]
         modelOptions.where['$contract.room.house.houseKeeper$'].should.be.eql(
           req.query.manager,
-        );
-      });
-    });
-  });
+        )
+      })
+    })
+  })
   describe('Contracts Bills', function() {
     it('should filter out unPaid bill in contracts/bills', async () => {
       const req = {
@@ -429,17 +429,17 @@ describe('Bills', function() {
           houseFormat: 'SOLE',
           paid: 'true',
         },
-      };
-      const sequelizeFindSpy = stub().resolves([]);
-      const BillPayment = {id: 'BillPayment'};
-      const Users = {id: 'Users'};
-      const Rooms = {id: 'Rooms'};
-      const Houses = {id: 'Houses'};
-      const Building = {id: 'Building'};
-      const GeoLocation = {id: 'GeoLocation'};
-      const BillFlows = {id: 'BillFlows'};
-      const Contracts = {id: 'Contracts'};
-      const FundChannelFlows = {id: 'FundChannelFlows'};
+      }
+      const sequelizeFindSpy = stub().resolves([])
+      const BillPayment = {id: 'BillPayment'}
+      const Users = {id: 'Users'}
+      const Rooms = {id: 'Rooms'}
+      const Houses = {id: 'Houses'}
+      const Building = {id: 'Building'}
+      const GeoLocation = {id: 'GeoLocation'}
+      const BillFlows = {id: 'BillFlows'}
+      const Contracts = {id: 'Contracts'}
+      const FundChannelFlows = {id: 'FundChannelFlows'}
       global.MySQL = {
         Bills: {
           findAll: sequelizeFindSpy,
@@ -456,11 +456,11 @@ describe('Bills', function() {
         Sequelize: {
           literal: fp.identity,
         },
-      };
+      }
 
       await contractGet(req, {send: fp.noop}).then(() => {
-        sequelizeFindSpy.should.have.been.called;
-        const modelOptions = sequelizeFindSpy.getCall(0).args[0];
+        sequelizeFindSpy.should.have.been.called
+        const modelOptions = sequelizeFindSpy.getCall(0).args[0]
         fp.omit('startDate')(modelOptions.where).should.be.eql({
           entityType: 'property',
           id: {
@@ -478,8 +478,8 @@ describe('Bills', function() {
                 $lt: 20189999,
               },
             }],
-        });
-      });
-    });
-  });
-});
+        })
+      })
+    })
+  })
+})

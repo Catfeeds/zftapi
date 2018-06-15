@@ -1,9 +1,9 @@
-'use strict';
+'use strict'
 
-const fp = require('lodash/fp');
-const {omitSingleNulls} = require('../../../../../common');
+const fp = require('lodash/fp')
+const {omitSingleNulls} = require('../../../../../common')
 
-const inner = json => json.toJSON ? json.toJSON() : json;
+const inner = json => json.toJSON ? json.toJSON() : json
 const translate = pagingInfo => models => {
   return {
     paging: {
@@ -12,21 +12,21 @@ const translate = pagingInfo => models => {
       size: pagingInfo.size,
     },
     data: fp.map(fp.pipe(inner, omitSingleNulls))(models.rows),
-  };
-};
+  }
+}
 
 module.exports = {
   get: async (req, res) => {
-    const projectId = req.params.projectId;
-    const userId = req.params.userId;
+    const projectId = req.params.projectId
+    const userId = req.params.userId
 
-    const UserNotifications = MySQL.UserNotifications;
+    const UserNotifications = MySQL.UserNotifications
 
     const {
       index: pageIndex, size: pageSize,
-    } = req.query;
+    } = req.query
 
-    const pagingInfo = Util.PagingInfo(pageIndex, pageSize, true);
+    const pagingInfo = Util.PagingInfo(pageIndex, pageSize, true)
 
     return UserNotifications.findAndCountAll({
       where: {
@@ -37,6 +37,6 @@ module.exports = {
       then(translate(pagingInfo)).
       then(data => res.send(data)).
       catch(err => res.send(500,
-        ErrorCode.ack(ErrorCode.DATABASEEXEC, {error: err.message})));
+        ErrorCode.ack(ErrorCode.DATABASEEXEC, {error: err.message})))
   },
-};
+}

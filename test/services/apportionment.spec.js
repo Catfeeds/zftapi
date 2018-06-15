@@ -1,16 +1,16 @@
-'use strict';
+'use strict'
 
 const {put, get} = require(
-  '../../services/v1.0/handlers/projects/:projectId/houses/:houseId/apportionment');
-require('include-node');
-const {spy, stub} = require('sinon');
+  '../../services/v1.0/handlers/projects/:projectId/houses/:houseId/apportionment')
+require('include-node')
+const {spy, stub} = require('sinon')
 
 describe('HouseApportionment', function() {
   before(() => {
-    global.Typedef = Include('/libs/typedef');
-    global.ErrorCode = Include('/libs/errorCode');
-    global.log = console;
-  });
+    global.Typedef = Include('/libs/typedef')
+    global.ErrorCode = Include('/libs/errorCode')
+    global.log = console
+  })
   it('should only allow sharing 100%', async function() {
     const req = {
       params: {
@@ -21,8 +21,8 @@ describe('HouseApportionment', function() {
           value: 99,
         }],
       query: {},
-    };
-    const sendSpy = spy();
+    }
+    const sendSpy = spy()
     global.MySQL = {
       Houses: {
         id: 'Houses', findById: async () => ({
@@ -40,19 +40,19 @@ describe('HouseApportionment', function() {
         }),
       },
 
-    };
+    }
 
     await put(req, {send: sendSpy}).then(() => {
-      sendSpy.should.have.been.called;
-      const response = sendSpy.getCall(0).args;
+      sendSpy.should.have.been.called
+      const response = sendSpy.getCall(0).args
       response.should.be.eql([
         403, {
           code: 20000032, message: '参数错误', result: {
             error: 'Total share value is not 100%',
           },
-        }]);
-    });
-  });
+        }])
+    })
+  })
 
   it('should go manual by default', async function() {
     const req = {
@@ -70,10 +70,10 @@ describe('HouseApportionment', function() {
           value: 10,
         }],
       query: {},
-    };
-    const sendSpy = spy();
-    const apportionmentUpdateSpy = stub().resolves({});
-    const apportionmentDestroySpy = stub().resolves({});
+    }
+    const sendSpy = spy()
+    const apportionmentUpdateSpy = stub().resolves({})
+    const apportionmentDestroySpy = stub().resolves({})
 
     global.MySQL = {
       Houses: {
@@ -97,13 +97,13 @@ describe('HouseApportionment', function() {
       Sequelize: {
         transaction: async (f) => f({}),
       },
-    };
+    }
 
     await put(req, {send: sendSpy}).then(() => {
-      sendSpy.should.have.been.called;
-      const response = sendSpy.getCall(0).args;
-      response.should.be.eql([204]);
-      apportionmentUpdateSpy.should.have.been.called;
+      sendSpy.should.have.been.called
+      const response = sendSpy.getCall(0).args
+      response.should.be.eql([204])
+      apportionmentUpdateSpy.should.have.been.called
       apportionmentUpdateSpy.getCall(0).args[0].should.be.eql([
         {
           houseId: 999,
@@ -115,12 +115,12 @@ describe('HouseApportionment', function() {
           projectId: 100,
           roomId: 2,
           value: 10,
-        }]);
+        }])
       apportionmentDestroySpy.getCall(0).args[0].where.should.be.eql({
         houseId: 999,
-      });
-    });
-  });
+      })
+    })
+  })
 
   it('should not be tricked from request body', async function() {
     const req = {
@@ -142,10 +142,10 @@ describe('HouseApportionment', function() {
           houseId: 8881,
         }],
       query: {},
-    };
-    const sendSpy = spy();
-    const apportionmentUpdateSpy = stub().resolves({});
-    const apportionmentDestroySpy = stub().resolves({});
+    }
+    const sendSpy = spy()
+    const apportionmentUpdateSpy = stub().resolves({})
+    const apportionmentDestroySpy = stub().resolves({})
 
     global.MySQL = {
       Houses: {
@@ -169,13 +169,13 @@ describe('HouseApportionment', function() {
       Sequelize: {
         transaction: async (f) => f({}),
       },
-    };
+    }
 
     await put(req, {send: sendSpy}).then(() => {
-      sendSpy.should.have.been.called;
-      const response = sendSpy.getCall(0).args;
-      response.should.be.eql([204]);
-      apportionmentUpdateSpy.should.have.been.called;
+      sendSpy.should.have.been.called
+      const response = sendSpy.getCall(0).args
+      response.should.be.eql([204])
+      apportionmentUpdateSpy.should.have.been.called
       apportionmentUpdateSpy.getCall(0).args[0].should.be.eql([
         {
           houseId: 999,
@@ -187,12 +187,12 @@ describe('HouseApportionment', function() {
           projectId: 100,
           roomId: 2,
           value: 10,
-        }]);
+        }])
       apportionmentDestroySpy.getCall(0).args[0].where.should.be.eql({
         houseId: 999,
-      });
-    });
-  });
+      })
+    })
+  })
 
   it('should handle no contracted room under current house', async () => {
     const req = {
@@ -201,8 +201,8 @@ describe('HouseApportionment', function() {
         houseId: 999,
       },
       query: {},
-    };
-    const sendSpy = spy();
+    }
+    const sendSpy = spy()
 
     global.MySQL = {
       Houses: {
@@ -211,13 +211,13 @@ describe('HouseApportionment', function() {
       Sequelize: {
         transaction: async (f) => f({}),
       },
-    };
+    }
 
     await get(req, {send: sendSpy}).then(() => {
-      sendSpy.should.have.been.called;
-      sendSpy.getCall(0).args[0].should.be.eql([]);
-    });
-  });
+      sendSpy.should.have.been.called
+      sendSpy.getCall(0).args[0].should.be.eql([])
+    })
+  })
   it('should give share values back for given house',
     async () => {
       const req = {
@@ -226,8 +226,8 @@ describe('HouseApportionment', function() {
           houseId: 999,
         },
         query: {},
-      };
-      const sendSpy = spy();
+      }
+      const sendSpy = spy()
 
       global.MySQL = {
         Houses: {
@@ -260,10 +260,10 @@ describe('HouseApportionment', function() {
         Sequelize: {
           transaction: async (f) => f({}),
         },
-      };
+      }
 
       await get(req, {send: sendSpy}).then(() => {
-        sendSpy.should.have.been.called;
+        sendSpy.should.have.been.called
         sendSpy.getCall(0).args[0].should.be.eql([
           {
             houseId: 999,
@@ -277,9 +277,9 @@ describe('HouseApportionment', function() {
             roomId: 2,
             value: 10,
           },
-        ]);
-      });
-    });
+        ])
+      })
+    })
   it('should handle no public device installed at current house',
     async () => {
       const req = {
@@ -288,8 +288,8 @@ describe('HouseApportionment', function() {
           houseId: 999,
         },
         query: {},
-      };
-      const sendSpy = spy();
+      }
+      const sendSpy = spy()
 
       global.MySQL = {
         Houses: {
@@ -319,11 +319,11 @@ describe('HouseApportionment', function() {
         Sequelize: {
           transaction: async (f) => f({}),
         },
-      };
+      }
 
       await get(req, {send: sendSpy}).then(() => {
-        sendSpy.should.have.been.called;
-        sendSpy.getCall(0).args[0].should.be.eql([]);
-      });
-    });
-});
+        sendSpy.should.have.been.called
+        sendSpy.getCall(0).args[0].should.be.eql([])
+      })
+    })
+})

@@ -1,6 +1,6 @@
-'use strict';
-const auth = require('../../../auth/auth');
+'use strict'
+const auth = require('../../../auth/auth')
 
 module.exports = {
   post: auth.authenticate
-};
+}

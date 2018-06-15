@@ -1,28 +1,28 @@
-'use strict';
+'use strict'
 const {
   includeContracts, payBills, serviceCharge,
   moveFundChannelToRoot, shareFlows, platformFlows, logFlows,
   convertRoomNumber, topUp, translateDevices, getAddrId, getBuildingId
 } = require(
-  '../../services/v1.0/common');
-const {spy, stub} = require('sinon');
-const moment = require('moment');
-const fp = require('lodash/fp');
+  '../../services/v1.0/common')
+const {spy, stub} = require('sinon')
+const moment = require('moment')
+const fp = require('lodash/fp')
 
-const Users = {id: 'Users'};
-const Auth = {id: 'Auth'};
-const Rooms = {id: 'Rooms'};
-const Houses = {id: 'Houses'};
-const Building = {id: 'Building'};
-const GeoLocation = {id: 'GeoLocation'};
-const Contracts = {id: 'Contracts'};
-const HouseDevices = {id: 'HouseDevices'};
+const Users = {id: 'Users'}
+const Auth = {id: 'Auth'}
+const Rooms = {id: 'Rooms'}
+const Houses = {id: 'Houses'}
+const Building = {id: 'Building'}
+const GeoLocation = {id: 'GeoLocation'}
+const Contracts = {id: 'Contracts'}
+const HouseDevices = {id: 'HouseDevices'}
 
 describe('Common', function() {
   before(() => {
-    global.Typedef = Include('/libs/typedef');
-    global.log = console;
-    global.SnowFlake = {next: () => 998811};
+    global.Typedef = Include('/libs/typedef')
+    global.log = console
+    global.SnowFlake = {next: () => 998811}
     global.SequelizeModels = {
       Users,
       Auth,
@@ -32,12 +32,12 @@ describe('Common', function() {
       GeoLocation,
       Contracts,
       HouseDevices,
-    };
-  });
+    }
+  })
   describe('includeContract', () => {
     it('should provide contracts condition', function() {
-      const contractFilter = includeContracts(global.SequelizeModels);
-      const contractOptions = contractFilter('');
+      const contractFilter = includeContracts(global.SequelizeModels)
+      const contractOptions = contractFilter('')
       contractOptions.should.be.eql({
         include: [
           {
@@ -108,11 +108,11 @@ describe('Common', function() {
         where: {
           status: 'ONGOING',
         },
-      });
-    });
+      })
+    })
     it('should consider houseFormat parameter', function() {
-      const contractFilter = includeContracts(global.SequelizeModels);
-      const contractOptions = contractFilter('SHARE');
+      const contractFilter = includeContracts(global.SequelizeModels)
+      const contractOptions = contractFilter('SHARE')
       contractOptions.should.be.eql({
         include: [
           {
@@ -185,12 +185,12 @@ describe('Common', function() {
         where: {
           status: 'ONGOING',
         },
-      });
-    });
+      })
+    })
     it('should consider location condition', function() {
-      const contractFilter = includeContracts(global.SequelizeModels);
+      const contractFilter = includeContracts(global.SequelizeModels)
       const contractOptions = contractFilter('', {},
-        {where: {id: 'locationId'}});
+        {where: {id: 'locationId'}})
       contractOptions.should.be.eql({
         include: [
           {
@@ -258,15 +258,15 @@ describe('Common', function() {
           },
         ],
         model: Contracts,
-      });
-    });
-  });
+      })
+    })
+  })
 
   describe('default', () => {
     it('should include terminated contracts if contract status is overridden',
       function() {
-        const contractFilter = includeContracts(global.SequelizeModels);
-        const contractOptions = contractFilter('', {});
+        const contractFilter = includeContracts(global.SequelizeModels)
+        const contractOptions = contractFilter('', {})
         contractOptions.should.be.eql({
           include: [
             {
@@ -334,11 +334,11 @@ describe('Common', function() {
             },
           ],
           model: Contracts,
-        });
-      });
+        })
+      })
     it('should consider houseFormat if provided', function() {
-      const contractFilter = includeContracts(global.SequelizeModels);
-      const contractOptions = contractFilter('SOLE', {});
+      const contractFilter = includeContracts(global.SequelizeModels)
+      const contractOptions = contractFilter('SOLE', {})
       contractOptions.should.be.eql({
         include: [
           {
@@ -408,19 +408,19 @@ describe('Common', function() {
           },
         ],
         model: Contracts,
-      });
-    });
+      })
+    })
 
     it('should return Ok if no bill is passed in', async () => {
-      const bills = [];
-      const result = await payBills(global.MySQL)(bills);
+      const bills = []
+      const result = await payBills(global.MySQL)(bills)
       result.should.be.eql(
-        ErrorCode.ack(ErrorCode.OK, {message: 'No bills were paid.'}));
-    });
+        ErrorCode.ack(ErrorCode.OK, {message: 'No bills were paid.'}))
+    })
 
     it('should be able to pay bills successfully', async () => {
-      const commit = spy();
-      const rollback = spy();
+      const commit = spy()
+      const rollback = spy()
       global.MySQL = {
         BillPayment: {
           bulkCreate: async () => ({}),
@@ -440,24 +440,24 @@ describe('Common', function() {
         Users: {
           findById: async () => ({toJSON: () => null}),
         },
-      };
+      }
 
-      const bills = [{dataValues: {userId: 112}}];
-      const projectId = 1000;
+      const bills = [{dataValues: {userId: 112}}]
+      const projectId = 1000
       const fundChannel = {
         id: 1,
         serviceCharge: [
           {
             type: 'BILL',
           }],
-      };
-      const userId = 2312;
-      const orderNo = 311212;
-      const category = 'BILL';
+      }
+      const userId = 2312
+      const orderNo = 311212
+      const category = 'BILL'
       const result = await payBills(global.MySQL)(bills, projectId,
-        fundChannel, userId, orderNo, category);
-      result.should.be.eql(ErrorCode.ack(ErrorCode.OK));
-    });
+        fundChannel, userId, orderNo, category)
+      result.should.be.eql(ErrorCode.ack(ErrorCode.OK))
+    })
 
     it('should calculate charge base on fundChannel', () => {
       const chargeObj = serviceCharge({
@@ -466,7 +466,7 @@ describe('Common', function() {
             type: 'BILL',
             strategy: {fee: 10, user: 20, project: 80},
           }],
-      }, 1000);
+      }, 1000)
       chargeObj.should.be.eql({
         amount: 1000,
         amountForBill: 1002,
@@ -475,8 +475,8 @@ describe('Common', function() {
           user: 2,
           project: 8,
         },
-      });
-    });
+      })
+    })
 
     it('should calculate 0 charge if no service charge in fundChannel',
       () => {
@@ -484,9 +484,9 @@ describe('Common', function() {
           amount: 100,
           amountForBill: 100,
           shareAmount: 0,
-        });
-      });
-  });
+        })
+      })
+  })
 
   describe('moveFundChannelToRoot', () => {
     it('should pick serviceCharge and other attributes from result',
@@ -499,13 +499,13 @@ describe('Common', function() {
         )(['aField']).
           should.
           be.
-          eql({id: 99, serviceCharge: 2, aField: 1});
-      });
+          eql({id: 99, serviceCharge: 2, aField: 1})
+      })
 
     it('should return empty if result is empty', async function() {
-      moveFundChannelToRoot({toJSON: () => ({})})([]).should.be.eql({});
-    });
-  });
+      moveFundChannelToRoot({toJSON: () => ({})})([]).should.be.eql({})
+    })
+  })
 
   describe('shareFlows', () => {
     it('should be able to create according to serviceCharge',
@@ -515,12 +515,12 @@ describe('Common', function() {
             user: 10,
             project: 90,
           },
-        };
-        const orderNo = 321;
-        const projectId = 100;
-        const userId = 999;
-        const billId = 111;
-        const fundChannel = {id: 345};
+        }
+        const orderNo = 321
+        const projectId = 100
+        const userId = 999
+        const billId = 111
+        const fundChannel = {id: 345}
         shareFlows(serviceCharge, orderNo, projectId, userId, billId,
           fundChannel).should.be.eql([
           {
@@ -545,19 +545,19 @@ describe('Common', function() {
             projectId,
             to: 1,
           },
-        ]);
-      });
+        ])
+      })
 
     it('should be empty by default', async function() {
-      shareFlows().should.be.eql([]);
-    });
+      shareFlows().should.be.eql([])
+    })
 
-  });
+  })
 
   describe('topUp', () => {
     it('should be able to top up user account',
       async function() {
-        const createSpy = stub().resolves({});
+        const createSpy = stub().resolves({})
         global.MySQL = {
           CashAccount: {
             findOne: async () => ({id: 123, balance: 100}),
@@ -587,12 +587,12 @@ describe('Common', function() {
             transaction: async () => ({commit: fp.noop}),
           },
           Literal: () => 1,
-        };
+        }
 
-        const projectId = 100;
-        const userId = 999;
-        const contractId = 111;
-        const fundChannel = {id: 345};
+        const projectId = 100
+        const userId = 999
+        const contractId = 111
+        const fundChannel = {id: 345}
         await topUp(fundChannel, projectId, userId, 'operatorId',
           contractId,
           19999).then(res => {
@@ -600,26 +600,26 @@ describe('Common', function() {
             code: 0,
             message: '',
             result: {balance: 20099, amount: 19999, userId: 999},
-          });
-          createSpy.should.have.been.called;
+          })
+          createSpy.should.have.been.called
           createSpy.getCall(0).args[0].fundChannelId.should.be.equal(
-            345);
-        });
-      });
+            345)
+        })
+      })
 
-  });
+  })
 
   describe('platformFlows', () => {
     it('should be able to create according to serviceCharge & fundChannel',
       async function() {
         const serviceCharge = {
           fee: 99,
-        };
-        const orderNo = 321;
-        const projectId = 100;
-        const userId = 999;
-        const billId = 111;
-        const fundChannel = {id: 345, fee: 100};
+        }
+        const orderNo = 321
+        const projectId = 100
+        const userId = 999
+        const billId = 111
+        const fundChannel = {id: 345, fee: 100}
         platformFlows(serviceCharge, orderNo, projectId, userId, billId,
           fundChannel).should.be.eql([
           {
@@ -633,9 +633,9 @@ describe('Common', function() {
             projectId,
             to: 0,
           },
-        ]);
-      });
-  });
+        ])
+      })
+  })
 
   describe('logFlows', () => {
     it('should be able to create sub flows for BILL',
@@ -643,23 +643,23 @@ describe('Common', function() {
         const serviceCharge = {
           amountForBill: 1000,
           fee: 99,
-        };
-        const orderNo = 321;
-        const projectId = 100;
-        const userId = 999;
-        const billId = 111;
-        const fundChannel = {id: 345, fee: 100};
-        const t = {id: 't'};
-        const category = 'BILL';
-        const createStub = stub().resolves({});
+        }
+        const orderNo = 321
+        const projectId = 100
+        const userId = 999
+        const billId = 111
+        const fundChannel = {id: 345, fee: 100}
+        const t = {id: 't'}
+        const category = 'BILL'
+        const createStub = stub().resolves({})
         const Models = {
           FundChannelFlows: {
             bulkCreate: createStub,
           },
-        };
+        }
         await logFlows(Models)(serviceCharge, orderNo, projectId,
           userId, billId, fundChannel, t, category).then(() => {
-          createStub.should.have.been.called;
+          createStub.should.have.been.called
           createStub.getCall(0).args[0].should.be.eql([
 
             {
@@ -684,32 +684,32 @@ describe('Common', function() {
               projectId,
               to: 0,
             },
-          ]);
-        });
+          ])
+        })
 
-      });
+      })
     it('should be able to create sub flows for TOPUP',
       async function() {
         const serviceCharge = {
           amount: 1000,
           fee: 99,
-        };
-        const orderNo = 321;
-        const projectId = 100;
-        const userId = 999;
-        const billId = 111;
-        const fundChannel = {id: 345, fee: 100};
-        const t = {id: 't'};
-        const category = 'TOPUP';
-        const createStub = stub().resolves({});
+        }
+        const orderNo = 321
+        const projectId = 100
+        const userId = 999
+        const billId = 111
+        const fundChannel = {id: 345, fee: 100}
+        const t = {id: 't'}
+        const category = 'TOPUP'
+        const createStub = stub().resolves({})
         const Models = {
           FundChannelFlows: {
             bulkCreate: createStub,
           },
-        };
+        }
         await logFlows(Models)(serviceCharge, orderNo, projectId,
           userId, billId, fundChannel, t, category).then(() => {
-          createStub.should.have.been.called;
+          createStub.should.have.been.called
           createStub.getCall(0).args[0].should.be.eql([
             {
               amount: 1000,
@@ -733,38 +733,38 @@ describe('Common', function() {
               projectId,
               to: 0,
             },
-          ]);
-        });
+          ])
+        })
 
-      });
-  });
+      })
+  })
 
   describe('convertRoomNumber', () => {
     it('when index is 1 then output should be  A',
       async function() {
-        const roomNumber = convertRoomNumber(1);
-        roomNumber.should.be.eql('A');
+        const roomNumber = convertRoomNumber(1)
+        roomNumber.should.be.eql('A')
       },
-    );
+    )
 
     it('when index is 26 then output should be AB',
       async function() {
-        const roomNumber = convertRoomNumber(26);
-        roomNumber.should.be.eql('AB');
+        const roomNumber = convertRoomNumber(26)
+        roomNumber.should.be.eql('AB')
       },
-    );
+    )
 
     it('when index is 53 then output should be AAE',
       async function() {
-        const roomNumber = convertRoomNumber(53);
-        roomNumber.should.be.eql('AAE');
+        const roomNumber = convertRoomNumber(53)
+        roomNumber.should.be.eql('AAE')
       },
-    );
-  });
+    )
+  })
 
   describe('translateDevices', () => {
     it('should retain memo of devices', async () => {
-      const updatedAt = moment().subtract(1, 'm');
+      const updatedAt = moment().subtract(1, 'm')
       const after = translateDevices([
         {
           public: '0',
@@ -780,7 +780,7 @@ describe('Common', function() {
             type: 'type',
             updatedAt,
           },
-        }]);
+        }])
       after.should.be.eql([
         {
           deviceId: 'deviceId',
@@ -793,12 +793,12 @@ describe('Common', function() {
           status: {
             service: 'EMC_ONLINE',
           },
-        }]);
+        }])
     },
-    );
+    )
 
     it('should consider devices last update time as status', async () => {
-      const updatedAt = moment().subtract(1, 'd');
+      const updatedAt = moment().subtract(1, 'd')
       const after = translateDevices([
         {
           public: '0',
@@ -814,7 +814,7 @@ describe('Common', function() {
             type: 'type',
             updatedAt,
           },
-        }]);
+        }])
       after.should.be.eql([
         {
           deviceId: 'deviceId',
@@ -827,32 +827,32 @@ describe('Common', function() {
           status: {
             service: 'EMC_OFFLINE',
           },
-        }]);
+        }])
     },
-    );
+    )
 
     it('should ignore objects has no devices', async () => {
-      const after = translateDevices([{}]);
-      after.should.be.eql([]);
+      const after = translateDevices([{}])
+      after.should.be.eql([])
     },
-    );
+    )
 
     it('should handle empty devices', async () => {
-      const after = translateDevices([]);
-      after.should.be.eql([]);
+      const after = translateDevices([])
+      after.should.be.eql([])
     },
-    );
-  });
+    )
+  })
 
   describe('Util', () => {
     it('should extract address id from deviceId', () => {
-      getAddrId('HX017062600064').should.be.equal('017062600064');
-      getAddrId('YTL043000101501').should.be.equal('043000101501');
-    });
+      getAddrId('HX017062600064').should.be.equal('017062600064')
+      getAddrId('YTL043000101501').should.be.equal('043000101501')
+    })
 
     it('should extract building id from deviceId', () => {
-      getBuildingId('HX017062600064').should.be.equal('0170626000');
-      getBuildingId('YTL043000101501').should.be.equal('0430001015');
-    });
-  });
-});
+      getBuildingId('HX017062600064').should.be.equal('0170626000')
+      getBuildingId('YTL043000101501').should.be.equal('0430001015')
+    })
+  })
+})

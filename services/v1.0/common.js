@@ -1,13 +1,13 @@
-'use strict';
+'use strict'
 
-const fp = require('lodash/fp');
-const moment = require('moment');
-const bigDecimal = require('bigdecimal');
-const {topupNotification, billPaymentNotification} = require('./pushService');
+const fp = require('lodash/fp')
+const moment = require('moment')
+const bigDecimal = require('bigdecimal')
+const {topupNotification, billPaymentNotification} = require('./pushService')
 
 exports.UpsertGeoLocation = (location, t)=>{
   if(!location.id) {
-    location = exports.assignNewId(location);
+    location = exports.assignNewId(location)
   }
   return MySQL.GeoLocation.findOrCreate({
     where:{
@@ -15,12 +15,12 @@ exports.UpsertGeoLocation = (location, t)=>{
     },
     transaction: t,
     defaults: location
-  });
-};
+  })
+}
 
 exports.AsyncUpsertGeoLocation = async (location, t) => {
   if(!location.id) {
-    location = exports.assignNewId(location);
+    location = exports.assignNewId(location)
   }
   return await MySQL.GeoLocation.findOrCreate({
     where:{
@@ -28,8 +28,8 @@ exports.AsyncUpsertGeoLocation = async (location, t) => {
     },
     transaction: t,
     defaults: location
-  });
-};
+  })
+}
 
 exports.QueryEntire = (projectId, query, include, attributes)=>{
   return new Promise((resolve, reject)=>{
@@ -45,7 +45,7 @@ exports.QueryEntire = (projectId, query, include, attributes)=>{
         {code: {$regexp: query.q}},
       ]} : {},
       query.bedRoom ? {'$layouts.bedRoom$': query.bedRoom} : {}]
-    );
+    )
 
     const queryInclude = fp.union(
       [
@@ -66,10 +66,10 @@ exports.QueryEntire = (projectId, query, include, attributes)=>{
               as: 'devices',
             }],
         },
-      ])(include ? include : []);
+      ])(include ? include : [])
 
 
-    const pagingInfo = Util.PagingInfo(query.index, query.size, true);
+    const pagingInfo = Util.PagingInfo(query.index, query.size, true)
 
     Promise.all([
       MySQL.Houses.count(
@@ -88,47 +88,47 @@ exports.QueryEntire = (projectId, query, include, attributes)=>{
       )
     ]).then(
       result=>{
-        const count = result[0];
+        const count = result[0]
 
         resolve({
           count: count,
           data: result[1]
-        });
+        })
       },
       err=>{
-        log.error(err, projectId, query, include, attributes);
-        reject(ErrorCode.DATABASEEXEC);
+        log.error(err, projectId, query, include, attributes)
+        reject(ErrorCode.DATABASEEXEC)
       }
-    );
-  });
-};
+    )
+  })
+}
 
 
-exports.omitSingleNulls = fp.omitBy(fp.isNull);
-exports.innerValues = fp.getOr({})('dataValues');
-exports.omitNulls = fp.map(item => fp.omitBy(fp.isNull)(exports.innerValues(item)));
-exports.assignFieldId = field => item => fp.defaults({[field]: SnowFlake.next()})(item);
-exports.assignNewId = item => exports.assignFieldId('id')(item);
+exports.omitSingleNulls = fp.omitBy(fp.isNull)
+exports.innerValues = fp.getOr({})('dataValues')
+exports.omitNulls = fp.map(item => fp.omitBy(fp.isNull)(exports.innerValues(item)))
+exports.assignFieldId = field => item => fp.defaults({[field]: SnowFlake.next()})(item)
+exports.assignNewId = item => exports.assignFieldId('id')(item)
 exports.translateBalance = (balance) => {
   if( fp.isNull(balance) || fp.isNaN(balance) ){
-    return 0;
+    return 0
   }
-  return balance;
-};
+  return balance
+}
 
 exports.scaleUp = (v) => {
-  return v * 10000;
-};
+  return v * 10000
+}
 exports.scaleDown = (v) => {
-  return Number( (v / 10000).toFixed(4) );
-};
+  return Number( (v / 10000).toFixed(4) )
+}
 
 exports.singleRoomTranslate = roomModel => {
-  const room = roomModel.toJSON ? roomModel.toJSON() : roomModel;
-  const status = room.status;
-  const house = room.house;
-  const building = house.building;
-  const location = building.location;
+  const room = roomModel.toJSON ? roomModel.toJSON() : roomModel
+  const status = room.status
+  const house = room.house
+  const building = house.building
+  const location = building.location
   return fp.omitBy(fp.isUndefined)({
     id: room.id,
     houseId: house.id,
@@ -141,27 +141,27 @@ exports.singleRoomTranslate = roomModel => {
     status,
     devices: room.devices || [],
     manager: room.house.houseKeeper,
-  });
-};
+  })
+}
 
 exports.roomLeasingStatus = (contracts, suspension = []) => {
-  const now = moment().unix();
-  const lastSuspension = fp.compact([fp.max(suspension, 'from')]);
+  const now = moment().unix()
+  const lastSuspension = fp.compact([fp.max(suspension, 'from')])
   // PAUSE
   if (fp.some(suspendingRoom => (now > suspendingRoom.from && fp.isNull(suspendingRoom.to)))(lastSuspension)) {
-    return Typedef.OperationStatus.PAUSED;
+    return Typedef.OperationStatus.PAUSED
   }
 
-  const simplified = fp.map(fp.pick(['from', 'to', 'id']))(contracts);
-  const compactedContracts = fp.filter(c => !fp.isUndefined(c.from))(fp.concat(simplified, lastSuspension));
+  const simplified = fp.map(fp.pick(['from', 'to', 'id']))(contracts)
+  const compactedContracts = fp.filter(c => !fp.isUndefined(c.from))(fp.concat(simplified, lastSuspension))
   return fp.some(contract => (now > contract.from && contract.to > now))(compactedContracts) ?
-    Typedef.OperationStatus.INUSE : Typedef.OperationStatus.IDLE;
-};
+    Typedef.OperationStatus.INUSE : Typedef.OperationStatus.IDLE
+}
 
 exports.jsonProcess = (model) => fp.defaults(model)({
   expenses: model.expenses ? JSON.parse(model.expenses) : undefined,
   strategy: model.strategy ? JSON.parse(model.strategy) : undefined
-});
+})
 
 exports.userConnection = (sequelizeModel) => ({
   model: sequelizeModel.Users,
@@ -170,9 +170,9 @@ exports.userConnection = (sequelizeModel) => ({
       model: sequelizeModel.Auth,
       attributes: ['mobile'],
     }],
-});
+})
 
-const defaultWhere = {where: {}};
+const defaultWhere = {where: {}}
 
 exports.includeContracts = (sequelizeModel, forceRequired) =>
   (houseFormat, contractCondition, locationCondition) => fp.defaults({
@@ -182,7 +182,7 @@ exports.includeContracts = (sequelizeModel, forceRequired) =>
     where: {
       status: Typedef.ContractStatus.ONGOING
     }
-  } : contractCondition);
+  } : contractCondition)
 
 exports.houseConnection = (sequelizeModel, forceRequired) => (houseFormat, locationCondition) => {
   const houseInclude = fp.defaults({
@@ -203,44 +203,44 @@ exports.houseConnection = (sequelizeModel, forceRequired) => (houseFormat, locat
         paranoid: false,
       })]
     }]
-  })(fp.isEmpty(houseFormat) ? {where: {}} : {where: {houseFormat}});
+  })(fp.isEmpty(houseFormat) ? {where: {}} : {where: {houseFormat}})
 
   const deviceInclude = {
     model: sequelizeModel.HouseDevices,
     as: 'devices',
     attributes: ['deviceId'],
     required: false
-  };
+  }
   return {
     model: sequelizeModel.Rooms,
     attributes: ['id', 'name', 'houseId'],
     required: forceRequired ? forceRequired.required : true,
     paranoid: false,
     include: [houseInclude, deviceInclude]
-  };
-};
+  }
+}
 
 exports.deviceStatus = (device)=>{
   const runStatus = ()=>{
     if(!device || !device.freq || !device.updatedAt){
-      return  Typedef.DriverCommand.EMC_OFFLINE;
+      return  Typedef.DriverCommand.EMC_OFFLINE
     }
-    const updatedAt = moment(device.updatedAt).unix();
-    const now = moment().unix();
+    const updatedAt = moment(device.updatedAt).unix()
+    const now = moment().unix()
     if( updatedAt + device.freq < now ){
-      return Typedef.DriverCommand.EMC_OFFLINE;
+      return Typedef.DriverCommand.EMC_OFFLINE
     }
     else{
-      return Typedef.DriverCommand.EMC_ONLINE;
+      return Typedef.DriverCommand.EMC_ONLINE
     }
-  };
+  }
 
-  return fp.assign(device.status || {}, {service: runStatus()});
-};
+  return fp.assign(device.status || {}, {service: runStatus()})
+}
 
 exports.payBills = (sequelizeModel, parentTx) => async (bills, projectId, fundChannel, userId, orderNo, category='rent', flowDirection='receive') => {
   if(fp.isEmpty(bills)) {
-    return ErrorCode.ack(ErrorCode.OK, {message: 'No bills were paid.'});
+    return ErrorCode.ack(ErrorCode.OK, {message: 'No bills were paid.'})
   }
   const billsToPay = fp.map(bill=>({
     id: exports.assignNewId().id,
@@ -253,7 +253,7 @@ exports.payBills = (sequelizeModel, parentTx) => async (bills, projectId, fundCh
     operator: userId,
     paidAt: moment().unix(),
     serviceCharge: exports.serviceCharge(fundChannel, bill.dueAmount)
-  }))(bills);
+  }))(bills)
 
   const flows = fp.map(bill=>({
     id: bill.flowId,
@@ -262,27 +262,27 @@ exports.payBills = (sequelizeModel, parentTx) => async (bills, projectId, fundCh
     direction: flowDirection,
     amount: bill.amount,
     fee: bill.serviceCharge.shareAmount,
-  }))(billsToPay);
+  }))(billsToPay)
 
   try{
-    const t = parentTx || await sequelizeModel.Sequelize.transaction();
+    const t = parentTx || await sequelizeModel.Sequelize.transaction()
 
-    await sequelizeModel.BillPayment.bulkCreate(billsToPay, {transaction: t});
-    await sequelizeModel.Flows.bulkCreate(flows, {transaction: t});
+    await sequelizeModel.BillPayment.bulkCreate(billsToPay, {transaction: t})
+    await sequelizeModel.Flows.bulkCreate(flows, {transaction: t})
 
     const billLogFlows = fp.map(bill => exports.logFlows(sequelizeModel)(bill.serviceCharge,
       bill.orderNo, projectId, bill.operator, bill.billId,
-      fundChannel, t, Typedef.FundChannelFlowCategory.BILL))(billsToPay);
-    await Promise.all(billLogFlows);
+      fundChannel, t, Typedef.FundChannelFlowCategory.BILL))(billsToPay)
+    await Promise.all(billLogFlows)
 
-    sendPaymentNotifications(sequelizeModel)(bills);
-    return ErrorCode.ack(ErrorCode.OK);
+    sendPaymentNotifications(sequelizeModel)(bills)
+    return ErrorCode.ack(ErrorCode.OK)
   }
   catch(e){
-    log.error(e, bills, projectId, fundChannel, userId, orderNo, billsToPay, flows);
-    return ErrorCode.ack(ErrorCode.DATABASEEXEC);
+    log.error(e, bills, projectId, fundChannel, userId, orderNo, billsToPay, flows)
+    return ErrorCode.ack(ErrorCode.DATABASEEXEC)
   }
-};
+}
 
 const sendPaymentNotifications = sequelizeModel => fp.each(bill => billPaymentNotification(sequelizeModel)({
   userId: bill.userId || bill.dataValues.userId,
@@ -290,7 +290,7 @@ const sendPaymentNotifications = sequelizeModel => fp.each(bill => billPaymentNo
   startDate: bill.startDate,
   endDate: bill.endDate,
   paidAt: moment().unix(),
-}));
+}))
 
 exports.serviceCharge = (fundChannel, amount)=>{
   //
@@ -298,7 +298,7 @@ exports.serviceCharge = (fundChannel, amount)=>{
     amount,
     amountForBill: amount,
     shareAmount: 0
-  };
+  }
 
   fp.each(serviceCharge=>{
     switch(serviceCharge.type){
@@ -308,7 +308,7 @@ exports.serviceCharge = (fundChannel, amount)=>{
         const CalcShare = (fee, percent)=>{
           if(fee && percent){
             if(amount === 1){
-              return 0;
+              return 0
             }
 
             const balance = (
@@ -321,32 +321,32 @@ exports.serviceCharge = (fundChannel, amount)=>{
               new bigDecimal.BigDecimal(percent.toString())
             ).divide(
               new bigDecimal.BigDecimal('100')
-            ).intValue();
+            ).intValue()
 
             //calculate the share percent
-            return balance;
+            return balance
           }
-          return 0;
-        };
-
-        if(!serviceCharge.strategy){
-          return;
+          return 0
         }
 
-        const user = CalcShare(serviceCharge.strategy.fee, serviceCharge.strategy.user);
-        const project = CalcShare(serviceCharge.strategy.fee, serviceCharge.strategy.project);
+        if(!serviceCharge.strategy){
+          return
+        }
+
+        const user = CalcShare(serviceCharge.strategy.fee, serviceCharge.strategy.user)
+        const project = CalcShare(serviceCharge.strategy.fee, serviceCharge.strategy.project)
         chargeObj.share = {
           user: user,
           project: project
-        };
-        chargeObj.shareAmount = user + project;
+        }
+        chargeObj.shareAmount = user + project
 
-        chargeObj.amountForBill = chargeObj.amount + chargeObj.share.user;
+        chargeObj.amountForBill = chargeObj.amount + chargeObj.share.user
 
       }
-      break;
+      break
     }
-  })(fundChannel.serviceCharge);
+  })(fundChannel.serviceCharge)
 
   if(fundChannel.fee){
     chargeObj.fee = (
@@ -355,11 +355,11 @@ exports.serviceCharge = (fundChannel, amount)=>{
       new bigDecimal.BigDecimal(fundChannel.fee.toString())
     ).divide(
       new bigDecimal.BigDecimal('1000')
-    ).intValue();
+    ).intValue()
   }
 
-  return chargeObj;
-};
+  return chargeObj
+}
 
 exports.baseFlow = (category, orderNo, projectId,
   billId, fundChannel, amount) =>
@@ -370,11 +370,11 @@ exports.baseFlow = (category, orderNo, projectId,
     projectId,
     billId,
     amount,
-  });
+  })
 
 exports.shareFlows = (serviceCharge, orderNo, projectId, userId, billId, fundChannel)=>{
 
-  const category = Typedef.FundChannelFlowCategory.SCTOPUP;
+  const category = Typedef.FundChannelFlowCategory.SCTOPUP
   return fp.compact([
     fp.get('share.user')(serviceCharge) ?
       fp.assign(
@@ -393,10 +393,10 @@ exports.shareFlows = (serviceCharge, orderNo, projectId, userId, billId, fundCha
           to: Typedef.PlatformId,
         }
       ) : null
-  ]);
-};
+  ])
+}
 exports.platformFlows = (serviceCharge, orderNo, projectId, userId, billId, fundChannel)=>{
-  const category = Typedef.FundChannelFlowCategory.COMMISSION;
+  const category = Typedef.FundChannelFlowCategory.COMMISSION
   return fp.compact([
     fundChannel.fee ?
       fp.assign(
@@ -406,10 +406,10 @@ exports.platformFlows = (serviceCharge, orderNo, projectId, userId, billId, fund
           to: 0,
         }
       ): null
-  ]);
-};
+  ])
+}
 exports.topupFlows = (amount, orderNo, projectId, userId, billId, fundChannel)=>{
-  const category = Typedef.FundChannelFlowCategory.TOPUP;
+  const category = Typedef.FundChannelFlowCategory.TOPUP
   return [
     fp.assign(
       exports.baseFlow(category, orderNo, projectId, billId, fundChannel, amount)
@@ -418,10 +418,10 @@ exports.topupFlows = (amount, orderNo, projectId, userId, billId, fundChannel)=>
         to: userId,
       }
     )
-  ];
-};
+  ]
+}
 exports.billFlows = (amount, orderNo, projectId, userId, billId, fundChannel)=>{
-  const category = Typedef.FundChannelFlowCategory.BILL;
+  const category = Typedef.FundChannelFlowCategory.BILL
   return [
     fp.assign(
       exports.baseFlow(category, orderNo, projectId, billId, fundChannel, amount)
@@ -430,8 +430,8 @@ exports.billFlows = (amount, orderNo, projectId, userId, billId, fundChannel)=>{
         to: userId,
       }
     )
-  ];
-};
+  ]
+}
 
 exports.logFlows = (sequelizeModel) => async (
   serviceCharge, orderNo, projectId, userId, billId, fundChannel, t,
@@ -441,45 +441,45 @@ exports.logFlows = (sequelizeModel) => async (
     exports.billFlows(serviceCharge.amountForBill, orderNo, projectId,
       userId, billId, fundChannel)
     : exports.topupFlows(serviceCharge.amount, orderNo, projectId, userId,
-      billId, fundChannel);
+      billId, fundChannel)
   const bulkFlows = fp.compact(fp.flatten([businessFlow,
     exports.shareFlows(serviceCharge, orderNo, projectId, userId, billId,
       fundChannel),
     exports.platformFlows(serviceCharge, orderNo, projectId, userId, billId,
-      fundChannel)]));
+      fundChannel)]))
 
   return await sequelizeModel.FundChannelFlows.bulkCreate(bulkFlows,
-    {transaction: t});
-};
+    {transaction: t})
+}
 
 exports.topUp = async(fundChannel, projectId, userId, operatorId, contractId, amount)=>{
 
   if(!fundChannel){
-    return ErrorCode.ack(ErrorCode.CHANNELNOTEXISTS);
+    return ErrorCode.ack(ErrorCode.CHANNELNOTEXISTS)
   }
 
-  const fundChannelId = fundChannel.fundChannelId || fundChannel.id;
-  const serviceCharge = exports.serviceCharge(fundChannel, amount);
-  const assignNewId = exports.assignNewId;
+  const fundChannelId = fundChannel.fundChannelId || fundChannel.id
+  const serviceCharge = exports.serviceCharge(fundChannel, amount)
+  const assignNewId = exports.assignNewId
 
-  log.info(fundChannel, serviceCharge, projectId, userId, contractId, amount);
+  log.info(fundChannel, serviceCharge, projectId, userId, contractId, amount)
 
-  const received = amount - fp.getOr(0)('share.user')(serviceCharge);
+  const received = amount - fp.getOr(0)('share.user')(serviceCharge)
 
-  let t;
+  let t
   try{
-    t = await MySQL.Sequelize.transaction({ autocommit: false });
+    t = await MySQL.Sequelize.transaction({ autocommit: false })
 
-    const result = await Util.PayWithOwed(userId, received, t);
+    const result = await Util.PayWithOwed(userId, received, t)
 
     if(result.code !== ErrorCode.OK){
-      throw new Error(result.code);
+      throw new Error(result.code)
     }
 
-    const topupFlow = assignNewId({projectId, category: 'topup', amount, fee: serviceCharge.shareAmount});
-    const flow = await MySQL.Flows.create(topupFlow, {transaction: t});
+    const topupFlow = assignNewId({projectId, category: 'topup', amount, fee: serviceCharge.shareAmount})
+    const flow = await MySQL.Flows.create(topupFlow, {transaction: t})
 
-    const orderNo = assignNewId().id;
+    const orderNo = assignNewId().id
 
     const topUp = assignNewId({
       orderNo: orderNo,
@@ -490,35 +490,35 @@ exports.topUp = async(fundChannel, projectId, userId, operatorId, contractId, am
       amount,
       fundChannelId,
       operator: operatorId
-    });
-    await MySQL.Topup.create(topUp, {transaction: t});
+    })
+    await MySQL.Topup.create(topUp, {transaction: t})
 
     await exports.logFlows(MySQL)(serviceCharge, orderNo, projectId
-      , userId, 0, fundChannel, t, Typedef.FundChannelFlowCategory.TOPUP);
+      , userId, 0, fundChannel, t, Typedef.FundChannelFlowCategory.TOPUP)
 
-    topupNotification(MySQL)(result.result);
-    await t.commit();
-    return result;
+    topupNotification(MySQL)(result.result)
+    await t.commit()
+    return result
   }
   catch(e){
-    await t.rollback();
-    log.error(e, serviceCharge, projectId, userId, contractId, amount);
-    return ErrorCode.ack(ErrorCode.DATABASEEXEC);
+    await t.rollback()
+    log.error(e, serviceCharge, projectId, userId, contractId, amount)
+    return ErrorCode.ack(ErrorCode.DATABASEEXEC)
   }
-};
+}
 
 exports.defaultDeviceShare = (projectId, houseId, roomIds) => {
-  const count = roomIds.length;
+  const count = roomIds.length
   if (!count) {
-    return [];
+    return []
   }
-  let base = Math.floor(100 / count);
-  let suffix = 0;
+  let base = Math.floor(100 / count)
+  let suffix = 0
   if (base * count !== 100) {
-    suffix = 100 - base * count;
+    suffix = 100 - base * count
   }
 
-  const minRoomId = fp.min(roomIds);
+  const minRoomId = fp.min(roomIds)
   return fp.map(roomId => {
     if (roomId === minRoomId) {
       return {
@@ -526,55 +526,55 @@ exports.defaultDeviceShare = (projectId, houseId, roomIds) => {
         value: base + suffix,
         projectId,
         houseId,
-      };
+      }
     }
     return {
       roomId,
       value: base,
       projectId: projectId,
       houseId,
-    };
-  })(roomIds);
-};
+    }
+  })(roomIds)
+}
 
 exports.formatMysqlDateTime =
-    seconds => moment(seconds * 1000).format('YYYY-MM-DD HH:mm:ss');
-exports.mysqlDateTimeToStamp = time => moment(time).unix();
+    seconds => moment(seconds * 1000).format('YYYY-MM-DD HH:mm:ss')
+exports.mysqlDateTimeToStamp = time => moment(time).unix()
 
 exports.moveFundChannelToRoot = result => {
-  const requireServiceCharge= fp.concat('serviceCharge');
-  const fromFundChannel = fieldList => fp.pick(fieldList)(result.fundChannel);
-  const moveToRoot = fp.assign(result.toJSON());
-  const cleanUp = fp.omit('fundChannel');
+  const requireServiceCharge= fp.concat('serviceCharge')
+  const fromFundChannel = fieldList => fp.pick(fieldList)(result.fundChannel)
+  const moveToRoot = fp.assign(result.toJSON())
+  const cleanUp = fp.omit('fundChannel')
 
-  return fp.pipe(requireServiceCharge, fromFundChannel, moveToRoot, cleanUp);
-};
+  return fp.pipe(requireServiceCharge, fromFundChannel, moveToRoot, cleanUp)
+}
 
 exports.districtLocation = (query)=>{
   if(query.locationId){
     // geoLocationIds = [query.locationId];
-    return {'$building.location.id$': query.locationId};
+    return {'$building.location.id$': query.locationId}
   }
   else if(query.districtId){
     if(Util.IsParentDivision(query.districtId)){
       return {
         '$building.location.divisionId$': {$regexp: Util.ParentDivision(query.districtId)}
-      };
+      }
     }
     else{
       return {
         '$building.location.divisionId$': query.districtId
-      };
+      }
     }
   }
-};
+}
 
 exports.getBuildingId = (deviceId)=>{
-  return exports.getAddrId(deviceId).substr(0, 10);
-};
+  return exports.getAddrId(deviceId).substr(0, 10)
+}
 exports.getAddrId = (deviceId)=>{
-  return deviceId.replace(/^\D+/, '');
-};
+  return deviceId.replace(/^\D+/, '')
+}
 
 exports.includeHouseDevices =(isPublic)=>{
   return {
@@ -598,8 +598,8 @@ exports.includeHouseDevices =(isPublic)=>{
         ]
       }
     ]
-  };
-};
+  }
+}
 exports.includeRoomContracts = (status)=>{
   const contractOptions = ()=> {
     switch (status) {
@@ -609,7 +609,7 @@ exports.includeRoomContracts = (status)=>{
           status: Typedef.ContractStatus.ONGOING
         },
         required: true
-      };
+      }
     }
     case 'EXPIRED': {
       return {
@@ -618,10 +618,10 @@ exports.includeRoomContracts = (status)=>{
           to: {$lte: moment().unix()}
         },
         required: true
-      };
+      }
     }
     }
-  };
+  }
 
   return fp.assign({
     model: MySQL.Contracts,
@@ -642,8 +642,8 @@ exports.includeRoomContracts = (status)=>{
         ]
       },
     ],
-  })(contractOptions());
-};
+  })(contractOptions())
+}
 exports.includeRoom = async(status)=>{
 
   const getWhere = async()=>{
@@ -654,15 +654,15 @@ exports.includeRoom = async(status)=>{
           status: Typedef.ContractStatus.ONGOING
         },
         attributes: ['roomId']
-      });
-      const roomIds = fp.map(contract=>{return contract.roomId;})(contracts);
+      })
+      const roomIds = fp.map(contract=>{return contract.roomId})(contracts)
       return {
         where:{
           id: {
             $notIn: roomIds
           }
         }
-      };
+      }
     }
     else if(status === 'CLOSED' ){
       const suspendings = await MySQL.SuspendingRooms.findAll({
@@ -670,22 +670,22 @@ exports.includeRoom = async(status)=>{
           to: 0
         },
         attributes: ['roomId']
-      });
-      const roomIds = fp.map(suspending=>{return suspending.roomId;})(suspendings);
+      })
+      const roomIds = fp.map(suspending=>{return suspending.roomId})(suspendings)
       return {
         where:{
           id: {
             in: roomIds
           }
         }
-      };
+      }
     }
     else{
-      return null;
+      return null
     }
-  };
+  }
 
-  const where = await getWhere();
+  const where = await getWhere()
 
   return fp.assign(
     {
@@ -714,8 +714,8 @@ exports.includeRoom = async(status)=>{
           attributes: ['id', 'from', 'to', 'memo'],
         },
       ],
-    })( where ? where : {} );
-};
+    })( where ? where : {} )
+}
 
 exports.translateDevices = fp.pipe(
   fp.reject(fp.pipe(fp.get('device'), fp.isEmpty)), fp.map(source => ({
@@ -728,16 +728,16 @@ exports.translateDevices = fp.pipe(
     updatedAt: moment(source.device.updatedAt).unix(),
     status: exports.deviceStatus(source.device),
     memo: source.device.memo,
-  })));
+  })))
 
 exports.translateRooms = (rooms)=> {
   return fp.map(room => {
     const getContract = () => {
       if (!room.contracts || !room.contracts.length) {
-        return {};
+        return {}
       }
       else {
-        const contract = room.contracts[0];
+        const contract = room.contracts[0]
         return {
           id: contract.id,
           from: contract.from,
@@ -746,18 +746,18 @@ exports.translateRooms = (rooms)=> {
           name: contract.user.name,
           contractNumber: contract.contractNumber,
           rent: fp.get('strategy.freq.rent')(contract)
-        };
+        }
       }
-    };
+    }
     const getSuspending = () => {
       if (!room.suspendingRooms || !room.suspendingRooms.length) {
-        return {};
+        return {}
       }
       else {
-        return room.suspendingRooms[0];
+        return room.suspendingRooms[0]
       }
-    };
-    const devices = exports.translateDevices(room.devices);
+    }
+    const devices = exports.translateDevices(room.devices)
 
     return fp.assignIn(fp.omit(['contracts', 'devices'])(room))(
       {
@@ -766,24 +766,24 @@ exports.translateRooms = (rooms)=> {
         devices: devices,
         status: exports.roomLeasingStatus(room.contracts, room.suspendingRooms),
       },
-    );
+    )
 
-  })(rooms);
-};
+  })(rooms)
+}
 
 exports.pickAuthAttributes = item => {
-  const json = item.user.toJSON();
+  const json = item.user.toJSON()
   return fp.defaults(item)({user: fp.defaults(json)(
-    {accountName: json.auth.username, id: json.auth.id, mobile: json.auth.mobile})});
-};
+    {accountName: json.auth.username, id: json.auth.id, mobile: json.auth.mobile})})
+}
 
 exports.convertRoomNumber = (index)=>{
-  const ALPHACOUNT = 24;
-  const prefix = parseInt(index/ALPHACOUNT);
-  const suffix = index % ALPHACOUNT;
+  const ALPHACOUNT = 24
+  const prefix = parseInt(index/ALPHACOUNT)
+  const suffix = index % ALPHACOUNT
 
-  return fp.repeat(prefix)('A') + String.fromCharCode(64+suffix);
-};
+  return fp.repeat(prefix)('A') + String.fromCharCode(64+suffix)
+}
 
 exports.clearDeviceSharing = (MySQL, t) => (
   projectId, houseId) => MySQL.HouseApportionment.destroy({
@@ -791,4 +791,4 @@ exports.clearDeviceSharing = (MySQL, t) => (
     projectId,
     houseId,
   }, transaction: t,
-});
+})

@@ -1,10 +1,10 @@
-'use strict';
-const fp = require('lodash/fp');
-const {iOSKey, androidKey} = require('../pushService');
+'use strict'
+const fp = require('lodash/fp')
+const {iOSKey, androidKey} = require('../pushService')
 
 module.exports = {
   post: async (req, res) => {
-    const {platform, type} = req.query;
+    const {platform, type} = req.query
     // {
     //     "Target": "ALL",
     //     "TargetValue": "ALL",
@@ -13,9 +13,9 @@ module.exports = {
     // }
     if (platform === 'ios' && type === 'message') {
       return Notifications.pushMessageToiOS(fp.defaults(req.body)({AppKey: iOSKey}), function(err, result) {
-        console.log(err, result);
-        return res.send(200, {err, result});
-      });
+        console.log(err, result)
+        return res.send(200, {err, result})
+      })
     }
 
     // {
@@ -27,9 +27,9 @@ module.exports = {
     // }
     if (platform === 'ios' && type === 'notice') {
       return Notifications.pushNoticeToiOS(fp.defaults(req.body)({AppKey: iOSKey}), function (err, result) {
-        console.log(err, result);
-        return res.send(200, {err, result});
-      });
+        console.log(err, result)
+        return res.send(200, {err, result})
+      })
     }
 
     // {
@@ -41,9 +41,9 @@ module.exports = {
 
     if (platform === 'android' && type === 'message') {
       return Notifications.pushMessageToAndroid(fp.defaults(req.body)({AppKey: androidKey}), function(err, result) {
-        console.log(err, result);
-        return res.send(200, {err, result});
-      });
+        console.log(err, result)
+        return res.send(200, {err, result})
+      })
     }
 
     // {
@@ -56,10 +56,10 @@ module.exports = {
     //
     if (platform === 'android' && type === 'notice') {
       return Notifications.pushNoticeToAndroid(fp.defaults(req.body)({AppKey: androidKey}), function(err, result) {
-        console.log(err, result);
-        return res.send(200, {err, result});
-      });
+        console.log(err, result)
+        return res.send(200, {err, result})
+      })
     }
-    return res.send(200, {result: 'not sending anything.'});
+    return res.send(200, {result: 'not sending anything.'})
   },
-};
+}

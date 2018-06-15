@@ -1,17 +1,17 @@
-'use strict';
+'use strict'
 /**
  * Operations on /projects/{projectid}
  */
 
-const fp = require('lodash/fp');
-const {innerValues} = require('../../common');
+const fp = require('lodash/fp')
+const {innerValues} = require('../../common')
 
-const omitFields = fp.omit(['pid', 'createdAt', 'updatedAt']);
+const omitFields = fp.omit(['pid', 'createdAt', 'updatedAt'])
 
 module.exports = {
   get: async function getCredentials(req, res) {
-    const Projects = MySQL.Projects;
-    const projectId = req.params.projectId;
+    const Projects = MySQL.Projects
+    const projectId = req.params.projectId
 
     return Projects.findOne({
       where: {
@@ -20,20 +20,20 @@ module.exports = {
     })
       .then(fp.pipe(innerValues, omitFields))
       .then(items => res.send(items))
-      .catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, {error: err.message})));
+      .catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, {error: err.message})))
   },
   put: async function (req, res) {
-    const body = req.body;
-    const Projects = MySQL.Projects;
+    const body = req.body
+    const Projects = MySQL.Projects
 
-    const pid = req.params.projectId;
-    const dbId = fp.get('id')(body);
+    const pid = req.params.projectId
+    const dbId = fp.get('id')(body)
 
     if (fp.isUndefined(dbId)) {
-      return res.send(400, ErrorCode.ack(ErrorCode.PARAMETERERROR, {error: 'please provide db id of this project'}));
+      return res.send(400, ErrorCode.ack(ErrorCode.PARAMETERERROR, {error: 'please provide db id of this project'}))
     }
 
-    const guardFields = fp.omit(['id', 'pid', 'externalId'])(body);
+    const guardFields = fp.omit(['id', 'pid', 'externalId'])(body)
 
     Projects.update(guardFields, {
       where: {
@@ -41,6 +41,6 @@ module.exports = {
         dbId
       }
     }).then(project => res.send(200, ErrorCode.ack(ErrorCode.OK, {id: project.id})))
-      .catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, {error: err.message})));
+      .catch(err => res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC, {error: err.message})))
   }
-};
+}

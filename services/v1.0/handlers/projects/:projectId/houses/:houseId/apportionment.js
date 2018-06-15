@@ -1,17 +1,17 @@
-'use strict';
+'use strict'
 
-const fp = require('lodash/fp');
+const fp = require('lodash/fp')
 const {defaultDeviceShare} = require(
-  '../../../../../common');
+  '../../../../../common')
 
 /**
  * Operations on /projects/:id/houses/:id/apportionment
  */
 
 const applyDefaultToEmpty = ({projectId, houseId}) => houseModel => {
-  const house = fp.isEmpty(houseModel) ? {rooms: []} : houseModel.toJSON();
+  const house = fp.isEmpty(houseModel) ? {rooms: []} : houseModel.toJSON()
   if (fp.isEmpty(fp.get('devices')(house))) {
-    return [];
+    return []
   }
   return fp.isEmpty(house.houseApportionments) ?
     defaultDeviceShare(projectId, houseId, fp.map('id')(house.rooms))
@@ -19,54 +19,54 @@ const applyDefaultToEmpty = ({projectId, houseId}) => houseModel => {
       houseId,
       projectId,
       value: Number(r.value),
-    }))(house.houseApportionments);
-};
+    }))(house.houseApportionments)
+}
 
 module.exports = {
   get: async (req, res) => {
-    const {projectId, houseId} = req.params;
+    const {projectId, houseId} = req.params
 
     return retrieveExistingSharingSetting(MySQL)(houseId, projectId).
       then(applyDefaultToEmpty({projectId, houseId})).
       then(
         result => {
-          res.send(result);
+          res.send(result)
         },
       ).catch(err => {
-        log.error(err, projectId, houseId);
-        res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC));
-      });
+        log.error(err, projectId, houseId)
+        res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC))
+      })
   },
   put: async (req, res) => {
-    const {projectId, houseId} = req.params;
+    const {projectId, houseId} = req.params
 
-    const newSettings = req.body;
+    const newSettings = req.body
 
-    const {mode = 'MANUAL'} = req.query;
+    const {mode = 'MANUAL'} = req.query
 
     const defaultSharing = await retrieveExistingSharingSetting(MySQL)(
       houseId, projectId).
       then(a => a.toJSON()).
       then(house => defaultDeviceShare(house.projectId, house.id,
-        fp.map('id')(house.rooms)));
+        fp.map('id')(house.rooms)))
     const toSave = mode.toUpperCase() === 'AUTO' ? defaultSharing :
-      fp.map(fp.defaults(fp, ({projectId, houseId})))(newSettings);
+      fp.map(fp.defaults(fp, ({projectId, houseId})))(newSettings)
 
     //default mode is MANUAL
 
     //check percent
-    const totalPercent = fp.sum(fp.map('value')(newSettings));
+    const totalPercent = fp.sum(fp.map('value')(newSettings))
     if (totalPercent !== 100) {
       return res.send(403, ErrorCode.ack(ErrorCode.PARAMETERERROR,
-        {error: 'Total share value is not 100%'}));
+        {error: 'Total share value is not 100%'}))
     }
 
     const diff = fp.differenceBy(
       fp.pipe(fp.get('roomId'), a => a.toString()))(newSettings)(
-      defaultSharing);
+      defaultSharing)
     if (!fp.isEmpty(diff)) {
       return res.send(403, ErrorCode.ack(ErrorCode.PARAMETERERROR,
-        {error: `Not all rooms are under contract ${diff}`}));
+        {error: `Not all rooms are under contract ${diff}`}))
     }
 
     return MySQL.Sequelize.transaction(t => Promise.all([
@@ -76,14 +76,14 @@ module.exports = {
         {transaction: t, updateOnDuplicate: true}).
         then(() => console.log('bulkCreate'))])).
       then(() => {
-        res.send(204);
+        res.send(204)
       }).
       catch(err => {
-        log.error(err, projectId, houseId, body);
-        res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC));
-      });
+        log.error(err, projectId, houseId, body)
+        res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC))
+      })
   },
-};
+}
 
 const retrieveExistingSharingSetting = MySQL => async (houseId, projectId) =>
   MySQL.Houses.findById(houseId, {
@@ -120,4 +120,4 @@ const retrieveExistingSharingSetting = MySQL => async (houseId, projectId) =>
         as: 'devices',
         required: false,
       }],
-  });
+  })

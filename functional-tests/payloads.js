@@ -1,8 +1,8 @@
-'use strict';
+'use strict'
 
-const fp = require('lodash/fp');
+const fp = require('lodash/fp')
 
-const gen = () => prefix => `${prefix}${fp.random(1, 1000000)}`;
+const gen = () => prefix => `${prefix}${fp.random(1, 1000000)}`
 module.exports = {
   createHouse: () => ({
     'group': '一期/君临阁',
@@ -80,4 +80,4 @@ module.exports = {
       'gender': 'M',
     },
   }),
-};
+}

@@ -1,14 +1,14 @@
-'use strict';
+'use strict'
 /**
  * Operations on /houses
  */
-const fp = require('lodash/fp');
+const fp = require('lodash/fp')
 
 module.exports = {
   delete: async(req, res)=>{
 
-    const projectId = req.params.projectId;
-    const deviceId = req.params.deviceId;
+    const projectId = req.params.projectId
+    const deviceId = req.params.deviceId
 
     MySQL.HouseDevices.count({
       where:{
@@ -19,7 +19,7 @@ module.exports = {
     }).then(
       count=>{
         if(count){
-          return res.send(ErrorCode.ack(ErrorCode.DEVICEINBIND));
+          return res.send(ErrorCode.ack(ErrorCode.DEVICEINBIND))
         }
 
         MySQL.Devices.destroy({
@@ -29,25 +29,25 @@ module.exports = {
           }
         }).then(
           ()=>{
-            res.send(204);
+            res.send(204)
           },
           err=>{
-            log.error(err, projectId, deviceId);
-            res.send(ErrorCode.ack(ErrorCode.DATABASEEXEC));
+            log.error(err, projectId, deviceId)
+            res.send(ErrorCode.ack(ErrorCode.DATABASEEXEC))
           }
-        );
+        )
       },
       err=>{
-        log.error(err, projectId, deviceId);
-        res.send(ErrorCode.ack(ErrorCode.DATABASEEXEC));
+        log.error(err, projectId, deviceId)
+        res.send(ErrorCode.ack(ErrorCode.DATABASEEXEC))
       }
-    );
+    )
   },
   put: async(req, res)=>{
-    const projectId = req.params.projectId;
-    const deviceId = req.params.deviceId;
+    const projectId = req.params.projectId
+    const deviceId = req.params.deviceId
 
-    const body = fp.pick('memo')(req.body);
+    const body = fp.pick('memo')(req.body)
 
     MySQL.Devices.update(
       body
@@ -59,11 +59,11 @@ module.exports = {
       }
     ).then(
       ()=>{
-        res.send(204);
+        res.send(204)
       },
       err=>{
-        log.error(err, projectId, deviceId, body);
+        log.error(err, projectId, deviceId, body)
       }
-    );
+    )
   }
-};
+}

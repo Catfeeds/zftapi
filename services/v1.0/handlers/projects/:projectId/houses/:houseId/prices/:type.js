@@ -1,18 +1,18 @@
-'use strict';
-const moment = require('moment');
+'use strict'
+const moment = require('moment')
 
 module.exports = {
   put: (req, res) => {
-    const projectId = req.params.projectId;
-    const houseId = req.params.houseId;
-    const type = req.params.type;
+    const projectId = req.params.projectId
+    const houseId = req.params.houseId
+    const type = req.params.type
 
-    const body = req.body;
+    const body = req.body
 
     if(!Util.ParameterCheck(body,
       ['category', 'price']
     )){
-      return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED, {error: 'missing query params houseFormat'}));
+      return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED, {error: 'missing query params houseFormat'}))
     }
 
     MySQL.HouseDevicePrice.findOne({
@@ -25,7 +25,7 @@ module.exports = {
       }
     }).then(
       price=>{
-        const now = moment().unix();
+        const now = moment().unix()
         if(!price){
           return MySQL.HouseDevicePrice.create(
             {
@@ -38,16 +38,16 @@ module.exports = {
             }
           ).then(
             ()=>{
-              res.send(201);
+              res.send(201)
             },
             err=>{
-              log.error(err, projectId, houseId, type, body);
-              re.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC));
+              log.error(err, projectId, houseId, type, body)
+              re.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC))
             }
-          );
+          )
         }else{
           if(price.price === body.price){
-            return res.send(204);
+            return res.send(204)
           }
 
           if(price.startDate === now){
@@ -62,13 +62,13 @@ module.exports = {
               }
             ).then(
               ()=>{
-                res.send(201);
+                res.send(201)
               },
               err=>{
-                log.error(err, projectId, houseId, type, body);
-                re.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC));
+                log.error(err, projectId, houseId, type, body)
+                re.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC))
               }
-            );
+            )
           }else {
             MySQL.Sequelize.transaction(t => {
               return MySQL.HouseDevicePrice.update(
@@ -93,22 +93,22 @@ module.exports = {
                       startDate: now,
                     },
                     {transaction: t}
-                  );
+                  )
                 }
-              );
+              )
             }).then(
               ()=>{
-                res.send(201);
+                res.send(201)
               }
             ).catch(
               err=>{
-                log.error(err, projectId, houseId, type, body);
-                re.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC));
+                log.error(err, projectId, houseId, type, body)
+                re.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC))
               }
-            );
+            )
           }
         }
       }
-    );
+    )
   }
-};
+}

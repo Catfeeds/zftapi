@@ -1,18 +1,18 @@
-'use strict';
+'use strict'
 /**
  * Operations on /houses
  */
-const fp = require('lodash/fp');
-const moment = require('moment');
+const fp = require('lodash/fp')
+const moment = require('moment')
 
 module.exports = {
   delete: (req, res)=>{
     //delete both house & room deviceId
-    const params = req.params;
+    const params = req.params
 
-    const projectId = params.projectId;
-    const houseId = params.houseId;
-    const deviceId = params.deviceId;
+    const projectId = params.projectId
+    const houseId = params.houseId
+    const deviceId = params.deviceId
 
     MySQL.HouseDevices.update(
       {
@@ -27,19 +27,19 @@ module.exports = {
       }
     ).then(
       ()=>{
-        res.send(204);
+        res.send(204)
       },
       err=>{
-        log.error(err, projectId, houseId, deviceId);
-        res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC));
+        log.error(err, projectId, houseId, deviceId)
+        res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC))
       }
-    );
+    )
   },
   put: (req, res)=>{
-    const projectId = req.params.projectId;
-    const houseId = req.params.houseId;
-    const roomId = req.params.roomId;
-    const deviceId = req.params.deviceId;
+    const projectId = req.params.projectId
+    const houseId = req.params.houseId
+    const roomId = req.params.roomId
+    const deviceId = req.params.deviceId
 
     MySQL.HouseDevices.findAll({
       where:{
@@ -50,10 +50,10 @@ module.exports = {
       attributes: ['id', 'deviceId']
     }).then(
       houseDevices=>{
-        const currentDevice = fp.find({deviceId})(houseDevices);
+        const currentDevice = fp.find({deviceId})(houseDevices)
         if (fp.isUndefined(currentDevice)) {
           //create
-          const now = moment().unix();
+          const now = moment().unix()
           const bulkCreate = [
             // {
             //     projectId: projectId,
@@ -67,26 +67,26 @@ module.exports = {
               deviceId: deviceId,
               startDate: now
             }
-          ];
+          ]
 
           MySQL.HouseDevices.bulkCreate(bulkCreate).then(
             ()=>{
-              res.send(201);
+              res.send(201)
             },
             err=>{
-              log.error(err, projectId, houseId, deviceId);
-              res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC));
+              log.error(err, projectId, houseId, deviceId)
+              res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC))
             }
-          );
+          )
         }
         else{
-          res.send(201);
+          res.send(201)
         }
       },
       err=>{
-        log.error(err, projectId, houseId, deviceId);
-        res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC));
+        log.error(err, projectId, houseId, deviceId)
+        res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC))
       }
-    );
+    )
   }
-};
+}

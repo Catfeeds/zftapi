@@ -1,16 +1,16 @@
-'use strict';
+'use strict'
 
-const {get} = require('../../services/v1.0/handlers/projects/:projectId/rooms');
-require('include-node');
-const {spy} = require('sinon');
-const moment = require('moment');
-const fp = require('lodash/fp');
+const {get} = require('../../services/v1.0/handlers/projects/:projectId/rooms')
+require('include-node')
+const {spy} = require('sinon')
+const moment = require('moment')
+const fp = require('lodash/fp')
 
 describe('Rooms', function() {
   before(() => {
-    global.Typedef = Include('/libs/typedef');
-    global.Util = Include('/libs/util');
-  });
+    global.Typedef = Include('/libs/typedef')
+    global.Util = Include('/libs/util')
+  })
 
   it('should return all rooms from findAndCountAll', async function() {
     const req = {
@@ -19,7 +19,7 @@ describe('Rooms', function() {
       },
       query: {houseFormat: 'SHARE', q: 'q'},
 
-    };
+    }
     global.MySQL = {
       Rooms: {
         async findAndCountAll() {
@@ -52,17 +52,17 @@ describe('Rooms', function() {
                     }],
                 }),
               }],
-          };
+          }
         },
       },
       Sequelize: {
         literal: fp.identity,
       },
-    };
-    const resSpy = spy();
+    }
+    const resSpy = spy()
 
     await get(req, {send: resSpy}).then(() => {
-      resSpy.should.have.been.called;
+      resSpy.should.have.been.called
       resSpy.getCall(0).args[0].data.should.be.eql([
         {
           id: '6361497057362055170',
@@ -74,9 +74,9 @@ describe('Rooms', function() {
           roomNumber: 'roomNumber',
           roomName: 'roomName',
           status: Typedef.OperationStatus.IDLE,
-        }]);
-    });
-  });
+        }])
+    })
+  })
 
   it('should calculate status base on all contracts', async function() {
     const req = {
@@ -85,9 +85,9 @@ describe('Rooms', function() {
       },
       query: {houseFormat: 'SHARE', q: 'q'},
 
-    };
-    const before = moment().subtract(1, 'year').unix();
-    const after = moment().add(1, 'year').unix();
+    }
+    const before = moment().subtract(1, 'year').unix()
+    const after = moment().add(1, 'year').unix()
     global.MySQL = {
       Rooms: {
         async findAndCountAll() {
@@ -126,17 +126,17 @@ describe('Rooms', function() {
                     }],
                 }),
               }],
-          };
+          }
         },
       },
       Sequelize: {
         literal: fp.identity,
       },
-    };
-    const resSpy = spy();
+    }
+    const resSpy = spy()
 
     await get(req, {send: resSpy}).then(() => {
-      resSpy.should.have.been.called;
+      resSpy.should.have.been.called
       resSpy.getCall(0).args[0].data.should.be.eql([
         {
           id: '6361497057362055170',
@@ -148,9 +148,9 @@ describe('Rooms', function() {
           roomNumber: 'roomNumber',
           roomName: 'roomName',
           status: Typedef.OperationStatus.INUSE
-        }]);
-    });
-  });
+        }])
+    })
+  })
   it('should be `PAUSE` status if the `to` field is null', async function() {
     const req = {
       params: {
@@ -158,8 +158,8 @@ describe('Rooms', function() {
       },
       query: {houseFormat: 'SHARE', q: 'q'},
 
-    };
-    const before = moment().subtract(1, 'year').unix();
+    }
+    const before = moment().subtract(1, 'year').unix()
     global.MySQL = {
       Rooms: {
         async findAndCountAll() {
@@ -191,17 +191,17 @@ describe('Rooms', function() {
                   },
                 }),
               }],
-          };
+          }
         },
       },
       Sequelize: {
         literal: fp.identity,
       },
-    };
-    const resSpy = spy();
+    }
+    const resSpy = spy()
 
     await get(req, {send: resSpy}).then(() => {
-      resSpy.should.have.been.called;
+      resSpy.should.have.been.called
       resSpy.getCall(0).args[0].data.should.be.eql([
         {
           id: 123,
@@ -213,9 +213,9 @@ describe('Rooms', function() {
           roomNumber: 'roomNumber',
           roomName: 'roomName',
           status: Typedef.OperationStatus.PAUSED,
-        }]);
-    });
-  });
+        }])
+    })
+  })
   it('should be `IDLE` status if the suspension `to` field passes',
     async function() {
       const req = {
@@ -224,9 +224,9 @@ describe('Rooms', function() {
         },
         query: {houseFormat: 'SHARE', q: 'q'},
 
-      };
-      const before = moment().subtract(1, 'year').unix();
-      const end = moment().subtract(1, 'month').unix();
+      }
+      const before = moment().subtract(1, 'year').unix()
+      const end = moment().subtract(1, 'month').unix()
       global.MySQL = {
         Rooms: {
           async findAndCountAll() {
@@ -258,17 +258,17 @@ describe('Rooms', function() {
                     },
                   }),
                 }],
-            };
+            }
           },
         },
         Sequelize: {
           literal: fp.identity,
         },
-      };
-      const resSpy = spy();
+      }
+      const resSpy = spy()
 
       await get(req, {send: resSpy}).then(() => {
-        resSpy.should.have.been.called;
+        resSpy.should.have.been.called
         resSpy.getCall(0).args[0].data.should.be.eql([
           {
             id: 123,
@@ -280,9 +280,9 @@ describe('Rooms', function() {
             roomNumber: 'roomNumber',
             roomName: 'roomName',
             status: Typedef.OperationStatus.IDLE,
-          }]);
-      });
-    });
+          }])
+      })
+    })
   it('should be `IDLE` status if there is no contracts', async function() {
     const req = {
       params: {
@@ -290,7 +290,7 @@ describe('Rooms', function() {
       },
       query: {houseFormat: 'SHARE', q: 'q'},
 
-    };
+    }
     global.MySQL = {
       Rooms: {
         async findAndCountAll() {
@@ -315,17 +315,17 @@ describe('Rooms', function() {
                   },
                 }),
               }],
-          };
+          }
         },
       },
       Sequelize: {
         literal: fp.identity,
       },
-    };
-    const resSpy = spy();
+    }
+    const resSpy = spy()
 
     await get(req, {send: resSpy}).then(() => {
-      resSpy.should.have.been.called;
+      resSpy.should.have.been.called
       resSpy.getCall(0).args[0].data.should.be.eql([
         {
           id: 123,
@@ -337,7 +337,7 @@ describe('Rooms', function() {
           roomNumber: 'roomNumber',
           roomName: 'roomName',
           status: Typedef.OperationStatus.IDLE,
-        }]);
-    });
-  });
-});
+        }])
+    })
+  })
+})

@@ -1,5 +1,5 @@
-'use strict';
-const _ = require('underscore');
+'use strict'
+const _ = require('underscore')
 
 /**
  * Operations on /houses/format
@@ -18,14 +18,14 @@ module.exports = {
          * Get the data for response 200
          * For response `default` status 200 is used.
          */
-    let ret = [];
+    let ret = []
     _.map(Typedef.HouseFormatLiteral, (v, k)=>{
       ret.push({
         id: k,
         name: v.name
-      });
-    });
+      })
+    })
 
-    res.send(ret);
+    res.send(ret)
   }
-};
+}

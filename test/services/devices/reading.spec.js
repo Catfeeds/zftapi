@@ -1,14 +1,14 @@
-'use strict';
+'use strict'
 
-const moment = require('moment');
-const {spy} = require('sinon');
+const moment = require('moment')
+const {spy} = require('sinon')
 const {get} = require(
-  '../../../services/v1.0/handlers/projects/:projectId/devices/reading');
+  '../../../services/v1.0/handlers/projects/:projectId/devices/reading')
 
 describe('Reading meters', function() {
   before(() => {
-    global.Typedef = Include('/libs/typedef');
-  });
+    global.Typedef = Include('/libs/typedef')
+  })
 
   it('should return rooms with detail', async function() {
     const houses = [
@@ -17,13 +17,13 @@ describe('Reading meters', function() {
           ...houseFields(),
           rooms: standardRooms(),
         }),
-      }];
-    const heartbeats = [standardHeartbeat()];
-    global.MySQL = stubSequelizeModel(houses, heartbeats);
-    const resSpy = spy();
+      }]
+    const heartbeats = [standardHeartbeat()]
+    global.MySQL = stubSequelizeModel(houses, heartbeats)
+    const resSpy = spy()
 
     await get(standardRequest(), {send: resSpy}).then(() => {
-      resSpy.should.have.been.called;
+      resSpy.should.have.been.called
       resSpy.getCall(0).args[0].data.should.be.eql([
         {
           ...expectedFields,
@@ -43,9 +43,9 @@ describe('Reading meters', function() {
               userName: 'username',
             },
           ],
-        }]);
-    });
-  });
+        }])
+    })
+  })
   it('should ignore duplicated devices in one room', async () => {
     const houses = [
       {
@@ -53,13 +53,13 @@ describe('Reading meters', function() {
           ...houseFields(),
           rooms: standardRooms(),
         }),
-      }];
-    const heartbeats = [standardHeartbeat()];
-    global.MySQL = stubSequelizeModel(houses, heartbeats);
-    const resSpy = spy();
+      }]
+    const heartbeats = [standardHeartbeat()]
+    global.MySQL = stubSequelizeModel(houses, heartbeats)
+    const resSpy = spy()
 
     await get(standardRequest(), {send: resSpy}).then(() => {
-      resSpy.should.have.been.called;
+      resSpy.should.have.been.called
       resSpy.getCall(0).args[0].data.should.be.eql([
         {
           ...expectedFields,
@@ -79,9 +79,9 @@ describe('Reading meters', function() {
               userName: 'username',
             },
           ],
-        }]);
-    });
-  });
+        }])
+    })
+  })
   it('should return house and its rooms with detail', async function() {
     const houses = [
       {
@@ -99,19 +99,19 @@ describe('Reading meters', function() {
             },
           ],
         }),
-      }];
+      }]
     const heartbeats = [
       standardHeartbeat(),
       standardHeartbeat({
         deviceId: 234,
         startScale: 900,
         endScale: 2000,
-      })];
-    global.MySQL = stubSequelizeModel(houses, heartbeats);
-    const resSpy = spy();
+      })]
+    global.MySQL = stubSequelizeModel(houses, heartbeats)
+    const resSpy = spy()
 
     await get(standardRequest({houseId: 199}), {send: resSpy}).then(() => {
-      resSpy.should.have.been.called;
+      resSpy.should.have.been.called
       resSpy.getCall(0).args[0].data.should.be.eql([
         {
           houseId: 199,
@@ -133,9 +133,9 @@ describe('Reading meters', function() {
               usage: '1100.0000',
             },
           ],
-        }]);
-    });
-  });
+        }])
+    })
+  })
 
   it('should return scale no more than 4 fixed-point notation',
     async function() {
@@ -145,19 +145,19 @@ describe('Reading meters', function() {
             ...houseFields(),
             rooms: standardRooms(),
           }),
-        }];
+        }]
       const heartbeats = [
         standardHeartbeat({
           startScale: 1.0000000000001,
           endScale: 3,
           startDate: 100000,
           endDate: 150000,
-        })];
-      global.MySQL = stubSequelizeModel(houses, heartbeats);
-      const resSpy = spy();
+        })]
+      global.MySQL = stubSequelizeModel(houses, heartbeats)
+      const resSpy = spy()
 
       await get(standardRequest(), {send: resSpy}).then(() => {
-        resSpy.should.have.been.called;
+        resSpy.should.have.been.called
         resSpy.getCall(0).args[0].data.should.be.eql([
           {
             ...expectedFields,
@@ -177,25 +177,25 @@ describe('Reading meters', function() {
                 userName: 'username',
               },
             ],
-          }]);
-      });
-    });
+          }])
+      })
+    })
 
-});
+})
 
 const timeAlign = time => moment.unix(time).
   startOf('days').
-  unix();
+  unix()
 
 const stubSequelizeModel = (houses, heartbeats) => ({
   Houses: {
     async findAll() {
-      return houses;
+      return houses
     },
   },
   DeviceHeartbeats: {
     async findAll() {
-      return heartbeats;
+      return heartbeats
     },
   },
   Sequelize: {
@@ -204,12 +204,12 @@ const stubSequelizeModel = (houses, heartbeats) => ({
     col: () => {
     },
   },
-});
+})
 const defaultPrices = [
   {
     price: 1000,
   },
-];
+]
 const houseFields = (prices = defaultPrices) => ({
   building: {
     building: 'building',
@@ -218,7 +218,7 @@ const houseFields = (prices = defaultPrices) => ({
   },
   roomNumber: 'roomNumber',
   prices,
-});
+})
 
 const expectedFields = {
   location: 'location',
@@ -227,7 +227,7 @@ const expectedFields = {
   roomNumber: 'roomNumber',
   unit: 'unit',
   building: 'building',
-};
+}
 
 const standardRequest = (extra = {}) => ({
   params: {
@@ -240,7 +240,7 @@ const standardRequest = (extra = {}) => ({
     ...extra,
   },
 
-});
+})
 
 const standardRooms = () => [
   {
@@ -261,7 +261,7 @@ const standardRooms = () => [
       },
     ],
   },
-];
+]
 
 const standardHeartbeat = (extra = {}) => ({
   toJSON: () => ({
@@ -272,4 +272,4 @@ const standardHeartbeat = (extra = {}) => ({
     endDate: 200,
     ...extra,
   }),
-});
+})

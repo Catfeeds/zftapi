@@ -1,27 +1,27 @@
-'use strict';
+'use strict'
 /**
  * Operations on /withDraw
  */
-const fp = require('lodash/fp');
-const moment = require('moment');
+const fp = require('lodash/fp')
+const moment = require('moment')
 
 module.exports = {
   get: async function(req, res) {
     //get withdraw information
-    const projectId = req.params.projectId;
+    const projectId = req.params.projectId
 
-    const query = req.query;
+    const query = req.query
     if(!Util.ParameterCheck(query, ['startDate', 'endDate'])){
-      return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED));
+      return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED))
     }
 
-    const pagingInfo = Util.PagingInfo(query.index, query.size, true);
-    const startDate = moment.unix(query.startDate).toDate();
-    const endDate = moment.unix(query.endDate).toDate();
+    const pagingInfo = Util.PagingInfo(query.index, query.size, true)
+    const startDate = moment.unix(query.startDate).toDate()
+    const endDate = moment.unix(query.endDate).toDate()
 
-    const status = query.status;
+    const status = query.status
     if(status && !Typedef.WithDrawStatus[status]){
-      return res.send(404, ErrorCode.ack(ErrorCode.PARAMETERERROR, {status: status}));
+      return res.send(404, ErrorCode.ack(ErrorCode.PARAMETERERROR, {status: status}))
     }
 
     MySQL.WithDraw.findAndCountAll({
@@ -48,9 +48,9 @@ module.exports = {
       result=>{
         const userIds = fp.flatten(
           fp.map(row=>{
-            return [row.operator, row.auditor];
+            return [row.operator, row.auditor]
           })(result.rows)
-        );
+        )
 
         MySQL.Auth.findAll({
           where:{
@@ -61,24 +61,24 @@ module.exports = {
           users=>{
             //
             const userMapping = fp.fromPairs(fp.map(user=>{
-              return [user.id, user];
-            })(users));
+              return [user.id, user]
+            })(users))
 
             const data = fp.map(row=>{
-              row = row.toJSON();
+              row = row.toJSON()
 
-              const operator = userMapping[row.operator];
-              const auditor = userMapping[row.auditor];
+              const operator = userMapping[row.operator]
+              const auditor = userMapping[row.auditor]
 
-              row.operator = operator ? operator : {};
-              row.auditor = auditor ? auditor : {};
+              row.operator = operator ? operator : {}
+              row.auditor = auditor ? auditor : {}
 
-              row.createdAt = moment(row.createdAt).unix();
-              row.updatedAt = moment(row.updatedAt).unix();
+              row.createdAt = moment(row.createdAt).unix()
+              row.updatedAt = moment(row.updatedAt).unix()
 
-              return row;
+              return row
 
-            })(result.rows);
+            })(result.rows)
 
             res.send({
               paging: {
@@ -87,10 +87,10 @@ module.exports = {
                 size: pagingInfo.size
               },
               data: data
-            });
+            })
           }
-        );
+        )
       }
-    );
+    )
   },
-};
+}

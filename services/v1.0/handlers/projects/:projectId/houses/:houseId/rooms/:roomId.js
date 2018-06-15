@@ -1,8 +1,8 @@
-'use strict';
+'use strict'
 
-const fp = require('lodash/fp');
-const moment = require('moment');
-const common = Include('/services/v1.0/common');
+const fp = require('lodash/fp')
+const moment = require('moment')
+const common = Include('/services/v1.0/common')
 
 /**
  * Operations on /rooms/{hid}
@@ -23,13 +23,13 @@ module.exports = {
          */
 
     (async()=>{
-      const projectId = req.params.projectId;
-      const houseID = req.params.houseId;
-      const id = req.params.roomId;
+      const projectId = req.params.projectId
+      const houseID = req.params.houseId
+      const id = req.params.roomId
 
-      let t;
+      let t
       try {
-        t = await MySQL.Sequelize.transaction({autocommit: false});
+        t = await MySQL.Sequelize.transaction({autocommit: false})
 
         await MySQL.Rooms.destroy(
           {
@@ -39,7 +39,7 @@ module.exports = {
             },
             transaction: t
           }
-        );
+        )
 
         await MySQL.HouseDevices.destroy(
           {
@@ -49,22 +49,22 @@ module.exports = {
             },
             transaction: t
           }
-        );
+        )
 
-        await t.commit();
-        res.send();
+        await t.commit()
+        res.send()
       }
       catch(e){
-        await t.rollback();
+        await t.rollback()
         if(e.original.errno === 1065){
-          res.send(404, ErrorCode.ack(ErrorCode.REQUESTUNMATCH));
+          res.send(404, ErrorCode.ack(ErrorCode.REQUESTUNMATCH))
         }
         else {
-          log.error(e, projectId, houseID, id);
-          res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC));
+          log.error(e, projectId, houseID, id)
+          res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC))
         }
       }
-    })();
+    })()
   },
   /**
      * summary: update room
@@ -80,11 +80,11 @@ module.exports = {
          * For response `default` status 200 is used.
          */
     (async()=>{
-      const houseId = req.params.houseId;
-      const roomId = req.params.roomId;
-      const body = req.body;
+      const houseId = req.params.houseId
+      const roomId = req.params.roomId
+      const body = req.body
 
-      const putBody = fp.pick(['name', 'type', 'roomArea', 'config', 'orientation'])(body);
+      const putBody = fp.pick(['name', 'type', 'roomArea', 'config', 'orientation'])(body)
 
       try {
 
@@ -96,27 +96,27 @@ module.exports = {
               houseId: houseId
             }
           }
-        );
-        res.send();
+        )
+        res.send()
       }
       catch(e){
-        log.error(e, body, putBody);
-        res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC));
+        log.error(e, body, putBody)
+        res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC))
       }
 
-    })();
+    })()
   },
 
   patch: (req, res)=>{
     (async()=>{
-      const projectId = req.params.projectId;
-      const roomId = req.params.roomId;
-      const body = req.body;
+      const projectId = req.params.projectId
+      const roomId = req.params.roomId
+      const body = req.body
 
-      const patchBody = fp.pick(['reuseTime', 'pauseTime', 'suspendingId'])(body);
+      const patchBody = fp.pick(['reuseTime', 'pauseTime', 'suspendingId'])(body)
 
       if(!patchBody.pauseTime && (!patchBody.reuseTime || !patchBody.suspendingId) ){
-        return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED));
+        return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED))
       }
 
 
@@ -143,17 +143,17 @@ module.exports = {
             limit: 1
           }
         ]
-      });
+      })
       if(!room){
-        return res.send(404, ErrorCode.ack(ErrorCode.REQUESTUNMATCH));
+        return res.send(404, ErrorCode.ack(ErrorCode.REQUESTUNMATCH))
       }
 
-      const status = common.roomLeasingStatus(room.contracts, room.suspendingRooms);
+      const status = common.roomLeasingStatus(room.contracts, room.suspendingRooms)
 
       try{
         if( patchBody.pauseTime ) {
           if (status !== Typedef.OperationStatus.IDLE) {
-            return res.send(403, ErrorCode.ack(ErrorCode.STATUSUNMATCH));
+            return res.send(403, ErrorCode.ack(ErrorCode.STATUSUNMATCH))
           }
           else {
             await MySQL.SuspendingRooms.create({
@@ -162,13 +162,13 @@ module.exports = {
               roomId: roomId,
               from: patchBody.pauseTime,
               to: 0
-            });
+            })
 
           }
         }
         else if( patchBody.reuseTime ){
           if(status !== Typedef.OperationStatus.PAUSED) {
-            return res.send(403, ErrorCode.ack(ErrorCode.STATUSUNMATCH));
+            return res.send(403, ErrorCode.ack(ErrorCode.STATUSUNMATCH))
           }
           else{
             await MySQL.SuspendingRooms.update(
@@ -180,22 +180,22 @@ module.exports = {
                   id: patchBody.suspendingId
                 }
               }
-            );
+            )
           }
         }
 
-        res.send();
+        res.send()
       }
       catch(e){
-        log.error(e, body, patchBody);
-        res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC));
+        log.error(e, body, patchBody)
+        res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC))
       }
 
-    })();
+    })()
   },
 
   get: (req, res)=>{
-    const roomId = req.params.roomId;
+    const roomId = req.params.roomId
 
     MySQL.Rooms.findOne({
       where:{
@@ -241,13 +241,13 @@ module.exports = {
     }).then(
       room=>{
         if(!room){
-          return res.send(404, ErrorCode.ack(ErrorCode.REQUESTUNMATCH));
+          return res.send(404, ErrorCode.ack(ErrorCode.REQUESTUNMATCH))
         }
-        room = room.toJSON();
+        room = room.toJSON()
 
         room.devices = fp.compact(fp.map(device=>{
           if(!device || !device.device){
-            return null;
+            return null
           }
           else {
             return {
@@ -258,16 +258,16 @@ module.exports = {
               type: device.device.type,
               updatedAt: moment(device.device.updatedAt).unix(),
               status: common.deviceStatus(device.device)
-            };
+            }
           }
-        })(room.devices));
+        })(room.devices))
 
-        res.send(room);
+        res.send(room)
       },
       err=>{
-        log.error(err, roomId);
-        res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC));
+        log.error(err, roomId)
+        res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC))
       }
-    );
+    )
   }
-};
+}

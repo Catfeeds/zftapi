@@ -1,43 +1,43 @@
-const fs = require('fs');
-const path = require('path');
-const fp = require('lodash/fp');
+const fs = require('fs')
+const path = require('path')
+const fp = require('lodash/fp')
 
 exports.run = ()=>{
-  const modulePath = __dirname;
-  let files;
+  const modulePath = __dirname
+  let files
 
   try{
-    files = fs.readdirSync(modulePath);
+    files = fs.readdirSync(modulePath)
   }
   catch(e){
-    log.error('Error: ', e);
+    log.error('Error: ', e)
   }
 
-  const MODULENAME = 'Message';
+  const MODULENAME = 'Message'
 
   if(files){
-    global.Message = {};
+    global.Message = {}
     fp.each(baseName => {
       //
-      const newSubPath = path.join(modulePath, baseName);
+      const newSubPath = path.join(modulePath, baseName)
 
-      const stat = fs.lstatSync(newSubPath);
+      const stat = fs.lstatSync(newSubPath)
       if( !stat.isDirectory() ){
-        return;
+        return
       }
 
-      const subModulePath = path.join(newSubPath, path.basename(newSubPath));
+      const subModulePath = path.join(newSubPath, path.basename(newSubPath))
       try {
-        let handle = require(subModulePath);
-        const moduleName = handle.moduleName;
+        let handle = require(subModulePath)
+        const moduleName = handle.moduleName
 
-        global.Message[moduleName] = handle.alloc();
+        global.Message[moduleName] = handle.alloc()
 
-        log.debug(moduleName, '==> ', MODULENAME, moduleName);
+        log.debug(moduleName, '==> ', MODULENAME, moduleName)
       }
       catch(e){
-        log.error('message loader error', subModulePath, e);
+        log.error('message loader error', subModulePath, e)
       }
-    })(files);
+    })(files)
   }
-};
+}

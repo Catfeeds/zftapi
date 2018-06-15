@@ -1,11 +1,11 @@
-'use strict';
-const fp = require('lodash/fp');
+'use strict'
+const fp = require('lodash/fp')
 /**
  * Operations on /houses/format
  */
 
 const translate = fp.map(res => {
-  const position = res.location && res.location.split(',') || [0,0];
+  const position = res.location && res.location.split(',') || [0,0]
   return {
     name: res.name,
     district: res.district,
@@ -14,9 +14,9 @@ const translate = fp.map(res => {
     code: res.id,
     longitude: position[0],
     latitude: position[1],
-  };
-});
-const whichHasId = fp.filter(location => !fp.isEmpty(location.id));
+  }
+})
+const whichHasId = fp.filter(location => !fp.isEmpty(location.id))
 
 module.exports = {
   /**
@@ -32,25 +32,25 @@ module.exports = {
          * Get the data for response 200
          * For response `default` status 200 is used.
          */
-    const param = req.query;
+    const param = req.query
     if(!Util.ParameterCheck(param,
       ['city', 'q']
     )){
-      return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED));
+      return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED))
     }
 
     const query = {
       keywords: decodeURIComponent(param.q),
       city: param.city
-    };
+    }
     return Amap.InputTips(query).then(
       data=>{
-        res.send((translate(whichHasId(data))));
+        res.send((translate(whichHasId(data))))
       },
       err=>{
-        log.error(err, query);
-        res.send(500, ErrorCode.ack(ErrorCode.UNKNOWN));
+        log.error(err, query)
+        res.send(500, ErrorCode.ack(ErrorCode.UNKNOWN))
       }
-    );
+    )
   }
-};
+}

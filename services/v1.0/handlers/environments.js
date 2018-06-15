@@ -1,60 +1,60 @@
-'use strict';
+'use strict'
 /**
  * Operations on /environments
  */
 
-const fp = require('lodash/fp');
-const {omitSingleNulls, innerValues} = require('../common');
+const fp = require('lodash/fp')
+const {omitSingleNulls, innerValues} = require('../common')
 
 const translate = fp.flow(innerValues,
   fp.omit(['createdAt', 'updatedAt', 'password',
-    'strategy', 'expenses']), omitSingleNulls);
+    'strategy', 'expenses']), omitSingleNulls)
 
-const pickHouseId = (obj) => fp.defaults({houseId: obj.room.house.id})(obj);
-const omitRoomEntry = fp.omit('room');
+const pickHouseId = (obj) => fp.defaults({houseId: obj.room.house.id})(obj)
+const omitRoomEntry = fp.omit('room')
 module.exports = {
   get: async (req, res) => {
 
     const houseFormat = {
       key: 'houseFormat',
       value: Typedef.HouseFormatLiteral,
-    };
+    }
 
     const roomType = {
       key: 'roomType',
       value: Typedef.RoomType,
-    };
+    }
 
     const operationStatus = {
       key: 'operationStatus',
       value: Typedef.OperationStatusLiteral,
-    };
+    }
 
     const orientation = {
       key: 'orientation',
       value: Typedef.OrientationLiteral,
-    };
+    }
 
     const environments = [
       houseFormat,
       roomType,
       operationStatus,
-      orientation];
+      orientation]
 
     if (!req.isAuthenticated()) {
-      return res.send(fp.compact(environments));
+      return res.send(fp.compact(environments))
     }
-    const user = fp.getOr({})('user')(req);
+    const user = fp.getOr({})('user')(req)
 
-    const Auth = MySQL.Auth;
-    const Projects = MySQL.Projects;
+    const Auth = MySQL.Auth
+    const Projects = MySQL.Projects
 
     try {
       const userProfile = await MySQL.Users.findOne({
         where: {
           authId: user.id
         }
-      });
+      })
 
       const contracts = userProfile ? await  MySQL.Contracts.findAll({
         where: {
@@ -70,16 +70,16 @@ module.exports = {
             attributes: ['id']
           }]
         }]
-      }) : null;
+      }) : null
 
-      const auth = await Auth.findById(user.id);
+      const auth = await Auth.findById(user.id)
 
       const banks = await MySQL.Banks.findAll({
         attributes: ['tag', 'name']
-      });
-      const projectId = fp.getOr(null)('projectId')(auth);
+      })
+      const projectId = fp.getOr(null)('projectId')(auth)
       const project = projectId && await Projects.findById(projectId,
-        {attributes: ['id', 'name']});
+        {attributes: ['id', 'name']})
 
       const data = fp.compact(fp.concat(environments,
         [
@@ -93,12 +93,12 @@ module.exports = {
           , projectId ? {key: 'project', value: project} : null
           , {key: 'features', value: {billPaymentInApp: false}}
         ]
-      ));
-      res.send(data);
+      ))
+      res.send(data)
     }
     catch(e){
-      log.error(e);
-      res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC));
+      log.error(e)
+      res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC))
     }
   },
-};
+}

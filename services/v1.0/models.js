@@ -1,7 +1,7 @@
-'use strict';
+'use strict'
 
-const fp = require('lodash/fp');
-const {FundChannelStatus} = require('../../libs/typedef');
+const fp = require('lodash/fp')
+const {FundChannelStatus} = require('../../libs/typedef')
 
 exports.fundFlowConnection = (sequelizeModel) => (required = false) => ({
   required,
@@ -15,18 +15,18 @@ exports.fundFlowConnection = (sequelizeModel) => (required = false) => ({
     'to',
     'amount',
     'createdAt'],
-});
+})
 
 exports.paymentsFilter = sequelizeModel => (flag, projectId) => {
   if (fp.isUndefined(flag)) {
-    return {};
+    return {}
   }
   const billPaymentFilter = sequelizeModel.Sequelize.literal(
-    `( select billId from billpayment where projectId = ${projectId} )`);
+    `( select billId from billpayment where projectId = ${projectId} )`)
   return flag === 'true' ?
     {$in: billPaymentFilter}
-    : {$notIn: billPaymentFilter};
-};
+    : {$notIn: billPaymentFilter}
+}
 
 exports.fundChannelById = SequelizeModels => async ({projectId, fundChannelId}) => {
   return SequelizeModels.ReceiveChannels.findOne({
@@ -56,5 +56,5 @@ exports.fundChannelById = SequelizeModels => async ({projectId, fundChannelId}) 
         ],
       },
     ],
-  });
-};
+  })
+}

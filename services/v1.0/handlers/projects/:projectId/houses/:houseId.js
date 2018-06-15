@@ -1,7 +1,7 @@
-'use strict';
-const fp = require('lodash/fp');
-const common = Include('/services/v1.0/common');
-const moment = require('moment');
+'use strict'
+const fp = require('lodash/fp')
+const common = Include('/services/v1.0/common')
+const moment = require('moment')
 /**
  * Operations on /houses/{hid}
  */
@@ -21,10 +21,10 @@ module.exports = {
          * For response `default` status 200 is used.
          */
     (async()=>{
-      const params = req.params;
+      const params = req.params
 
-      const id = params.houseId;
-      const projectId = params.projectId;
+      const id = params.houseId
+      const projectId = params.projectId
 
       const houseIns = await MySQL.Houses.findOne({
         where: {
@@ -53,12 +53,12 @@ module.exports = {
           },
           common.includeHouseDevices(true)
         ]
-      });
+      })
       if(!houseIns){
-        return res.send(404, ErrorCode.ack(ErrorCode.REQUESTUNMATCH));
+        return res.send(404, ErrorCode.ack(ErrorCode.REQUESTUNMATCH))
       }
 
-      const house = houseIns.toJSON();
+      const house = houseIns.toJSON()
 
       res.send({
         code: house.code,
@@ -75,8 +75,8 @@ module.exports = {
         config: house.config,
         rooms: common.translateRooms(house.rooms),
         devices: common.translateDevices(house.devices)
-      });
-    })();
+      })
+    })()
   },
   /**
      * summary: delete house
@@ -92,8 +92,8 @@ module.exports = {
          * For response `default` status 200 is used.
          */
     (async()=>{
-      const houseId = req.params.houseId;
-      const projectId = req.params.projectId;
+      const houseId = req.params.houseId
+      const projectId = req.params.projectId
 
       const isExists = await MySQL.Houses.count({
         where:{
@@ -102,12 +102,12 @@ module.exports = {
           projectId: projectId,
           status: Typedef.HouseStatus.OPEN,
         }
-      });
+      })
       if(!isExists){
-        return res.send(400, ErrorCode.ack(ErrorCode.REQUESTUNMATCH));
+        return res.send(400, ErrorCode.ack(ErrorCode.REQUESTUNMATCH))
       }
 
-      const now = moment().unix();
+      const now = moment().unix()
       const rooms = await MySQL.Rooms.findAll({
         where:{
           houseId: houseId
@@ -125,21 +125,21 @@ module.exports = {
             required: false
           }
         ]
-      });
+      })
 
       const isRoomInUse = fp.compact(fp.map(room=>{
-        return common.roomLeasingStatus(room.contracts) !== Typedef.OperationStatus.IDLE ? room.id : null;
-      })(rooms));
+        return common.roomLeasingStatus(room.contracts) !== Typedef.OperationStatus.IDLE ? room.id : null
+      })(rooms))
 
       if(isRoomInUse.length){
-        return res.send(400, ErrorCode.ack(ErrorCode.CONTRACTWORKING));
+        return res.send(400, ErrorCode.ack(ErrorCode.CONTRACTWORKING))
       }
 
-      let t;
+      let t
       try {
-        t = await MySQL.Sequelize.transaction({autocommit: false});
+        t = await MySQL.Sequelize.transaction({autocommit: false})
 
-        const now = moment();
+        const now = moment()
         await MySQL.Houses.update(
           {
             deleteAt: now.unix(),
@@ -152,7 +152,7 @@ module.exports = {
             },
             transaction: t
           }
-        );
+        )
         await MySQL.Layouts.update(
           {
             deleteAt: now.unix(),
@@ -163,7 +163,7 @@ module.exports = {
             },
             transaction: t
           }
-        );
+        )
         await MySQL.Rooms.destroy(
           {
             where:{
@@ -171,7 +171,7 @@ module.exports = {
             },
             transaction: t
           }
-        );
+        )
         await MySQL.HouseDevices.destroy(
           {
             where:{
@@ -180,17 +180,17 @@ module.exports = {
             },
             transaction: t
           }
-        );
+        )
 
-        await t.commit();
-        res.send(201);
+        await t.commit()
+        res.send(201)
       }
       catch(e){
-        log.error(e, houseId);
-        await t.rollback();
-        res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC));
+        log.error(e, houseId)
+        await t.rollback()
+        res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC))
       }
-    })();
+    })()
   },
   /**
      * summary: update house
@@ -206,35 +206,35 @@ module.exports = {
          * For response `default` status 200 is used.
          */
     (async()=>{
-      const body = req.body;
-      const params = req.params;
+      const body = req.body
+      const params = req.params
 
-      const projectId = params.projectId;
-      const houseId = params.houseId;
+      const projectId = params.projectId
+      const houseId = params.houseId
 
       const houseIns = await MySQL.Houses.findOne({
         where:{
           id: houseId,
           projectId: projectId
         }
-      });
+      })
 
       if(!houseIns){
-        return res.send(404, ErrorCode.ack(ErrorCode.REQUESTUNMATCH));
+        return res.send(404, ErrorCode.ack(ErrorCode.REQUESTUNMATCH))
       }
 
       const putBody = fp.pick(body
         , ['location', 'code', 'group', 'building', 'unit',
           'roomNumber', 'totalFloor', 'currentFloor',
           'config', 'houseKeeper', 'layout']
-      );
+      )
 
       try{
-        const t = await MySQL.Sequelize.transaction();
+        const t = await MySQL.Sequelize.transaction()
 
         if(body.location) {
-          const newLocation = await common.AsyncUpsertGeoLocation(body.location, t);
-          body.location = MySQL.Plain(newLocation[0]);
+          const newLocation = await common.AsyncUpsertGeoLocation(body.location, t)
+          body.location = MySQL.Plain(newLocation[0])
         }
 
         if(!fp.isEmpty(putBody)) {
@@ -247,7 +247,7 @@ module.exports = {
               },
               transaction: t
             }
-          );
+          )
 
           await MySQL.Building.update(
             putBody,
@@ -258,7 +258,7 @@ module.exports = {
               },
               transaction: t
             }
-          );
+          )
 
           await MySQL.Layouts.update(
             putBody.layout,
@@ -269,16 +269,16 @@ module.exports = {
               },
               transaction: t
             }
-          );
+          )
         }
 
-        await t.commit();
-        res.send(204);
+        await t.commit()
+        res.send(204)
       }
       catch(e){
-        log.error(ErrorCode.ack(e.message), params, body);
-        res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC));
+        log.error(ErrorCode.ack(e.message), params, body)
+        res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC))
       }
-    })();
+    })()
   }
-};
+}

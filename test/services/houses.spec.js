@@ -1,17 +1,17 @@
-'use strict';
+'use strict'
 
 const {get} = require(
-  '../../services/v1.0/handlers/projects/:projectId/houses');
-require('include-node');
-const {spy} = require('sinon');
-const fp = require('lodash/fp');
+  '../../services/v1.0/handlers/projects/:projectId/houses')
+require('include-node')
+const {spy} = require('sinon')
+const fp = require('lodash/fp')
 
 describe('Houses', function() {
   before(() => {
-    global.Typedef = Include('/libs/typedef');
-    global.Util = Include('/libs/util');
-    global.log = {error: fp.noop};
-  });
+    global.Typedef = Include('/libs/typedef')
+    global.Util = Include('/libs/util')
+    global.log = {error: fp.noop}
+  })
 
   it('should return all houses from findAndCountAll', async function() {
     const req = {
@@ -20,7 +20,7 @@ describe('Houses', function() {
       },
       query: {houseFormat: 'SHARE', q: 'q'},
 
-    };
+    }
     global.MySQL = {
       Houses: {
         async findAll() {
@@ -43,15 +43,15 @@ describe('Houses', function() {
 
               }),
             }
-          ];
+          ]
         },
         count: fp.constant(1)
       },
-    };
-    const resSpy = spy();
+    }
+    const resSpy = spy()
 
     await get(req, {send: resSpy}).then(() => {
-      resSpy.should.have.been.called;
+      resSpy.should.have.been.called
       resSpy.getCall(0).args[0].should.be.eql({
         data: [
           {
@@ -76,10 +76,10 @@ describe('Houses', function() {
           index: 1,
           size: 10,
         },
-      });
-    });
+      })
+    })
 
-  });
+  })
 
   it('should handle null device from toJSON', async function() {
     const req = {
@@ -88,7 +88,7 @@ describe('Houses', function() {
       },
       query: {houseFormat: 'SHARE', q: 'q'},
 
-    };
+    }
     global.MySQL = {
       Houses: {
         async findAll() {
@@ -109,20 +109,20 @@ describe('Houses', function() {
                 devices: [{device: null}, {device: {deviceId: 'deviceId'}}],
                 rooms: null,
               }),
-            }];
+            }]
         },
         count: fp.constant(1)
       },
-    };
-    const resSpy = spy();
+    }
+    const resSpy = spy()
 
     await get(req, {send: resSpy}).then(() => {
-      resSpy.should.have.been.called;
-      const devices = resSpy.getCall(0).args[0].data[0].devices;
-      devices.should.have.length(1);
-      fp.head(devices).deviceId.should.be.eql('deviceId');
-      fp.head(devices).status.service.should.be.eql('EMC_OFFLINE');
-    });
+      resSpy.should.have.been.called
+      const devices = resSpy.getCall(0).args[0].data[0].devices
+      devices.should.have.length(1)
+      fp.head(devices).deviceId.should.be.eql('deviceId')
+      fp.head(devices).status.service.should.be.eql('EMC_OFFLINE')
+    })
 
-  });
-});
+  })
+})

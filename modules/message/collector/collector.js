@@ -1,56 +1,56 @@
 /*
 * message queue of api to collector
 * */
-const messageQueue = Include('/libs/messageQueue');
-const config = require('config');
+const messageQueue = Include('/libs/messageQueue')
+const config = require('config')
 
-const PRODUCTOR_TOPIC = 'TOCOLLECTOR';
-const CONSUMBER_TOPIC = 'TOAPI';
+const PRODUCTOR_TOPIC = 'TOCOLLECTOR'
+const CONSUMBER_TOPIC = 'TOAPI'
 
 class CollectorMessageQueue{
   constructor(){
-    const productorName = `${PRODUCTOR_TOPIC}_${ENV.ENV}`;
+    const productorName = `${PRODUCTOR_TOPIC}_${ENV.ENV}`
     this.productor = messageQueue.alloc(
       productorName
       , config.REDIS_HOST
       , config.REDIS_PORT
       , config.REDIS_PASSWD || ''
-    );
-    this.productor.bind(productorName);
+    )
+    this.productor.bind(productorName)
 
-    const consumerName = `${CONSUMBER_TOPIC}_${ENV.ENV}`;
+    const consumerName = `${CONSUMBER_TOPIC}_${ENV.ENV}`
     this.consumer = messageQueue.alloc(
       consumerName
       , config.REDIS_HOST
       , config.REDIS_PORT
       , config.REDIS_PASSWD || ''
-    );
-    this.consumer.listen(consumerName);
+    )
+    this.consumer.listen(consumerName)
   }
 
   send(message){
     if(this.productor){
-      this.productor.publish(message);
+      this.productor.publish(message)
     }
   }
 
   register(func){
     if(!this.consumer){
-      return false;
+      return false
     }
-    return this.consumer.register(func);
+    return this.consumer.register(func)
   }
 
   unRegister(index){
     if(!this.consumer){
-      return false;
+      return false
     }
-    return this.consumer.unRegister(index);
+    return this.consumer.unRegister(index)
   }
 }
 
 exports.alloc = ()=>{
-  return new CollectorMessageQueue();
-};
+  return new CollectorMessageQueue()
+}
 
-exports.moduleName = 'Collector';
+exports.moduleName = 'Collector'

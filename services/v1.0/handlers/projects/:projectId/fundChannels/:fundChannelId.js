@@ -1,8 +1,8 @@
-'use strict';
+'use strict'
 /**
  * Operations on /fundChannels
  */
-const fp = require('lodash/fp');
+const fp = require('lodash/fp')
 
 module.exports = {
   /**
@@ -14,8 +14,8 @@ module.exports = {
      * responses: 200, 400
      */
   get: (req, res)=>{
-    const projectId = req.params.projectId;
-    const id = req.params.fundChannelId;
+    const projectId = req.params.projectId
+    const id = req.params.fundChannelId
 
     MySQL.ReceiveChannels.findOne({
       where: {
@@ -36,12 +36,12 @@ module.exports = {
     }).then(
       channel=>{
         if(!channel){
-          return res.send(404, ErrorCode.ack(ErrorCode.DATABASEEXEC));
+          return res.send(404, ErrorCode.ack(ErrorCode.DATABASEEXEC))
         }
 
-        channel = channel.toJSON();
-        res.send( fp.assign( fp.omit('fundChannel')(channel), channel.fundChannel ) );
+        channel = channel.toJSON()
+        res.send( fp.assign( fp.omit('fundChannel')(channel), channel.fundChannel ) )
       }
-    );
+    )
   }
-};
+}

@@ -1,10 +1,10 @@
-const validatorRunner = Include('/libs/validator');
+const validatorRunner = Include('/libs/validator')
 
-let validatorSchema = validatorRunner.alloc();
+let validatorSchema = validatorRunner.alloc()
 
 exports.Validate = (path, data)=>{
-  validatorSchema.run(path, data);
-};
+  validatorSchema.run(path, data)
+}
 
 // const hfmt = [
 //     {
@@ -38,7 +38,7 @@ validatorSchema.create('/houses', {
   location:[
     {
       customer:(value)=>{
-        return value.name && value.address && value.divisionCode;
+        return value.name && value.address && value.divisionCode
       }
     }
   ],
@@ -55,4 +55,4 @@ validatorSchema.create('/houses', {
       method: 'isInt'
     }
   ]
-});
+})

@@ -1,14 +1,14 @@
-'use strict';
+'use strict'
 
-const moment = require('moment');
-const {spy} = require('sinon');
+const moment = require('moment')
+const {spy} = require('sinon')
 const {get} = require(
-  '../../../services/v1.0/handlers/projects/:projectId/devices/:deviceId/usage');
+  '../../../services/v1.0/handlers/projects/:projectId/devices/:deviceId/usage')
 
 describe('Device usage', function() {
   before(() => {
-    global.Typedef = Include('/libs/typedef');
-  });
+    global.Typedef = Include('/libs/typedef')
+  })
   it('should return usage of device', async function() {
     const usages = [
       {
@@ -23,7 +23,7 @@ describe('Device usage', function() {
           endScale: '4.999999',
           startScale: '3.888888',
         }),
-      }];
+      }]
     const req = {
       params: {
         projectId: 100,
@@ -33,11 +33,11 @@ describe('Device usage', function() {
         endDate: 2625946400,
       },
 
-    };
+    }
     global.MySQL = {
       DeviceHeartbeats: {
         async findAll() {
-          return usages;
+          return usages
         },
       },
       Sequelize: {
@@ -46,11 +46,11 @@ describe('Device usage', function() {
         col: () => {
         },
       },
-    };
-    const resSpy = spy();
+    }
+    const resSpy = spy()
 
     await get(req, {send: resSpy}).then(() => {
-      resSpy.should.have.been.called;
+      resSpy.should.have.been.called
       resSpy.getCall(0).args[0].should.be.eql([
         {
           time: 1525939200,
@@ -62,8 +62,8 @@ describe('Device usage', function() {
           endScale: '50000',
           startScale: '38889',
           usage: 11111,
-        }]);
-    });
-  });
+        }])
+    })
+  })
 
-});
+})

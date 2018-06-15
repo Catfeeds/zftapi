@@ -1,8 +1,8 @@
-'use strict';
-const fp = require('lodash/fp');
+'use strict'
+const fp = require('lodash/fp')
 
 const {assignNewId, moveFundChannelToRoot, payBills, serviceCharge: serviceChargeOf} =
-    require('../../../../../../../common');
+    require('../../../../../../../common')
 
 /**
  * Operations on /fundChannels/{fundChannelId}
@@ -10,7 +10,7 @@ const {assignNewId, moveFundChannelToRoot, payBills, serviceCharge: serviceCharg
 
 async function Pay(
   serviceCharge, projectId, fundChannel, contractId, bills, userId) {
-  const orderNo = assignNewId().id;
+  const orderNo = assignNewId().id
   if (fundChannel.setting && fundChannel.setting.appid &&
         fundChannel.setting.key) {
     //online
@@ -22,22 +22,22 @@ async function Pay(
       contractId: contractId,
       userId: userId,
       billIds: fp.map('id')(bills),
-    };
+    }
 
     try {
       return await Util.charge(fundChannel,
         serviceCharge.amountForBill, orderNo, 'subject', 'body',
-        metadata);
+        metadata)
     }
     catch (e) {
       log.error(e, serviceCharge, projectId, fundChannel, contractId,
-        bills, userId);
+        bills, userId)
     }
   }
   else {
     //
     return await payBills(MySQL)(bills, projectId,
-      fundChannel, userId, orderNo);
+      fundChannel, userId, orderNo)
   }
 }
 
@@ -55,31 +55,31 @@ module.exports = {
          * Get the data for response 200
          * For response `default` status 200 is used.
          */
-    const projectId = req.params.projectId;
-    const contractId = req.params.contractId;
-    const userId = req.params.userId;
+    const projectId = req.params.projectId
+    const contractId = req.params.contractId
+    const userId = req.params.userId
 
-    const body = req.body;
+    const body = req.body
 
     if (!Util.ParameterCheck(body,
       ['billIds', 'fundChannelId'],
     )) {
       return res.send(422,
-        ErrorCode.ack(ErrorCode.PARAMETERMISSED, 'please provide billIds & fundChannelId.'));
+        ErrorCode.ack(ErrorCode.PARAMETERMISSED, 'please provide billIds & fundChannelId.'))
     }
 
-    const billIds = body.billIds;
+    const billIds = body.billIds
     const fundChannelId = body.fundChannelId;
 
     (async () => {
       try {
-        const receiveChannelAttributes = ['fee', 'setting', 'share'];
+        const receiveChannelAttributes = ['fee', 'setting', 'share']
         const fundChannelAttributes = [
           'category',
           'flow',
           'name',
           'tag',
-          'id'];
+          'id']
         const result = await MySQL.ReceiveChannels.findOne({
           where: {
             fundChannelId: fundChannelId,
@@ -102,15 +102,15 @@ module.exports = {
               ],
             },
           ],
-        });
+        })
 
         if (!result) {
           return res.send(404,
-            ErrorCode.ack(ErrorCode.CHANNELNOTEXISTS));
+            ErrorCode.ack(ErrorCode.CHANNELNOTEXISTS))
         }
 
         const fundChannel = moveFundChannelToRoot(result)(
-          fundChannelAttributes);
+          fundChannelAttributes)
         const contract = await MySQL.Contracts.findOne({
           where: {
             id: contractId,
@@ -125,35 +125,35 @@ module.exports = {
               },
             },
           ],
-        });
+        })
         if (!contract) {
           return res.send(404,
-            ErrorCode.ack(ErrorCode.CONTRACTNOTEXISTS));
+            ErrorCode.ack(ErrorCode.CONTRACTNOTEXISTS))
         }
 
         if (contract.bills.length !== billIds.length) {
           return res.send(404,
-            ErrorCode.ack(ErrorCode.BILLNOTEXISTS));
+            ErrorCode.ack(ErrorCode.BILLNOTEXISTS))
         }
 
-        const amount = fp.sum(fp.map('dueAmount')(contract.bills));
+        const amount = fp.sum(fp.map('dueAmount')(contract.bills))
 
-        const serviceCharge = serviceChargeOf(fundChannel, amount);
+        const serviceCharge = serviceChargeOf(fundChannel, amount)
 
         const payResult = await Pay(serviceCharge, projectId,
-          fundChannel, contractId, contract.bills, userId);
+          fundChannel, contractId, contract.bills, userId)
         if (payResult.code === ErrorCode.OK) {
           res.send({
             pingpp: payResult.result
-          });
+          })
         }
         else {
-          res.send(500, payResult);
+          res.send(500, payResult)
         }
       }
       catch (e) {
-        log.error(e, body);
+        log.error(e, body)
       }
-    })();
+    })()
   },
-};
+}

@@ -1,44 +1,44 @@
-'use strict';
+'use strict'
 /**
  * Operations on /houses
  */
-const fp = require('lodash/fp');
-const moment = require('moment');
-const common = Include('/services/v1.0/common');
+const fp = require('lodash/fp')
+const moment = require('moment')
+const common = Include('/services/v1.0/common')
 
 function EntireCheck(body) {
   return Util.ParameterCheck(body,
     ['location', 'enabledFloors', 'houseCountOnFloor', 'totalFloor']
-  );
+  )
 }
 function SoleShareCheck(body) {
   return Util.ParameterCheck(body,
     ['location', 'roomNumber', 'currentFloor', 'totalFloor']
   )
-    && (fp.isObject(body.layout) && !fp.isArray(body.layout));
+    && (fp.isObject(body.layout) && !fp.isArray(body.layout))
 }
 
 async function SaveEntire(t, params, body){
-  const projectId = params.projectId;
-  const createdAt = moment().unix();
+  const projectId = params.projectId
+  const createdAt = moment().unix()
 
   const createHouses = (buildingId, houseCountOnFloor, totalFloor)=>{
-    let houses = [];
-    let rooms = [];
-    let layouts = [];
+    let houses = []
+    let rooms = []
+    let layouts = []
 
-    let currentFloor = 1;
+    let currentFloor = 1
 
     while(currentFloor<=totalFloor){
-      let i = 1;
+      let i = 1
       while(i<=houseCountOnFloor){
-        let roomNumber = '0' + i.toString();
-        roomNumber = roomNumber.substr(roomNumber.length-2);
-        roomNumber = currentFloor + roomNumber;
+        let roomNumber = '0' + i.toString()
+        roomNumber = roomNumber.substr(roomNumber.length-2)
+        roomNumber = currentFloor + roomNumber
 
-        const status = fp.includes(currentFloor)(body.enabledFloors) ? Typedef.HouseStatus.OPEN : Typedef.HouseStatus.CLOSED;
+        const status = fp.includes(currentFloor)(body.enabledFloors) ? Typedef.HouseStatus.OPEN : Typedef.HouseStatus.CLOSED
 
-        const houseId = SnowFlake.next();
+        const houseId = SnowFlake.next()
         const house = {
           id: houseId,
           houseFormat: Typedef.HouseFormat.ENTIRE,
@@ -50,14 +50,14 @@ async function SaveEntire(t, params, body){
           houseKeeper: body.houseKeeper,
           status: status,
           createdAt: createdAt
-        };
+        }
 
         layouts.push({
           id: SnowFlake.next(),
           sourceId: houseId,
           createdAt: createdAt
-        });
-        houses.push(house);
+        })
+        houses.push(house)
 
         rooms.push({
           id: SnowFlake.next(),
@@ -65,28 +65,28 @@ async function SaveEntire(t, params, body){
           name: common.convertRoomNumber(i),
           status: Typedef.OperationStatus.IDLE,
           createdAt: createdAt
-        });
+        })
 
 
-        i++;
+        i++
       }
-      currentFloor++;
+      currentFloor++
     }
 
     return {
       houses: houses,
       layouts: layouts,
       rooms: rooms
-    };
-  };
+    }
+  }
 
   try{
-    const buildingId = SnowFlake.next();
+    const buildingId = SnowFlake.next()
     body.layouts && body.layouts.map(layout=>{
-      layout.id = SnowFlake.next();
-      layout.sourceId = buildingId;
-      layout.createdAt = createdAt;
-    });
+      layout.id = SnowFlake.next()
+      layout.sourceId = buildingId
+      layout.createdAt = createdAt
+    })
     const buildingIns = {
       id: buildingId,
       projectId: projectId,
@@ -96,30 +96,30 @@ async function SaveEntire(t, params, body){
       config: body.config,
       layouts: body.layouts || [],
       createdAt: createdAt
-    };
+    }
 
-    await MySQL.Building.create(buildingIns, {transaction: t, include:[{model: MySQL.Layouts, as: 'layouts'}]});
+    await MySQL.Building.create(buildingIns, {transaction: t, include:[{model: MySQL.Layouts, as: 'layouts'}]})
 
-    const houseRoomLayouts = createHouses(buildingId, buildingIns.houseCountOnFloor, buildingIns.totalFloor);
+    const houseRoomLayouts = createHouses(buildingId, buildingIns.houseCountOnFloor, buildingIns.totalFloor)
 
-    await MySQL.Houses.bulkCreate(houseRoomLayouts.houses, {transaction: t});
-    await MySQL.Rooms.bulkCreate(houseRoomLayouts.rooms, {transaction: t});
-    await MySQL.Layouts.bulkCreate(houseRoomLayouts.layouts, {transaction: t});
+    await MySQL.Houses.bulkCreate(houseRoomLayouts.houses, {transaction: t})
+    await MySQL.Rooms.bulkCreate(houseRoomLayouts.rooms, {transaction: t})
+    await MySQL.Layouts.bulkCreate(houseRoomLayouts.layouts, {transaction: t})
 
-    return ErrorCode.ack(ErrorCode.OK, {id: houseRoomLayout.house.id});
+    return ErrorCode.ack(ErrorCode.OK, {id: houseRoomLayout.house.id})
   }
   catch(e){
-    log.error(e);
-    throw Error(ErrorCode.DATABASEEXEC);
+    log.error(e)
+    throw Error(ErrorCode.DATABASEEXEC)
   }
 }
 async function SaveSole(t, params, body) {
-  const projectId = params.projectId;
+  const projectId = params.projectId
 
-  const createdAt = moment().unix();
+  const createdAt = moment().unix()
 
   const createHouse = (buildingId)=>{
-    const houseId = SnowFlake.next();
+    const houseId = SnowFlake.next()
     const house = {
       id: houseId,
       houseFormat: body.houseFormat,
@@ -132,7 +132,7 @@ async function SaveSole(t, params, body) {
       status: Typedef.HouseStatus.OPEN,
       config: body.config,
       createdAt: createdAt
-    };
+    }
 
     const layout = {
       id: SnowFlake.next(),
@@ -143,8 +143,8 @@ async function SaveSole(t, params, body) {
       orientation: body.layout.orientation,
       roomArea: body.layout.roomArea,
       createdAt: createdAt,
-    };
-    const roomId = SnowFlake.next();
+    }
+    const roomId = SnowFlake.next()
     const room = {
       id: roomId,
       name: common.convertRoomNumber(1),
@@ -152,17 +152,17 @@ async function SaveSole(t, params, body) {
       roomArea: body.roomArea,
       status: Typedef.OperationStatus.IDLE,
       createdAt: createdAt
-    };
+    }
 
     return {
       house: house,
       layout: layout,
       room: room
-    };
-  };
+    }
+  }
 
   try{
-    const buildingId = SnowFlake.next();
+    const buildingId = SnowFlake.next()
     const buildingIns = {
       id: buildingId,
       projectId: projectId,
@@ -173,37 +173,37 @@ async function SaveSole(t, params, body) {
       totalFloor: body.totalFloor,
       config: body.config,
       createdAt: createdAt
-    };
+    }
 
-    await MySQL.Building.create(buildingIns, {transaction: t, include:[{model: MySQL.Layouts, as: 'layouts'}]});
+    await MySQL.Building.create(buildingIns, {transaction: t, include:[{model: MySQL.Layouts, as: 'layouts'}]})
 
-    const houseRoomLayout = createHouse(buildingId);
+    const houseRoomLayout = createHouse(buildingId)
 
-    await MySQL.Houses.create(houseRoomLayout.house, {transaction: t});
-    await MySQL.Rooms.create(houseRoomLayout.room, {transaction: t});
-    await MySQL.Layouts.create(houseRoomLayout.layout, {transaction: t});
+    await MySQL.Houses.create(houseRoomLayout.house, {transaction: t})
+    await MySQL.Rooms.create(houseRoomLayout.room, {transaction: t})
+    await MySQL.Layouts.create(houseRoomLayout.layout, {transaction: t})
 
-    return ErrorCode.ack(ErrorCode.OK, {id: houseRoomLayout.house.id});
+    return ErrorCode.ack(ErrorCode.OK, {id: houseRoomLayout.house.id})
   }
   catch(e){
-    log.error(e);
-    throw Error(ErrorCode.DATABASEEXEC);
+    log.error(e)
+    throw Error(ErrorCode.DATABASEEXEC)
   }
 }
 async function SaveShare(t, params, body) {
 
-  const projectId = params.projectId;
+  const projectId = params.projectId
 
   if(body.layout){
     if(!Typedef.IsOrientation(body.layout.orientation)){
-      return ErrorCode.ack(ErrorCode.PARAMETERERROR, {'orientation': body.layout, message: 'missed orientation'});
+      return ErrorCode.ack(ErrorCode.PARAMETERERROR, {'orientation': body.layout, message: 'missed orientation'})
     }
   }
 
-  const createdAt = moment().unix();
+  const createdAt = moment().unix()
 
   const createHouse = (buildingId)=>{
-    const houseId = SnowFlake.next();
+    const houseId = SnowFlake.next()
     const house = {
       id: houseId,
       houseFormat: body.houseFormat,
@@ -216,7 +216,7 @@ async function SaveShare(t, params, body) {
       status: Typedef.HouseStatus.OPEN,
       config: body.config,
       createdAt: createdAt
-    };
+    }
 
     const layout = {
       id: SnowFlake.next(),
@@ -227,10 +227,10 @@ async function SaveShare(t, params, body) {
       orientation: body.layout.orientation,
       roomArea: body.layout.roomArea,
       createdAt: createdAt,
-    };
+    }
 
-    let nowRoom = 1;
-    let rooms = [];
+    let nowRoom = 1
+    let rooms = []
     while(nowRoom <= body.layout.bedRoom){
       rooms.push({
         id: SnowFlake.next(),
@@ -238,20 +238,20 @@ async function SaveShare(t, params, body) {
         houseId: house.id,
         status: Typedef.OperationStatus.IDLE,
         createdAt: createdAt
-      });
+      })
 
-      nowRoom++;
+      nowRoom++
     }
 
     return {
       house: house,
       layout: layout,
       rooms: rooms
-    };
-  };
+    }
+  }
 
   try{
-    const buildingId = SnowFlake.next();
+    const buildingId = SnowFlake.next()
     const buildingIns = {
       id: buildingId,
       projectId: projectId,
@@ -262,26 +262,26 @@ async function SaveShare(t, params, body) {
       totalFloor: body.totalFloor,
       config: body.config,
       createdAt: createdAt
-    };
+    }
 
-    await MySQL.Building.create(buildingIns, {transaction: t, include:[{model: MySQL.Layouts, as: 'layouts'}]});
+    await MySQL.Building.create(buildingIns, {transaction: t, include:[{model: MySQL.Layouts, as: 'layouts'}]})
 
-    const houseRoomLayout = createHouse(buildingId);
+    const houseRoomLayout = createHouse(buildingId)
 
-    await MySQL.Houses.create(houseRoomLayout.house, {transaction: t});
-    await MySQL.Rooms.bulkCreate(houseRoomLayout.rooms, {transaction: t});
-    await MySQL.Layouts.create(houseRoomLayout.layout, {transaction: t});
+    await MySQL.Houses.create(houseRoomLayout.house, {transaction: t})
+    await MySQL.Rooms.bulkCreate(houseRoomLayout.rooms, {transaction: t})
+    await MySQL.Layouts.create(houseRoomLayout.layout, {transaction: t})
 
-    return ErrorCode.ack(ErrorCode.OK, {id: houseRoomLayout.house.id});
+    return ErrorCode.ack(ErrorCode.OK, {id: houseRoomLayout.house.id})
   }
   catch(e){
-    log.error(e);
-    throw Error(ErrorCode.DATABASEEXEC);
+    log.error(e)
+    throw Error(ErrorCode.DATABASEEXEC)
   }
 }
 
 async function Gethouses(params, query) {
-  const projectId = params.projectId;
+  const projectId = params.projectId
 
   /*
   * buildingId/houseStatus/roomStatus/layoutId/floor/q/bedRoom
@@ -290,14 +290,14 @@ async function Gethouses(params, query) {
     if(query.device){
       try {
         const sourceIds = fp.map(item => {
-          return item.sourceId;
+          return item.sourceId
         })(await MySQL.HouseDevices.findAll({
           where: {
             projectId: projectId,
             endDate: 0
           },
           attributes: ['sourceId']
-        }));
+        }))
         if (query.device === 'BIND') {
           //
           return {
@@ -305,7 +305,7 @@ async function Gethouses(params, query) {
               {'id': {$in: sourceIds}},
               {'$rooms.id$': {$in: sourceIds}},
             ]
-          };
+          }
         }
         else if (query.device === 'FREE') {
           return {
@@ -313,42 +313,42 @@ async function Gethouses(params, query) {
               {'id': {$notIn: sourceIds}},
               {'$rooms.id$': {$notIn: sourceIds}},
             ]
-          };
+          }
         }
         else{
-          return {};
+          return {}
         }
       }
       catch(e){
-        log.error(e, params, query);
-        throw Error(ErrorCode.DATABASEEXEC);
+        log.error(e, params, query)
+        throw Error(ErrorCode.DATABASEEXEC)
       }
     }
     else{
-      return {};
+      return {}
     }
-  };
+  }
   const districtLocation = ()=>{
     if(query.locationId){
       // geoLocationIds = [query.locationId];
-      return {'$building.location.id$': query.locationId};
+      return {'$building.location.id$': query.locationId}
     }
     else if(query.districtId){
       if(Util.IsParentDivision(query.districtId)){
         return {
           '$building.location.divisionId$': {$regexp: Util.ParentDivision(query.districtId)}
-        };
+        }
       }
       else{
         return {
           '$building.location.divisionId$': query.districtId
-        };
+        }
       }
     }
-  };
+  }
 
-  const pagingInfo = Util.PagingInfo(query.index, query.size, true);
-  const q = query.q ? decodeURIComponent(query.q) : null;
+  const pagingInfo = Util.PagingInfo(query.index, query.size, true)
+  const q = query.q ? decodeURIComponent(query.q) : null
   try {
     const where = fp.extendAll([
       {projectId: projectId},
@@ -372,7 +372,7 @@ async function Gethouses(params, query) {
       } : {},
       query.bedRooms ? {'$layouts.bedRoom$': query.bedRooms} : {},
       query.device ? await deviceFilter() : {},
-    ]);
+    ])
 
     const includeBuilding = ()=>{
       return {
@@ -383,15 +383,15 @@ async function Gethouses(params, query) {
           // , order:[['divisionId', 'ASC'], ['name', 'ASC']],
         }]
         , attributes: ['group', 'building', 'unit'],
-      };
-    };
+      }
+    }
     const includeLayouts = () => {
       return {
         model: MySQL.Layouts,
         as: 'layouts',
         attributes: ['name', 'bedRoom', 'livingRoom', 'bathRoom', 'orientation', 'roomArea', 'remark'],
-      };
-    };
+      }
+    }
     const includeHouseDevicePrice = ()=>{
       return {
         model: MySQL.HouseDevicePrice,
@@ -400,8 +400,8 @@ async function Gethouses(params, query) {
         where:{
           endDate: 0
         }
-      };
-    };
+      }
+    }
 
     const getInclude = async(forPaging)=>{
       return [
@@ -410,8 +410,8 @@ async function Gethouses(params, query) {
         await common.includeRoom(query.status, forPaging),
         common.includeHouseDevices(true),
         includeHouseDevicePrice()
-      ];
-    };
+      ]
+    }
 
 
     const count = await MySQL.Houses.count({
@@ -420,7 +420,7 @@ async function Gethouses(params, query) {
       include: await getInclude(),
       distinct: true,
       attributes:['id']
-    });
+    })
     const rows = await MySQL.Houses.findAll({
       where: where,
       subQuery: false,
@@ -432,11 +432,11 @@ async function Gethouses(params, query) {
       ],
       offset: pagingInfo.skip,
       limit: pagingInfo.size
-    });
+    })
 
     //
     const houses = fp.map(row=>{
-      const house = row.toJSON();
+      const house = row.toJSON()
 
       return {
         houseId: house.id,
@@ -453,9 +453,9 @@ async function Gethouses(params, query) {
         houseKeeper: house.houseKeeper,
         devices: common.translateDevices(house.devices),
         prices: fp.map(fp.pick(['category', 'type', 'price']))(house.prices)
-      };
+      }
 
-    })(rows);
+    })(rows)
 
     return {
       paging:{
@@ -464,11 +464,11 @@ async function Gethouses(params, query) {
         size: pagingInfo.size
       },
       data: houses
-    };
+    }
   }
   catch(e){
-    log.error(e);
-    throw Error(ErrorCode.DATABASEEXEC);
+    log.error(e)
+    throw Error(ErrorCode.DATABASEEXEC)
   }
 }
 
@@ -486,23 +486,23 @@ module.exports = {
      * Get the data for response 200
      * For response `default` status 200 is used.
      */
-    const query = req.query;
-    const params = req.params;
+    const query = req.query
+    const params = req.params
 
     if (!Util.ParameterCheck(query,
       ['houseFormat'],
     )) {
       return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED,
-        {error: 'missing query params houseFormat'}));
+        {error: 'missing query params houseFormat'}))
     }
 
     try {
-      let result = await Gethouses(params, query);
-      res.send(result);
+      let result = await Gethouses(params, query)
+      res.send(result)
     }
     catch (e) {
-      log.error(e, query, params);
-      res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC));
+      log.error(e, query, params)
+      res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC))
     }
   },
   /**
@@ -519,33 +519,33 @@ module.exports = {
 		 * For response `default` status 200 is used.
 		 */
     (async()=>{
-      const params = req.params;
-      const body = req.body;
+      const params = req.params
+      const body = req.body
 
-      const projectId = params.projectId;
+      const projectId = params.projectId
 
       if(!Util.ParameterCheck(body,
         ['houseFormat']
       )){
-        return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED, {error: 'missing query params houseFormat'}));
+        return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED, {error: 'missing query params houseFormat'}))
       }
 
       if(!Util.ParameterCheck(body.location, ['divisionId', 'name'])){
-        return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED, {error: 'please check fields in query params location', location: body.location}));
+        return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED, {error: 'please check fields in query params location', location: body.location}))
       }
 
-      let formatPassed = false;
+      let formatPassed = false
       switch(body.houseFormat){
       case Typedef.HouseFormat.ENTIRE:
-        formatPassed = EntireCheck(body);
-        break;
+        formatPassed = EntireCheck(body)
+        break
       case Typedef.HouseFormat.SOLE:
       case Typedef.HouseFormat.SHARE:
-        formatPassed = SoleShareCheck(body);
-        break;
+        formatPassed = SoleShareCheck(body)
+        break
       }
       if(!formatPassed){
-        return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED, {error: 'location/roomNumber/currentFloor/totalFloor/layout check failed'}));
+        return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED, {error: 'location/roomNumber/currentFloor/totalFloor/layout check failed'}))
       }
 
 
@@ -577,13 +577,13 @@ module.exports = {
                 ]
               }
             ]
-          });
-          return count;
+          })
+          return count
         }
         catch(e){
-          log.error(e);
+          log.error(e)
         }
-      };
+      }
       const isCodeExists = async(code)=>{
         try{
           const count = await MySQL.Houses.count({
@@ -591,75 +591,75 @@ module.exports = {
               projectId: projectId,
               code: code
             }
-          });
-          return count > 0;
+          })
+          return count > 0
         }
         catch (e){
-          log.error(e);
-          return true;
+          log.error(e)
+          return true
         }
-      };
+      }
 
-      const houseFormat = body.houseFormat;
+      const houseFormat = body.houseFormat
       if (fp.includes(houseFormat)(
         [Typedef.HouseFormat.SOLE, Typedef.HouseFormat.SHARE])) {
-        const houseCount = await isRoomNumberExists();
+        const houseCount = await isRoomNumberExists()
         if (houseCount) {
-          return res.send(403, ErrorCode.ack(ErrorCode.HOUSEEXISTS));
+          return res.send(403, ErrorCode.ack(ErrorCode.HOUSEEXISTS))
         }
       }
 
       if(await isCodeExists(body.code)){
-        return res.send(403, ErrorCode.ack(ErrorCode.HOUSECODEEXISTS));
+        return res.send(403, ErrorCode.ack(ErrorCode.HOUSECODEEXISTS))
       }
 
 
-      let t;
+      let t
       try{
-        t = await MySQL.Sequelize.transaction({autocommit: false});
+        t = await MySQL.Sequelize.transaction({autocommit: false})
 
         const createLocation = async()=>{
 
           const where = fp.extendAll([
             body.location.code ? {code: body.location.code} : {name: body.location.name}
-          ]);
+          ])
 
           const location = await MySQL.GeoLocation.findOne({
             where: where,
             attributes:['id']
-          });
+          })
 
           if(!location){
             if(body.location.code) {
-              const newLocation = await common.AsyncUpsertGeoLocation(body.location, t);
-              body.location = MySQL.Plain(newLocation[0]);
+              const newLocation = await common.AsyncUpsertGeoLocation(body.location, t)
+              body.location = MySQL.Plain(newLocation[0])
             }
             else{
               const newLocation = await MySQL.GeoLocation.create(common.assignNewId({
                 divisionId: body.location.divisionId
                 , name: body.location.name
-              }), {transaction: t});
-              body.location = newLocation;
+              }), {transaction: t})
+              body.location = newLocation
             }
           }
           else{
-            body.location.id = location.id;
+            body.location.id = location.id
           }
-        };
+        }
 
-        await createLocation();
+        await createLocation()
 
-        let ack;
+        let ack
         switch(houseFormat){
         case Typedef.HouseFormat.ENTIRE:
-          ack = await SaveEntire(t, params, body);
-          break;
+          ack = await SaveEntire(t, params, body)
+          break
         case Typedef.HouseFormat.SOLE:
-          ack = await SaveSole(t, params, body);
-          break;
+          ack = await SaveSole(t, params, body)
+          break
         case Typedef.HouseFormat.SHARE:
-          ack = await SaveShare(t, params, body);
-          break;
+          ack = await SaveShare(t, params, body)
+          break
         }
 
         await MySQL.HouseDevicePrice.bulkCreate(
@@ -672,21 +672,21 @@ module.exports = {
             startDate: moment().unix(),
           }))
           ,{transaction: t}
-        );
+        )
         if(ack.code !== ErrorCode.OK){
-          await t.rollback();
-          res.send(ack);
+          await t.rollback()
+          res.send(ack)
         }
         else {
-          await t.commit();
-          res.send(fp.defaults({id: ack.result.id})(body));
+          await t.commit()
+          res.send(fp.defaults({id: ack.result.id})(body))
         }
       }
       catch(e){
-        await t.rollback();
-        log.error(e);
-        res.send(422, ErrorCode.ack(ErrorCode.DATABASEEXEC));
+        await t.rollback()
+        log.error(e)
+        res.send(422, ErrorCode.ack(ErrorCode.DATABASEEXEC))
       }
-    })();
+    })()
   }
-};
+}

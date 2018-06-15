@@ -1,8 +1,8 @@
-'use strict';
+'use strict'
 
 const {post} = require(
-  '../../services/v1.0/handlers/projects/:projectId/manualNotifications');
-const {spy} = require('sinon');
+  '../../services/v1.0/handlers/projects/:projectId/manualNotifications')
+const {spy} = require('sinon')
 
 describe('Manual notification', function() {
   it('should send out notification', async function() {
@@ -18,7 +18,7 @@ describe('Manual notification', function() {
         users: [321],
       },
 
-    };
+    }
     global.MySQL = {
       CashAccount: {
         findAll: async () => [
@@ -35,14 +35,14 @@ describe('Manual notification', function() {
           toJSON: () => ({}),
         }),
       },
-    };
-    const resSpy = spy();
+    }
+    const resSpy = spy()
 
     await post(req, {send: resSpy}).then(() => {
-      resSpy.should.have.been.called;
-      resSpy.getCall(0).args[0].should.be.eql(ErrorCode.ack(ErrorCode.OK));
-    });
-  });
+      resSpy.should.have.been.called
+      resSpy.getCall(0).args[0].should.be.eql(ErrorCode.ack(ErrorCode.OK))
+    })
+  })
   it('should not allow normal user send out notifications', async function() {
     const req = {
       isAuthenticated: () => true,
@@ -56,7 +56,7 @@ describe('Manual notification', function() {
         users: [321],
       },
 
-    };
+    }
     global.MySQL = {
       CashAccount: {
         findAll: async () => [
@@ -73,12 +73,12 @@ describe('Manual notification', function() {
           toJSON: () => ({}),
         }),
       },
-    };
-    const resSpy = spy();
+    }
+    const resSpy = spy()
 
     await post(req, {send: resSpy}).then(() => {
-      resSpy.should.have.been.called;
-      resSpy.getCall(0).args[0].should.be.eql(403);
-    });
-  });
-});
+      resSpy.should.have.been.called
+      resSpy.getCall(0).args[0].should.be.eql(403)
+    })
+  })
+})

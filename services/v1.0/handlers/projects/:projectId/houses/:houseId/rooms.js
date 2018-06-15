@@ -1,16 +1,16 @@
-'use strict';
+'use strict'
 
-const fp = require('lodash/fp');
+const fp = require('lodash/fp')
 
 /**
  * Operations on /rooms/{hid}
  */
 const translate = (models, pagingInfo) => {
   const single = model => {
-    const room = model.dataValues;
-    const house = room.house.dataValues;
-    const building = house.building.dataValues;
-    const location = building.location.dataValues;
+    const room = model.dataValues
+    const house = room.house.dataValues
+    const building = house.building.dataValues
+    const location = building.location.dataValues
     return {
       id: room.id,
       houseId: house.id,
@@ -20,8 +20,8 @@ const translate = (models, pagingInfo) => {
       unit: building.unit,
       roomNumber: house.roomNumber,
       roomName: room.name
-    };
-  };
+    }
+  }
   return {
     paging: {
       count: models.count,
@@ -29,14 +29,14 @@ const translate = (models, pagingInfo) => {
       size: pagingInfo.size
     },
     data: fp.map(single)(models.rows)
-  };
-};
+  }
+}
 module.exports = {
   post: (req, res)=>{
     //
     (async()=>{
-      const projectId = req.params.projectId;
-      const houseId = req.params.houseId;
+      const projectId = req.params.projectId
+      const houseId = req.params.houseId
 
       const house = await MySQL.Houses.findOne({
         where:{
@@ -44,45 +44,45 @@ module.exports = {
           projectId: projectId,
           houseFormat: Typedef.HouseFormat.SHARE
         }
-      });
+      })
       if(!house){
-        return res.send(ErrorCode.ack(ErrorCode.REQUESTUNMATCH));
+        return res.send(ErrorCode.ack(ErrorCode.REQUESTUNMATCH))
       }
 
       const count = 1 + await MySQL.Rooms.count({
         where:{
           houseId: houseId
         }
-      });
+      })
 
       const newRoom = {
         id: SnowFlake.next(),
         houseId: houseId,
         name: count.toString(),
-      };
+      }
 
-      await MySQL.Rooms.create(newRoom);
+      await MySQL.Rooms.create(newRoom)
 
-      res.send(ErrorCode.ack(ErrorCode.OK, newRoom));
-    })();
+      res.send(ErrorCode.ack(ErrorCode.OK, newRoom))
+    })()
   },
   get: (req, res) => {
-    const params = req.params;
-    const query = req.query;
+    const params = req.params
+    const query = req.query
 
     if (!Util.ParameterCheck(query, ['q'])) {
-      return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED));
+      return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED))
     }
 
-    const pagingInfo = Util.PagingInfo(query.index, query.size, true);
+    const pagingInfo = Util.PagingInfo(query.index, query.size, true)
 
-    const Houses = MySQL.Houses;
-    const Rooms = MySQL.Rooms;
-    const Building = MySQL.Building;
-    const GeoLocation = MySQL.GeoLocation;
+    const Houses = MySQL.Houses
+    const Rooms = MySQL.Rooms
+    const Building = MySQL.Building
+    const GeoLocation = MySQL.GeoLocation
 
     const houseCondition = fp.assign({projectId: params.projectId})(
-      query.houseFormat ? {houseFormat: query.houseFormat} : {});
+      query.houseFormat ? {houseFormat: query.houseFormat} : {})
 
     const modelOption = {
       include: [{
@@ -109,10 +109,10 @@ module.exports = {
       attributes: ['id', 'name'],
       offset: pagingInfo.skip,
       limit: pagingInfo.size
-    };
+    }
 
     Rooms.findAndCountAll(modelOption)
       .then(data => translate(data, pagingInfo))
-      .then(data => res.send(data));
+      .then(data => res.send(data))
   }
-};
+}

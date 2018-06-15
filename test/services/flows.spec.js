@@ -1,16 +1,16 @@
-'use strict';
-const {get} = require('../../services/v1.0/handlers/projects/:projectId/flows');
-require('include-node');
-const {stub, spy} = require('sinon');
-const fp = require('lodash/fp');
-const moment = require('moment');
+'use strict'
+const {get} = require('../../services/v1.0/handlers/projects/:projectId/flows')
+require('include-node')
+const {stub, spy} = require('sinon')
+const fp = require('lodash/fp')
+const moment = require('moment')
 
 describe('Flows', function() {
   before(() => {
-    global.Typedef = Include('/libs/typedef');
-    global.ErrorCode = Include('/libs/errorCode');
-    global.Util = Include('/libs/util');
-  });
+    global.Typedef = Include('/libs/typedef')
+    global.ErrorCode = Include('/libs/errorCode')
+    global.Util = Include('/libs/util')
+  })
   describe('By time', function() {
     it('should pass correct option while querying flows', async function() {
       const req = {
@@ -19,28 +19,28 @@ describe('Flows', function() {
           roomId: 200,
         },
         query: {},
-      };
-      const sequelizeFindSpy = stub().resolves([]);
-      const Users = {id: 'Users'};
+      }
+      const sequelizeFindSpy = stub().resolves([])
+      const Users = {id: 'Users'}
       const CashAccount = {
         findOrCreate: async () => ([
           {
             id: 321,
             userId: 1999,
           }]),
-      };
-      const Rooms = {id: 'Rooms'};
-      const Houses = {id: 'Houses'};
-      const Building = {id: 'Building'};
-      const GeoLocation = {id: 'GeoLocation'};
-      const Topup = {id: 'Topup'};
-      const Auth = {id: 'Auth'};
-      const BillPayment = {id: 'BillPayment'};
-      const Contracts = {id: 'Contracts'};
-      const Bills = {id: 'Bills'};
-      const BillFlows = {id: 'BillFlows'};
-      const FundChannelFlows = {id: 'FundChannelFlows'};
-      const HouseDevices = {id: 'HouseDevices'};
+      }
+      const Rooms = {id: 'Rooms'}
+      const Houses = {id: 'Houses'}
+      const Building = {id: 'Building'}
+      const GeoLocation = {id: 'GeoLocation'}
+      const Topup = {id: 'Topup'}
+      const Auth = {id: 'Auth'}
+      const BillPayment = {id: 'BillPayment'}
+      const Contracts = {id: 'Contracts'}
+      const Bills = {id: 'Bills'}
+      const BillFlows = {id: 'BillFlows'}
+      const FundChannelFlows = {id: 'FundChannelFlows'}
+      const HouseDevices = {id: 'HouseDevices'}
       global.MySQL = {
         Flows: {
           findAndCountAll: sequelizeFindSpy,
@@ -59,11 +59,11 @@ describe('Flows', function() {
         BillFlows,
         FundChannelFlows,
         HouseDevices,
-      };
+      }
 
       await get(req, {send: fp.noop}).then(() => {
-        sequelizeFindSpy.should.have.been.called;
-        const countingOption = sequelizeFindSpy.getCall(0).args[0];
+        sequelizeFindSpy.should.have.been.called
+        const countingOption = sequelizeFindSpy.getCall(0).args[0]
         countingOption.should.be.eql({
           distinct: true,
           include: [
@@ -270,9 +270,9 @@ describe('Flows', function() {
               'DESC',
             ],
           ],
-        });
-      });
-    });
+        })
+      })
+    })
     it('should filter houseFormat out while querying flows',
       async function() {
         const req = {
@@ -283,28 +283,28 @@ describe('Flows', function() {
           query: {
             houseFormat: 'SOLE',
           },
-        };
-        const sequelizeFindSpy = stub().resolves([]);
-        const Users = {id: 'Users'};
+        }
+        const sequelizeFindSpy = stub().resolves([])
+        const Users = {id: 'Users'}
         const CashAccount = {
           findOrCreate: async () => ([
             {
               id: 321,
               userId: 1999,
             }]),
-        };
-        const Rooms = {id: 'Rooms'};
-        const Houses = {id: 'Houses'};
-        const Building = {id: 'Building'};
-        const GeoLocation = {id: 'GeoLocation'};
-        const Topup = {id: 'Topup'};
-        const Auth = {id: 'Auth'};
-        const BillPayment = {id: 'BillPayment'};
-        const Contracts = {id: 'Contracts'};
-        const Bills = {id: 'Bills'};
-        const BillFlows = {id: 'BillFlows'};
-        const FundChannelFlows = {id: 'FundChannelFlows'};
-        const HouseDevices = {id: 'HouseDevices'};
+        }
+        const Rooms = {id: 'Rooms'}
+        const Houses = {id: 'Houses'}
+        const Building = {id: 'Building'}
+        const GeoLocation = {id: 'GeoLocation'}
+        const Topup = {id: 'Topup'}
+        const Auth = {id: 'Auth'}
+        const BillPayment = {id: 'BillPayment'}
+        const Contracts = {id: 'Contracts'}
+        const Bills = {id: 'Bills'}
+        const BillFlows = {id: 'BillFlows'}
+        const FundChannelFlows = {id: 'FundChannelFlows'}
+        const HouseDevices = {id: 'HouseDevices'}
         global.MySQL = {
           Flows: {
             findAndCountAll: sequelizeFindSpy,
@@ -323,11 +323,11 @@ describe('Flows', function() {
           BillFlows,
           FundChannelFlows,
           HouseDevices,
-        };
+        }
 
         await get(req, {send: fp.noop}).then(() => {
-          sequelizeFindSpy.should.have.been.called;
-          const countingOption = sequelizeFindSpy.getCall(0).args[0];
+          sequelizeFindSpy.should.have.been.called
+          const countingOption = sequelizeFindSpy.getCall(0).args[0]
           countingOption.where.should.be.eql({
 
             projectId: 100,
@@ -335,9 +335,9 @@ describe('Flows', function() {
               {'$billpayment.bill.contract.room.house.houseFormat$': req.query.houseFormat},
               {'$topup.contract.room.house.houseFormat$': req.query.houseFormat},
             ],
-          });
-        });
-      });
+          })
+        })
+      })
 
     it('should convert bill payments to flows', async function() {
       const req = {
@@ -345,7 +345,7 @@ describe('Flows', function() {
           projectId: 100,
         },
         query: {},
-      };
+      }
       global.MySQL = {
         Flows: {
           async findAndCountAll() {
@@ -462,14 +462,14 @@ describe('Flows', function() {
 
                   },
                 }],
-            };
+            }
           },
         },
-      };
-      const resSpy = spy();
+      }
+      const resSpy = spy()
 
       await get(req, {send: resSpy}).then(() => {
-        resSpy.should.have.been.called;
+        resSpy.should.have.been.called
         resSpy.getCall(0).args[0].data[0].should.be.eql({
           'amount': 75600,
           'category': 'rent',
@@ -527,9 +527,9 @@ describe('Flows', function() {
               to: '6364085892113633280',
               amount: 75600,
             }],
-        });
-      });
-    });
+        })
+      })
+    })
 
     it('should convert topup to flows', async function() {
       const req = {
@@ -537,7 +537,7 @@ describe('Flows', function() {
           projectId: 100,
         },
         query: {},
-      };
+      }
       global.MySQL = {
         Flows: {
           async findAndCountAll() {
@@ -628,14 +628,14 @@ describe('Flows', function() {
                   },
                   billpayment: null,
                 }],
-            };
+            }
           },
         },
-      };
-      const resSpy = spy();
+      }
+      const resSpy = spy()
 
       await get(req, {send: resSpy}).then(() => {
-        resSpy.should.have.been.called;
+        resSpy.should.have.been.called
         resSpy.getCall(0).args[0].data[0].should.be.eql({
           'amount': 123,
           'category': 'topup',
@@ -678,9 +678,9 @@ describe('Flows', function() {
             'mobile': '',
           },
           remark: 'topup is good',
-        });
-      });
-    });
+        })
+      })
+    })
 
     it('should accept filter from / to', async function() {
       const req = {
@@ -689,17 +689,17 @@ describe('Flows', function() {
           roomId: 200,
         },
         query: {from: 1243599462, to: 1243699462},
-      };
-      const sequelizeFindSpy = stub().resolves([]);
+      }
+      const sequelizeFindSpy = stub().resolves([])
       global.MySQL = {
         Flows: {
           findAndCountAll: sequelizeFindSpy,
         },
-      };
+      }
 
       await get(req, {send: fp.noop}).then(() => {
-        sequelizeFindSpy.should.have.been.called;
-        const countingOption = sequelizeFindSpy.getCall(0).args[0];
+        sequelizeFindSpy.should.have.been.called
+        const countingOption = sequelizeFindSpy.getCall(0).args[0]
         countingOption.where.should.be.eql({
           projectId: 100,
           createdAt: {
@@ -708,9 +708,9 @@ describe('Flows', function() {
             $lte: moment(req.query.to * 1000).
               format('YYYY-MM-DD HH:mm:ss'),
           },
-        });
-      });
-    });
+        })
+      })
+    })
     it('should accept filter q', async function() {
       const req = {
         params: {
@@ -718,17 +718,17 @@ describe('Flows', function() {
           roomId: 200,
         },
         query: {q: 'some words'},
-      };
-      const sequelizeFindSpy = stub().resolves([]);
+      }
+      const sequelizeFindSpy = stub().resolves([])
       global.MySQL = {
         Flows: {
           findAndCountAll: sequelizeFindSpy,
         },
-      };
+      }
 
       await get(req, {send: fp.noop}).then(() => {
-        sequelizeFindSpy.should.have.been.called;
-        const countingOption = sequelizeFindSpy.getCall(0).args[0];
+        sequelizeFindSpy.should.have.been.called
+        const countingOption = sequelizeFindSpy.getCall(0).args[0]
         countingOption.where.should.be.eql({
           projectId: 100,
           $or: [
@@ -783,9 +783,9 @@ describe('Flows', function() {
               },
             },
           ],
-        });
-      });
-    });
+        })
+      })
+    })
 
     it('should validate filter from / to', async function() {
       const req = {
@@ -794,16 +794,16 @@ describe('Flows', function() {
           roomId: 200,
         },
         query: {from: 100, to: 99},
-      };
+      }
 
-      const resSpy = spy();
+      const resSpy = spy()
 
       await get(req, {send: resSpy}).then(() => {
-        resSpy.should.have.been.called;
-        resSpy.getCall(0).args[0].should.be.eql(400);
-      });
-    });
-  });
+        resSpy.should.have.been.called
+        resSpy.getCall(0).args[0].should.be.eql(400)
+      })
+    })
+  })
 
   describe('By category', function() {
     it('should exec raw sql to database', async () => {
@@ -814,8 +814,8 @@ describe('Flows', function() {
         query: {
           view: 'category',
         },
-      };
-      const sequelizeQuerySpy = stub().resolves([]);
+      }
+      const sequelizeQuerySpy = stub().resolves([])
 
       global.MySQL = {
         Sequelize: {
@@ -825,11 +825,11 @@ describe('Flows', function() {
           },
         },
 
-      };
+      }
 
       await get(req, {send: fp.noop}).then(() => {
-        sequelizeQuerySpy.should.have.been.called;
-        const [sql, option] = sequelizeQuerySpy.getCall(0).args;
+        sequelizeQuerySpy.should.have.been.called
+        const [sql, option] = sequelizeQuerySpy.getCall(0).args
         sql.should.be.eql(
           'select\n  id, name,\n  sum(rentPart) as rent,\n  ' +
                     'sum(rentPartFee) as rentFee,\n  sum(topupPart) as topup,\n  ' +
@@ -854,15 +854,15 @@ describe('Flows', function() {
                     '  and h.buildingId = buildings.id\n  and buildings.locationId = l.id\nGROUP BY l.id, l.name\n     ) as f2\n' +
                     'GROUP BY id, name',
         )
-        ;
+        
         option.should.be.eql({
           replacements: {
             locationIds: [''],
             projectId: 100,
           }, type: 'SELECT',
-        });
-      });
-    });
+        })
+      })
+    })
 
     it('should exec raw sql for grouping by houseId', async () => {
       const req = {
@@ -873,8 +873,8 @@ describe('Flows', function() {
           view: 'category',
           housesInLocation: 321,
         },
-      };
-      const sequelizeQuerySpy = stub().resolves([]);
+      }
+      const sequelizeQuerySpy = stub().resolves([])
 
       global.MySQL = {
         Sequelize: {
@@ -884,11 +884,11 @@ describe('Flows', function() {
           },
         },
 
-      };
+      }
 
       await get(req, {send: fp.noop}).then(() => {
-        sequelizeQuerySpy.should.have.been.called;
-        const [sql, option] = sequelizeQuerySpy.getCall(0).args;
+        sequelizeQuerySpy.should.have.been.called
+        const [sql, option] = sequelizeQuerySpy.getCall(0).args
         sql.should.be.eql(
           'select id,\n  sum(rentPart) as rent,\n  ' +
                     'sum(rentPartFee) as rentFee,\n  sum(topupPart) as topup,\n  ' +
@@ -913,16 +913,16 @@ describe('Flows', function() {
                     '  and h.buildingId = buildings.id\n  and buildings.locationId = l.id\n and buildings.locationId = 321 GROUP BY h.id\n     ) as f2\n' +
                     ' GROUP BY id',
         )
-        ;
+        
         option.should.be.eql({
           replacements: {
             locationIds: [''],
             projectId: 100,
           }, type: 'SELECT',
-        });
-      });
-    });
-  });
+        })
+      })
+    })
+  })
   describe('By month', function() {
     it('should exec raw sql to database', async () => {
       const req = {
@@ -933,8 +933,8 @@ describe('Flows', function() {
           view: 'month',
           year: 2018,
         },
-      };
-      const sequelizeQuerySpy = stub().resolves([]);
+      }
+      const sequelizeQuerySpy = stub().resolves([])
 
       global.MySQL = {
         Sequelize: {
@@ -944,11 +944,11 @@ describe('Flows', function() {
           },
         },
 
-      };
+      }
 
       await get(req, {send: fp.noop}).then(() => {
-        sequelizeQuerySpy.should.have.been.called;
-        const [sql] = sequelizeQuerySpy.getCall(0).args;
+        sequelizeQuerySpy.should.have.been.called
+        const [sql] = sequelizeQuerySpy.getCall(0).args
         sql.should.be.eql(
           'select\n  id, name, month,\n  sum(rentPart) as rent,\n  ' +
                     'sum(rentPartFee) as rentFee,\n  sum(topupPart) as topup,\n  ' +
@@ -973,9 +973,9 @@ describe('Flows', function() {
                     '  and c.id = t.contractId\n  and t.projectId = :projectId \n  and c.roomId = r.id\n  and r.houseId = h.id\n' +
                     '  and h.buildingId = buildings.id\n  and buildings.locationId = l.id\n  and f.createdAt > :from  and f.createdAt < :to \nGROUP BY l.id, l.name, month\n     ) as f2\n' +
                     'GROUP BY id, name, month',
-        );
-      });
-    });
+        )
+      })
+    })
 
     it('should exec raw sql for grouping by houseId', async () => {
       const req = {
@@ -987,8 +987,8 @@ describe('Flows', function() {
           year: 2018,
           housesInLocation: 321,
         },
-      };
-      const sequelizeQuerySpy = stub().resolves([]);
+      }
+      const sequelizeQuerySpy = stub().resolves([])
 
       global.MySQL = {
         Sequelize: {
@@ -998,11 +998,11 @@ describe('Flows', function() {
           },
         },
 
-      };
+      }
 
       await get(req, {send: fp.noop}).then(() => {
-        sequelizeQuerySpy.should.have.been.called;
-        const [sql] = sequelizeQuerySpy.getCall(0).args;
+        sequelizeQuerySpy.should.have.been.called
+        const [sql] = sequelizeQuerySpy.getCall(0).args
         sql.should.be.eql(
           'select id,\n  month,  sum(rentPart) as rent,\n  ' +
                     'sum(rentPartFee) as rentFee,\n  sum(topupPart) as topup,\n  ' +
@@ -1026,9 +1026,9 @@ describe('Flows', function() {
                     '  and c.id = t.contractId\n  and t.projectId = :projectId \n  and c.roomId = r.id\n  and r.houseId = h.id\n' +
                     '  and h.buildingId = buildings.id\n  and buildings.locationId = l.id\n  and f.createdAt > :from  and f.createdAt < :to \n\n and buildings.locationId = 321 GROUP BY h.id, month\n     ) as f2\n' +
                     ' GROUP BY id, month',
-        );
-      });
-    });
+        )
+      })
+    })
     it('should reduce amount base on source', async () => {
       const req = {
         params: {
@@ -1039,8 +1039,8 @@ describe('Flows', function() {
           year: 2018,
           source: 'rent',
         },
-      };
-      const sendSpy = spy();
+      }
+      const sendSpy = spy()
       const sequelizeQuerySpy = stub().resolves([
         {
           id: '6380921449204551680',
@@ -1053,7 +1053,7 @@ describe('Flows', function() {
           finalReceive: 30000,
           balance: 12970,
           month: '2018-01',
-        }]);
+        }])
 
       global.MySQL = {
         Sequelize: {
@@ -1063,12 +1063,12 @@ describe('Flows', function() {
           },
         },
 
-      };
+      }
 
       await get(req, {send: sendSpy}).then(() => {
-        sequelizeQuerySpy.should.have.been.called;
-        sendSpy.should.have.been.called;
-        const monthData = sendSpy.getCall(0).args;
+        sequelizeQuerySpy.should.have.been.called
+        sendSpy.should.have.been.called
+        const monthData = sendSpy.getCall(0).args
         monthData.should.be.eql(
           [
             [
@@ -1092,9 +1092,9 @@ describe('Flows', function() {
               },
             ],
           ],
-        );
-      });
-    });
+        )
+      })
+    })
     it('should reduce amount of source topup', async () => {
       const req = {
         params: {
@@ -1105,8 +1105,8 @@ describe('Flows', function() {
           year: 2018,
           source: 'topup',
         },
-      };
-      const sendSpy = spy();
+      }
+      const sendSpy = spy()
       const sequelizeQuerySpy = stub().resolves([
         {
           id: '6380921449204551680',
@@ -1119,7 +1119,7 @@ describe('Flows', function() {
           finalReceive: 30000,
           balance: 12970,
           month: '2018-01',
-        }]);
+        }])
 
       global.MySQL = {
         Sequelize: {
@@ -1129,12 +1129,12 @@ describe('Flows', function() {
           },
         },
 
-      };
+      }
 
       await get(req, {send: sendSpy}).then(() => {
-        sequelizeQuerySpy.should.have.been.called;
-        sendSpy.should.have.been.called;
-        const monthData = sendSpy.getCall(0).args;
+        sequelizeQuerySpy.should.have.been.called
+        sendSpy.should.have.been.called
+        const monthData = sendSpy.getCall(0).args
         monthData.should.be.eql(
           [
             [
@@ -1158,9 +1158,9 @@ describe('Flows', function() {
               },
             ],
           ],
-        );
-      });
-    });
+        )
+      })
+    })
     it('should reduce amount of source final', async () => {
       const req = {
         params: {
@@ -1171,8 +1171,8 @@ describe('Flows', function() {
           year: 2018,
           source: 'final',
         },
-      };
-      const sendSpy = spy();
+      }
+      const sendSpy = spy()
       const sequelizeQuerySpy = stub().resolves([
         {
           id: '6380921449204551680',
@@ -1185,7 +1185,7 @@ describe('Flows', function() {
           finalReceive: 30000,
           balance: 12970,
           month: '2018-01',
-        }]);
+        }])
 
       global.MySQL = {
         Sequelize: {
@@ -1195,12 +1195,12 @@ describe('Flows', function() {
           },
         },
 
-      };
+      }
 
       await get(req, {send: sendSpy}).then(() => {
-        sequelizeQuerySpy.should.have.been.called;
-        sendSpy.should.have.been.called;
-        const monthData = sendSpy.getCall(0).args;
+        sequelizeQuerySpy.should.have.been.called
+        sendSpy.should.have.been.called
+        const monthData = sendSpy.getCall(0).args
         monthData.should.be.eql(
           [
             [
@@ -1224,9 +1224,9 @@ describe('Flows', function() {
               },
             ],
           ],
-        );
-      });
-    });
+        )
+      })
+    })
     it('should reduce amount of finalPay', async () => {
       const req = {
         params: {
@@ -1238,8 +1238,8 @@ describe('Flows', function() {
           source: 'final',
           category: 'finalPay',
         },
-      };
-      const sendSpy = spy();
+      }
+      const sendSpy = spy()
       const sequelizeQuerySpy = stub().resolves([
         {
           id: '6380921449204551680',
@@ -1252,7 +1252,7 @@ describe('Flows', function() {
           finalReceive: 30000,
           balance: 12970,
           month: '2018-01',
-        }]);
+        }])
 
       global.MySQL = {
         Sequelize: {
@@ -1262,12 +1262,12 @@ describe('Flows', function() {
           },
         },
 
-      };
+      }
 
       await get(req, {send: sendSpy}).then(() => {
-        sequelizeQuerySpy.should.have.been.called;
-        sendSpy.should.have.been.called;
-        const monthData = sendSpy.getCall(0).args;
+        sequelizeQuerySpy.should.have.been.called
+        sendSpy.should.have.been.called
+        const monthData = sendSpy.getCall(0).args
         monthData.should.be.eql(
           [
             [
@@ -1291,9 +1291,9 @@ describe('Flows', function() {
               },
             ],
           ],
-        );
-      });
-    });
+        )
+      })
+    })
     it('should reduce amount of rent fee', async () => {
       const req = {
         params: {
@@ -1305,8 +1305,8 @@ describe('Flows', function() {
           source: 'rent',
           category: 'fee',
         },
-      };
-      const sendSpy = spy();
+      }
+      const sendSpy = spy()
       const sequelizeQuerySpy = stub().resolves([
         {
           id: '6380921449204551680',
@@ -1319,7 +1319,7 @@ describe('Flows', function() {
           finalReceive: 30000,
           balance: 12970,
           month: '2018-01',
-        }]);
+        }])
 
       global.MySQL = {
         Sequelize: {
@@ -1329,12 +1329,12 @@ describe('Flows', function() {
           },
         },
 
-      };
+      }
 
       await get(req, {send: sendSpy}).then(() => {
-        sequelizeQuerySpy.should.have.been.called;
-        sendSpy.should.have.been.called;
-        const monthData = sendSpy.getCall(0).args;
+        sequelizeQuerySpy.should.have.been.called
+        sendSpy.should.have.been.called
+        const monthData = sendSpy.getCall(0).args
         monthData.should.be.eql(
           [
             [
@@ -1358,9 +1358,9 @@ describe('Flows', function() {
               },
             ],
           ],
-        );
-      });
-    });
+        )
+      })
+    })
     it('should reduce amount of all fee', async () => {
       const req = {
         params: {
@@ -1372,8 +1372,8 @@ describe('Flows', function() {
           source: 'all',
           category: 'fee',
         },
-      };
-      const sendSpy = spy();
+      }
+      const sendSpy = spy()
       const sequelizeQuerySpy = stub().resolves([
         {
           id: '6380921449204551680',
@@ -1386,7 +1386,7 @@ describe('Flows', function() {
           finalReceive: 30000,
           balance: 12970,
           month: '2018-01',
-        }]);
+        }])
 
       global.MySQL = {
         Sequelize: {
@@ -1396,12 +1396,12 @@ describe('Flows', function() {
           },
         },
 
-      };
+      }
 
       await get(req, {send: sendSpy}).then(() => {
-        sequelizeQuerySpy.should.have.been.called;
-        sendSpy.should.have.been.called;
-        const monthData = sendSpy.getCall(0).args;
+        sequelizeQuerySpy.should.have.been.called
+        sendSpy.should.have.been.called
+        const monthData = sendSpy.getCall(0).args
         monthData.should.be.eql(
           [
             [
@@ -1425,9 +1425,9 @@ describe('Flows', function() {
               },
             ],
           ],
-        );
-      });
-    });
+        )
+      })
+    })
     it('should reduce amount of all income', async () => {
       const req = {
         params: {
@@ -1439,8 +1439,8 @@ describe('Flows', function() {
           source: 'all',
           category: 'income',
         },
-      };
-      const sendSpy = spy();
+      }
+      const sendSpy = spy()
       const sequelizeQuerySpy = stub().resolves([
         {
           id: '6380921449204551680',
@@ -1453,7 +1453,7 @@ describe('Flows', function() {
           finalReceive: 30000,
           balance: 12970,
           month: '2018-01',
-        }]);
+        }])
 
       global.MySQL = {
         Sequelize: {
@@ -1463,12 +1463,12 @@ describe('Flows', function() {
           },
         },
 
-      };
+      }
 
       await get(req, {send: sendSpy}).then(() => {
-        sequelizeQuerySpy.should.have.been.called;
-        sendSpy.should.have.been.called;
-        const monthData = sendSpy.getCall(0).args;
+        sequelizeQuerySpy.should.have.been.called
+        sendSpy.should.have.been.called
+        const monthData = sendSpy.getCall(0).args
         monthData.should.be.eql(
           [
             [
@@ -1492,10 +1492,10 @@ describe('Flows', function() {
               },
             ],
           ],
-        );
-      });
-    });
-  });
+        )
+      })
+    })
+  })
   describe('By channel', function() {
     it('should reduce amount of balance by default', async () => {
       const req = {
@@ -1507,8 +1507,8 @@ describe('Flows', function() {
           from: 1,
           to: 2,
         },
-      };
-      const sendSpy = spy();
+      }
+      const sendSpy = spy()
       const sequelizeQuerySpy = stub().resolves([
         {
           fundChannelId: 1,
@@ -1520,7 +1520,7 @@ describe('Flows', function() {
           finalReceive: 30000,
           balance: 12970,
           timespan: '2018-01',
-        }]);
+        }])
 
       global.MySQL = {
         Sequelize: {
@@ -1530,12 +1530,12 @@ describe('Flows', function() {
           },
         },
 
-      };
+      }
 
       await get(req, {send: sendSpy}).then(() => {
-        sequelizeQuerySpy.should.have.been.called;
-        sendSpy.should.have.been.called;
-        const channelData = sendSpy.getCall(0).args;
+        sequelizeQuerySpy.should.have.been.called
+        sendSpy.should.have.been.called
+        const channelData = sendSpy.getCall(0).args
         channelData.should.be.eql(
           [
             [
@@ -1548,9 +1548,9 @@ describe('Flows', function() {
               },
             ],
           ],
-        );
-      });
-    });
+        )
+      })
+    })
     it('should can group data by day', async () => {
       const req = {
         params: {
@@ -1562,8 +1562,8 @@ describe('Flows', function() {
           to: 2,
           timespan: 'day',
         },
-      };
-      const sendSpy = spy();
+      }
+      const sendSpy = spy()
       const sequelizeQuerySpy = stub().resolves([
         {
           fundChannelId: 1,
@@ -1586,7 +1586,7 @@ describe('Flows', function() {
           finalReceive: 30000,
           balance: 15970,
           timespan: '2018-03-01',
-        }]);
+        }])
 
       global.MySQL = {
         Sequelize: {
@@ -1596,12 +1596,12 @@ describe('Flows', function() {
           },
         },
 
-      };
+      }
 
       await get(req, {send: sendSpy}).then(() => {
-        sequelizeQuerySpy.should.have.been.called;
-        sendSpy.should.have.been.called;
-        const channelData = sendSpy.getCall(0).args;
+        sequelizeQuerySpy.should.have.been.called
+        sendSpy.should.have.been.called
+        const channelData = sendSpy.getCall(0).args
         channelData.should.be.eql(
           [
             [
@@ -1623,8 +1623,8 @@ describe('Flows', function() {
               },
             ],
           ],
-        );
-      });
-    });
-  });
-});
+        )
+      })
+    })
+  })
+})

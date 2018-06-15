@@ -1,8 +1,8 @@
-'use strict';
+'use strict'
 
-const fp = require('lodash/fp');
-const moment = require('moment');
-const {formatMysqlDateTime} = Include('/services/v1.0/common');
+const fp = require('lodash/fp')
+const moment = require('moment')
+const {formatMysqlDateTime} = Include('/services/v1.0/common')
 
 module.exports = {
   get: async (req, res) => {
@@ -10,26 +10,26 @@ module.exports = {
          * Get the data for response 200
          * For response `default` status 200 is used.
          */
-    const query = req.query;
+    const query = req.query
 
-    const projectId = req.params.projectId;
+    const projectId = req.params.projectId
     const {
       roomId, houseId, q, startDate, endDate, houseFormat, index, size,
       locationId, districtId,
-    } = query;
+    } = query
 
     if (!Util.ParameterCheck(query,
       ['houseFormat', 'startDate', 'endDate'])) {
       return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED,
-        {error: 'missing houseFormat, startDate or endDate'}));
+        {error: 'missing houseFormat, startDate or endDate'}))
     }
 
     const timeFrom = moment.unix(startDate).
       startOf('days').
-      unix();
-    const timeTo = moment.unix(endDate).startOf('days').unix();
+      unix()
+    const timeTo = moment.unix(endDate).startOf('days').unix()
 
-    const pagingInfo = Util.PagingInfo(index, size, true);
+    const pagingInfo = Util.PagingInfo(index, size, true)
 
     const where = fp.extendAll([
       {
@@ -52,7 +52,7 @@ module.exports = {
           },
         ],
       } : {},
-    ]);
+    ])
 
     try {
       const houseInclude = fp.compact([
@@ -85,41 +85,41 @@ module.exports = {
           required: false,
           attributes: ['houseId', 'category', 'type', 'price'],
         },
-      ]);
+      ])
       const houses = await MySQL.Houses.findAll(
         {
           where,
           include: houseInclude,
         },
-      );
+      )
       const heartbeats = await heartbeatInProject(MySQL)(timeFrom,
-        timeTo, projectId);
+        timeTo, projectId)
       const houseAndRooms = fp.flatten(fp.map(house => {
-        const plain = house.toJSON();
+        const plain = house.toJSON()
 
         const rooms = fp.map(room => {
           return fp.extendAll([
             room,
             {building: plain.building},
             {prices: plain.prices},
-            {roomNumber: plain.roomNumber}]);
-        })(plain.rooms);
+            {roomNumber: plain.roomNumber}])
+        })(plain.rooms)
 
         if (houseFormat !== Typedef.HouseFormat.SHARE || roomId) {
-          return rooms;
+          return rooms
         }
         else {
           return fp.flatten(fp.union(
             fp.isEmpty(plain.devices) ? [] : [plain]
             , rooms,
-          ));
+          ))
         }
-      })(houses));
+      })(houses))
 
       const doPaging = (data) => {
         return data.slice(pagingInfo.skip, pagingInfo.skip +
-                    pagingInfo.size);
-      };
+                    pagingInfo.size)
+      }
       res.send({
         paging: {
           count: houseAndRooms.length,
@@ -129,44 +129,44 @@ module.exports = {
         data: fp.map(fp.pipe(extractDetail(houseId, timeFrom, timeTo),
           matchHeartbeats(heartbeats), fp.omit('prices')))(
           doPaging(houseAndRooms)),
-      });
+      })
 
     }
     catch (e) {
-      log.error(e, projectId, req.query);
-      res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC));
+      log.error(e, projectId, req.query)
+      res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC))
     }
   },
-};
+}
 
 const contractSummary = info => {
-  const contract = fp.get('contracts[0]')(info);
+  const contract = fp.get('contracts[0]')(info)
   return contract ? ({
     userId: contract.userId,
     userName: contract.user.name,
     startDate: contract.from,
     endDate: contract.to,
-  }) : {};
-};
+  }) : {}
+}
 
 const readingOf = (room, device) => {
-  const {startScale: startScaleOrigin, endScale: endScaleOrigin} = device;
-  const [startScale, endScale] = fp.map(f => Number(f).toFixed(4))([startScaleOrigin, endScaleOrigin]);
-  const price = fp.getOr(0)('prices[0].price')(room);
-  const usage = Number(endScale - startScale).toFixed(4);
+  const {startScale: startScaleOrigin, endScale: endScaleOrigin} = device
+  const [startScale, endScale] = fp.map(f => Number(f).toFixed(4))([startScaleOrigin, endScaleOrigin])
+  const price = fp.getOr(0)('prices[0].price')(room)
+  const usage = Number(endScale - startScale).toFixed(4)
   return {
     price,
     amount: (endScale - startScale) * price,
     usage,
     startScale,
     endScale,
-  };
-};
+  }
+}
 
 const extractDetail = (houseId, timeFrom, timeTo) => slot => {
   if (houseId || slot.rooms) {
     //public device
-    const house = slot;
+    const house = slot
     return {
       houseId: house.id,
       building: house.building.building,
@@ -184,10 +184,10 @@ const extractDetail = (houseId, timeFrom, timeTo) => slot => {
           endDate: timeTo,
         },
       ],
-    };
+    }
   }
   else {
-    const room = slot;
+    const room = slot
 
     return {
       roomId: room.id,
@@ -205,27 +205,27 @@ const extractDetail = (houseId, timeFrom, timeTo) => slot => {
         startDate: timeFrom,
         endDate: timeTo,
       }))(fp.uniqBy('deviceId')(room.devices)),
-    };
+    }
   }
-};
+}
 
 const matchHeartbeats = (heartbeats) => slot => {
   const singleDevice = slot => device => {
-    const reading = fp.head(fp.get(device.device.deviceId)(heartbeats));
-    return reading ? {...device, ...readingOf(slot, reading)} : device;
-  };
-  const devices = fp.get('details')(slot);
+    const reading = fp.head(fp.get(device.device.deviceId)(heartbeats))
+    return reading ? {...device, ...readingOf(slot, reading)} : device
+  }
+  const devices = fp.get('details')(slot)
   return devices ?
     {
       ...slot,
       details: fp.map(singleDevice(slot))(devices),
     } :
-    slot;
-};
+    slot
+}
 
 const districtLocation = (locationId, districtId) => {
   if (locationId) {
-    return {'$building.location.id$': locationId};
+    return {'$building.location.id$': locationId}
   }
   else if (districtId) {
     if (Util.IsParentDivision(districtId)) {
@@ -233,17 +233,17 @@ const districtLocation = (locationId, districtId) => {
         '$building.location.divisionId$': {
           $regexp: Util.ParentDivision(districtId),
         },
-      };
+      }
     }
     else {
       return {
         '$building.location.divisionId$': districtId,
-      };
+      }
     }
   } else {
-    return {};
+    return {}
   }
-};
+}
 
 const getIncludeRoom = SequelizeModel => (
   roomId, timeFrom, timeTo, projectId) => fp.assign(
@@ -286,7 +286,7 @@ const getIncludeRoom = SequelizeModel => (
       id: roomId,
     },
   } : {},
-);
+)
 
 const deviceInclude = MySQL => (timeFrom, timeTo, projectId) => ({
   model: MySQL.HouseDevices,
@@ -299,7 +299,7 @@ const deviceInclude = MySQL => (timeFrom, timeTo, projectId) => ({
     public: true,
   },
   attributes: ['deviceId'],
-});
+})
 
 const heartbeatInProject = MySQL => async (timeFrom, timeTo, projectId) => {
   const groupingData = await MySQL.DeviceHeartbeats.findAll(
@@ -331,8 +331,8 @@ const heartbeatInProject = MySQL => async (timeFrom, timeTo, projectId) => {
           attributes: ['projectId'],
         }],
     },
-  );
+  )
   return fp.groupBy('deviceId')(fp.map(
     data => ({...data.toJSON(), startDate: timeFrom, endDate: timeTo}))(
-    groupingData));
-};
+    groupingData))
+}

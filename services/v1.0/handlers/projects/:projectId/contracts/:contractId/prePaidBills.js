@@ -1,52 +1,52 @@
-'use strict';
+'use strict'
 /**
  * Operations on /contracts/{contractid}/bills
  */
-const fp = require('lodash/fp');
-const moment = require('moment');
+const fp = require('lodash/fp')
+const moment = require('moment')
 
 
 module.exports = {
   get: (req, res)=>{
-    const projectId = req.params.projectId;
-    const contractId = req.params.contractId;
-    const query = req.query;
+    const projectId = req.params.projectId
+    const contractId = req.params.contractId
+    const query = req.query
 
     if(!Util.ParameterCheck(query,
       ['mode']
     )){
-      return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED));
+      return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED))
     }
 
     const checkDate = (date)=>{
       if(date){
-        const momentObj = moment.unix(date);
+        const momentObj = moment.unix(date)
         if(!momentObj.isValid()){
-          return res.send(400, ErrorCode.ack(ErrorCode.PARAMETERERROR, {parameter: date}));
+          return res.send(400, ErrorCode.ack(ErrorCode.PARAMETERERROR, {parameter: date}))
         }
       }
-    };
+    }
 
-    const startDate = parseInt(query.startDate);
-    const endDate = parseInt(query.endDate);
-    checkDate(query.startDate);
-    checkDate(query.endDate);
+    const startDate = parseInt(query.startDate)
+    const endDate = parseInt(query.endDate)
+    checkDate(query.startDate)
+    checkDate(query.endDate)
 
-    const group = query.group;
+    const group = query.group
 
     const dateFilter = (startDate, endDate)=>{
       if(!startDate && !endDate){
-        return null;
+        return null
       }
       return fp.assignAll([
         startDate ? {$gte: startDate} : {}
         , endDate ? {$lte: endDate} : {}
-      ]);
-    };
+      ])
+    }
 
-    const defaultPaging = !(startDate && endDate);
-    const mode = query.mode;
-    const pagingInfo = Util.PagingInfo(query.index, query.size, defaultPaging);
+    const defaultPaging = !(startDate && endDate)
+    const mode = query.mode
+    const pagingInfo = Util.PagingInfo(query.index, query.size, defaultPaging)
     //
     switch(mode){
     case 'topup':
@@ -59,7 +59,7 @@ module.exports = {
         }).then(
           contract=>{
             if(!contract){
-              return ErrorCode.ack(404, ErrorCode.CONTRACTNOTEXISTS);
+              return ErrorCode.ack(404, ErrorCode.CONTRACTNOTEXISTS)
             }
 
             const where = fp.extendAll([
@@ -68,7 +68,7 @@ module.exports = {
                 userId: contract.userId
               }
               , dateFilter(startDate, endDate) ? {paymentDay: dateFilter(startDate, endDate)}:{}
-            ]);
+            ])
             const options = fp.assign(
               {
                 where: where,
@@ -76,13 +76,13 @@ module.exports = {
                 order:[['createdAt', 'DESC']]
               },
               pagingInfo ? {offset: pagingInfo.skip, limit: pagingInfo.size}:{}
-            );
+            )
 
-            const model = pagingInfo ? MySQL.Topup.findAndCountAll(options) : MySQL.Topup.findAll(options);
+            const model = pagingInfo ? MySQL.Topup.findAndCountAll(options) : MySQL.Topup.findAll(options)
 
             model.then(
               result=>{
-                const fundChannelId = fp.map(row=>{return row.fundChannelId;})(result.rows);
+                const fundChannelId = fp.map(row=>{return row.fundChannelId})(result.rows)
 
                 MySQL.FundChannels.findAll({
                   where:{
@@ -94,14 +94,14 @@ module.exports = {
                     const data = fp.map(row=>{
                       const channel = fp.find(channel =>
                         channel.id === row.fundChannelId)(
-                        fundChannels);
+                        fundChannels)
 
                       return {
                         time: moment(row.createdAt).unix(),
                         amount: row.amount,
                         fundChannelName: channel ? channel.name : ''
-                      };
-                    })(result.rows);
+                      }
+                    })(result.rows)
                     res.send(
                       pagingInfo ? {
                         paging: {
@@ -111,23 +111,23 @@ module.exports = {
                         },
                         data:data
                       }:data
-                    );
+                    )
                   }
-                );
+                )
               }
-            );
+            )
           },
           err=>{
-            log.error(err, req.params);
-            res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC));
+            log.error(err, req.params)
+            res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC))
           }
-        );
+        )
       }
-      break;
+      break
     case 'prepaid':
       {
         //
-        const dateWhere = dateFilter(startDate, endDate);
+        const dateWhere = dateFilter(startDate, endDate)
 
         const flowOptions = fp.assign(
           {
@@ -142,14 +142,14 @@ module.exports = {
             , attributes: ['id']
           },
           pagingInfo ? {offset: pagingInfo.skip,limit: pagingInfo.size}:{}
-        );
+        )
 
-        const model = pagingInfo ? MySQL.PrePaidFlows.findAndCountAll(flowOptions) : MySQL.PrePaidFlows.findAll(flowOptions);
+        const model = pagingInfo ? MySQL.PrePaidFlows.findAndCountAll(flowOptions) : MySQL.PrePaidFlows.findAll(flowOptions)
         model.then(
           result=>{
-            const count = result.count;
+            const count = result.count
 
-            const flowId = fp.map('id')(result.rows || result);
+            const flowId = fp.map('id')(result.rows || result)
 
             const options = {
               where:{
@@ -163,7 +163,7 @@ module.exports = {
                 model: MySQL.PrePaidFlows,
                 attributes: ['amount', 'balance'],
               }]
-            };
+            }
 
             const deviceOptions = fp.assign(
               options
@@ -174,7 +174,7 @@ module.exports = {
                   , 'type'
                 ]
               } : {}
-            );
+            )
             const dailyOptions = fp.assign(
               options
               , group? {
@@ -184,17 +184,17 @@ module.exports = {
                   , 'configId'
                 ]
               } : {}
-            );
+            )
             Promise.all([
               MySQL.DevicePrePaid.findAll(deviceOptions),
               MySQL.DailyPrePaid.findAll(dailyOptions)
             ]).then(
               ([devices, prepaid])=>{
-                const prepaidBillWithType = fp.map(translate)(prepaid);
-                const deviceBillWithType = fp.map(translate)(devices);
+                const prepaidBillWithType = fp.map(translate)(prepaid)
+                const deviceBillWithType = fp.map(translate)(devices)
                 const data = fp.orderBy(['paymentDay', 'balance']
                   , ['desc', 'asc']
-                )(fp.union(deviceBillWithType, prepaidBillWithType));
+                )(fp.union(deviceBillWithType, prepaidBillWithType))
 
                 res.send(
                   pagingInfo ? {
@@ -205,19 +205,19 @@ module.exports = {
                     },
                     data
                   } : data
-                );
+                )
               }
-            );
+            )
           },
           err=>{
-            log.error(err);
+            log.error(err)
           }
-        );
+        )
       }
-      break;
+      break
     }
   }
-};
+}
 
 const translate = fp.pipe(j => j.toJSON(),
   fp.defaults({type: 'DAILYPREPAID'}),
@@ -229,4 +229,4 @@ const translate = fp.pipe(j => j.toJSON(),
       balance: fp.getOr(0)('prePaidFlow.balance')(single),
       amount: fp.getOr(0)('prePaidFlow.amount')(single),
     })(single),
-  fp.omit(['setting', 'prePaidFlow']));
+  fp.omit(['setting', 'prePaidFlow']))

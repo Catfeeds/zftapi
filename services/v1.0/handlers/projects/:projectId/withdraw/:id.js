@@ -1,15 +1,15 @@
-'use strict';
+'use strict'
 /**
  * Operations on /withDraw
  */
-const fp = require('lodash/fp');
-const moment = require('moment');
+const fp = require('lodash/fp')
+const moment = require('moment')
 
 module.exports = {
   get: async function(req, res) {
     //get withdraw information
-    const projectId = req.params.projectId;
-    const id = req.params.id;
+    const projectId = req.params.projectId
+    const id = req.params.id
 
     MySQL.WithDraw.findOne({
       where:{
@@ -19,11 +19,11 @@ module.exports = {
     }).then(
       row=>{
         if(!row){
-          return res.send(404, ErrorCode.ack(ErrorCode.REQUESTUNMATCH));
+          return res.send(404, ErrorCode.ack(ErrorCode.REQUESTUNMATCH))
         }
 
-        row = row.toJSON();
-        const userIds = [row.operator, row.auditor];
+        row = row.toJSON()
+        const userIds = [row.operator, row.auditor]
 
         MySQL.Users.findAll({
           where:{
@@ -34,22 +34,22 @@ module.exports = {
           users=>{
             //
             const userMapping = fp.fromPairs(fp.map(user=>{
-              return [user.id, user];
-            })(users));
+              return [user.id, user]
+            })(users))
 
-            const operator = userMapping[row.operator];
-            const auditor = userMapping[row.auditor];
+            const operator = userMapping[row.operator]
+            const auditor = userMapping[row.auditor]
 
-            row.operator = operator ? operator : {};
-            row.auditor = auditor ? auditor : {};
+            row.operator = operator ? operator : {}
+            row.auditor = auditor ? auditor : {}
 
-            row.createdAt = moment(row.createdAt).unix();
-            row.updatedAt = moment(row.updatedAt).unix();
+            row.createdAt = moment(row.createdAt).unix()
+            row.updatedAt = moment(row.updatedAt).unix()
 
-            res.send(row);
+            res.send(row)
           }
-        );
+        )
       }
-    );
+    )
   },
-};
+}

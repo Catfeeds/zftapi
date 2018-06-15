@@ -1,5 +1,5 @@
-'use strict';
-const {assignNewId, moveFundChannelToRoot, topUp} = require('../../../../../common');
+'use strict'
+const {assignNewId, moveFundChannelToRoot, topUp} = require('../../../../../common')
 
 /**
  * Operations on /fundChannels/{fundChannelId}
@@ -20,22 +20,22 @@ module.exports = {
          * For response `default` status 200 is used.
          */
     (async()=>{
-      const projectId = req.params.projectId;
-      const userId = req.params.userId;
+      const projectId = req.params.projectId
+      const userId = req.params.userId
 
-      const body = req.body;
-      const amount = body.amount;
-      const fundChannelId = body.fundChannelId;
+      const body = req.body
+      const amount = body.amount
+      const fundChannelId = body.fundChannelId
 
       if(!Util.ParameterCheck(body, ['amount', 'fundChannelId'])){
-        return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED, 'please provide amount & fundChannelId.'));
+        return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED, 'please provide amount & fundChannelId.'))
       }
 
 
       //todo: check if contract is available
 
-      const receiveChannelAttributes = ['fee', 'setting', 'share'];
-      const fundChannelAttributes = ['category', 'flow', 'name', 'tag', 'id'];
+      const receiveChannelAttributes = ['fee', 'setting', 'share']
+      const fundChannelAttributes = ['category', 'flow', 'name', 'tag', 'id']
       const result = await MySQL.ReceiveChannels.findOne({
         where:{
           fundChannelId: fundChannelId
@@ -58,10 +58,10 @@ module.exports = {
             ]
           }
         ]
-      });
+      })
 
       if(!result){
-        return res.send(404, ErrorCode.ack(ErrorCode.CHANNELNOTEXISTS));
+        return res.send(404, ErrorCode.ack(ErrorCode.CHANNELNOTEXISTS))
       }
 
       const contract = await MySQL.Contracts.findOne({
@@ -71,19 +71,19 @@ module.exports = {
         },
         order:[['createdAt', 'ASC']],
         attributes:['id']
-      });
+      })
       if(!contract){
-        return res.send(404, ErrorCode.ack(ErrorCode.CONTRACTNOTEXISTS));
+        return res.send(404, ErrorCode.ack(ErrorCode.CONTRACTNOTEXISTS))
       }
-      const contractId = contract.id;
+      const contractId = contract.id
 
-      const fundChannel = moveFundChannelToRoot(result)(fundChannelAttributes);
+      const fundChannel = moveFundChannelToRoot(result)(fundChannelAttributes)
       if(fundChannel.category === Typedef.FundChannelCategory.ONLINE){
         if(!fundChannel.setting || !fundChannel.setting.appid || !fundChannel.setting.key){
-          return res.send(501, ErrorCode.ack(ErrorCode.CHANNELPARAMLACK));
+          return res.send(501, ErrorCode.ack(ErrorCode.CHANNELPARAMLACK))
         }
 
-        const orderNo = assignNewId().id;
+        const orderNo = assignNewId().id
         try {
           const result = await Util.charge(fundChannel, amount, orderNo, '电小鸽充值/账单', 'body', {
             fundChannelId: fundChannel.id,
@@ -91,26 +91,26 @@ module.exports = {
             orderNo: orderNo,
             projectId: projectId,
             userId: userId,
-          });
+          })
 
           res.send({
             pingpp: result.result
-          });
+          })
         }
         catch(e){
-          log.error(e, body);
+          log.error(e, body)
         }
       }
       else{
         //offline channel
-        const result = await topUp(fundChannel, projectId, userId, req.user.id, contractId, amount);
+        const result = await topUp(fundChannel, projectId, userId, req.user.id, contractId, amount)
         if(result.code !== ErrorCode.OK){
-          res.send(500, result);
+          res.send(500, result)
         }
         else {
-          res.send(result.result);
+          res.send(result.result)
         }
       }
-    })();
+    })()
   },
-};
+}

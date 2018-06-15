@@ -1,7 +1,7 @@
-'use strict';
-const fp = require('lodash/fp');
+'use strict'
+const fp = require('lodash/fp')
 
-const passwd = '123456';
+const passwd = '123456'
 /**
  * 模版CODE:
  SMS_136380435
@@ -10,23 +10,23 @@ const passwd = '123456';
  */
 exports.smsForNewContract = (projectName = '公寓合约', number, username) => {
   if (fp.isEmpty(number)) {
-    log.warn(`No mobile number left for user ${username}`);
-    return;
+    log.warn(`No mobile number left for user ${username}`)
+    return
   }
   return ShortMessage({
     number,
     template: 'SMS_136380435',
     params: {account: username, passwd, project: projectName},
   }).then(res => {
-    const {Code} = res;
+    const {Code} = res
     if (Code === 'OK') {
       console.log('new user notification sent successfully.', number,
-        res);
+        res)
     } else {
-      log.warn('new user notification sent failed.', number, res);
+      log.warn('new user notification sent failed.', number, res)
     }
-  });
-};
+  })
+}
 
 /**
  * 模版CODE:
@@ -42,11 +42,11 @@ exports.smsForBillOverdue = MySQL => async ({userId, dueAmount}) => {
           model: MySQL.Auth,
           attributes: ['mobile'],
         }],
-    }).then(j => j.toJSON()).then(fp.get('auth.mobile'));
-  const amount = Number(dueAmount / 100).toFixed(2);
+    }).then(j => j.toJSON()).then(fp.get('auth.mobile'))
+  const amount = Number(dueAmount / 100).toFixed(2)
   if (fp.isEmpty(number)) {
-    log.warn(`No mobile number left for user ${userId}`);
-    return;
+    log.warn(`No mobile number left for user ${userId}`)
+    return
   }
 
   return ShortMessage({
@@ -55,14 +55,14 @@ exports.smsForBillOverdue = MySQL => async ({userId, dueAmount}) => {
     params: {amount},
   }).
     then(res => {
-      const {Code} = res;
+      const {Code} = res
       if (Code === 'OK') {
-        log.info('overdue warning sent successfully.', number, res);
+        log.info('overdue warning sent successfully.', number, res)
       } else {
-        log.warn('overdue warning sent failed.', number, res);
+        log.warn('overdue warning sent failed.', number, res)
       }
-    });
-};
+    })
+}
 
 /**
  * 模版类型:
@@ -78,8 +78,8 @@ exports.smsForBillOverdue = MySQL => async ({userId, dueAmount}) => {
  */
 exports.smsForNegativeBalance = (number, userId) => {
   if (fp.isEmpty(number)) {
-    log.warn(`No mobile number left for user ${userId}`);
-    return;
+    log.warn(`No mobile number left for user ${userId}`)
+    return
   }
 
   return ShortMessage({
@@ -88,14 +88,14 @@ exports.smsForNegativeBalance = (number, userId) => {
     params: {},
   }).
     then(res => {
-      const {Code} = res;
+      const {Code} = res
       if (Code === 'OK') {
-        log.info('negative balance warning sent successfully.', number, res);
+        log.info('negative balance warning sent successfully.', number, res)
       } else {
-        log.warn('negative balance warning sent failed.', number, res);
+        log.warn('negative balance warning sent failed.', number, res)
       }
-    });
-};
+    })
+}
 
 /**
  * 模版类型:
@@ -112,21 +112,21 @@ exports.smsForNegativeBalance = (number, userId) => {
 
 exports.smsForPowerOff = (number, userId, dueAmount) => {
   if (fp.isEmpty(number)) {
-    log.warn(`No mobile number left for user ${userId}`);
-    return;
+    log.warn(`No mobile number left for user ${userId}`)
+    return
   }
-  const amount = Math.abs(Number(dueAmount / 100)).toFixed(2);
+  const amount = Math.abs(Number(dueAmount / 100)).toFixed(2)
   return ShortMessage({
     number,
     template: 'SMS_137421742',
     params: {amount},
   }).
     then(res => {
-      const {Code} = res;
+      const {Code} = res
       if (Code === 'OK') {
-        log.info('power off warning sent successfully.', number, res);
+        log.info('power off warning sent successfully.', number, res)
       } else {
-        log.warn('power off warning sent failed.', number, res);
+        log.warn('power off warning sent failed.', number, res)
       }
-    });
-};
+    })
+}

@@ -1,6 +1,6 @@
-'use strict';
-const fp = require('lodash/fp');
-const {IsParentDivision} = require('../../libs/util');
+'use strict'
+const fp = require('lodash/fp')
+const {IsParentDivision} = require('../../libs/util')
 
 const billPaymentSqlLogic = conditions => '  sum(case\n' +
     '      when f.category=\'rent\' then f.amount else 0\n' +
@@ -33,7 +33,7 @@ const billPaymentSqlLogic = conditions => '  sum(case\n' +
     '  and c.roomId = r.id\n' +
     '  and r.houseId = h.id\n' +
     '  and h.buildingId = buildings.id\n' +
-    '  and buildings.locationId = l.id\n' + fp.join('\n')(conditions);
+    '  and buildings.locationId = l.id\n' + fp.join('\n')(conditions)
 
 const topupSqlLogic = conditions => '  0 as rentPart,\n' +
     '  0 as rentPartFee,\n' +
@@ -60,7 +60,7 @@ const topupSqlLogic = conditions => '  0 as rentPart,\n' +
     '  and c.roomId = r.id\n' +
     '  and r.houseId = h.id\n' +
     '  and h.buildingId = buildings.id\n' +
-    '  and buildings.locationId = l.id\n' + fp.join('\n')(conditions);
+    '  and buildings.locationId = l.id\n' + fp.join('\n')(conditions)
 
 const groupByLocationIds = (from, to, conditions) => {
   const billPaymentFlow = 'select l.id, l.name,\n' +
@@ -69,7 +69,7 @@ const groupByLocationIds = (from, to, conditions) => {
             from && to ?
               '  and f.createdAt > :from  and f.createdAt < :to \n' :
               ''], conditions))) +
-        'GROUP BY l.id, l.name\n';
+        'GROUP BY l.id, l.name\n'
 
   const topupFlow = 'select l.id, l.name,\n' +
         topupSqlLogic(
@@ -77,7 +77,7 @@ const groupByLocationIds = (from, to, conditions) => {
             from && to ?
               '  and f.createdAt > :from  and f.createdAt < :to \n' :
               ''], conditions))) +
-        'GROUP BY l.id, l.name\n';
+        'GROUP BY l.id, l.name\n'
 
   return 'select\n' +
         '  id, name,\n' +
@@ -93,8 +93,8 @@ const groupByLocationIds = (from, to, conditions) => {
         ' UNION\n' +
         topupFlow +
         '     ) as f2\n' +
-        'GROUP BY id, name';
-};
+        'GROUP BY id, name'
+}
 
 const groupMonthByLocationIds = (year, conditions) => {
   const topupFlow = 'select l.id, l.name, ' +
@@ -102,14 +102,14 @@ const groupMonthByLocationIds = (year, conditions) => {
         topupSqlLogic(
           fp.compact(fp.concat(['  and f.createdAt > :from  and f.createdAt < :to \n'],
             conditions))) +
-        'GROUP BY l.id, l.name, month\n';
+        'GROUP BY l.id, l.name, month\n'
 
   const billPaymentFlow = 'select l.id, l.name, ' +
         '  DATE_FORMAT(f.createdAt, \'%Y-%m\') as month, \n' +
         billPaymentSqlLogic(
           fp.compact(fp.concat(['  and f.createdAt > :from  and f.createdAt < :to \n'],
             conditions))) +
-        'GROUP BY l.id, l.name, month\n';
+        'GROUP BY l.id, l.name, month\n'
 
   return 'select\n' +
         '  id, name, month,\n' +
@@ -125,24 +125,24 @@ const groupMonthByLocationIds = (year, conditions) => {
         ' UNION\n' +
         topupFlow +
         '     ) as f2\n' +
-        'GROUP BY id, name, month';
-};
+        'GROUP BY id, name, month'
+}
 
 const groupChannelByLocationIds = (timespan='month', conditions) => {
-  const timeformat = timespan === 'month' ? '%Y-%m' : '%Y-%m-%d';
+  const timeformat = timespan === 'month' ? '%Y-%m' : '%Y-%m-%d'
   const topupFlow = 'select t.fundChannelId, ' +
         `  DATE_FORMAT(f.createdAt, '${timeformat}') as timespan,\n` +
         topupSqlLogic(
           fp.compact(fp.concat(['  and f.createdAt > :from  and f.createdAt < :to \n'],
             conditions))) +
-        'GROUP BY t.fundChannelId, timespan\n';
+        'GROUP BY t.fundChannelId, timespan\n'
 
   const billPaymentFlow = 'select b.fundChannelId, ' +
         `  DATE_FORMAT(f.createdAt, '${timeformat}') as timespan, \n` +
         billPaymentSqlLogic(
           fp.compact(fp.concat(['  and f.createdAt > :from  and f.createdAt < :to \n'],
             conditions))) +
-        'GROUP BY b.fundChannelId, timespan\n';
+        'GROUP BY b.fundChannelId, timespan\n'
 
   return 'select\n' +
         '  fundChannelId, timespan,\n' +
@@ -158,8 +158,8 @@ const groupChannelByLocationIds = (timespan='month', conditions) => {
         ' UNION\n' +
         topupFlow +
         '     ) as f2\n' +
-        'GROUP BY fundChannelId, timespan';
-};
+        'GROUP BY fundChannelId, timespan'
+}
 
 const groupHousesByLocationId = (from, to, locationCondition) => {
   return 'select id,\n' +
@@ -185,8 +185,8 @@ const groupHousesByLocationId = (from, to, locationCondition) => {
             ''], locationCondition))) +
         ' GROUP BY h.id\n' +
         '     ) as f2\n' +
-        ' GROUP BY id';
-};
+        ' GROUP BY id'
+}
 
 const groupHousesMonthlyByLocationId = locationCondition => {
   return 'select id,\n' +
@@ -213,12 +213,12 @@ const groupHousesMonthlyByLocationId = locationCondition => {
             locationCondition))) +
         ' GROUP BY h.id, month\n' +
         '     ) as f2\n' +
-        ' GROUP BY id, month';
-};
+        ' GROUP BY id, month'
+}
 
 const generateDivisionCondition = districtId => IsParentDivision(districtId) ?
   ' and l.divisionId like :parentDivisionId '
-  : ' and l.divisionId=:districtId ';
+  : ' and l.divisionId=:districtId '
 
 module.exports = {
   groupHousesByLocationId,
@@ -227,4 +227,4 @@ module.exports = {
   groupHousesMonthlyByLocationId,
   generateDivisionCondition,
   groupChannelByLocationIds,
-};
+}

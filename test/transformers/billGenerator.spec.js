@@ -1,14 +1,14 @@
-'use strict';
-const moment = require('moment');
-const fp = require('lodash/fp');
-const generate = require('../../transformers/billGenerator').generate;
+'use strict'
+const moment = require('moment')
+const fp = require('lodash/fp')
+const generate = require('../../transformers/billGenerator').generate
 
-const displayShift = (startDate) => moment.unix(startDate).subtract(12, 'hour').unix();
+const displayShift = (startDate) => moment.unix(startDate).subtract(12, 'hour').unix()
 
 describe('Bill generator', () => {
   it('should generate bills base on contract', () => {
-    const startDate = moment().unix();
-    const oneYearLater = moment().add(1, 'year').unix();
+    const startDate = moment().unix()
+    const oneYearLater = moment().add(1, 'year').unix()
     const bills = generate({
       strategy: {
         freq: {
@@ -30,13 +30,13 @@ describe('Bill generator', () => {
       projectId: 1,
       contractId: 2,
 
-    });
-    bills.should.have.lengthOf(13);
-  });
+    })
+    bills.should.have.lengthOf(13)
+  })
 
   it('should generate standard bills', () => {
-    const startDate = moment().unix();
-    const oneYearLater = moment().add(1, 'year').unix();
+    const startDate = moment().unix()
+    const oneYearLater = moment().add(1, 'year').unix()
     const bills = generate({
       strategy: {
         freq: {
@@ -52,7 +52,7 @@ describe('Bill generator', () => {
       projectId: 1,
       id: 2,
       userId: 123,
-    });
+    })
     fp.omit('createdAt')(bills[0]).should.be.eql({
       flow: 'receive',
       entityType: 'property',
@@ -74,12 +74,12 @@ describe('Bill generator', () => {
       },
       index: 1,
       userId: 123,
-    });
-  });
+    })
+  })
 
   it('should generate one time paid off bills', () => {
-    const startDate = moment().unix();
-    const oneYearLater = moment().add(1, 'year').unix();
+    const startDate = moment().unix()
+    const oneYearLater = moment().add(1, 'year').unix()
     const bills = generate({
       strategy: {
         freq: {
@@ -99,8 +99,8 @@ describe('Bill generator', () => {
       projectId: 1,
       id: 2,
       userId: 123,
-    });
-    const paidOffBill = fp.filter(b => b.type === 'extra')(bills);
+    })
+    const paidOffBill = fp.filter(b => b.type === 'extra')(bills)
     fp.omit('createdAt')(paidOffBill[0]).should.be.eql({
       flow: 'receive',
       entityType: 'property',
@@ -118,12 +118,12 @@ describe('Bill generator', () => {
         pattern: 'paidOff'
       },
       userId: 123,
-    });
-  });
+    })
+  })
   it('should generate regular bills', () => {
-    const startDate = moment().unix();
-    const oneYearLater = moment().add(1, 'year').unix();
-    const oneMonthLater = moment().add(1, 'month').unix();
+    const startDate = moment().unix()
+    const oneYearLater = moment().add(1, 'year').unix()
+    const oneMonthLater = moment().add(1, 'month').unix()
     const bills = generate({
       strategy: {
         freq: {
@@ -142,10 +142,10 @@ describe('Bill generator', () => {
       projectId: 1,
       id: 2,
       userId: 123,
-    });
+    })
 
-    const regularBill = fp.filter(b => b.type === 'extra')(bills);
-    regularBill.should.have.length(12);
+    const regularBill = fp.filter(b => b.type === 'extra')(bills)
+    regularBill.should.have.length(12)
     fp.omit('createdAt')(regularBill[0]).should.be.eql({
       flow: 'receive',
       entityType: 'property',
@@ -164,12 +164,12 @@ describe('Bill generator', () => {
       },
       index: 1,
       userId: 123,
-    });
-  });
+    })
+  })
 
   it('should support paid off pattern in standard bills', () => {
-    const startDate = moment().unix();
-    const oneYearLater = moment().add(1, 'year').unix();
+    const startDate = moment().unix()
+    const oneYearLater = moment().add(1, 'year').unix()
     const bills = generate({
       strategy: {
         freq: {
@@ -184,8 +184,8 @@ describe('Bill generator', () => {
       projectId: 1,
       id: 2,
       userId: 123,
-    });
-    bills.should.have.length(1);
+    })
+    bills.should.have.length(1)
     fp.omit('createdAt')(bills[0]).should.be.eql({
       flow: 'receive',
       entityType: 'property',
@@ -207,13 +207,13 @@ describe('Bill generator', () => {
       },
       index: 1,
       userId: 123,
-    });
-  });
+    })
+  })
 
   it('should combine withRent expenses into standard bills', () => {
-    const startDate = moment().unix();
-    const oneYearLater = moment().add(1, 'year').unix();
-    const oneMonthLater = moment().add(1, 'month').unix();
+    const startDate = moment().unix()
+    const oneYearLater = moment().add(1, 'year').unix()
+    const oneMonthLater = moment().add(1, 'month').unix()
     const bills = generate({
       strategy: {
         freq: {
@@ -232,8 +232,8 @@ describe('Bill generator', () => {
       projectId: 1,
       id: 2,
       userId: 123,
-    });
-    bills.should.have.length(12);
+    })
+    bills.should.have.length(12)
     fp.omit('createdAt')(bills[0]).should.be.eql({
       flow: 'receive',
       entityType: 'property',
@@ -259,12 +259,12 @@ describe('Bill generator', () => {
       },
       index: 1,
       userId: 123,
-    });
-  });
+    })
+  })
 
   it('should turn withRent expenses as the same schedule as standard bills', () => {
-    const startDate = moment().unix();
-    const oneYearLater = moment().add(1, 'year').unix();
+    const startDate = moment().unix()
+    const oneYearLater = moment().add(1, 'year').unix()
     const bills = generate({
       strategy: {
         freq: {
@@ -283,8 +283,8 @@ describe('Bill generator', () => {
       projectId: 1,
       id: 2,
       userId: 123,
-    });
-    bills.should.have.length(1);
+    })
+    bills.should.have.length(1)
     fp.omit('createdAt')(bills[0]).should.be.eql({
       flow: 'receive',
       entityType: 'property',
@@ -310,12 +310,12 @@ describe('Bill generator', () => {
       },
       index: 1,
       userId: 123,
-    });
-  });
+    })
+  })
 
   it('should generate bond bill while bond is greater than 0', () => {
-    const startDate = moment().unix();
-    const oneYearLater = moment().add(1, 'year').unix();
+    const startDate = moment().unix()
+    const oneYearLater = moment().add(1, 'year').unix()
     const bills = generate({
       strategy: {
         freq: {
@@ -331,9 +331,9 @@ describe('Bill generator', () => {
       projectId: 1,
       id: 2,
       userId: 123,
-    });
-    bills.should.have.length(2);
-    const bondBill = fp.filter(b => b.type === 'bond')(bills);
+    })
+    bills.should.have.length(2)
+    const bondBill = fp.filter(b => b.type === 'bond')(bills)
     fp.omit('createdAt')(bondBill[0]).should.be.eql({
       flow: 'receive',
       entityType: 'property',
@@ -349,6 +349,6 @@ describe('Bill generator', () => {
         bond: 100
       },
       userId: 123,
-    });
-  });
-});
+    })
+  })
+})

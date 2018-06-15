@@ -1,8 +1,8 @@
-'use strict';
+'use strict'
 
-const fp = require('lodash/fp');
+const fp = require('lodash/fp')
 const {omitSingleNulls} = require(
-  '../../../../../common');
+  '../../../../../common')
 
 const pickMobile = model => ({
   ...model,
@@ -12,12 +12,12 @@ const pickMobile = model => ({
     accountName: fp.get('user.auth.username')(model),
     id: fp.get('user.auth.id')(model),
   },
-});
+})
 
-const removeAuth = fp.omit('user.auth');
+const removeAuth = fp.omit('user.auth')
 
 const translate = (models, pagingInfo) => {
-  const single = fp.pipe(a => a.toJSON(), pickMobile, removeAuth, omitSingleNulls);
+  const single = fp.pipe(a => a.toJSON(), pickMobile, removeAuth, omitSingleNulls)
   return {
     paging: {
       count: models.count,
@@ -25,21 +25,21 @@ const translate = (models, pagingInfo) => {
       size: pagingInfo.size,
     },
     data: fp.map(single)(models.rows),
-  };
-};
+  }
+}
 
 module.exports = {
   get: async (req, res) => {
-    const projectId = req.params.projectId;
-    const roomId = req.params.roomId;
-    const query = req.query;
+    const projectId = req.params.projectId
+    const roomId = req.params.roomId
+    const query = req.query
     const status = fp.getOr(Typedef.ContractStatus.ONGOING)('query.status')(
-      req).toUpperCase();
-    const Contracts = MySQL.Contracts;
-    const Users = MySQL.Users;
-    const Auth = MySQL.Auth;
+      req).toUpperCase()
+    const Contracts = MySQL.Contracts
+    const Users = MySQL.Users
+    const Auth = MySQL.Auth
 
-    const pagingInfo = Util.PagingInfo(query.index, query.size, true);
+    const pagingInfo = Util.PagingInfo(query.index, query.size, true)
 
     return Contracts.findAndCountAll({
       include: [{model: Users, attributes: ['name', 'gender', 'documentId', 'documentType'],
@@ -57,6 +57,6 @@ module.exports = {
       then(data => translate(data, pagingInfo)).
       then(contracts => res.send(contracts)).
       catch(err => res.send(500,
-        ErrorCode.ack(ErrorCode.DATABASEEXEC, {error: err.message})));
+        ErrorCode.ack(ErrorCode.DATABASEEXEC, {error: err.message})))
   },
-};
+}
