@@ -13,7 +13,7 @@ module.exports = {
 
     const month = req.query.month;
     const startDate = moment(month, 'YYYYMM').startOf('days');
-    const endDate = moment(month, 'YYYYMM').endOf('days');
+    const endDate = moment(month, 'YYYYMM').add(1, 'month').startOf('days');
 
     if (!startDate.isValid() || !endDate.isValid()) {
       return res.send(400,
