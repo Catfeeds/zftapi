@@ -23,7 +23,7 @@ describe('Devices', function() {
       },
       body: [
         {
-          deviceId: '000000000003',
+          deviceId: 'YTL000000000003',
           driver: 'YTL/Electric/YTL-BUSvA.1.02.js',
           memo: 'memo',
           name: 'name'
@@ -100,7 +100,7 @@ describe('Devices', function() {
           deviceId: 'yyy',
           memo: 'memo',
         }, {
-          deviceId: '000000000003',
+          deviceId: 'YTL000000000003',
           memo: 'memo',
         }],
     }
@@ -123,19 +123,19 @@ describe('Devices', function() {
       },
       body: [
         {
-          deviceId: '000000000001',
+          deviceId: 'YTL000000000001',
           memo: 'memo',
         }, {
-          deviceId: '000000000002',
+          deviceId: 'YTL000000000002',
           memo: 'memo',
         }, {
-          deviceId: '000000000003',
+          deviceId: 'YTL000000000003',
           memo: 'memo',
         }, {
-          deviceId: '000000000001',
+          deviceId: 'YTL000000000001',
           memo: 'memo',
         }, {
-          deviceId: '000000000002',
+          deviceId: 'YTL000000000002',
           memo: 'memo',
         }],
     }
@@ -148,7 +148,7 @@ describe('Devices', function() {
         code: 20000019,
         message: '仪表ID错误',
         result: {
-          message: 'duplicated id format: 000000000001,000000000002',
+          message: 'duplicated id format: YTL000000000001,YTL000000000002',
         },
       }])
   })
@@ -159,10 +159,10 @@ describe('Devices', function() {
       },
       body: [
         {
-          deviceId: '000000000001',
+          deviceId: 'YTL000000000001',
           memo: 'memo',
         }, {
-          deviceId: '000000000002',
+          deviceId: 'YTL000000000002',
           memo: 'mem2',
         }],
     }
