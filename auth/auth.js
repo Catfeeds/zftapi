@@ -4,6 +4,7 @@ const moment = require('moment');
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const {assignNewId} = require('../services/v1.0/common');
+const {allowToCreateProject} = require('./access');
 
 const authenticate = (req, res, next) => {
   const platform = req.body.platform;
@@ -62,6 +63,12 @@ const guard = (req, res, next) => {
   }
 
   if (!req.isAuthenticated()) {
+    return res.send(401);
+  }
+
+  const allProjects = /\/projects(\/)?/;
+  //allProjects should only be access from boss,
+  if (allProjects.test(req.url) && !allowToCreateProject(req)) {
     return res.send(401);
   }
 

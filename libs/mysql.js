@@ -727,7 +727,7 @@ function SequelizeDefine() {
             allowNull: false,
             defaultValue: 'user',
             validate: { //管理员，管家，财务
-                isIn: [['ADMIN', 'MANAGER', 'ACCOUNTANT', 'USER']]
+                isIn: [['ADMIN', 'MANAGER', 'ACCOUNTANT', 'USER', 'OP']]
             }
         },
         username: {

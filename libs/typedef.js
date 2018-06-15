@@ -46,6 +46,7 @@ const CredentialLevels = {
     ADMIN: 'ADMIN',
     ACCOUNTANT: 'ACCOUNTANT',
     USER: 'USER',
+    OP: 'OP',
     UNKNOWN: 'UNKNOWN'
 };
 const OperationStatus = {

@@ -38,8 +38,8 @@ module.exports = {
     {transaction: t})
     return MySQL.Sequelize.transaction(t =>
       Promise.all(
-        fp.concat(Projects.create(guardFields, {transaction: t}), adminUser(t),
-          allPayments(t)))).
+        fp.flatten([Projects.create(guardFields, {transaction: t}), adminUser(t),
+          allPayments(t)]))).
       then(() => res.send(200,
         ErrorCode.ack(ErrorCode.OK, {id: projectInfo.id}))).
       catch(err => res.send(500,
