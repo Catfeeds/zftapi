@@ -15,7 +15,7 @@ env:
 before_script:
   - export TZ=Asia/Shanghai
 script:
-  - ./build.sh u
+  - ./build.sh a
 after_success:
   - docker login -u $DOCKER_USER -p $DOCKER_PASS
   - if [[ $TRAVIS_PULL_REQUEST == "false" ]]; then deploy/script/publish.sh v$TRAVIS_BUILD_NUMBER ; fi
