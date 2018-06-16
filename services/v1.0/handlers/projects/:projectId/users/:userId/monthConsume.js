@@ -54,7 +54,7 @@ module.exports = {
         })
       },
     ).catch(err => {
-      log.error('', err, projectId, userId, month)
+      log.error('month consume error:', err, projectId, userId, month)
       res.send(500, ErrorCode.ack())
     })
   },
