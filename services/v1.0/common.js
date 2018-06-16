@@ -487,7 +487,9 @@ exports.topUp = async(fundChannel, projectId, userId, operatorId, contractId, am
       userId,
       contractId,
       projectId,
-      amount,
+      amount: result.result.amount,
+      fee: fp.getOr(0)('share.user')(serviceCharge),
+      balance: result.result.balance,
       fundChannelId,
       operator: operatorId
     })

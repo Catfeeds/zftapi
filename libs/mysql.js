@@ -1026,6 +1026,16 @@ function SequelizeDefine() {
             allowNull: false,
             defaultValue: 0
         },
+        balance: {
+            type: Sequelize.BIGINT.UNSIGNED,    //金额 单位：分
+            allowNull: false,
+            defaultValue: 0
+        },
+        fee: {
+            type: Sequelize.BIGINT.UNSIGNED,    //金额 单位：分
+            allowNull: false,
+            defaultValue: 0
+        },
         fundChannelId: {
             type: Sequelize.BIGINT.UNSIGNED,    //资金渠道
             allowNull: false

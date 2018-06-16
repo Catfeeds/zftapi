@@ -72,8 +72,13 @@ module.exports = {
             const options = fp.assign(
               {
                 where: where,
-                attributes:['fundChannelId', 'createdAt', 'amount'],
-                order:[['createdAt', 'DESC']]
+                attributes:['fundChannelId', 'createdAt', 'amount', 'balance', 'fee'],
+                order:[['createdAt', 'DESC']],
+                include: [{
+                  model: MySQL.Auth,
+                  as: 'operatorInfo',
+                  attributes: ['username']
+                }]
               },
               pagingInfo ? {offset: pagingInfo.skip, limit: pagingInfo.size}:{}
             )
@@ -91,17 +96,16 @@ module.exports = {
                   attributes:['id', 'name']
                 }).then(
                   fundChannels=>{
-                    const data = fp.map(row=>{
-                      const channel = fp.find(channel =>
+                    const data = fp.map(row=> ({
+                      time: moment(row.createdAt).unix(),
+                      amount: row.amount,
+                      fee: row.fee,
+                      balance: row.balance,
+                      fundChannelName: fp.getOr('')('name')(fp.find(channel =>
                         channel.id === row.fundChannelId)(
-                        fundChannels)
-
-                      return {
-                        time: moment(row.createdAt).unix(),
-                        amount: row.amount,
-                        fundChannelName: channel ? channel.name : ''
-                      }
-                    })(result.rows)
+                        fundChannels)),
+                      operator: fp.get('operatorInfo.username')(row)
+                    }))(result.rows)
                     res.send(
                       pagingInfo ? {
                         paging: {
@@ -109,8 +113,8 @@ module.exports = {
                           index: pagingInfo.index,
                           size: pagingInfo.size
                         },
-                        data:data
-                      }:data
+                        data
+                      } : data
                     )
                   }
                 )

@@ -477,6 +477,8 @@ create table if not exists `topup`
   `projectId` bigint(20) UNSIGNED NOT NULL,
   `flowId` bigint(20) UNSIGNED NOT NULL,
   `amount` bigint(20) UNSIGNED NOT NULL DEFAULT 0,
+  `balance` bigint(20) UNSIGNED NOT NULL DEFAULT 0,
+  `fee` bigint(20) UNSIGNED NOT NULL DEFAULT 0,
   `fundChannelId` bigint(20) UNSIGNED NOT NULL,
   `operator` bigint(20) UNSIGNED NULL DEFAULT NULL,
   `createdAt` datetime(0) NULL,

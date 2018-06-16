@@ -116,12 +116,12 @@ describe('User notification history', () => {
     resSpy.getCall(0).args.should.be.eql(
       [
         400, {
-        code: 20000032,
-        message: '参数错误',
-        result: {
-          month: 'xxx',
-        },
-      }])
+          code: 20000032,
+          message: '参数错误',
+          result: {
+            month: 'xxx',
+          },
+        }])
   })
 
   it('should not accept invalid user', async () => {
@@ -147,8 +147,8 @@ describe('User notification history', () => {
     resSpy.getCall(0).args.should.be.eql(
       [
         404, {
-        code: 21000004,
-        message: '合同不存在',
-      }])
+          code: 21000004,
+          message: '合同不存在',
+        }])
   })
 })
