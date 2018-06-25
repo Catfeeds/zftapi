@@ -2,7 +2,8 @@
 const {
   includeContracts, payBills, serviceCharge,
   moveFundChannelToRoot, shareFlows, platformFlows, logFlows,
-  convertRoomNumber, topUp, translateDevices, getAddrId, getBuildingId
+  convertRoomNumber, topUp, translateDevices, getAddrId, getBuildingId,
+  translateRooms,
 } = require(
   '../../services/v1.0/common')
 const {spy, stub} = require('sinon')
@@ -853,6 +854,78 @@ describe('Common', function() {
     it('should extract building id from deviceId', () => {
       getBuildingId('HX017062600064').should.be.equal('0170626000')
       getBuildingId('YTL043000101501').should.be.equal('0430001015')
+    })
+  })
+
+  describe('translateRooms', () => {
+    it('should translate rooms into list', () => {
+      translateRooms({orientation: 'S'})([
+        {
+          contracts: [
+            {
+              id: 1, from: 2, to: 3, contractNumber: 'contractNumber',
+              strategy: {
+                freq: {
+                  rent: 1500,
+                },
+              },
+              user: {
+                id: 4, name: 'name',
+              },
+            }],
+          devices: [
+            {
+              public: false,
+              device: {
+                deviceId: 123,
+                updatedAt: 13200000000,
+                type: 'type',
+                name: 'title',
+                channels: [{scale: 999000}],
+                memo: 'memo',
+              },
+            }],
+          suspendingRooms: [{id: 444}],
+        }]).should.be.eql([
+        {
+          contract: {
+            id: 1,
+            from: 2,
+            to: 3,
+            contractNumber: 'contractNumber',
+            rent: 1500,
+            userId: 4,
+            name: 'name',
+          },
+          devices: [
+            {
+              public: false,
+              deviceId: 123,
+              updatedAt: 13200000,
+              type: 'type',
+              title: 'title',
+              scale: 99.9,
+              memo: 'memo',
+              status: {
+                service: 'EMC_OFFLINE'
+              }
+            }],
+          orientation: 'S',
+          status: 'IDLE',
+          suspending: {id: 444},
+        }])
+    })
+
+    it('should be able to handle empty', () => {
+      translateRooms({orientation: 'S'})([{}]).should.be.eql([
+        {
+          contract: {},
+          devices: [],
+          orientation: 'S',
+          status: 'IDLE',
+          suspending: {},
+        }])
+      translateRooms({orientation: 'S'})([]).should.be.eql([])
     })
   })
 })

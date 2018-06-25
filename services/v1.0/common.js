@@ -732,7 +732,7 @@ exports.translateDevices = fp.pipe(
     memo: source.device.memo,
   })))
 
-exports.translateRooms = (rooms)=> {
+exports.translateRooms = ({orientation}) => rooms => {
   return fp.map(room => {
     const getContract = () => {
       if (!room.contracts || !room.contracts.length) {
@@ -759,13 +759,12 @@ exports.translateRooms = (rooms)=> {
         return room.suspendingRooms[0]
       }
     }
-    const devices = exports.translateDevices(room.devices)
-
-    return fp.assignIn(fp.omit(['contracts', 'devices'])(room))(
+    return fp.assignIn(fp.omit(['contracts', 'devices', 'suspendingRooms'])(room))(
       {
+        orientation,
         contract: getContract(),
         suspending: getSuspending(),
-        devices: devices,
+        devices: exports.translateDevices(room.devices),
         status: exports.roomLeasingStatus(room.contracts, room.suspendingRooms),
       },
     )

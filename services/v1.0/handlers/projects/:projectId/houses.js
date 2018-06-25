@@ -448,7 +448,7 @@ async function Gethouses(params, query) {
         unit: house.building.unit,
         roomNumber: house.roomNumber,
         currentFloor: house.currentFloor,
-        rooms: common.translateRooms(house.rooms),
+        rooms: common.translateRooms(house.layouts)(house.rooms),
         layout: house.layouts,
         houseKeeper: house.houseKeeper,
         devices: common.translateDevices(house.devices),

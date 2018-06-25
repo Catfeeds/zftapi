@@ -73,7 +73,7 @@ module.exports = {
         totalFloor: house.building.totalFloor,
         layout: house.layouts,
         config: house.config,
-        rooms: common.translateRooms(house.rooms),
+        rooms: common.translateRooms(house.layouts)(house.rooms),
         devices: common.translateDevices(house.devices)
       })
     })()
