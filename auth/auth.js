@@ -72,6 +72,12 @@ const guard = (req, res, next) => {
     return res.send(401)
   }
 
+  const isBoss = /\/boss\/.*/
+
+  if (isBoss.test(req.url) && !allowToCreateProject(req)) {
+    return res.send(401)
+  }
+
   const hasProjectId = /\/projects\/(\d+)/
   //assume non project resources are public
   if (!hasProjectId.test(req.url)) {
