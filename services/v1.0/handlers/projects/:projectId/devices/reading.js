@@ -7,9 +7,9 @@ const {formatMysqlDateTime} = Include('/services/v1.0/common')
 module.exports = {
   get: async (req, res) => {
     /**
-         * Get the data for response 200
-         * For response `default` status 200 is used.
-         */
+     * Get the data for response 200
+     * For response `default` status 200 is used.
+     */
     const query = req.query
 
     const projectId = req.params.projectId
@@ -27,7 +27,7 @@ module.exports = {
     const timeFrom = moment.unix(startDate).
       startOf('days').
       unix()
-    const timeTo = moment.unix(endDate).startOf('days').unix()
+    const timeTo = moment.unix(endDate).add(1, 'day').startOf('days').unix()
 
     const pagingInfo = Util.PagingInfo(index, size, true)
 
@@ -118,7 +118,7 @@ module.exports = {
 
       const doPaging = (data) => {
         return data.slice(pagingInfo.skip, pagingInfo.skip +
-                    pagingInfo.size)
+          pagingInfo.size)
       }
       res.send({
         paging: {
@@ -144,14 +144,13 @@ const contractSummary = info => {
   return contract ? ({
     userId: contract.userId,
     userName: contract.user.name,
-    startDate: contract.from,
-    endDate: contract.to,
   }) : {}
 }
 
-const readingOf = (room, device) => {
-  const {startScale: startScaleOrigin, endScale: endScaleOrigin} = device
-  const [startScale, endScale] = fp.map(f => Number(f).toFixed(4))([startScaleOrigin, endScaleOrigin])
+const readingOf = room => device => {
+  const {startScale: startScaleOrigin, endScale: endScaleOrigin, time} = device
+  const [startScale, endScale] = fp.map(f => Number(f).toFixed(4))(
+    [startScaleOrigin, endScaleOrigin])
   const price = fp.getOr(0)('prices[0].price')(room)
   const usage = Number(endScale - startScale).toFixed(4)
   return {
@@ -160,6 +159,8 @@ const readingOf = (room, device) => {
     usage,
     startScale,
     endScale,
+    startDate: moment(time).unix(),
+    endDate: moment(time).add(1, 'day').unix(),
   }
 }
 
@@ -202,23 +203,22 @@ const extractDetail = (houseId, timeFrom, timeTo) => slot => {
           deviceId: device.deviceId,
         },
         ...contractSummary(room),
-        startDate: timeFrom,
-        endDate: timeTo,
       }))(fp.uniqBy('deviceId')(room.devices)),
     }
   }
 }
 
-const matchHeartbeats = (heartbeats) => slot => {
+const matchHeartbeats = heartbeats => slot => {
   const singleDevice = slot => device => {
-    const reading = fp.head(fp.get(device.device.deviceId)(heartbeats))
-    return reading ? {...device, ...readingOf(slot, reading)} : device
+    const readings = fp.take(30)(fp.orderBy('time', 'desc')(
+      fp.get(device.device.deviceId)(heartbeats)))
+    return fp.map(r => ({...device, ...readingOf(slot)(r)}))(readings)
   }
   const devices = fp.get('details')(slot)
   return devices ?
     {
       ...slot,
-      details: fp.map(singleDevice(slot))(devices),
+      details: fp.flatten(fp.map(singleDevice(slot))(devices)),
     } :
     slot
 }
@@ -296,7 +296,6 @@ const deviceInclude = MySQL => (timeFrom, timeTo, projectId) => ({
   where: {
     projectId,
     endDate: 0,
-    public: true,
   },
   attributes: ['deviceId'],
 })
@@ -307,12 +306,21 @@ const heartbeatInProject = MySQL => async (timeFrom, timeTo, projectId) => {
       attributes: [
         'deviceId',
         [
+          MySQL.Sequelize.fn('DATE_FORMAT',
+            MySQL.Sequelize.col('deviceHeartbeats.createdAt'),
+            '%Y-%m-%d'),
+          'time'],
+        [
           MySQL.Sequelize.fn('max',
             MySQL.Sequelize.col('total')), 'endScale'],
         [
           MySQL.Sequelize.fn('min',
             MySQL.Sequelize.col('total')), 'startScale']],
-      group: ['deviceId'],
+      group: [
+        'deviceId',
+        MySQL.Sequelize.fn('DATE_FORMAT',
+          MySQL.Sequelize.col('deviceHeartbeats.createdAt'),
+          '%Y-%m-%d')],
       where: {
         createdAt: {
           $gte: formatMysqlDateTime(timeFrom),
@@ -326,7 +334,6 @@ const heartbeatInProject = MySQL => async (timeFrom, timeTo, projectId) => {
           where: {
             projectId,
             endDate: 0,
-            public: true,
           },
           attributes: ['projectId'],
         }],

@@ -1,13 +1,23 @@
 'use strict'
 
 const moment = require('moment')
+const {fn} = require('moment')
 const {spy} = require('sinon')
+const sinon = require('sinon')
 const {get} = require(
   '../../../services/v1.0/handlers/projects/:projectId/devices/reading')
+
+const sandbox = sinon.sandbox.create()
 
 describe('Reading meters', function() {
   before(() => {
     global.Typedef = Include('/libs/typedef')
+    sandbox.stub(fn, 'unix')
+    fn.unix.returns(20189999)
+  })
+
+  after(() => {
+    sandbox.restore()
   })
 
   it('should return rooms with detail', async function() {
@@ -34,8 +44,8 @@ describe('Reading meters', function() {
               device: {
                 deviceId: 123,
               },
-              endDate: timeAlign(200000),
-              startDate: timeAlign(100000),
+              endDate: 20189999,
+              startDate: 20189999,
               endScale: '200.0000',
               startScale: '100.0000',
               usage: '100.0000',
