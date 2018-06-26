@@ -7,7 +7,7 @@ const {
 describe('CORS', () => {
   it('should allow origin if they are included in config', () => {
     allowOrigin('https://abc.com,https://cde.com')(
-      {headers: {origin: 'cde.com'}}).
+      {headers: {origin: 'https://cde.com'}}).
       should.
       be.
       equal('https://cde.com')
@@ -15,14 +15,14 @@ describe('CORS', () => {
 
   it('should allow the first origin if they are not included in config', () => {
     allowOrigin('https://abc.com,https://cde.com')(
-      {headers: {origin: 'nonexists.com'}}).
+      {headers: {origin: 'http://nonexists.com'}}).
       should.
       be.
       equal('https://abc.com')
   })
 
   it('should allow prod front end url as default', () => {
-    allowOrigin()({headers: {origin: 'nonexists.com'}}).
+    allowOrigin()({headers: {origin: 'http://nonexists.com'}}).
       should.
       be.
       equal('https://saas.51dianxiaoge.com')
