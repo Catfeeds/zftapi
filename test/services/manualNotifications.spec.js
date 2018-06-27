@@ -32,8 +32,15 @@ describe('Manual notification', function() {
       },
       Users: {
         findById: async () => ({
-          toJSON: () => ({}),
+          toJSON: () => ({
+            auth: {
+              projectId: 100,
+            },
+          }),
         }),
+      },
+      UserNotifications: {
+        create: async () => {}
       },
     }
     const resSpy = spy()
@@ -43,7 +50,7 @@ describe('Manual notification', function() {
       resSpy.getCall(0).args[0].should.be.eql(ErrorCode.ack(ErrorCode.OK))
     })
   })
-  it('should not allow normal user send out notifications', async function() {
+  it('should not allow normal user send out notifications', async () => {
     const req = {
       isAuthenticated: () => true,
       user: {
@@ -68,17 +75,11 @@ describe('Manual notification', function() {
             }),
           }],
       },
-      Users: {
-        findById: async () => ({
-          toJSON: () => ({}),
-        }),
-      },
     }
     const resSpy = spy()
 
-    await post(req, {send: resSpy}).then(() => {
-      resSpy.should.have.been.called
-      resSpy.getCall(0).args[0].should.be.eql(403)
-    })
+    await post(req, {send: resSpy})
+    resSpy.should.have.been.called
+    resSpy.getCall(0).args[0].should.be.eql(403)
   })
 })
