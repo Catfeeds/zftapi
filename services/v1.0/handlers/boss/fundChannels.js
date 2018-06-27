@@ -1,9 +1,17 @@
-// const sequelize = require('sequelize')
 module.exports = {
-  get: async (req, res) => {
+  get: (req, res) => {
     const send = res.send.bind(res)
-    MySQL.Exec(
-      'select count(*) as value, f.name from billpayment as b join fundChannels as f where b.`fundChannelId`=f.id group by f.name')
+    let template = (timespan) => `select count(f.name) as value, f.name from topup as t, fundChannels as f where t.fundChannelId=f.id and ${timespan} group by f.name`
+
+    let today = MySQL.Exec(template('t.`createdAt` >= CURRENT_DATE()'))
+    /*eslint-disable */
+    let thisMonth = MySQL.Exec(template("t.`createdAt` between DATE_FORMAT(NOW() ,'%Y-%m-01') and NOW()"))
+
+    let thisYear = MySQL.Exec(template("t.`createdAt` between DATE_FORMAT(NOW() ,'%Y-01-01') and NOW()"))
+    /*eslint-disable */
+
+    Promise.all([today, thisMonth, thisYear])
+      .then(([today,month,year])=>({today,month,year}))
       .then(send)
   }
 }
