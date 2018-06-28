@@ -568,6 +568,16 @@ create table if not exists `houseApportionment`
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE = InnoDB;
 
+create table if not exists `NBReading`
+(
+  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `content` TEXT NULL,
+  `createdAt` datetime(0) NULL,
+  `updatedAt` datetime(0) NULL,
+  `deletedAt` datetime(0) NULL DEFAULT NULL,
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB;
+
 create table if not exists `withDraw`
 (
 	`id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,

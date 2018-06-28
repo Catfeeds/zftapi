@@ -2061,6 +2061,21 @@ function SequelizeDefine() {
         freezeTableName: true
     });
     exports.Banks = banks;
+
+    exports.NBReading = sequelizeInstance.define('NBReading', {
+        id:{
+            type: Sequelize.BIGINT.UNSIGNED,
+            primaryKey: true,
+            autoIncrement: true
+        },
+        content: {
+            type: Sequelize.TEXT,
+        }
+    },{
+        timestamps: true,
+        freezeTableName: true
+    });
+
 }
 
 /*
