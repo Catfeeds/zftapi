@@ -1,8 +1,10 @@
 module.exports = {
   get: (req, res) => {
     const send = res.send.bind(res)
+    /*eslint-disable */
     MySQL.Exec(
-      'select count(f.projectId) as value, p.name, f.projectId from billpayment as b, flows as f, projects as p where b.`flowId`=f.id and b.`projectId` = p.id group by f.projectId order by value desc')
+      "select sum(f.amount) as value, p.name, f.projectId from flows as f, projects as p where f.category = 'topup' and f.direction='receive' and f.`projectId` = p.id group by f.projectId order by value desc limit 10")
       .then(send)
+    /*eslint-disable */
   }
 }
