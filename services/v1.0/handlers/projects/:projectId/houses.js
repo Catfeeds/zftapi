@@ -106,7 +106,7 @@ async function SaveEntire(t, params, body){
     await MySQL.Rooms.bulkCreate(houseRoomLayouts.rooms, {transaction: t})
     await MySQL.Layouts.bulkCreate(houseRoomLayouts.layouts, {transaction: t})
 
-    return ErrorCode.ack(ErrorCode.OK, {id: houseRoomLayout.house.id})
+    return ErrorCode.ack(ErrorCode.OK, {houses: fp.map('id')(houseRoomLayouts.houses)})
   }
   catch(e){
     log.error(e)
