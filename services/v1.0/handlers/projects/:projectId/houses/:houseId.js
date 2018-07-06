@@ -100,11 +100,12 @@ module.exports = {
           id: houseId,
           deleteAt: 0,
           projectId: projectId,
+          //TODO: can we delete closed houses?
           status: Typedef.HouseStatus.OPEN,
         }
       })
       if(!isExists){
-        return res.send(400, ErrorCode.ack(ErrorCode.REQUESTUNMATCH))
+        return res.send(412, ErrorCode.ack(ErrorCode.STATUSUNMATCH, {message: `please check the status of house ${houseId}.`}))
       }
 
       const now = moment().unix()
