@@ -1634,7 +1634,9 @@ function SequelizeDefine() {
         freezeTableName: true
     });
     exports.Projects = Projects;
+    Houses.belongsTo(Projects);
 
+    FundChannels.belongsTo(Projects, {as: 'project', foreignKey: 'projectId'})
     exports.Projects.hasMany(exports.Auth);
     exports.Auth.belongsTo(exports.Projects);
 
