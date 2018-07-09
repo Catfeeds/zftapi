@@ -168,7 +168,7 @@ exports.userConnection = (sequelizeModel) => ({
   include: [
     {
       model: sequelizeModel.Auth,
-      attributes: ['mobile'],
+      attributes: ['mobile', 'username'],
     }],
 })
 

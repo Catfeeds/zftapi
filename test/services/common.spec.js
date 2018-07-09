@@ -46,7 +46,7 @@ describe('Common', function() {
             include: [
               {
                 model: Auth,
-                attributes: ['mobile'],
+                attributes: ['mobile', 'username'],
               },
             ],
           },
@@ -121,7 +121,7 @@ describe('Common', function() {
             include: [
               {
                 model: Auth,
-                attributes: ['mobile'],
+                attributes: ['mobile', 'username'],
               },
             ],
           },
@@ -199,7 +199,7 @@ describe('Common', function() {
             include: [
               {
                 model: Auth,
-                attributes: ['mobile'],
+                attributes: ['mobile', 'username'],
               },
             ],
           },
@@ -275,7 +275,7 @@ describe('Common', function() {
               include: [
                 {
                   model: Auth,
-                  attributes: ['mobile'],
+                  attributes: ['mobile', 'username'],
                 },
               ],
             },
@@ -347,7 +347,7 @@ describe('Common', function() {
             include: [
               {
                 model: Auth,
-                attributes: ['mobile'],
+                attributes: ['mobile', 'username'],
               },
             ],
           },

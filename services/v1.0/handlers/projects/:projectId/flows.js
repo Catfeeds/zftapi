@@ -21,7 +21,7 @@ const {
 const omitFields = fp.omit([
   'userId', 'billId', 'bill', 'auth', 'topup',
   'billpayment', 'operatorInfo', 'flowId', 'createdAt', 'updatedAt',
-  'contractId', 'fee', 'locationId', 'locationName',
+  'contractId', 'fee', 'locationId', 'locationName', 'contract.user',
 ])
 
 const formatTime = time => item => fp.defaults(item)(
@@ -35,7 +35,7 @@ const formatUser = user => item => fp.defaults(item)({
 })
 
 const formatContract = contract => item => fp.defaults(item)({
-  contract: fp.pick(['id', 'from', 'to', 'status', 'actualEndDate'])(
+  contract: fp.pick(['id', 'from', 'to', 'status', 'actualEndDate', 'user'])(
     fp.get(contract)(item)),
 })
 
@@ -47,8 +47,12 @@ const formatFundChannelFlows = fundFlows => item => fp.defaults(item)({
   fundChannelFlows: fp.get(fundFlows)(item),
 })
 
-const formatOperator = operator => item => fp.defaults(item)(
-  {operator: fp.get(operator)(item)})
+const formatOperator = operator => item => {
+  const pureAuth = fp.get(operator)(item)
+  return fp.defaults(item)(
+    {operator: pureAuth ?
+      pureAuth : fp.getOr('')('contract.user.auth.dataValues.username')(item)})
+}
 
 const inheritRemark = item => fp.defaults(item)(
   {remark: fp.get('remark')(item)})

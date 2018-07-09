@@ -82,7 +82,7 @@ describe('Flows', function() {
                           include: [
                             {
                               model: Auth,
-                              attributes: ['mobile'],
+                              attributes: ['mobile', 'username'],
                             },
                           ],
                         },
@@ -186,7 +186,7 @@ describe('Flows', function() {
                       include: [
                         {
                           model: Auth,
-                          attributes: ['mobile'],
+                          attributes: ['mobile', 'username'],
                         },
                       ],
                     },

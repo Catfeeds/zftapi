@@ -143,7 +143,7 @@ describe('Bills', function() {
                 include: [
                   {
                     model: Auth,
-                    attributes: ['mobile'],
+                    attributes: ['mobile', 'username'],
                   },
                 ],
               },
