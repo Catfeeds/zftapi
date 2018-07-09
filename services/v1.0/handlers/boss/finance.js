@@ -1,6 +1,6 @@
 module.exports = {
   get: async (req, res) => {
-    let result = await MySQL.PayChannels.findAll({
+    let payChannelQuery = MySQL.PayChannels.findAll({
       include:[{
         model: MySQL.FundChannels,
         as: 'fundChannel',
@@ -10,6 +10,17 @@ module.exports = {
         }]
       }]
     })
-    res.send(result)
+    let withDrawQuery = MySQL.WithDraw.findAll({
+      include:[{
+        model: MySQL.FundChannels,
+        as: 'channel',
+        include:[{
+          model:MySQL.Projects,
+          as: 'project'
+        }]
+      }]
+    })
+    let [payChannel, withDraw] = await Promise.all([payChannelQuery, withDrawQuery])
+    res.send({payChannel,withDraw})
   }
 }
