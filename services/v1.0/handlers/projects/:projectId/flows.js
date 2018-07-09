@@ -51,7 +51,7 @@ const formatOperator = operator => item => {
   const pureAuth = fp.get(operator)(item)
   return fp.defaults(item)(
     {operator: pureAuth ?
-      pureAuth : fp.getOr('')('contract.user.auth.dataValues.username')(item)})
+      pureAuth : fp.getOr('')('contract.user.auth.dataValues')(item)})
 }
 
 const inheritRemark = item => fp.defaults(item)(
