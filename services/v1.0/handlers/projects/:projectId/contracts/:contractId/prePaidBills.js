@@ -5,24 +5,24 @@
 const fp = require('lodash/fp')
 const moment = require('moment')
 
-
 module.exports = {
-  get: (req, res)=>{
+  get: async (req, res) => {
     const projectId = req.params.projectId
     const contractId = req.params.contractId
     const query = req.query
 
-    if(!Util.ParameterCheck(query,
-      ['mode']
-    )){
+    if (!Util.ParameterCheck(query,
+      ['mode'],
+    )) {
       return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED))
     }
 
-    const checkDate = (date)=>{
-      if(date){
+    const checkDate = (date) => {
+      if (date) {
         const momentObj = moment.unix(date)
-        if(!momentObj.isValid()){
-          return res.send(400, ErrorCode.ack(ErrorCode.PARAMETERERROR, {parameter: date}))
+        if (!momentObj.isValid()) {
+          return res.send(400,
+            ErrorCode.ack(ErrorCode.PARAMETERERROR, {parameter: date}))
         }
       }
     }
@@ -34,13 +34,13 @@ module.exports = {
 
     const group = query.group
 
-    const dateFilter = (startDate, endDate)=>{
-      if(!startDate && !endDate){
+    const dateFilter = (startDate, endDate) => {
+      if (!startDate && !endDate) {
         return null
       }
       return fp.assignAll([
         startDate ? {$gte: startDate} : {}
-        , endDate ? {$lte: endDate} : {}
+        , endDate ? {$lte: endDate} : {},
       ])
     }
 
@@ -48,179 +48,202 @@ module.exports = {
     const mode = query.mode
     const pagingInfo = Util.PagingInfo(query.index, query.size, defaultPaging)
     //
-    switch(mode){
-    case 'topup':
-      {
-        MySQL.Contracts.findOne({
-          where:{
-            id: contractId,
-            status: Typedef.ContractStatus.ONGOING
+    switch (mode) {
+    case 'topup': {
+      return MySQL.Contracts.findOne({
+        where: {
+          id: contractId,
+          status: Typedef.ContractStatus.ONGOING,
+        },
+      }).then(
+        contract => {
+          if (!contract) {
+            return ErrorCode.ack(404, ErrorCode.CONTRACTNOTEXISTS)
           }
-        }).then(
-          contract=>{
-            if(!contract){
-              return ErrorCode.ack(404, ErrorCode.CONTRACTNOTEXISTS)
-            }
 
-            const where = fp.extendAll([
-              {
-                projectId: projectId,
-                userId: contract.userId
-              }
-              , dateFilter(startDate, endDate) ? {paymentDay: dateFilter(startDate, endDate)}:{}
-            ])
-            const options = fp.assign(
-              {
-                where: where,
-                attributes:['fundChannelId', 'createdAt', 'amount', 'balance', 'fee'],
-                order:[['createdAt', 'DESC']],
-                include: [{
+          const where = fp.extendAll([
+            {
+              projectId: projectId,
+              userId: contract.userId,
+            }
+            ,
+            dateFilter(startDate, endDate) ?
+              {paymentDay: dateFilter(startDate, endDate)} :
+              {},
+          ])
+          const options = fp.assign(
+            {
+              where: where,
+              attributes: [
+                'fundChannelId',
+                'createdAt',
+                'amount',
+                'balance',
+                'fee'],
+              order: [['createdAt', 'DESC']],
+              include: [
+                {
                   model: MySQL.Auth,
                   as: 'operatorInfo',
-                  attributes: ['username']
-                }]
-              },
-              pagingInfo ? {offset: pagingInfo.skip, limit: pagingInfo.size}:{}
-            )
+                  required: false,
+                  attributes: ['username'],
+                }, {
+                  model: MySQL.Users,
+                  attributes: ['id'],
+                  include: [
+                    {
+                      model: MySQL.Auth,
+                      attributes: ['username'],
+                    }],
+                }],
+            },
+            {
+              offset: pagingInfo.skip,
+              limit: pagingInfo.size,
+            },
+          )
 
-            const model = pagingInfo ? MySQL.Topup.findAndCountAll(options) : MySQL.Topup.findAll(options)
+          return MySQL.Topup.findAndCountAll(options).then(
+            result => {
+              const fundChannelId = fp.map(row => {
+                return row.fundChannelId
+              })(result.rows)
 
-            model.then(
-              result=>{
-                const fundChannelId = fp.map(row=>{return row.fundChannelId})(result.rows)
+              return MySQL.FundChannels.findAll({
+                where: {
+                  id: {$in: fundChannelId},
+                },
+                attributes: ['id', 'name'],
+              }).then(
+                fundChannels => {
+                  const data = fp.map(row => ({
+                    time: moment(row.createdAt).unix(),
+                    amount: row.amount,
+                    fee: row.fee,
+                    balance: row.balance,
+                    fundChannelName: fp.getOr('')('name')(fp.find(channel =>
+                      channel.id === row.fundChannelId)(
+                      fundChannels)),
+                    operator: extractUsername(row),
+                  }))(result.rows)
+                  res.send(
+                    pagingInfo ? {
+                      paging: {
+                        count: result.count,
+                        index: pagingInfo.index,
+                        size: pagingInfo.size,
+                      },
+                      data,
+                    } : data,
+                  )
+                },
+              )
+            },
+          )
+        },
+        err => {
+          log.error(err, req.params)
+          res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC))
+        },
+      )
+    }
+    case 'prepaid': {
+      //
+      const dateWhere = dateFilter(startDate, endDate)
 
-                MySQL.FundChannels.findAll({
-                  where:{
-                    id:{$in: fundChannelId}
-                  },
-                  attributes:['id', 'name']
-                }).then(
-                  fundChannels=>{
-                    const data = fp.map(row=> ({
-                      time: moment(row.createdAt).unix(),
-                      amount: row.amount,
-                      fee: row.fee,
-                      balance: row.balance,
-                      fundChannelName: fp.getOr('')('name')(fp.find(channel =>
-                        channel.id === row.fundChannelId)(
-                        fundChannels)),
-                      operator: fp.get('operatorInfo.username')(row)
-                    }))(result.rows)
-                    res.send(
-                      pagingInfo ? {
-                        paging: {
-                          count: result.count,
-                          index: pagingInfo.index,
-                          size: pagingInfo.size
-                        },
-                        data
-                      } : data
-                    )
-                  }
-                )
-              }
-            )
-          },
-          err=>{
-            log.error(err, req.params)
-            res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC))
-          }
-        )
-      }
-      break
-    case 'prepaid':
-      {
-        //
-        const dateWhere = dateFilter(startDate, endDate)
+      const flowOptions = fp.assign(
+        {
+          where: fp.assign(
+            {
+              projectId: projectId,
+              contractId: contractId,
+            },
+            dateWhere ? {paymentDay: dateWhere} : {},
+          )
+          , order: [['paymentDay', 'DESC']]
+          , attributes: ['id'],
+        },
+        pagingInfo ? {offset: pagingInfo.skip, limit: pagingInfo.size} : {},
+      )
 
-        const flowOptions = fp.assign(
-          {
-            where:fp.assign(
+      return MySQL.PrePaidFlows.findAndCountAll(flowOptions).then(
+        result => {
+          const count = result.count
+
+          const flowId = fp.map('id')(result.rows || result)
+
+          const options = {
+            where: {
+              flowId: {$in: flowId},
+            },
+            order: [['paymentDay', 'DESC']],
+            include: [
               {
-                projectId: projectId,
-                contractId: contractId
-              },
-              dateWhere ? {paymentDay: dateWhere}:{}
-            )
-            , order: [['paymentDay', 'DESC']]
-            , attributes: ['id']
-          },
-          pagingInfo ? {offset: pagingInfo.skip,limit: pagingInfo.size}:{}
-        )
-
-        const model = pagingInfo ? MySQL.PrePaidFlows.findAndCountAll(flowOptions) : MySQL.PrePaidFlows.findAll(flowOptions)
-        model.then(
-          result=>{
-            const count = result.count
-
-            const flowId = fp.map('id')(result.rows || result)
-
-            const options = {
-              where:{
-                flowId:{$in: flowId}
-              },
-              order: [['paymentDay', 'DESC']],
-              include: [{
                 model: MySQL.Settings,
-                attributes: ['key']
-              },{
+                attributes: ['key'],
+              }, {
                 model: MySQL.PrePaidFlows,
                 attributes: ['amount', 'balance'],
-              }]
-            }
-
-            const deviceOptions = fp.assign(
-              options
-              , group? {
-                group: ['type']
-                , attributes: [
-                  [MySQL.Sequelize.fn('sum', MySQL.Sequelize.col('amount')), 'amount']
-                  , 'type'
-                ]
-              } : {}
-            )
-            const dailyOptions = fp.assign(
-              options
-              , group? {
-                group: ['configId']
-                , attributes: [
-                  [MySQL.Sequelize.fn('sum', MySQL.Sequelize.col('amount')), 'amount']
-                  , 'configId'
-                ]
-              } : {}
-            )
-            Promise.all([
-              MySQL.DevicePrePaid.findAll(deviceOptions),
-              MySQL.DailyPrePaid.findAll(dailyOptions)
-            ]).then(
-              ([devices, prepaid])=>{
-                const prepaidBillWithType = fp.map(translate)(prepaid)
-                const deviceBillWithType = fp.map(translate)(devices)
-                const data = fp.orderBy(['paymentDay', 'balance']
-                  , ['desc', 'asc']
-                )(fp.union(deviceBillWithType, prepaidBillWithType))
-
-                res.send(
-                  pagingInfo ? {
-                    paging: {
-                      count: count,
-                      index: pagingInfo.index,
-                      size: pagingInfo.size
-                    },
-                    data
-                  } : data
-                )
-              }
-            )
-          },
-          err=>{
-            log.error(err)
+              }],
           }
-        )
-      }
-      break
+
+          const deviceOptions = fp.assign(
+            options
+            , group ? {
+              group: ['type']
+              , attributes: [
+                [
+                  MySQL.Sequelize.fn('sum', MySQL.Sequelize.col('amount')),
+                  'amount']
+                ,
+                'type',
+              ],
+            } : {},
+          )
+          const dailyOptions = fp.assign(
+            options
+            , group ? {
+              group: ['configId']
+              , attributes: [
+                [
+                  MySQL.Sequelize.fn('sum', MySQL.Sequelize.col('amount')),
+                  'amount']
+                ,
+                'configId',
+              ],
+            } : {},
+          )
+          return Promise.all([
+            MySQL.DevicePrePaid.findAll(deviceOptions),
+            MySQL.DailyPrePaid.findAll(dailyOptions),
+          ]).then(
+            ([devices, prepaid]) => {
+              const prepaidBillWithType = fp.map(translate)(prepaid)
+              const deviceBillWithType = fp.map(translate)(devices)
+              const data = fp.orderBy(['paymentDay', 'balance']
+                , ['desc', 'asc'],
+              )(fp.union(deviceBillWithType, prepaidBillWithType))
+
+              res.send(
+                pagingInfo ? {
+                  paging: {
+                    count: count,
+                    index: pagingInfo.index,
+                    size: pagingInfo.size,
+                  },
+                  data,
+                } : data,
+              )
+            },
+          )
+        },
+        err => {
+          log.error(err)
+        },
+      )
     }
-  }
+    }
+  },
 }
 
 const translate = fp.pipe(j => j.toJSON(),
@@ -234,3 +257,8 @@ const translate = fp.pipe(j => j.toJSON(),
       amount: fp.getOr(0)('prePaidFlow.amount')(single),
     })(single),
   fp.omit(['setting', 'prePaidFlow']))
+
+const extractUsername = row => {
+  const pureAuth = fp.get('operatorInfo.username')(row)
+  return pureAuth ? pureAuth : fp.get('user.auth.username')(row)
+}
