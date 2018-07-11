@@ -4,7 +4,7 @@ module.exports = {
     const body = req.body
     let updated = await MySQL.FundChannels.update(fp.pick(['status'], body), {
       where: {
-        id: req.param.channelId
+        id: req.params.channelId
       }
     })
     res.send(200, ErrorCode.ack(ErrorCode.OK, {id: updated.id}))
