@@ -10,7 +10,7 @@ exports.iOSKey = '24833443'
 exports.androidKey = '24832995'
 
 exports.topupNotification =
-    sequelizeModel => topup => exports.commonNotification(sequelizeModel)({
+    sequelizeModel => async topup => exports.commonNotification(sequelizeModel)({
       userId: topup.userId,
       titleOf: fp.constant('充值成功提醒'),
       contentOf: fp.constant(`${moment().
@@ -111,7 +111,7 @@ exports.powerOffNotification =
         extrasOf: exports.commonExtra('topup'),
       })
 
-exports.commonNotification = sequelizeModel => notification => {
+exports.commonNotification = sequelizeModel => async notification => {
   return sequelizeModel.Users.findById(notification.userId, {
     include: [
       {
@@ -138,7 +138,7 @@ exports.commonNotification = sequelizeModel => notification => {
       return
     }
 
-    exports.notificationOf(platform)({
+    return exports.notificationOf(platform)({
       targetId,
       title: notification.title,
       content: notification.content,
@@ -148,7 +148,7 @@ exports.commonNotification = sequelizeModel => notification => {
 
 }
 
-exports.notificationOf = platform => body => {
+exports.notificationOf = platform => async body => {
   if (!fp.includes(platform)(['ios', 'android'])) return
   const ApnsEnv = fp.getOr('PRODUCT')('ALICLOUD.ApnsEnv')(config)
   const Target = 'DEVICE'
@@ -158,7 +158,7 @@ exports.notificationOf = platform => body => {
     Body: body.content,
     ExtParameters: body.extras,
   }
-  platform === 'ios' ?
+  return platform === 'ios' ?
     Notifications.pushNoticeToiOS(fp.defaults(refinedBody)({
       AppKey: exports.iOSKey,
       Target,

@@ -498,7 +498,7 @@ exports.topUp = async(fundChannel, projectId, userId, operatorId, contractId, am
     await exports.logFlows(MySQL)(serviceCharge, orderNo, projectId
       , userId, 0, fundChannel, t, Typedef.FundChannelFlowCategory.TOPUP)
 
-    topupNotification(MySQL)(result.result)
+    await topupNotification(MySQL)(result.result)
     await t.commit()
     return result
   }
@@ -652,7 +652,7 @@ exports.includeRoom = async(status)=>{
     if(status === 'IDLE'){
       const contracts = await MySQL.Contracts.findAll({
         where:{
-          projectId: projectId,
+          projectId,
           status: Typedef.ContractStatus.ONGOING
         },
         attributes: ['roomId']
