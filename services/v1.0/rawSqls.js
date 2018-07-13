@@ -6,7 +6,7 @@ const billPaymentSqlLogic = conditions => '  sum(case\n' +
     '      when f.category=\'rent\' then f.amount else 0\n' +
     '      end) as rentPart,\n' +
     '  sum(case\n' +
-    '      when f.category=\'rent\' then fee else 0\n' +
+    '      when f.category=\'rent\' then f.fee else 0\n' +
     '      end) as rentPartFee,\n' +
     '  0 as topupPart,\n' +
     '  0 as topupFeePart,\n' +
@@ -41,7 +41,7 @@ const topupSqlLogic = conditions => '  0 as rentPart,\n' +
     '      when f.category=\'topup\' then f.amount else 0\n' +
     '      end) as topupPart,\n' +
     '  sum(case\n' +
-    '      when f.category=\'topup\' then fee else 0\n' +
+    '      when f.category=\'topup\' then f.fee else 0\n' +
     '      end) as topupPartFee,\n' +
     '  0 as finalPayPart, \n' +
     '  0 as finalReceivePart \n' +

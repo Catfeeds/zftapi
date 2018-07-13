@@ -839,7 +839,7 @@ describe('Flows', function() {
                     'sum(topupPart) - sum(topupFeePart) - sum(finalPayPart) + ' +
                     'sum(finalReceivePart)) as balance  from (select l.id, l.name,\n' +
                     '  sum(case\n      when f.category=\'rent\' then f.amount else 0\n' +
-                    '      end) as rentPart,\n  sum(case\n      when f.category=\'rent\' then fee else 0\n' +
+                    '      end) as rentPart,\n  sum(case\n      when f.category=\'rent\' then f.fee else 0\n' +
                     '      end) as rentPartFee,\n  0 as topupPart,\n  0 as topupFeePart,\n  sum(case\n' +
                     '      when (f.category=\'final\' and f.direction=\'pay\') then f.amount else 0\n' +
                     '      end) as finalPayPart, \n  sum(case\n      when (f.category=\'final\' and f.direction=\'receive\') then f.amount else 0\n' +
@@ -848,7 +848,7 @@ describe('Flows', function() {
                     '  and c.id = b2.contractId\n  and b.projectId = :projectId \n  and c.roomId = r.id\n  and r.houseId = h.id\n' +
                     '  and h.buildingId = buildings.id\n  and buildings.locationId = l.id\nGROUP BY l.id, l.name\n UNION\nselect l.id, l.name,\n' +
                     '  0 as rentPart,\n  0 as rentPartFee,\n  sum(case\n      when f.category=\'topup\' then f.amount else 0\n      end) as topupPart,\n' +
-                    '  sum(case\n      when f.category=\'topup\' then fee else 0\n      end) as topupPartFee,\n  0 as finalPayPart, \n  0 as finalReceivePart \n' +
+                    '  sum(case\n      when f.category=\'topup\' then f.fee else 0\n      end) as topupPartFee,\n  0 as finalPayPart, \n  0 as finalReceivePart \n' +
                     'from\n  topup t,\n  flows f,\n  contracts c,\n  houses h,\n  rooms r,\n  location l,\n  buildings\nwhere\n  f.id = t.flowId\n' +
                     '  and c.id = t.contractId\n  and t.projectId = :projectId \n  and c.roomId = r.id\n  and r.houseId = h.id\n' +
                     '  and h.buildingId = buildings.id\n  and buildings.locationId = l.id\nGROUP BY l.id, l.name\n     ) as f2\n' +
@@ -898,7 +898,7 @@ describe('Flows', function() {
                     'sum(topupPart) - sum(topupFeePart) - sum(finalPayPart) + ' +
                     'sum(finalReceivePart)) as balance  from (select h.id,\n' +
                     '  sum(case\n      when f.category=\'rent\' then f.amount else 0\n' +
-                    '      end) as rentPart,\n  sum(case\n      when f.category=\'rent\' then fee else 0\n' +
+                    '      end) as rentPart,\n  sum(case\n      when f.category=\'rent\' then f.fee else 0\n' +
                     '      end) as rentPartFee,\n  0 as topupPart,\n  0 as topupFeePart,\n  sum(case\n' +
                     '      when (f.category=\'final\' and f.direction=\'pay\') then f.amount else 0\n' +
                     '      end) as finalPayPart, \n  sum(case\n      when (f.category=\'final\' and f.direction=\'receive\') then f.amount else 0\n' +
@@ -907,7 +907,7 @@ describe('Flows', function() {
                     '  and c.id = b2.contractId\n  and b.projectId = :projectId \n  and c.roomId = r.id\n  and r.houseId = h.id\n' +
                     '  and h.buildingId = buildings.id\n  and buildings.locationId = l.id\n and buildings.locationId = 321 GROUP BY h.id\n UNION\nselect h.id,\n' +
                     '  0 as rentPart,\n  0 as rentPartFee,\n  sum(case\n      when f.category=\'topup\' then f.amount else 0\n      end) as topupPart,\n' +
-                    '  sum(case\n      when f.category=\'topup\' then fee else 0\n      end) as topupPartFee,\n  0 as finalPayPart, \n  0 as finalReceivePart \n' +
+                    '  sum(case\n      when f.category=\'topup\' then f.fee else 0\n      end) as topupPartFee,\n  0 as finalPayPart, \n  0 as finalReceivePart \n' +
                     'from\n  topup t,\n  flows f,\n  contracts c,\n  houses h,\n  rooms r,\n  location l,\n  buildings\nwhere\n  f.id = t.flowId\n' +
                     '  and c.id = t.contractId\n  and t.projectId = :projectId \n  and c.roomId = r.id\n  and r.houseId = h.id\n' +
                     '  and h.buildingId = buildings.id\n  and buildings.locationId = l.id\n and buildings.locationId = 321 GROUP BY h.id\n     ) as f2\n' +
@@ -958,7 +958,7 @@ describe('Flows', function() {
                     'sum(topupPart) - sum(topupFeePart) - sum(finalPayPart) + ' +
                     'sum(finalReceivePart)) as balance  from (select l.id, l.name,   DATE_FORMAT(f.createdAt, \'%Y-%m\') as month, \n' +
                     '  sum(case\n      when f.category=\'rent\' then f.amount else 0\n' +
-                    '      end) as rentPart,\n  sum(case\n      when f.category=\'rent\' then fee else 0\n' +
+                    '      end) as rentPart,\n  sum(case\n      when f.category=\'rent\' then f.fee else 0\n' +
                     '      end) as rentPartFee,\n  0 as topupPart,\n  0 as topupFeePart,\n  sum(case\n' +
                     '      when (f.category=\'final\' and f.direction=\'pay\') then f.amount else 0\n' +
                     '      end) as finalPayPart, \n  sum(case\n      when (f.category=\'final\' and f.direction=\'receive\') then f.amount else 0\n' +
@@ -968,7 +968,7 @@ describe('Flows', function() {
                     '  and h.buildingId = buildings.id\n  and buildings.locationId = l.id\n  and f.createdAt > :from  and f.createdAt < :to \nGROUP BY l.id, l.name, month\n' +
                     ' UNION\nselect l.id, l.name,   DATE_FORMAT(f.createdAt, \'%Y-%m\') as month,\n' +
                     '  0 as rentPart,\n  0 as rentPartFee,\n  sum(case\n      when f.category=\'topup\' then f.amount else 0\n      end) as topupPart,\n' +
-                    '  sum(case\n      when f.category=\'topup\' then fee else 0\n      end) as topupPartFee,\n  0 as finalPayPart, \n  0 as finalReceivePart \n' +
+                    '  sum(case\n      when f.category=\'topup\' then f.fee else 0\n      end) as topupPartFee,\n  0 as finalPayPart, \n  0 as finalReceivePart \n' +
                     'from\n  topup t,\n  flows f,\n  contracts c,\n  houses h,\n  rooms r,\n  location l,\n  buildings\nwhere\n  f.id = t.flowId\n' +
                     '  and c.id = t.contractId\n  and t.projectId = :projectId \n  and c.roomId = r.id\n  and r.houseId = h.id\n' +
                     '  and h.buildingId = buildings.id\n  and buildings.locationId = l.id\n  and f.createdAt > :from  and f.createdAt < :to \nGROUP BY l.id, l.name, month\n     ) as f2\n' +
@@ -1012,7 +1012,7 @@ describe('Flows', function() {
                     'sum(topupPart) - sum(topupFeePart) - sum(finalPayPart) + ' +
                     'sum(finalReceivePart)) as balance  from (select h.id,\n  DATE_FORMAT(f.createdAt, \'%Y-%m\') month,' +
                     '  sum(case\n      when f.category=\'rent\' then f.amount else 0\n' +
-                    '      end) as rentPart,\n  sum(case\n      when f.category=\'rent\' then fee else 0\n' +
+                    '      end) as rentPart,\n  sum(case\n      when f.category=\'rent\' then f.fee else 0\n' +
                     '      end) as rentPartFee,\n  0 as topupPart,\n  0 as topupFeePart,\n  sum(case\n' +
                     '      when (f.category=\'final\' and f.direction=\'pay\') then f.amount else 0\n' +
                     '      end) as finalPayPart, \n  sum(case\n      when (f.category=\'final\' and f.direction=\'receive\') then f.amount else 0\n' +
@@ -1021,7 +1021,7 @@ describe('Flows', function() {
                     '  and c.id = b2.contractId\n  and b.projectId = :projectId \n  and c.roomId = r.id\n  and r.houseId = h.id\n' +
                     '  and h.buildingId = buildings.id\n  and buildings.locationId = l.id\n  and f.createdAt > :from  and f.createdAt < :to \n\n and buildings.locationId = 321 GROUP BY h.id, month\n UNION\nselect h.id,\n' +
                     '  DATE_FORMAT(f.createdAt, \'%Y-%m\') month,  0 as rentPart,\n  0 as rentPartFee,\n  sum(case\n      when f.category=\'topup\' then f.amount else 0\n      end) as topupPart,\n' +
-                    '  sum(case\n      when f.category=\'topup\' then fee else 0\n      end) as topupPartFee,\n  0 as finalPayPart, \n  0 as finalReceivePart \n' +
+                    '  sum(case\n      when f.category=\'topup\' then f.fee else 0\n      end) as topupPartFee,\n  0 as finalPayPart, \n  0 as finalReceivePart \n' +
                     'from\n  topup t,\n  flows f,\n  contracts c,\n  houses h,\n  rooms r,\n  location l,\n  buildings\nwhere\n  f.id = t.flowId\n' +
                     '  and c.id = t.contractId\n  and t.projectId = :projectId \n  and c.roomId = r.id\n  and r.houseId = h.id\n' +
                     '  and h.buildingId = buildings.id\n  and buildings.locationId = l.id\n  and f.createdAt > :from  and f.createdAt < :to \n\n and buildings.locationId = 321 GROUP BY h.id, month\n     ) as f2\n' +
