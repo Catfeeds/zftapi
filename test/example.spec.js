@@ -55,20 +55,20 @@ describe('API signature', function() {
 
     it('should generate sign for /api/sensor/info', function() {
       const env = {
-        uid: 'EM333333333333',
+        uid: 'EM30G560GH455GV',
         md5pass: 'cfbfbebcb307187bda5d9c021f76f175',
         v: 1530497071,
       }
       const pureReq = {
-        'projectid': '6a6655588g84441g1122d22233',
+        'projectid': '577499e785ae16405764025f',
       }
 
       const payload = {...pureReq, p: env.uid, v: env.v}
 
       finalJson(env, payload).should.be.eql({
-        'p': 'EM333333333333',
-        'projectid': '6a6655588g84441g1122d22233',
-        'sign': 'f23f71c59dc76ce1d6f097514bed841d17caade8',
+        'p': 'EM30G560GH455GV',
+        'projectid': '577499e785ae16405764025f',
+        'sign': 'dfda7e2089ca2e0359a160c60e9310de5c96ccaa',
         'v': 1530497071,
       })
     })
