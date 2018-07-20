@@ -37,7 +37,8 @@ async function getBalance(projectId){
     }))
 
     return ErrorCode.ack(ErrorCode.OK, {
-      balance: sumOfProject * 0.94 - frozenOfProject - withdrawOfProject,
+      //fee rate: 0.6%
+      balance: sumOfProject * (1 - 0.006) - frozenOfProject - withdrawOfProject,
       frozen: frozenOfProject
     })
   }
