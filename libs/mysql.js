@@ -1322,7 +1322,11 @@ function SequelizeDefine() {
         },
         category: {
             type: Sequelize.STRING(10),
-            allowNull: false
+            allowNull: false,
+            defaultValue: 'offline',
+            validate: {
+            isIn: [['online', 'offline']]
+          }
         },
         tag: {   //渠道标识 alipay/wx/wx_pub/manual
             type: Sequelize.STRING(8),
@@ -1969,7 +1973,7 @@ function SequelizeDefine() {
 
     exports.Bills.hasMany(exports.FundChannelFlows);
     exports.FundChannelFlows.belongsTo(exports.Bills);
-
+    exports.FundChannelFlows.belongsTo(FundChannels);
     // exports.Topup.hasOne(exports.FundChannelFlows);
     // exports.FundChannelFlows.belongsTo(exports.Topup);
 

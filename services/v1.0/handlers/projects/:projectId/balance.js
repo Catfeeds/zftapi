@@ -12,7 +12,14 @@ async function getBalance(projectId){
       where: {
         category: Typedef.FundChannelFlowCategory.TOPUP,
         projectId: projectId
-      }
+      },
+      include: [{
+        model: MySQL.FundChannels,
+        attributes: ['id'],
+        where: {
+          category: 'online'
+        }
+      }]
     }))
 
     const frozenOfProject = common.translateBalance(await MySQL.WithDraw.sum('amount', {
@@ -30,7 +37,7 @@ async function getBalance(projectId){
     }))
 
     return ErrorCode.ack(ErrorCode.OK, {
-      balance: sumOfProject - frozenOfProject - withdrawOfProject,
+      balance: sumOfProject * 0.94 - frozenOfProject - withdrawOfProject,
       frozen: frozenOfProject
     })
   }
