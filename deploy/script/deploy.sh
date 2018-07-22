@@ -14,7 +14,7 @@ function start () {
 function test_deploy() {
   docker rm -f test_api_deploy
   docker run -v /etc/localtime:/etc/locatime -e ALLOW_ORIGIN -e ALI_KEY -e ALI_SECRET -e ENV -e REDIS_HOST -e REDIS_PORT -e REDIS_PASSWD -e AMAPKEY -e ZFT_AMAP_KEY -e ZFT_EM_READ -e ZFT_EM_WRITE -d \
-  	--name=test_api_deploy -p 8090:8000 $REPO:$IMAGE_VERSION
+  	--name=test_api_deploy -p 8090:8000 --net=zft $REPO:$IMAGE_VERSION
 }
 
 function test_curl() {

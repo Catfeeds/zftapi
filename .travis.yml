@@ -10,7 +10,7 @@ env:
   - REPO=kpse/api-zft
   - DEPLOY_USER=kpse
   - KEY_PATH=/tmp/deploy_rsa
-  - HOST=testzft.cloudenergy.me
+  - HOST=stage.exgcc.com
   - DOCKER_COMPOSE_VERSION=1.20.1
 before_script:
   - export TZ=Asia/Shanghai
@@ -32,7 +32,7 @@ before_deploy:
   - scp -i $KEY_PATH deploy/script/deploy.sh $DEPLOY_USER@$HOST:/home/$DEPLOY_USER/deploy_api.sh
 
 addons:
-  ssh_known_hosts: testzft.cloudenergy.me
+  ssh_known_hosts: stage.exgcc.com
 
 deploy:
   provider: script
