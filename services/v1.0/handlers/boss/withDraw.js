@@ -1,6 +1,6 @@
 module.exports = {
   get: async (req, res) => {
-    const fn = MySQL.Sequelize.fn
+    // const fn = MySQL.Sequelize.fn
     let withDraw = await MySQL.WithDraw.findAll({
       // attributes: [
       //   [fn('sum', MySQL.Sequelize.col('channel->project->fundChannelFlows.amount')), 'sum'],
