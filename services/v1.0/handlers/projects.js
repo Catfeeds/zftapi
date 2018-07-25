@@ -34,7 +34,7 @@ module.exports = {
     }, {transaction: t})
 
     const allPayments = t => FundChannels.bulkCreate(fp.concat(
-      offlinePayments(projectInfo.id), onlinePayments(projectInfo.if)),
+      offlinePayments(projectInfo.id), onlinePayments(projectInfo.id)),
     {transaction: t})
     return MySQL.Sequelize.transaction(t =>
       Promise.all(
