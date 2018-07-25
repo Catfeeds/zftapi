@@ -2045,7 +2045,7 @@ function SequelizeDefine() {
         freezeTableName: true
     });
     withDraw.belongsTo(FundChannels, {as: 'channel', foreignKey: 'fundChannelId'});
-
+    withDraw.belongsTo(exports.Auth, {as: 'auth', foreignKey: 'auditor'});
     exports.WithDraw = withDraw;
 
     const banks = sequelizeInstance.define('banks', {

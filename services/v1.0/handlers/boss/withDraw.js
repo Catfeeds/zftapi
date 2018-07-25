@@ -7,6 +7,9 @@ module.exports = {
       // ],
       order:[['createdAt', 'DESC']],
       include:[{
+        model: MySQL.Auth,
+        as: 'auth'
+      },{
         model: MySQL.FundChannels,
         as: 'channel',
         include:[{
