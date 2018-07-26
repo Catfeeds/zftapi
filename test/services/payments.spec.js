@@ -6,6 +6,18 @@ const {spy, stub} = require('sinon')
 const {post} = require(
   '../../services/v1.0/handlers/projects/:projectId/bills/:billId/payments')
 
+const notificationStub = {
+  Users: {
+    async findById() {
+      return {toJSON: () => ({auth: {}})}
+    },
+  },
+  UserNotifications: {
+    async create() {
+      return {}
+    }
+  },
+}
 describe('Payment', function() {
   before(() => {
     global.Typedef = Include('/libs/typedef')
@@ -30,9 +42,11 @@ describe('Payment', function() {
       payments: [],
       dueAmount: 1000,
       id: 1121,
+      userId: 456,
     })
 
     const paymentCreateStub = stub().resolves({})
+    const fundChannelCreateStub = stub().resolves({})
     const flowCreateStub = stub().resolves({})
     const fundFlowSearchStub = stub().resolves({
       toJSON: () => ({
@@ -47,8 +61,12 @@ describe('Payment', function() {
       }),
     })
     global.MySQL = {
+      ... notificationStub,
       BillPayment: {
         bulkCreate: paymentCreateStub,
+      },
+      FundChannelFlows: {
+        bulkCreate: fundChannelCreateStub,
       },
       Flows: {
         bulkCreate: flowCreateStub,
@@ -68,6 +86,7 @@ describe('Payment', function() {
       findByIdStub.should.have.been.called
       paymentCreateStub.should.have.been.called
       flowCreateStub.should.have.been.called
+      fundChannelCreateStub.should.have.been.called
     })
   })
 

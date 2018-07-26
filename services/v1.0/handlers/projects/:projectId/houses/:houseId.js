@@ -107,9 +107,10 @@ module.exports = {
       where: {
         id: houseId,
         deleteAt: 0,
-        projectId: projectId,
-        //TODO: can we delete closed houses?
-        status: Typedef.HouseStatus.OPEN,
+        projectId,
+        status: {
+          $or: [Typedef.HouseStatus.OPEN, Typedef.HouseStatus.CLOSED]
+        },
       },
     })
     if (!isExists) {

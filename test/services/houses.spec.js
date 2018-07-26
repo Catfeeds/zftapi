@@ -2,15 +2,17 @@
 
 const {get} = require(
   '../../services/v1.0/handlers/projects/:projectId/houses')
+const {'delete': destroy} = require(
+  '../../services/v1.0/handlers/projects/:projectId/houses/:houseId')
 require('include-node')
-const {spy} = require('sinon')
+const {spy, stub} = require('sinon')
 const fp = require('lodash/fp')
 
 describe('Houses', function() {
   before(() => {
     global.Typedef = Include('/libs/typedef')
     global.Util = Include('/libs/util')
-    global.log = {error: fp.noop}
+    global.log = {error: console.log}
   })
 
   it('should return all houses from findAndCountAll', async function() {
@@ -42,10 +44,10 @@ describe('Houses', function() {
                 },
 
               }),
-            }
+            },
           ]
         },
-        count: fp.constant(1)
+        count: fp.constant(1),
       },
     }
     const resSpy = spy()
@@ -111,7 +113,7 @@ describe('Houses', function() {
               }),
             }]
         },
-        count: fp.constant(1)
+        count: fp.constant(1),
       },
     }
     const resSpy = spy()
@@ -124,5 +126,90 @@ describe('Houses', function() {
       fp.head(devices).status.service.should.be.eql('EMC_OFFLINE')
     })
 
+  })
+
+  it('should be able to soft delete a house', async function() {
+    const req = {
+      params: {
+        projectId: 100,
+        houseId: 200,
+      },
+      query: {houseFormat: 'ENTIRE'},
+
+    }
+    const countStub = stub().resolves(1)
+    const updateStub = stub().resolves({})
+
+    global.MySQL = {
+      Houses: {
+        count: countStub,
+        update: updateStub,
+        async findAll() {
+          return [
+            {
+              toJSON: () => ({
+                id: 'id',
+                code: 'code',
+                roomNumber: 'roomNumber',
+                currentFloor: 'currentFloor',
+                layouts: 'layouts',
+                houseFormat: 'SHARE',
+                houseKeeper: 0,
+                building: {
+                  group: 'group',
+                  building: 'building',
+                  location: 'location',
+                  unit: 'unit',
+                },
+
+              }),
+            },
+          ]
+        },
+      },
+      Rooms: {
+        async findAll() {
+          return []
+        },
+        async destroy() {
+          return {}
+        },
+      },
+      HouseDevices: {
+        async destroy() {
+          return {}
+        },
+      },
+      Layouts: {
+        async update() {
+          return []
+        },
+      },
+      Sequelize: {
+        transaction: async () => ({
+          rollback: fp.noop,
+          commit: fp.noop,
+        }),
+      },
+    }
+    const resSpy = spy()
+
+    await destroy(req, {send: resSpy})
+
+    resSpy.should.have.been.called
+    resSpy.getCall(0).args[0].should.be.eql(204)
+
+    countStub.should.have.been.called
+
+    countStub.getCall(0).args[0].should.be.eql({
+      where: {
+        deleteAt: 0,
+        id: 200,
+        projectId: 100,
+        status: {
+          $or: ['OPEN', 'CLOSED']
+        }
+      }
+    })
   })
 })
