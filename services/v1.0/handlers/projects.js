@@ -33,9 +33,13 @@ module.exports = {
       level: 'ADMIN',
     }, {transaction: t})
 
-    const allPayments = t => FundChannels.bulkCreate(fp.concat(
-      offlinePayments(projectInfo.id), onlinePayments(projectInfo.id)),
-    {transaction: t})
+    const allPayments = async t => {
+      const onlineChannels = onlinePayments(projectInfo.id)
+      return FundChannels.bulkCreate(fp.flatten([
+        offlinePayments(projectInfo.id),
+        onlineChannels,
+        allReceiveChannels(onlineChannels)]), {transaction: t})
+    }
     return MySQL.Sequelize.transaction(t =>
       Promise.all(
         fp.flatten([Projects.create(guardFields, {transaction: t}), adminUser(t),
@@ -65,4 +69,7 @@ const onlinePayments = projectId => fp.map(fp.defaults(
     {tag: 'alipay', name: '支付宝'},
     {tag: 'wx', name: '微信'},
   ])
+
+//TODO: this is required to enable online payments, fix this in BOSS creating project function
+const allReceiveChannels = () => []
 
