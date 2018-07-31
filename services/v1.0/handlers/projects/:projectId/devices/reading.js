@@ -62,17 +62,14 @@ module.exports = {
         ,
         {
           model: MySQL.Building,
-          as: 'building'
-          ,
+          as: 'building',
           include: [
             {
               model: MySQL.GeoLocation,
               as: 'location',
               required: true,
-            }]
-          ,
-          required: true
-          ,
+            }],
+          required: true,
           attributes: ['group', 'building', 'unit'],
         },
         deviceInclude(MySQL)(timeFrom, timeTo, projectId),
@@ -80,7 +77,9 @@ module.exports = {
           model: MySQL.HouseDevicePrice,
           as: 'prices',
           where: {
+            projectId,
             category: 'CLIENT',
+            endDate: 0,
           },
           required: false,
           attributes: ['houseId', 'category', 'type', 'price'],
