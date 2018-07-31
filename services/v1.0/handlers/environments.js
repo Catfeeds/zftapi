@@ -48,6 +48,7 @@ module.exports = {
 
     const Auth = MySQL.Auth
     const Projects = MySQL.Projects
+    const FundChannels = MySQL.FundChannels
 
     try {
       const userProfile = await MySQL.Users.findOne({
@@ -81,6 +82,12 @@ module.exports = {
       const project = projectId && await Projects.findById(projectId,
         {attributes: ['id', 'name']})
 
+      const fundChannels = projectId && await FundChannels.findAll({
+        attributes: ['id', 'tag', 'name'],
+        where: {
+          projectId
+        },
+      })
       const data = fp.compact(fp.concat(environments,
         [
           auth.level === 'USER' ? {key: 'user',
@@ -92,6 +99,7 @@ module.exports = {
             : null
           , projectId ? {key: 'project', value: project} : null
           , {key: 'features', value: {billPaymentInApp: false}}
+          , {key: 'fundChannels', value: fp.map(c => c.toJSON())(fundChannels)}
         ]
       ))
       res.send(data)

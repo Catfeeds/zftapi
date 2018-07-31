@@ -31,6 +31,8 @@ describe('Environments', function() {
     const contract = {id: 123, room: {house}}
     const expectedContract = {id: 123, houseId: 321}
     const projectInfo = {id: 567, name: 'project name'}
+    const channelRes = [{toJSON: () => ({id: 789, tag: 'tag', name: 'channel'})}]
+    const channels = [{id: 789, tag: 'tag', name: 'channel'}]
 
     const req = {isAuthenticated: () => true, user}
 
@@ -50,6 +52,9 @@ describe('Environments', function() {
       Projects: {
         findById: async () => projectInfo,
       },
+      FundChannels: {
+        findAll: async () => channelRes,
+      },
     }
 
     const resSpy = spy()
@@ -58,7 +63,7 @@ describe('Environments', function() {
       const response = resSpy.getCall(0).args[0]
 
       response.should.shallowDeepEqual({
-        length: 9,
+        length: 10,
         0: {key: 'houseFormat'},
         1: {key: 'roomType'},
         2: {key: 'operationStatus'},
@@ -68,6 +73,7 @@ describe('Environments', function() {
         6: {key: 'contracts', value: [expectedContract]},
         7: {key: 'project', value: projectInfo},
         8: {key: 'features', value: {billPaymentInApp: false}},
+        9: {key: 'fundChannels', value: channels},
       })
     })
   })
