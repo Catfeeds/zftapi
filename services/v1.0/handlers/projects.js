@@ -9,6 +9,7 @@ module.exports = {
     const Projects = MySQL.Projects
     const Auth = MySQL.Auth
     const FundChannels = MySQL.FundChannels
+    const ReceiveChannels = MySQL.ReceiveChannels
 
     if (fp.isEmpty(body.name)) {
       return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERERROR,
@@ -21,9 +22,15 @@ module.exports = {
     }
 
     const projectInfo = assignNewId(fp.omit('projectId')(body))
-
     const guardFields = fp.pick(
-      ['name', 'projectId', 'logoUrl', 'address', 'description', 'telephone'])(
+      [
+        'id',
+        'name',
+        'projectId',
+        'logoUrl',
+        'address',
+        'description',
+        'telephone'])(
       projectInfo)
 
     const adminUser = t => Auth.create({
@@ -35,14 +42,23 @@ module.exports = {
 
     const allPayments = async t => {
       const onlineChannels = onlinePayments(projectInfo.id)
-      return FundChannels.bulkCreate(fp.flatten([
-        offlinePayments(projectInfo.id),
-        onlineChannels,
-        allReceiveChannels(onlineChannels)]), {transaction: t})
+      const offlineChannels = offlinePayments(projectInfo.id)
+      const fundChannelCreating = fp.map(
+        f => FundChannels.create(f, {transaction: t}))(
+        fp.flatten([
+          offlineChannels,
+          onlineChannels]))
+      const receiveChannelCreating = fp.map(
+        f => ReceiveChannels.create(f, {transaction: t}))(fp.flatten([
+        receiveChannels(offlineChannels),
+        receiveChannels(onlineChannels)]))
+      return Promise.all(
+        fp.flatten([fundChannelCreating, receiveChannelCreating]))
     }
     return MySQL.Sequelize.transaction(t =>
       Promise.all(
-        fp.flatten([Projects.create(guardFields, {transaction: t}), adminUser(t),
+        fp.flatten([
+          Projects.create(guardFields, {transaction: t}), adminUser(t),
           allPayments(t)]))).
       then(() => res.send(200,
         ErrorCode.ack(ErrorCode.OK, {id: projectInfo.id}))).
@@ -51,8 +67,9 @@ module.exports = {
   },
 }
 
-const offlinePayments = projectId => fp.map(fp.defaults(
-  {flow: 'receive', projectId, category: 'offline', status: 'PASSED'}))(
+const offlinePayments = projectId => fp.map(fp.pipe(fp.defaults(
+  {flow: 'receive', projectId, category: 'offline', status: 'PASSED'}),
+assignNewId))(
   [
     {tag: 'cash', name: '现金'},
     {tag: 'card', name: '银行转账'},
@@ -63,13 +80,15 @@ const offlinePayments = projectId => fp.map(fp.defaults(
     {tag: 'reversal', name: '冲正'},
     {tag: 'wechat', name: '微信转账'},
   ])
-const onlinePayments = projectId => fp.map(fp.defaults(
-  {flow: 'receive', projectId, category: 'online', status: 'PASSED'}))(
+const onlinePayments = projectId => fp.map(fp.pipe(fp.defaults(
+  {flow: 'receive', projectId, category: 'online', status: 'PASSED'}),
+assignNewId))(
   [
     {tag: 'alipay', name: '支付宝'},
     {tag: 'wx', name: '微信'},
   ])
 
 //TODO: this is required to enable online payments, fix this in BOSS creating project function
-const allReceiveChannels = () => []
+const receiveChannels = fp.map(
+  c => ({id: c.id, fundChannelId: c.id, fee: 0}))
 
