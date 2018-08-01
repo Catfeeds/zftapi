@@ -69,6 +69,7 @@ module.exports = {
               {'$rooms.contracts.user.name$': {$regexp: query.q}},
               {'$rooms.devices.deviceId$': {$regexp: query.q}},
               {'$devices.deviceId$': {$regexp: query.q}},
+              {'$devices.memo$': {$regexp: query.q}},
             ],
           } : {},
         ]),
@@ -162,7 +163,7 @@ module.exports = {
         where: fp.extendAll([
           getQueryPower()
           , getQueryStatus()
-          , {projectId: projectId},
+          , {projectId},
         ])
         , include: [
           {
@@ -232,15 +233,18 @@ module.exports = {
         [
           {
             projectId: projectId,
-            deviceId: fp.assign(
-              {
-                $notIn: deviceIds,
-              }
-              , q ? {$regexp: q} : {},
-            ),
+            deviceId: {
+              $notIn: deviceIds,
+            },
           }
           , getQueryPower()
           , getQueryStatus(),
+          q ? {
+            $or: [
+              {'$devices.deviceId$': {$regexp: q}},
+              {'$devices.memo$': {$regexp: q}},
+            ],
+          } : {},
         ],
       )
       const devices = await MySQL.Devices.findAndCountAll(
