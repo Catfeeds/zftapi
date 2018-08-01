@@ -294,7 +294,6 @@ create table if not exists `housesDevicesPrice`
 create table if not exists `projects`
 (
 	`id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
-	`externalId` varchar(32) NOT NULL,
 	`name` varchar(32) NULL,
 	`logoUrl` varchar(255) NULL,
 	`address` varchar(255) NULL,
