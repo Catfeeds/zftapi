@@ -159,9 +159,10 @@ module.exports = {
 
           return Promise.all(fp.compact(
             [clearPushBinding, contractUpdating, finalBill, finalFlow, operations, clearSharing, clearAccount],
-          )).then(([updated,]) => res.send(updated))
+          )).then(([,updated,]) => res.send(updated))
         })
-      }).catch(err => res.send(500,
+      })
+      .catch(err => res.send(500,
         ErrorCode.ack(ErrorCode.DATABASEEXEC, {error: err.message})))
   },
 }

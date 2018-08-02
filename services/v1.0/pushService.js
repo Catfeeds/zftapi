@@ -118,7 +118,13 @@ exports.commonNotification = sequelizeModel => async notification => {
         model: sequelizeModel.Auth, required: true, include: [
           {model: sequelizeModel.Bindings, required: false},
         ],
-      }],
+      }, {
+        model: sequelizeModel.Contracts, where: {
+          status: 'ONGOING'
+        },
+        required: true,
+      }
+    ],
   }).then(user => user ? user.toJSON() : {}).then(user => {
     const notificationInstance = common.assignNewId({
       title: notification.titleOf(user),

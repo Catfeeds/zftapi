@@ -803,7 +803,7 @@ exports.clearCashAccount = (MySQL, t) =>
 
 exports.clearBinding = (MySQL, t) =>
   userId => MySQL.Users.findById(userId).
-    then(user => fp.get('dataValues.authId')(user)).
+    then(fp.get('dataValues.authId')).
     then(
       authId =>
         MySQL.Bindings.destroy({

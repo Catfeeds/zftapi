@@ -713,6 +713,7 @@ function SequelizeDefine() {
     });
 
     Contracts.belongsTo(Users);
+    Users.hasMany(Contracts);
     Users.hasOne(CashAccount, {as: 'cashAccount', foreignKey: 'userId'});
     CashAccount.belongsTo(Users);
 

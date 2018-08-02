@@ -133,5 +133,12 @@ const userInfoInclude = MySQL => [
         model: MySQL.Auth,
         attributes: ['mobile'],
         required: true,
+      },{
+        model: MySQL.Contracts,
+        attributes: ['id'],
+        where: {
+          status: 'ONGOING'
+        },
+        required: true,
       }],
   }]
