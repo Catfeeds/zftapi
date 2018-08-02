@@ -793,3 +793,21 @@ exports.clearDeviceSharing = (MySQL, t) => (
     houseId,
   }, transaction: t,
 })
+
+exports.clearCashAccount = (MySQL, t) =>
+  userId => MySQL.CashAccount.update({balance: 0, locker: 0}, {
+    where: {
+      userId,
+    }, transaction: t,
+  })
+
+exports.clearBinding = (MySQL, t) =>
+  userId => MySQL.Users.findById(userId).
+    then(user => fp.get('dataValues.authId')(user)).
+    then(
+      authId =>
+        MySQL.Bindings.destroy({
+          where: {
+            authId,
+          }, transaction: t,
+        }))

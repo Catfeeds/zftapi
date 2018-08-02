@@ -6,6 +6,7 @@ const fp = require('lodash/fp')
 const {
   assignNewId, omitSingleNulls, clearDeviceSharing,
   innerValues, jsonProcess, payBills, pickAuthAttributes,
+  clearCashAccount, clearBinding,
 } = require(
   '../../../../common')
 const {finalBill: finalBillOf} = require(
@@ -151,12 +152,13 @@ module.exports = {
             SuspendingRooms.create(suspending, {transaction: t}) :
             null
 
-          // console.log('contract.room', contract.room.toJSON());
           const clearSharing = clearDeviceSharing(MySQL, t)(projectId, contract.room.toJSON().houseId)
 
+          const clearAccount = clearCashAccount(MySQL, t)(contract.userId)
+          const clearPushBinding = clearBinding(MySQL, t)(contract.userId)
 
           return Promise.all(fp.compact(
-            [contractUpdating, finalBill, finalFlow, operations, clearSharing],
+            [clearPushBinding, contractUpdating, finalBill, finalFlow, operations, clearSharing, clearAccount],
           )).then(([updated,]) => res.send(updated))
         })
       }).catch(err => res.send(500,
