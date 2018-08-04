@@ -1,4 +1,4 @@
-INSERT INTO zft.deviceHeartbeats (id, deviceId, total, current, voltage, createdAt, updatedAt, deletedAt) VALUES
+INSERT INTO zft.deviceHeartbeats (deviceId, total, `current`, voltage, createdAt, updatedAt, deletedAt) VALUES
 ('YTL043000101485', 1.100, 0.130, 236.550, '2018-07-24 18:12:54', '2018-07-24 18:12:54', null),
 ('YTL043000101485', 1.900, 0.130, 236.550, '2018-07-24 23:12:54', '2018-07-24 18:12:54', null),
 ('YTL043000101485', 2.100, 0.130, 236.550, '2018-07-25 18:12:54', '2018-07-25 18:12:54', null),
