@@ -32,9 +32,7 @@ module.exports = {
     }
 
     const {startDate, mode = 'DAY'} = req.query
-    const actualStartDate = moment.unix(startDate).
-      subtract(1, 'days').
-      unix()
+    const actualStartDate = startDateBaseOnMode(mode, startDate)
     const endDate = endDateBaseOnMode(mode, actualStartDate)
 
     await MySQL.DeviceHeartbeats.findAll(
@@ -78,12 +76,18 @@ module.exports = {
 
 const endDateBaseOnMode = (mode, startFrom) => {
   const pattern = {
-    DAY: moment(startFrom * 1000).add(1, 'd').unix(),
-    WEEK: moment(startFrom * 1000).add(1, 'w').unix(),
-    MONTH: moment(startFrom * 1000).add(1, 'M').unix(),
-    YEAR: moment(startFrom * 1000).add(1, 'y').unix(),
+    DAY: moment(startFrom * 1000).add(1, 'day').endOf('day').unix(),
+    WEEK: moment(startFrom * 1000).add(1, 'week').unix(),
+    MONTH: moment(startFrom * 1000).add(1, 'month').unix(),
+    YEAR: moment(startFrom * 1000).add(1, 'year').unix(),
   };
   return fp.getOr(pattern['DAY'])(mode)(pattern)
+}
+const startDateBaseOnMode = (mode, startFrom) => {
+  const pattern = {
+    DAY: moment(startFrom * 1000).subtract(1, 'hours').unix(),
+  };
+  return fp.getOr(startFrom)(mode)(pattern)
 }
 
 const patternBaseOnMode = (mode) => {
