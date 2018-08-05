@@ -27,14 +27,15 @@ module.exports = {
     const projectId = req.params.projectId
     const deviceId = req.params.deviceId
 
-    if (!Util.ParameterCheck(req.query, ['startDate', 'endDate'])) {
+    if (!Util.ParameterCheck(req.query, ['startDate', 'mode'])) {
       return res.send(422, ErrorCode.ack(ErrorCode.PARAMETERMISSED))
     }
 
-    const startDate = moment.unix(req.query.startDate).
+    const {startDate, mode = 'DAY'} = req.query
+    const actualStartDate = moment.unix(startDate).
       subtract(1, 'days').
       unix()
-    const endDate = req.query.endDate
+    const endDate = endDateBaseOnMode(mode, actualStartDate)
 
     await MySQL.DeviceHeartbeats.findAll(
       {
@@ -43,7 +44,7 @@ module.exports = {
           [
             MySQL.Sequelize.fn('DATE_FORMAT',
               MySQL.Sequelize.col('createdAt'),
-              '%Y-%m-%d %H:00:00'),
+              patternBaseOnMode(mode)),
             'time'],
           [
             MySQL.Sequelize.fn('max',
@@ -56,20 +57,41 @@ module.exports = {
         group: [
           'deviceId',
           MySQL.Sequelize.fn('DATE_FORMAT',
-            MySQL.Sequelize.col('createdAt'), '%Y-%m-%d %H:00:00')],
+            MySQL.Sequelize.col('createdAt'), patternBaseOnMode(mode))],
         where: {
           deviceId,
           createdAt: {
-            $gte: formatMysqlDateTime(startDate),
+            $gte: formatMysqlDateTime(actualStartDate),
             $lte: formatMysqlDateTime(endDate),
           },
         },
       },
     ).then(translate).then(data => res.send(data)).catch(
       err => {
-        log.error(err, projectId, deviceId, startDate, endDate)
+        log.error(err, projectId, deviceId, actualStartDate, endDate)
         res.send(500, ErrorCode.ack(ErrorCode.DATABASEEXEC))
       },
     )
   },
+}
+
+
+const endDateBaseOnMode = (mode, startFrom) => {
+  const pattern = {
+    DAY: moment(startFrom * 1000).add(1, 'd').unix(),
+    WEEK: moment(startFrom * 1000).add(1, 'w').unix(),
+    MONTH: moment(startFrom * 1000).add(1, 'M').unix(),
+    YEAR: moment(startFrom * 1000).add(1, 'y').unix(),
+  };
+  return fp.getOr(pattern['DAY'])(mode)(pattern)
+}
+
+const patternBaseOnMode = (mode) => {
+  const pattern =  {
+    DAY: '%Y-%m-%d %H:00:00',
+    WEEK: '%Y-%m-%d',
+    MONTH: '%Y-%m-%d',
+    YEAR: '%Y-%m',
+  };
+  return fp.getOr(pattern['DAY'])(mode)(pattern)
 }
