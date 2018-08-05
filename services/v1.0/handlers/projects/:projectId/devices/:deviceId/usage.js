@@ -80,13 +80,13 @@ const endDateBaseOnMode = (mode, startFrom) => {
     WEEK: moment(startFrom * 1000).add(1, 'week').unix(),
     MONTH: moment(startFrom * 1000).add(1, 'month').unix(),
     YEAR: moment(startFrom * 1000).add(1, 'year').unix(),
-  };
+  }
   return fp.getOr(pattern['DAY'])(mode)(pattern)
 }
 const startDateBaseOnMode = (mode, startFrom) => {
   const pattern = {
     DAY: moment(startFrom * 1000).subtract(1, 'hours').unix(),
-  };
+  }
   return fp.getOr(startFrom)(mode)(pattern)
 }
 
@@ -96,6 +96,6 @@ const patternBaseOnMode = (mode) => {
     WEEK: '%Y-%m-%d',
     MONTH: '%Y-%m-%d',
     YEAR: '%Y-%m',
-  };
+  }
   return fp.getOr(pattern['DAY'])(mode)(pattern)
 }

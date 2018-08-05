@@ -30,7 +30,7 @@ describe('Device usage', function() {
       },
       query: {
         startDate: 1000000000,
-        endDate: 2625946400,
+        mode: 'DAY',
       },
 
     }
