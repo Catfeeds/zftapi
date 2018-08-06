@@ -616,7 +616,7 @@ create table if not exists `prePaidFlows`
 ) ENGINE = InnoDB ROW_FORMAT = Dynamic;
 
 -- project demo record
-INSERT INTO `zft`.`projects` (`id`, `name`, `externalId`) VALUES (100, '加州项目', '5938bb4f4d3684627bcabd7f');
+INSERT INTO `zft`.`projects` (`id`, `name`) VALUES (100, '加州项目');
 INSERT INTO `zft`.`auth` (`id`, `projectId`, `username`, `password`, createdAt, updatedAt)
 VALUES (1, 100, 'admin100', '5f4dcc3b5aa765d61d8327deb882cf99',  NOW(),  NOW()),
 	(2, 101, 'admin101', '5f4dcc3b5aa765d61d8327deb882cf99',  NOW(),  NOW());
