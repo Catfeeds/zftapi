@@ -2,8 +2,8 @@ const fp = require('lodash/fp')
 module.exports = {
   get: (req, res) => {
     const send = res.send.bind(res)
-    const from = _.get(['body', 'from'])(req)
-    const to = _.get(['body', 'from'])(req)
+    const from = fp.get(['body', 'from'])(req)
+    const to = fp.get(['body', 'from'])(req)
     if (!from || !to || to < from || from > now ) {
       return res.send(400, ErrorCode.ack(ErrorCode.PARAMETERERROR,
         {error: 'please provide valid from / to timestamp.'}))
