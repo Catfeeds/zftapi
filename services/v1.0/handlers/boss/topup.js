@@ -1,4 +1,4 @@
-const _ = require('lodash/fp')
+const fp = require('lodash/fp')
 module.exports = {
   get: (req, res) => {
     const send = res.send.bind(res)
