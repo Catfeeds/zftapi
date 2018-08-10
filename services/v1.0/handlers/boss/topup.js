@@ -11,11 +11,14 @@ module.exports = {
     /*eslint-disable */
     MySQL.Exec(
       `select t.amount, t.fee, t.balance, f.name as channel, u.name, t.orderNo, t.createdAt, b.remark, b.status
-       from billpayment b, topup t, users u, auth a , fundChannels f
-       where t.operator = a.id and u.id = t.userId and f.id = t.fundChannelId
-         and t.createdAt <= :to and t.createdAt >= :from
-       group by t.orderNo
-       order by t.createdAt desc`, {
+         from topup as t
+         left join fundChannelFlows as fl on t.orderNo = fl.orderNo
+         left join billpayment as b on b.id = fl.billId
+         left join users as u on u.id = t.userId
+         left join fundChannels as f on f.id = t.fundChannelid
+         where t.createdAt <= :to and t.createdAt >= :from
+         group by t.orderNo
+         order by t.createdAt desc`, {
          from, to
        })
       .then(send)
