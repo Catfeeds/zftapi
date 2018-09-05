@@ -5,7 +5,6 @@ const passport = require('passport')
 const fp = require('lodash/fp')
 const sessions = require('client-sessions')
 const auth = require('./auth/auth')
-const {job: cronJob} = require('./libs/cronJob')
 const config = require('config')
 const {allowOrigin} = require('./libs/cors')
 
