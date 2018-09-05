@@ -63,7 +63,7 @@ Include('/libs/enumServices').Load(
 
 MySQL.Load().then(
   () => {
-    cronJob()
+    // cronJob()
     Include('/libs/moduleLoader')
 
     Server.listen(8000, function () {
